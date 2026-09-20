@@ -936,15 +936,36 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     }
     if (data.shorts && data.shorts.length) $('#rail').innerHTML = data.shorts.map((v) => ytBtn(v, 'short', true)).join('');
   }
+  // One player at a time: starting a video closes whichever was playing (back to its thumbnail).
+  // A video that reaches its end closes too, so shorts don't loop forever.
+  const YT_ORIGIN = 'https://www.youtube-nocookie.com';
+  const closePlayers = (except) => $$('.yt iframe').forEach((f) => { if (f !== except) f.remove(); });
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-yt]');
-    if (!b) return;
+    if (!b || $('iframe', b)) return;
+    closePlayers();
     const f = document.createElement('iframe');
-    f.src = `https://www.youtube-nocookie.com/embed/${b.dataset.yt}?autoplay=1&rel=0&playsinline=1`;
+    f.src = `${YT_ORIGIN}/embed/${b.dataset.yt}?autoplay=1&rel=0&playsinline=1&loop=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
     f.title = b.getAttribute('aria-label');
     f.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen';
     f.allowFullscreen = true;
+    // subscribing to player events is how the embed tells us when playback ends
+    f.addEventListener('load', () => f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: b.dataset.yt, channel: 'widget' }), YT_ORIGIN));
     b.append(f);
+  });
+  // The embed reports "ended" for normal videos, but a short silently restarts instead, so also
+  // watch the clock: jumping from the final second back to the start means it just looped.
+  const progress = new WeakMap();
+  addEventListener('message', (e) => {
+    if (e.origin !== YT_ORIGIN || typeof e.data !== 'string') return;
+    let info; try { info = JSON.parse(e.data).info; } catch { return; }
+    if (!info) return;
+    const p = progress.get(e.source) || { t: 0, dur: 0 };
+    if (info.duration) p.dur = info.duration;
+    const looped = typeof info.currentTime === 'number' && p.dur && p.t > p.dur - 1 && info.currentTime < 1;
+    if (typeof info.currentTime === 'number') p.t = info.currentTime;
+    progress.set(e.source, p);
+    if (info.playerState === 0 || looped) $$('.yt iframe').forEach((f) => { if (f.contentWindow === e.source) f.remove(); });
   });
   const rail = $('#rail');
   $$('[data-rail]').forEach((b) => b.addEventListener('click', () => rail.scrollBy({ left: b.dataset.rail * rail.clientWidth * .8, behavior: 'smooth' })));
