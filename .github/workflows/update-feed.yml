@@ -2,7 +2,7 @@ name: Update video feed
 
 on:
   schedule:
-    - cron: "17 * * * *" # hourly; only commits (and so only redeploys) when the list changed
+    - cron: "17 5 * * *" # daily; /api/feed serves the live list, this just keeps the static fallback fresh
   workflow_dispatch:
 
 permissions:

@@ -4,9 +4,9 @@ Single-page site for [Trongate's Legacy](https://kick.com/trongateslegacy) — l
 
 - `public/index.html` — the whole site (HTML, CSS and JS inline, no build step)
 - `public/assets/img/` — optimised WebP character art (four mouth/eye states per form)
-- `public/feed.json` — latest YouTube videos + shorts, refreshed hourly by `.github/workflows/update-feed.yml`
-  (YouTube's RSS feeds reject Netlify's servers, so this is fetched on GitHub and committed when it changes)
-- `netlify/functions/feed.mjs` — `/api/feed`: Kick live status
+- `netlify/functions/feed.mjs` — `/api/feed`: latest YouTube videos + shorts and Kick live status
+  (needs `YOUTUBE_API_KEY`, `KICK_CLIENT_ID`, `KICK_CLIENT_SECRET` set in Netlify)
+- `public/feed.json` — static fallback video list, refreshed daily by `.github/workflows/update-feed.yml`
 - `dev.mjs` — local preview: `node dev.mjs` → http://localhost:8888
 
 ## Deploying to Netlify
@@ -33,6 +33,3 @@ Kick's website API usually blocks server-side requests, so for a reliable LIVE b
 player, create an app at <https://kick.com/settings/developer> and set `KICK_CLIENT_ID` and
 `KICK_CLIENT_SECRET` as Netlify environment variables. Without them the site still works; it just
 shows a neutral status.
-
-After the first deploy, change the `og:image` URL in `public/index.html` to an absolute URL on the
-final domain so link previews work everywhere.
