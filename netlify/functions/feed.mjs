@@ -71,7 +71,7 @@ async function isShort(id) {
 
 // The per-type playlist feeds are the cleanest source but YouTube intermittently 404s them
 // (especially from cloud IPs), so fall back to the channel feed and sort entries ourselves.
-async function youtube() {
+export async function youtube() {
   const strip = (list, n) => list.slice(0, n).map(({ short, ...v }) => v);
   const [videos, shorts] = await Promise.allSettled([fetchFeed(playlistFeed("UULF")), fetchFeed(playlistFeed("UUSH"))]);
   if (videos.status === "fulfilled" && shorts.status === "fulfilled") {
