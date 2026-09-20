@@ -112,6 +112,8 @@ export default async () => {
       videos: value(videos, []),
       shorts: value(shorts, []),
       kick: value(kickStatus, null),
+      // upstream failures, so a broken source is visible at /api/feed instead of silently empty
+      errors: [videos, shorts, kickStatus].filter((r) => r.status === "rejected").map((r) => String(r.reason?.message || r.reason)),
       generated: new Date().toISOString(),
     }),
     {
