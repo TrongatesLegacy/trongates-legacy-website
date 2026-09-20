@@ -727,7 +727,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
   const setImg = (img, src, sizes = window.__sizes) => { img.sizes = sizes; img.srcset = window.__srcset(src); img.src = src; };
   const CARD_SIZES = '(max-width: 900px) 45vw, 250px';
-  const preload = (src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; setImg(i, src); });
+  const preload = (src, priority = 'high') => new Promise((res) => { const i = new Image(); i.fetchPriority = priority; i.onload = i.onerror = res; setImg(i, src); });
 
   const ARMOURS = ['cyan', 'yellow', 'red'];
   let armour = 'cyan';
@@ -747,19 +747,40 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   }
   syncForm();
 
+  // Colours, chips and cards switch instantly; the character follows as soon as its idle frame is
+  // decoded (normally already cached by warmForms below), so a slow network never stalls the click.
+  let switchId = 0;
   async function setTheme(next) {
     if (next === theme) return;
-    const srcs = Object.keys(STATES).map((s) => srcFor(next, s));
-    await preload(srcs[0]);                       // swap only once the idle frame is ready
+    const id = ++switchId;
     theme = next;
     root.dataset.theme = next;
-    Object.keys(STATES).forEach((s, i) => setImg(tuberImgs[s], srcs[i]));
+    root.classList.remove('no-pick');
     syncForm();
     cycles.recolor(THEMES[next]);
     try { localStorage.setItem('tgl-form', next); } catch {}   // only an explicit pick is remembered
-    root.classList.remove('no-pick');
+    const srcs = Object.keys(STATES).map((s) => srcFor(next, s));
+    await preload(srcs[0]);
+    if (id !== switchId) return;                  // a newer pick overtook this one
+    Object.keys(STATES).forEach((s, i) => setImg(tuberImgs[s], srcs[i]));
     speak();
   }
+
+  // Fetch the other forms' art in the background so switching is instant: idle frames first, then
+  // the talking/blinking ones. Skipped on data-saver; hovering or touching a chip warms that form now.
+  const warmed = new Set();
+  const warm = (form, states = Object.keys(STATES)) => Promise.all(states.filter((st) => !warmed.has(form + st)).map((st) => (warmed.add(form + st), preload(srcFor(form, st), 'low'))));
+  async function warmForms() {
+    if (saveData) return;
+    const others = Object.keys(THEMES).filter((f) => f !== theme);
+    for (const f of others) await warm(f, ['co']);
+    for (const f of others) await warm(f);
+  }
+  $$('[data-theme-btn], [data-armour-btn], .card').forEach((el) => {
+    const form = () => el.dataset.themeBtn || el.dataset.armourBtn || (el.dataset.card === 'tron' ? armour : el.dataset.card);
+    ['pointerenter', 'touchstart', 'focus'].forEach((ev) => el.addEventListener(ev, () => warm(form()), { passive: true }));
+  });
+
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
   $$('[data-armour-btn]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); setTheme(b.dataset.armourBtn); }));
 
@@ -799,6 +820,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     ['cc', 'oo', 'oc'].forEach((s) => setImg(tuberImgs[s], srcFor(theme, s)));
     $$('[data-tron="oo"]').forEach((i) => setImg(i, srcFor(armour, 'oo'), CARD_SIZES));
     setTimeout(blink, 1800);
+    if (window.requestIdleCallback) requestIdleCallback(warmForms, { timeout: 4000 }); else setTimeout(warmForms, 2000);
     if (!reduced) setTimeout(() => { if (!talking && !isLiveNow()) speak(); }, 2600);   // when live, the go-live line stays up instead
   });
 
