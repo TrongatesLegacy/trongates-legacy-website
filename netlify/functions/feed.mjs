@@ -118,8 +118,11 @@ export async function youtube() {
 
 // Official Kick API — used when KICK_CLIENT_ID / KICK_CLIENT_SECRET are set in Netlify
 // (create an app at https://kick.com/settings/developer). Reliable, but has no follower count.
-async function kickOfficial() {
-  const tokenRes = await fetchWithTimeout("https://id.kick.com/oauth/token", {
+// App tokens last ~60 days, so a warm function instance reuses one instead of minting it per request.
+let kickToken = null;
+async function kickAccessToken() {
+  if (kickToken && kickToken.expires > Date.now()) return kickToken.value;
+  const res = await fetchWithTimeout("https://id.kick.com/oauth/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -128,11 +131,18 @@ async function kickOfficial() {
       client_secret: process.env.KICK_CLIENT_SECRET,
     }),
   });
-  if (!tokenRes.ok) throw new Error(`kick token ${tokenRes.status}`);
-  const { access_token } = await tokenRes.json();
+  if (!res.ok) throw new Error(`kick token ${res.status}`);
+  const { access_token, expires_in } = await res.json();
+  kickToken = { value: access_token, expires: Date.now() + (expires_in - 3600) * 1000 };
+  return access_token;
+}
+
+async function kickOfficial() {
+  const access_token = await kickAccessToken();
   const res = await fetchWithTimeout(`https://api.kick.com/public/v1/channels?slug=${KICK_SLUG}`, {
     headers: { Authorization: `Bearer ${access_token}`, Accept: "application/json" },
   });
+  if (res.status === 401) kickToken = null; // revoked or expired early: mint a fresh one next time
   if (!res.ok) throw new Error(`kick api ${res.status}`);
   const channel = (await res.json()).data?.[0];
   if (!channel) throw new Error("kick channel missing");
