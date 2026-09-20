@@ -22,16 +22,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script>
-// Pick the form before first paint: the visitor's saved choice, otherwise a random one.
+// Pick the form before first paint: the visitor's saved choice, otherwise classic Tron.
 (function () {
   var forms = ['cyan', 'yellow', 'red', 'princess', 'blobfish'], form;
   try { form = localStorage.getItem('tgl-form'); } catch (e) {}
-  if (forms.indexOf(form) < 0) form = forms[Math.floor(Math.random() * forms.length)];
+  var picked = forms.indexOf(form) >= 0;
+  if (!picked) form = 'cyan';
   var file = form === 'princess' ? 'princess-uwu' : form === 'blobfish' ? 'blobfish-mclosed-eopen' : 'tron-' + form + '-mclosed-eopen';
   window.__form = form;
   window.__formSrc = '/assets/img/' + file + '.webp';
   var root = document.documentElement, link = document.createElement('link');
   root.classList.add('js');
+  if (!picked) root.classList.add('no-pick');   // never chose a form: the selector advertises itself
   root.dataset.theme = form;
   link.rel = 'preload'; link.as = 'image'; link.href = window.__formSrc; link.fetchPriority = 'high';
   document.head.appendChild(link);
@@ -204,6 +206,19 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 .bubble { position: absolute; left: 58%; top: 4%; max-width: 15rem; padding: .7rem 1rem; font-size: .92rem; font-weight: 600; line-height: 1.35; color: #001018; background: var(--accent); border-radius: 14px 14px 14px 2px; box-shadow: 0 0 24px var(--a70); opacity: 0; transform: translateY(8px) scale(.92); transform-origin: 0 100%; transition: opacity .25s, transform .25s cubic-bezier(.3,1.6,.5,1); pointer-events: none; }
 .bubble.on { opacity: 1; transform: none; }
 .armour { display: flex; align-items: center; gap: .6rem; padding: .5rem .8rem; border: 1px solid var(--line); border-radius: 99px; background: rgba(7,13,24,.75); }
+.armour { position: relative; }
+/* first-time visitors: chips hop in a wave and a caption points at them until a form is picked */
+.form-hint { display: none; }
+.no-pick .form-hint { display: block; position: absolute; left: 50%; top: calc(100% + .7rem); translate: -50% 0; padding: .4rem .75rem; font: 600 .7rem/1 var(--body); font-style: normal; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; color: #001018; background: var(--accent); border-radius: 6px; box-shadow: 0 0 18px var(--a70); animation: hint-nudge 1.6s ease-in-out infinite; pointer-events: none; }
+.no-pick .form-hint::before { content: ''; position: absolute; left: 50%; bottom: 100%; translate: -50% 1px; border: 6px solid transparent; border-bottom-color: var(--accent); }
+.no-pick .armour { border-color: var(--a40); }
+.no-pick .armour .chip[aria-pressed="false"] { animation: chip-hop 2.8s ease-in-out infinite; }
+.no-pick .armour .chip:nth-of-type(2) { animation-delay: .12s; }
+.no-pick .armour .chip:nth-of-type(3) { animation-delay: .24s; }
+.no-pick .armour .chip:nth-of-type(4) { animation-delay: .36s; }
+.no-pick .armour .chip:nth-of-type(5) { animation-delay: .48s; }
+@keyframes hint-nudge { 50% { transform: translateY(4px); } }
+@keyframes chip-hop { 0%, 22%, 100% { transform: none; } 8% { transform: translateY(-6px) scale(1.12); } 15% { transform: translateY(1px); } }
 .armour > span { font-size: .68rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); padding: 0 .3rem; }
 .chip { width: 1.7rem; height: 1.7rem; border-radius: 50%; display: grid; place-items: center; background: var(--c); box-shadow: inset 0 0 0 3px var(--bg), 0 0 0 1px var(--line); transition: transform .2s, box-shadow .2s; font-size: .85rem; line-height: 1; }
 .chip:hover { transform: scale(1.15); }
@@ -236,6 +251,7 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
   .gang-txt small { font-size: .62rem; letter-spacing: .16em; }
   .bubble { left: 48%; top: -4%; font-size: .82rem; width: max-content; max-width: 11.5rem; text-align: left; }
   .scroll-hint { display: none; }
+  .no-pick .armour { margin-bottom: 2.6rem; }   /* room for the hint so it doesn't sit on the eyebrow */
   .floor { height: 22%; }
 }
 
@@ -474,6 +490,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       </div>
       <div class="armour" role="group" aria-label="Choose a form">
         <span>Form</span>
+        <em class="form-hint" aria-hidden="true">Try another form</em>
         <button class="chip" style="--c:#22e5ff" data-theme-btn="cyan" aria-pressed="true" aria-label="Cyan armour"></button>
         <button class="chip" style="--c:#ffd23f" data-theme-btn="yellow" aria-pressed="false" aria-label="Yellow armour"></button>
         <button class="chip" style="--c:#ff4155" data-theme-btn="red" aria-pressed="false" aria-label="Red armour"></button>
@@ -725,6 +742,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     syncForm();
     cycles.recolor(THEMES[next]);
     try { localStorage.setItem('tgl-form', next); } catch {}   // only an explicit pick is remembered
+    root.classList.remove('no-pick');
     speak();
   }
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
