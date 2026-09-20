@@ -525,9 +525,9 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
           <img data-s="co" id="hero-img" width="640" height="960" alt="Trongates Legacy chibi avatar" fetchpriority="high" decoding="async">
           <script>(function (i) { i.sizes = window.__sizes; i.srcset = window.__srcset(window.__formSrc); i.src = window.__formSrc; })(document.getElementById('hero-img'));</script>
           <noscript><img src="/assets/img/tron-cyan-mclosed-eopen.webp" width="640" height="960" alt="" style="opacity:1"></noscript>
-          <img data-s="cc" alt="" width="640" height="960" decoding="async">
-          <img data-s="oo" alt="" width="640" height="960" decoding="async">
-          <img data-s="oc" alt="" width="640" height="960" decoding="async">
+          <img data-s="cc" alt="" width="640" height="960" decoding="sync">
+          <img data-s="oo" alt="" width="640" height="960" decoding="sync">
+          <img data-s="oc" alt="" width="640" height="960" decoding="sync">
         </button>
         <a class="live-badge" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><i></i><span class="lb"><b>Live now</b><b aria-hidden="true">Watch now ▶</b></span></a>
         <div class="bubble" id="bubble" role="status"></div>
@@ -755,7 +755,21 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     if (t === 'princess') return IMG + (s[0] === 'o' ? 'princess-peace.webp' : 'princess-uwu.webp');
     return t === 'blobfish' ? `${IMG}blobfish-${STATES[s]}.webp` : `${IMG}tron-${t}-${STATES[s]}.webp`;
   };
-  const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
+  // A frame is only shown once the browser has it decoded. Swapping to one that isn't ready would
+  // blank the character for a frame (the flicker on the first blink), so fall back to a ready pose.
+  const frameReady = (k) => tuberImgs[k].dataset.ready === tuberImgs[k].currentSrc && tuberImgs[k].currentSrc !== '';
+  const render = () => {
+    const want = mouth + eyes;
+    const show = [want, mouth + 'o', 'c' + eyes, 'co'].find(frameReady) || 'co';
+    tuber.className = `tuber s-${show}` + (talking ? ' bop' : '');
+  };
+  // decode() resolves once the pixels are ready to paint; decoding="sync" then keeps them on hand
+  const setFrame = (k, src) => {
+    const img = tuberImgs[k];
+    setImg(img, src);
+    img.decoding = 'sync';
+    img.decode().catch(() => {}).then(() => { img.dataset.ready = img.currentSrc; render(); });
+  };
   const setImg = (img, src, sizes = window.__sizes) => { img.sizes = sizes; img.srcset = window.__srcset(src); img.src = src; };
   const CARD_SIZES = '(max-width: 900px) 45vw, 250px';
   const preload = (src, priority = 'high') => new Promise((res) => { const i = new Image(); i.fetchPriority = priority; i.onload = i.onerror = res; setImg(i, src); });
@@ -793,7 +807,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     const srcs = Object.keys(STATES).map((s) => srcFor(next, s));
     await preload(srcs[0]);
     if (id !== switchId) return;                  // a newer pick overtook this one
-    Object.keys(STATES).forEach((s, i) => setImg(tuberImgs[s], srcs[i]));
+    Object.keys(STATES).forEach((s, i) => setFrame(s, srcs[i]));
     speak();
   }
 
@@ -848,7 +862,8 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
 
   // the other three frames load after first paint so they never compete with the LCP image
   addEventListener('load', () => {
-    ['cc', 'oo', 'oc'].forEach((s) => setImg(tuberImgs[s], srcFor(theme, s)));
+    ['cc', 'oo', 'oc'].forEach((s) => setFrame(s, srcFor(theme, s)));
+    tuberImgs.co.decode().catch(() => {}).then(() => { tuberImgs.co.dataset.ready = tuberImgs.co.currentSrc; });
     $$('[data-tron="oo"]').forEach((i) => setImg(i, srcFor(armour, 'oo'), CARD_SIZES));
     setTimeout(blink, 1800);
     if (window.requestIdleCallback) requestIdleCallback(warmForms, { timeout: 4000 }); else setTimeout(warmForms, 2000);
