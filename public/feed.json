@@ -1,6 +1,11 @@
 {
   "videos": [
     {
+      "id": "CHQVcIlOcEk",
+      "title": "Dead By Daylight | Stream VOD | 2026-03-13",
+      "published": "2026-09-20T03:35:33Z"
+    },
+    {
       "id": "LTb9XwgLO5Q",
       "title": "Rocket League, Marvel: Rivals & Overwatch | Stream VOD |  2026-09-07",
       "published": "2026-09-13T14:29:42Z"
@@ -24,11 +29,6 @@
       "id": "CC4hsDssY90",
       "title": "Palworld | Stream VOD | 2026-07-12",
       "published": "2026-07-13T02:55:40Z"
-    },
-    {
-      "id": "gbJyXu91tEw",
-      "title": "Rocket League & Slay the Spire II | Stream VOD | 2026-07-05",
-      "published": "2026-07-06T12:19:46Z"
     }
   ],
   "shorts": [
