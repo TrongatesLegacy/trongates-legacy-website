@@ -14,6 +14,13 @@ Single-page site for [Trongate's Legacy](https://kick.com/trongateslegacy) — l
 Import the repo in Netlify; `netlify.toml` already sets the publish directory (`public`) and the
 functions directory. No build command is needed.
 
+### Reliable video updates (recommended)
+
+YouTube's RSS feeds often reject datacentre IPs, including GitHub Actions. For dependable updates,
+create a YouTube Data API v3 key in Google Cloud Console (free) and add it as a repository secret
+named `YOUTUBE_API_KEY` (GitHub → Settings → Secrets and variables → Actions). Without it the
+workflow still tries the RSS feeds every hour and keeps the last good list when they fail.
+
 ### Previewing the live state
 
 Running locally (`node dev.mjs`), a **DEV · mock live** button appears bottom-left — click it or press

@@ -69,9 +69,39 @@ async function isShort(id) {
   return res.status === 200;
 }
 
+// YouTube Data API — used when YOUTUBE_API_KEY is set. Unlike the RSS feeds it works from
+// datacentre IPs (Netlify, GitHub Actions). Costs 2 quota units per refresh out of 10,000/day.
+async function youtubeApi(prefix, limit) {
+  const url = new URL("https://www.googleapis.com/youtube/v3/playlistItems");
+  url.search = new URLSearchParams({
+    part: "snippet,contentDetails",
+    maxResults: "25",
+    playlistId: prefix + YT_CHANNEL.slice(2),
+    key: process.env.YOUTUBE_API_KEY,
+  });
+  const res = await fetchWithTimeout(url);
+  if (!res.ok) throw new Error(`api ${res.status}`);
+  return (await res.json()).items
+    .map((item) => ({
+      id: item.contentDetails.videoId,
+      title: item.snippet.title,
+      published: item.contentDetails.videoPublishedAt || item.snippet.publishedAt,
+    }))
+    .filter((v) => !/\|\s*Music\s*\|/i.test(v.title))
+    .slice(0, limit);
+}
+
 // The per-type playlist feeds are the cleanest source but YouTube intermittently 404s them
 // (especially from cloud IPs), so fall back to the channel feed and sort entries ourselves.
 export async function youtube() {
+  if (process.env.YOUTUBE_API_KEY) {
+    try {
+      const [videos, shorts] = await Promise.all([youtubeApi("UULF", 6), youtubeApi("UUSH", 10)]);
+      return { videos, shorts, source: "playlists" };
+    } catch {
+      // fall through to the RSS feeds
+    }
+  }
   const strip = (list, n) => list.slice(0, n).map(({ short, ...v }) => v);
   const [videos, shorts] = await Promise.allSettled([fetchFeed(playlistFeed("UULF")), fetchFeed(playlistFeed("UUSH"))]);
   if (videos.status === "fulfilled" && shorts.status === "fulfilled") {
