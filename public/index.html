@@ -565,7 +565,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" data-card="tron" tabindex="0">
         <span class="card-no" aria-hidden="true">01</span>
         <div class="card-art">
-          <img class="base" data-tron="co" src="/assets/img/tron-cyan-mclosed-eopen.webp" srcset="/assets/img/tron-cyan-mclosed-eopen-400.webp 400w, /assets/img/tron-cyan-mclosed-eopen.webp 640w" sizes="(max-width: 900px) 60vw, 280px" width="640" height="960" loading="lazy" decoding="async" alt="Tron in neon armour">
+          <img class="base" data-tron="co" src="/assets/img/tron-cyan-mclosed-eopen.webp" srcset="/assets/img/tron-cyan-mclosed-eopen-400.webp 400w, /assets/img/tron-cyan-mclosed-eopen.webp 640w" sizes="(max-width: 900px) 45vw, 250px" width="640" height="960" loading="lazy" decoding="async" alt="Tron in neon armour">
           <img class="alt" data-tron="oo" width="640" height="960" loading="lazy" decoding="async" alt="">
         </div>
         <div class="card-body">
@@ -589,7 +589,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" style="--c:#ff63b8;--d:1" data-card="princess" tabindex="0">
         <span class="card-no" aria-hidden="true">02</span>
         <div class="card-art">
-          <img class="base" src="/assets/img/princess-uwu.webp" srcset="/assets/img/princess-uwu-400.webp 400w, /assets/img/princess-uwu.webp 640w" sizes="(max-width: 900px) 60vw, 280px" width="640" height="960" loading="lazy" decoding="async" alt="Princess Trina — Tron as a chibi princess in a pink dress and tiara, winking">
+          <img class="base" src="/assets/img/princess-uwu.webp" srcset="/assets/img/princess-uwu-400.webp 400w, /assets/img/princess-uwu.webp 640w" sizes="(max-width: 900px) 45vw, 250px" width="640" height="960" loading="lazy" decoding="async" alt="Princess Trina — Tron as a chibi princess in a pink dress and tiara, winking">
           <img class="alt" data-src="/assets/img/princess-peace.webp" width="640" height="960" decoding="async" alt="">
         </div>
         <div class="card-body">
@@ -726,7 +726,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   };
   const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
   const setImg = (img, src, sizes = window.__sizes) => { img.sizes = sizes; img.srcset = window.__srcset(src); img.src = src; };
-  const CARD_SIZES = '(max-width: 900px) 60vw, 280px';
+  const CARD_SIZES = '(max-width: 900px) 45vw, 250px';
   const preload = (src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; setImg(i, src); });
 
   const ARMOURS = ['cyan', 'yellow', 'red'];
@@ -870,18 +870,20 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     return rtf.format(Math.round(days / 30), 'month');
   }
   const PLAY = '<span class="yt-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3.5v17L20.5 12z"/></svg></span>';
-  const thumb = (v, short) => `https://i.ytimg.com/vi/${v.id}/${short ? 'oar2' : 'hq720'}.jpg`;
-  const ytBtn = (v, short, caption) => `<button class="yt" data-yt="${v.id}" aria-label="Play: ${esc(clean(v.title))}">
-    <img src="${thumb(v, short)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">${PLAY}
+  // Right-sized thumbnails: shorts only come as 1080x1920 (~200KB), but the 4:3 "sddefault" frame holds
+  // the vertical video in its centre, which object-fit: cover crops to exactly the short's picture.
+  const thumb = (v, kind) => `https://i.ytimg.com/${{ short: 'vi_webp/' + v.id + '/sddefault.webp', feat: 'vi_webp/' + v.id + '/hq720.webp', row: 'vi/' + v.id + '/mqdefault.jpg' }[kind]}`;
+  const ytBtn = (v, kind, caption) => `<button class="yt" data-yt="${v.id}" aria-label="Play: ${esc(clean(v.title))}">
+    <img src="${thumb(v, kind)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'">${PLAY}
     ${caption ? `<span class="yt-cap"><span>${ago(v.published)}</span><b>${esc(clean(v.title))}</b></span>` : ''}</button>`;
 
   function renderFeed(data) {
     if (data.videos && data.videos.length) {
       const [first, ...rest] = data.videos;
-      $('#feat').innerHTML = ytBtn(first, false, true);
-      $('#vlist').innerHTML = rest.slice(0, 3).map((v) => `<div class="vrow">${ytBtn(v, false, false)}<div><span>${ago(v.published)}</span><b>${esc(clean(v.title))}</b></div></div>`).join('');
+      $('#feat').innerHTML = ytBtn(first, 'feat', true);
+      $('#vlist').innerHTML = rest.slice(0, 3).map((v) => `<div class="vrow">${ytBtn(v, 'row', false)}<div><span>${ago(v.published)}</span><b>${esc(clean(v.title))}</b></div></div>`).join('');
     }
-    if (data.shorts && data.shorts.length) $('#rail').innerHTML = data.shorts.map((v) => ytBtn(v, true, true)).join('');
+    if (data.shorts && data.shorts.length) $('#rail').innerHTML = data.shorts.map((v) => ytBtn(v, 'short', true)).join('');
   }
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-yt]');
