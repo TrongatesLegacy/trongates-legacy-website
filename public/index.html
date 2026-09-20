@@ -805,7 +805,9 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     cycles.recolor(THEMES[next]);
     try { localStorage.setItem('tgl-form', next); } catch {}   // only an explicit pick is remembered
     const srcs = Object.keys(STATES).map((s) => srcFor(next, s));
-    await preload(srcs[0]);
+    const next0 = new Image();                    // fetched *and* decoded before the swap, so the
+    setImg(next0, srcs[0]);                       // character changes in a single frame
+    await next0.decode().catch(() => {});
     if (id !== switchId) return;                  // a newer pick overtook this one
     Object.keys(STATES).forEach((s, i) => setFrame(s, srcs[i]));
     speak();
