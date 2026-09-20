@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Trongate's Legacy — Live on Kick</title>
 <meta name="description" content="Trongate's Legacy — chill streamer and CEO of the Lulu Gang. Catch the stream live on Kick, plus the latest VODs, shorts and socials.">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#03060d">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Trongate's Legacy — Live on Kick">
@@ -14,13 +15,18 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <link rel="canonical" href="https://www.trongateslegacy.com/">
+<meta property="og:site_name" content="Trongate's Legacy">
+<meta property="og:locale" content="en_GB">
+<meta property="og:image:alt" content="Chibi Tron in neon armour beside the Trongate's Legacy title">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Trongate's Legacy — Live on Kick">
+<meta name="twitter:description" content="Chill streams, chaotic chat. Enter the Grid and join the Lulu Gang.">
+<meta name="twitter:image" content="https://www.trongateslegacy.com/assets/img/og.jpg">
 <meta name="twitter:site" content="@trongateslegacy">
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/orbitron.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/chakra-petch-400.woff2" crossorigin>
 <script>
 // Pick the form before first paint: the visitor's saved choice, otherwise classic Tron.
 (function () {
@@ -31,18 +37,25 @@
   var file = form === 'princess' ? 'princess-uwu' : form === 'blobfish' ? 'blobfish-mclosed-eopen' : 'tron-' + form + '-mclosed-eopen';
   window.__form = form;
   window.__formSrc = '/assets/img/' + file + '.webp';
+  // character art ships at 400w and 640w (the blobfish only has its native size)
+  window.__srcset = function (src) { return /blobfish/.test(src) ? '' : src.replace('.webp', '-400.webp') + ' 400w, ' + src + ' 640w'; };
+  window.__sizes = '(max-width: 860px) 50vw, 420px';
   var root = document.documentElement, link = document.createElement('link');
   root.classList.add('js');
   if (!picked) root.classList.add('no-pick');   // never chose a form: the selector advertises itself
   root.dataset.theme = form;
   link.rel = 'preload'; link.as = 'image'; link.href = window.__formSrc; link.fetchPriority = 'high';
+  if (window.__srcset(window.__formSrc)) { link.imageSrcset = window.__srcset(window.__formSrc); link.imageSizes = window.__sizes; }
   document.head.appendChild(link);
 })();
 </script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Person","name":"Trongate's Legacy","alternateName":"trongateslegacy","description":"Chill streamer, live on Kick.","url":"https://www.trongateslegacy.com/","sameAs":["https://kick.com/trongateslegacy","https://club.com/trongateslegacy","https://www.instagram.com/trongateslegacy/","https://www.youtube.com/@trongateslegacy","https://www.tiktok.com/@trongateslegacy","https://www.facebook.com/trongateslegacy","https://x.com/trongateslegacy","https://discord.gg/FUKz6Dxk8W"]}
+{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://www.trongateslegacy.com/#website","url":"https://www.trongateslegacy.com/","name":"Trongate's Legacy","description":"Chill streamer live on Kick — streams, VODs, shorts and the Lulu Gang Discord.","inLanguage":"en-GB","publisher":{"@id":"https://www.trongateslegacy.com/#person"}},{"@type":"Person","name":"Trongate's Legacy","alternateName":"trongateslegacy","description":"Chill streamer, live on Kick.","url":"https://www.trongateslegacy.com/","sameAs":["https://kick.com/trongateslegacy","https://club.com/trongateslegacy","https://www.instagram.com/trongateslegacy/","https://www.youtube.com/@trongateslegacy","https://www.tiktok.com/@trongateslegacy","https://www.facebook.com/trongateslegacy","https://x.com/trongateslegacy","https://discord.gg/FUKz6Dxk8W"],"@id":"https://www.trongateslegacy.com/#person","image":"https://www.trongateslegacy.com/assets/img/og.jpg","jobTitle":"Streamer"}]}
 </script>
 <style>
+@font-face { font-family: 'Orbitron'; font-weight: 400 900; font-display: swap; src: url(/assets/fonts/orbitron.woff2) format('woff2'); }
+@font-face { font-family: 'Chakra Petch'; font-weight: 400; font-display: swap; src: url(/assets/fonts/chakra-petch-400.woff2) format('woff2'); }
+@font-face { font-family: 'Chakra Petch'; font-weight: 600; font-display: swap; src: url(/assets/fonts/chakra-petch-600.woff2) format('woff2'); }
 @property --accent { syntax: '<color>'; inherits: true; initial-value: #22e5ff; }
 
 :root {
@@ -462,12 +475,12 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         <a class="btn btn-kick" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-kick"/></svg><span data-cta-text>Watch on Kick</span></a>
         <a class="btn btn-ghost" href="#videos">Latest videos</a>
       </div>
-      <a class="gang" href="https://discord.gg/FUKz6Dxk8W" target="_blank" rel="noopener" aria-label="Join the Lulu Gang on Discord">
+      <a class="gang" href="https://discord.gg/FUKz6Dxk8W" target="_blank" rel="noopener">
         <span class="gang-logo" aria-hidden="true">
-          <img class="lulu" src="/assets/img/lulu.webp" width="360" height="270" alt="" decoding="async">
-          <img class="gng" src="/assets/img/gang.webp" width="360" height="148" alt="" decoding="async">
+          <img class="lulu" src="/assets/img/lulu.webp" width="250" height="187" alt="" decoding="async">
+          <img class="gng" src="/assets/img/gang.webp" width="250" height="103" alt="" decoding="async">
         </span>
-        <span class="gang-txt"><small>The community HQ</small><b><svg class="i"><use href="#i-discord"/></svg>Join the Discord <i>→</i></b></span>
+        <span class="gang-txt"><small>Lulu Gang — the community HQ</small><b><svg class="i" aria-hidden="true"><use href="#i-discord"/></svg>Join the Discord <i aria-hidden="true">→</i></b></span>
       </a>
     </div>
     <div class="stage-wrap">
@@ -479,13 +492,13 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         <div class="pad" aria-hidden="true"></div>
         <button class="tuber s-co" id="tuber" aria-label="Poke Tron">
           <img data-s="co" id="hero-img" width="640" height="960" alt="Trongate's Legacy chibi avatar" fetchpriority="high" decoding="async">
-          <script>document.getElementById('hero-img').src = window.__formSrc;</script>
+          <script>(function (i) { i.sizes = window.__sizes; i.srcset = window.__srcset(window.__formSrc); i.src = window.__formSrc; })(document.getElementById('hero-img'));</script>
           <noscript><img src="/assets/img/tron-cyan-mclosed-eopen.webp" width="640" height="960" alt="" style="opacity:1"></noscript>
           <img data-s="cc" alt="" width="640" height="960" decoding="async">
           <img data-s="oo" alt="" width="640" height="960" decoding="async">
           <img data-s="oc" alt="" width="640" height="960" decoding="async">
         </button>
-        <a class="live-badge" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener" aria-label="Live now — watch on Kick"><i></i><span class="lb"><b>Live now</b><b>Watch now ▶</b></span></a>
+        <a class="live-badge" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><i></i><span class="lb"><b>Live now</b><b aria-hidden="true">Watch now ▶</b></span></a>
         <div class="bubble" id="bubble" role="status"></div>
       </div>
       <div class="armour" role="group" aria-label="Choose a form">
@@ -522,7 +535,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
           <span class="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17L20.5 12z"/></svg></span>
           <strong data-facade-title>Load the stream</strong>
           <small data-facade-sub>Opens the Kick player right here</small>
-          <img src="/assets/img/tron-cheering.webp" alt="" width="640" height="960" loading="lazy" decoding="async">
+          <img src="/assets/img/tron-cheering.webp" srcset="/assets/img/tron-cheering-400.webp 400w, /assets/img/tron-cheering.webp 640w" sizes="280px" alt="" width="640" height="960" loading="lazy" decoding="async">
         </button>
       </div>
       <aside class="side reveal" style="--d:1">
@@ -552,7 +565,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" data-card="tron" tabindex="0">
         <span class="card-no" aria-hidden="true">01</span>
         <div class="card-art">
-          <img class="base" data-tron="co" src="/assets/img/tron-cyan-mclosed-eopen.webp" width="640" height="960" loading="lazy" decoding="async" alt="Tron in neon armour">
+          <img class="base" data-tron="co" src="/assets/img/tron-cyan-mclosed-eopen.webp" srcset="/assets/img/tron-cyan-mclosed-eopen-400.webp 400w, /assets/img/tron-cyan-mclosed-eopen.webp 640w" sizes="(max-width: 900px) 60vw, 280px" width="640" height="960" loading="lazy" decoding="async" alt="Tron in neon armour">
           <img class="alt" data-tron="oo" width="640" height="960" loading="lazy" decoding="async" alt="">
         </div>
         <div class="card-body">
@@ -576,7 +589,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" style="--c:#ff63b8;--d:1" data-card="princess" tabindex="0">
         <span class="card-no" aria-hidden="true">02</span>
         <div class="card-art">
-          <img class="base" src="/assets/img/princess-uwu.webp" width="640" height="960" loading="lazy" decoding="async" alt="Princess Trina — Tron as a chibi princess in a pink dress and tiara, winking">
+          <img class="base" src="/assets/img/princess-uwu.webp" srcset="/assets/img/princess-uwu-400.webp 400w, /assets/img/princess-uwu.webp 640w" sizes="(max-width: 900px) 60vw, 280px" width="640" height="960" loading="lazy" decoding="async" alt="Princess Trina — Tron as a chibi princess in a pink dress and tiara, winking">
           <img class="alt" data-src="/assets/img/princess-peace.webp" width="640" height="960" decoding="async" alt="">
         </div>
         <div class="card-body">
@@ -639,17 +652,17 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <a class="tile tile-kick" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener">
         <svg class="i"><use href="#i-kick"/></svg><span class="go">↗</span>
         <div><b>Kick</b><small>Where the streams happen. Follow for go-live alerts.</small></div>
-        <img src="/assets/img/tron-cheering.webp" alt="" width="640" height="960" loading="lazy" decoding="async">
+        <img src="/assets/img/tron-cheering.webp" srcset="/assets/img/tron-cheering-400.webp 400w, /assets/img/tron-cheering.webp 640w" sizes="280px" alt="" width="640" height="960" loading="lazy" decoding="async">
       </a>
       <a class="tile" style="--c:#ff3b3b" href="https://www.youtube.com/@trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-youtube"/></svg><span class="go">↗</span><div><b>YouTube</b><small>VODs &amp; shorts</small></div></a>
       <a class="tile" style="--c:#25f4ee" href="https://www.tiktok.com/@trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-tiktok"/></svg><span class="go">↗</span><div><b>TikTok</b><small>Clips on tap</small></div></a>
       <a class="tile" style="--c:#ff5fa2" href="https://www.instagram.com/trongateslegacy/" target="_blank" rel="noopener"><svg class="i"><use href="#i-instagram"/></svg><span class="go">↗</span><div><b>Instagram</b><small>Behind the Grid</small></div></a>
       <a class="tile" style="--c:#e8f4ff" href="https://x.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-x"/></svg><span class="go">↗</span><div><b>X</b><small>Go-live posts</small></div></a>
-      <a class="tile tile-wide tile-gang" style="--c:#ff63b8" href="https://discord.gg/FUKz6Dxk8W" target="_blank" rel="noopener" aria-label="Join the Lulu Gang on Discord">
-        <span class="go">↗</span>
+      <a class="tile tile-wide tile-gang" style="--c:#ff63b8" href="https://discord.gg/FUKz6Dxk8W" target="_blank" rel="noopener">
+        <span class="go" aria-hidden="true">↗</span>
         <span class="gang-logo" aria-hidden="true">
-          <img class="lulu" src="/assets/img/lulu.webp" width="360" height="270" alt="" loading="lazy" decoding="async">
-          <img class="gng" src="/assets/img/gang.webp" width="360" height="148" alt="" loading="lazy" decoding="async">
+          <img class="lulu" src="/assets/img/lulu.webp" width="250" height="187" alt="" loading="lazy" decoding="async">
+          <img class="gng" src="/assets/img/gang.webp" width="250" height="103" alt="" loading="lazy" decoding="async">
         </span>
         <span class="gang-txt"><small>The community HQ</small><b><svg class="i"><use href="#i-discord"/></svg>Join the Discord</b></span>
       </a>
@@ -712,7 +725,9 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     return t === 'blobfish' ? `${IMG}blobfish-${STATES[s]}.webp` : `${IMG}tron-${t}-${STATES[s]}.webp`;
   };
   const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
-  const preload = (src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = src; });
+  const setImg = (img, src, sizes = window.__sizes) => { img.sizes = sizes; img.srcset = window.__srcset(src); img.src = src; };
+  const CARD_SIZES = '(max-width: 900px) 60vw, 280px';
+  const preload = (src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; setImg(i, src); });
 
   const ARMOURS = ['cyan', 'yellow', 'red'];
   let armour = 'cyan';
@@ -721,7 +736,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   function syncForm() {
     $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.themeBtn === theme));
     if (ARMOURS.includes(theme)) armour = theme;   // the Tron card keeps showing the last armour worn
-    $$('[data-tron]').forEach((i) => { if (i.src || i.dataset.tron === 'co') i.src = srcFor(armour, i.dataset.tron); });
+    $$('[data-tron]').forEach((i) => { if (i.src || i.dataset.tron === 'co') setImg(i, srcFor(armour, i.dataset.tron), CARD_SIZES); });
     $$('[data-armour-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.armourBtn === armour));
     $$('.card').forEach((c) => {
       const form = c.dataset.card;
@@ -738,7 +753,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     await preload(srcs[0]);                       // swap only once the idle frame is ready
     theme = next;
     root.dataset.theme = next;
-    Object.keys(STATES).forEach((s, i) => { tuberImgs[s].src = srcs[i]; });
+    Object.keys(STATES).forEach((s, i) => setImg(tuberImgs[s], srcs[i]));
     syncForm();
     cycles.recolor(THEMES[next]);
     try { localStorage.setItem('tgl-form', next); } catch {}   // only an explicit pick is remembered
@@ -781,8 +796,8 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
 
   // the other three frames load after first paint so they never compete with the LCP image
   addEventListener('load', () => {
-    ['cc', 'oo', 'oc'].forEach((s) => { tuberImgs[s].src = srcFor(theme, s); });
-    $$('[data-tron="oo"]').forEach((i) => { i.src = srcFor(armour, 'oo'); });
+    ['cc', 'oo', 'oc'].forEach((s) => setImg(tuberImgs[s], srcFor(theme, s)));
+    $$('[data-tron="oo"]').forEach((i) => setImg(i, srcFor(armour, 'oo'), CARD_SIZES));
     setTimeout(blink, 1800);
     if (!reduced) setTimeout(() => { if (!talking && !isLiveNow()) speak(); }, 2600);   // when live, the go-live line stays up instead
   });
@@ -799,7 +814,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   function activate(card, on) {
     card.classList.toggle('active', on);
     const lazy = $('img[data-src]', card);
-    if (on && lazy) { lazy.src = lazy.dataset.src; lazy.removeAttribute('data-src'); }
+    if (on && lazy) { setImg(lazy, lazy.dataset.src, CARD_SIZES); lazy.removeAttribute('data-src'); }
   }
   $$('.card').forEach((card) => {
     if (canHover) {
