@@ -622,10 +622,10 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   const STATES = { co: 'mclosed-eopen', cc: 'mclosed-eclosed', oo: 'mopen-eopen', oc: 'mopen-eclosed' };
   // every form has its own voice; nothing is shared between them
   const LINES = {
-    cyan: ['Welcome to the Grid.', 'GGs.', 'I am NOT a princess. …Usually.', 'Chill streams only. Mostly.', 'Following on Kick is free. Just saying.', 'Who redeemed Princess Trina AGAIN?', 'End of line.'],
+    cyan: ['Welcome to the Grid.', 'GGs.', 'Identity disc: armed. Snacks: also armed.', 'Chill streams only. Mostly.', 'Following on Kick is free. Just saying.', 'Armour on. Time to go live.', 'End of line.'],
     yellow: ['Gold armour. Still silver aim.', 'Feeling lucky. Queue it up!', 'This is the win-streak skin. Trust.', 'Shiny, right? Chat picked it.', 'Hit follow — I glow brighter.', 'One more game. For real this time.'],
     red: ['Who whiffed that? …Oh. Me.', 'I am calm. This is my calm face.', 'Red means ranked.', 'I am not a delayed gamer!', 'That was lag. Clip it, I dare you.', 'Tilt? Never heard of it.'],
-    princess: ['Chat did this to me.', 'Peace! ✌️', 'This is NOT canon.', 'uwu… I mean— ahem.', 'The tiara stays ON during ranked.', 'Somebody redeemed me again, didn\'t they?', 'Curtsy first, questions later.'],
+    princess: ['Chat did this to me.', 'Peace! ✌️', 'This is NOT canon.', 'uwu… I mean— ahem.', 'The tiara stays ON during ranked.', 'Who redeemed Princess Trina AGAIN?', 'Curtsy first, questions later.'],
     blobfish: ['Blub.', 'Caught Princess Trina. Keeping her.', 'Catch and release? Never heard of it.', 'Bleh.', 'The Lulu Gang is on Discord. Blub.', 'I am the prettiest fish in the sea.', 'Fishing is just chilling with extra steps.'],
   };
   const tuber = $('#tuber'), bubble = $('#bubble');
@@ -659,7 +659,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     syncForm();
     cycles.recolor(THEMES[next]);
     try { localStorage.setItem('tgl-form', next); } catch {}   // only an explicit pick is remembered
-    speak(next === 'princess' ? 'Who redeemed Princess Trina?!' : null);
+    speak();
   }
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
 
