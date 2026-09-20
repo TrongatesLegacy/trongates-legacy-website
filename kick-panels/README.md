@@ -33,7 +33,8 @@ what makes a panel page look messy.
 3. **Title** – leave it empty. It's optional, and every image already has its heading built in.
 4. **Add image** – upload the matching file from `images/`.
 5. **Image link** – paste the link. This makes the whole image clickable.
-6. **Description** – paste the text. Panels 7–12 have one-line descriptions on purpose; the image does the work.
+6. **Description** – also optional. Only panels 1, 2, 4, 5 and 6 have text; the Website panel and the six
+   social buttons are image-only, which keeps those rows perfectly even.
 7. **Create**, then repeat. Use the ⠿ drag handle (top-left of each panel) to fix the order if needed.
 
 > Descriptions are written as plain text with full URLs so they work whether or not Kick renders
@@ -73,13 +74,7 @@ Everyone's welcome, come join: https://discord.gg/FUKz6Dxk8W
 
 - **Image:** `images/03-website.png`
 - **Image link:** `https://www.trongateslegacy.com`
-- **Description:**
-
-```
-Everything in one place: live status, latest VODs and shorts, all my links, and the full roster.
-
-https://www.trongateslegacy.com
-```
+- **Description:** *(leave empty, the image already shows the address)*
 
 ## 4. The Roster
 
@@ -133,37 +128,37 @@ Want to go further? Subs and gifted subs keep the stream improving: new forms, n
 
 - **Image:** `images/07-youtube.png`
 - **Image link:** `https://www.youtube.com/@trongateslegacy`
-- **Description:** `Full stream VODs and shorts. Missed a stream? It's here.`
+- **Description:** *(leave empty)*
 
 ## 8. TikTok
 
 - **Image:** `images/08-tiktok.png`
 - **Image link:** `https://www.tiktok.com/@trongateslegacy`
-- **Description:** `The best (and worst) moments, clipped.`
+- **Description:** *(leave empty)*
 
 ## 9. Instagram
 
 - **Image:** `images/09-instagram.png`
 - **Image link:** `https://www.instagram.com/trongateslegacy/`
-- **Description:** `Behind the Grid: art, updates and clips.`
+- **Description:** *(leave empty)*
 
 ## 10. X
 
 - **Image:** `images/10-x.png`
 - **Image link:** `https://x.com/trongateslegacy`
-- **Description:** `Go-live posts and stream updates.`
+- **Description:** *(leave empty)*
 
 ## 11. Facebook
 
 - **Image:** `images/11-facebook.png`
 - **Image link:** `https://www.facebook.com/trongateslegacy`
-- **Description:** `Updates and clips, if Facebook is your thing.`
+- **Description:** *(leave empty)*
 
 ## 12. Club
 
 - **Image:** `images/12-club.png`
 - **Image link:** `https://club.com/trongateslegacy`
-- **Description:** `The inner circle.`
+- **Description:** *(leave empty)*
 
 ---
 
