@@ -436,7 +436,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         <button class="chip" style="--c:#ffd23f" data-theme-btn="yellow" aria-pressed="false" aria-label="Yellow armour"></button>
         <button class="chip" style="--c:#ff4155" data-theme-btn="red" aria-pressed="false" aria-label="Red armour"></button>
         <button class="chip" style="--c:#ff63b8" data-theme-btn="pink" aria-pressed="false" aria-label="Pink armour"></button>
-        <button class="chip crown" style="--c:#ff63b8" data-theme-btn="princess" aria-pressed="false" aria-label="Redeem the princess">👑</button>
+        <button class="chip crown" style="--c:#ff63b8" data-theme-btn="princess" aria-pressed="false" aria-label="Redeem Princess Trina">👑</button>
         <button class="chip crown" style="--c:#ffb36b;background:linear-gradient(135deg,#ffe0bd,#ffb36b)" data-theme-btn="blobfish" aria-pressed="false" aria-label="Summon the blobfish">🎣</button>
       </div>
     </div>
@@ -511,12 +511,12 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" style="--c:#ff63b8;--d:1" data-card="princess" tabindex="0">
         <span class="card-no" aria-hidden="true">02</span>
         <div class="card-art">
-          <img class="base" src="/assets/img/princess-uwu.webp" width="640" height="960" loading="lazy" decoding="async" alt="Tron as a chibi princess in a pink dress and tiara, winking">
+          <img class="base" src="/assets/img/princess-uwu.webp" width="640" height="960" loading="lazy" decoding="async" alt="Princess Trina — Tron as a chibi princess in a pink dress and tiara, winking">
           <img class="alt" data-src="/assets/img/princess-peace.webp" width="640" height="960" decoding="async" alt="">
         </div>
         <div class="card-body">
           <span class="tag">Chat's favourite redeem</span>
-          <h3>The Princess</h3>
+          <h3>Princess Trina</h3>
           <p>One redeem and the armour gets swapped for a tiara. Tron insists it isn't canon. Chat keeps redeeming it anyway.</p>
           <dl class="stats">
             <div><dt>Sparkle</dt><dd class="bar"><i style="--v:100"></i></dd><dd>100</dd></div>
@@ -528,13 +528,13 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" style="--c:#ffb36b;--d:2" data-card="blobfish" tabindex="0">
         <span class="card-no" aria-hidden="true">03</span>
         <div class="card-art">
-          <img class="base" src="/assets/img/blobfish-mclosed-eopen.webp" width="456" height="567" loading="lazy" decoding="async" alt="A blobfish in a fishing hat and vest, holding a rod with the princess dangling from the hook">
+          <img class="base" src="/assets/img/blobfish-mclosed-eopen.webp" width="456" height="567" loading="lazy" decoding="async" alt="A blobfish in a fishing hat and vest, holding a rod with Princess Trina dangling from the hook">
           <img class="alt" data-src="/assets/img/blobfish-mopen-eopen.webp" width="456" height="567" decoding="async" alt="">
         </div>
         <div class="card-body">
           <span class="tag">Gone fishing</span>
           <h3>The Blobfish</h3>
-          <p>Went fishing, caught the princess, refuses to throw her back. Has opinions. Shares them with full tongue.</p>
+          <p>Went fishing, caught Princess Trina, refuses to throw her back. Has opinions. Shares them with full tongue.</p>
           <dl class="stats">
             <div><dt>Patience</dt><dd class="bar"><i style="--v:96"></i></dd><dd>96</dd></div>
             <div><dt>Beauty</dt><dd class="bar"><i style="--v:100"></i></dd><dd>100</dd></div>
@@ -623,9 +623,9 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   const THEMES = { cyan: '#22e5ff', yellow: '#ffd23f', red: '#ff4155', pink: '#ff63b8', princess: '#ff63b8', blobfish: '#ffb36b' };
   const STATES = { co: 'mclosed-eopen', cc: 'mclosed-eclosed', oo: 'mopen-eopen', oc: 'mopen-eclosed' };
   const LINES = {
-    tron: ['Welcome to the Grid.', 'Rule #1: absolutely no cabbage.', 'I am NOT a princess. …Usually.', 'Lulu Gang, assemble!', 'Following on Kick is free. Just saying.', 'Who redeemed the princess AGAIN?', 'End of line.'],
+    tron: ['Welcome to the Grid.', 'Rule #1: absolutely no cabbage.', 'I am NOT a princess. …Usually.', 'Lulu Gang, assemble!', 'Following on Kick is free. Just saying.', 'Who redeemed Princess Trina AGAIN?', 'End of line.'],
     princess: ['Chat did this to me.', 'Peace! ✌️', 'This is NOT canon.', 'uwu… I mean— end of line.'],
-    blobfish: ['Blub.', 'Caught a princess. Keeping her.', 'Catch and release? Never heard of it.', 'Bleh.', 'The Lulu Gang is on Discord. Blub.'],
+    blobfish: ['Blub.', 'Caught Princess Trina. Keeping her.', 'Catch and release? Never heard of it.', 'Bleh.', 'The Lulu Gang is on Discord. Blub.'],
   };
   const tuber = $('#tuber'), bubble = $('#bubble');
   const tuberImgs = Object.fromEntries($$('img', tuber).map((i) => [i.dataset.s, i]));
@@ -643,7 +643,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.themeBtn === theme));
     const cardTheme = theme === 'princess' ? 'pink' : theme === 'blobfish' ? 'cyan' : theme;
     $$('[data-tron]').forEach((i) => { if (i.src || i.dataset.tron === 'co') i.src = srcFor(cardTheme, i.dataset.tron); });
-    tuber.setAttribute('aria-label', { princess: 'Poke the princess', blobfish: 'Poke the blobfish' }[theme] || 'Poke Tron');
+    tuber.setAttribute('aria-label', { princess: 'Poke Princess Trina', blobfish: 'Poke the blobfish' }[theme] || 'Poke Tron');
   }
   syncForm();
 
@@ -657,7 +657,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     syncForm();
     cycles.recolor(THEMES[next]);
     try { localStorage.setItem('tgl-form', next); } catch {}   // only an explicit pick is remembered
-    speak(next === 'princess' ? 'Who redeemed the princess?!' : null);
+    speak(next === 'princess' ? 'Who redeemed Princess Trina?!' : null);
   }
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
 
