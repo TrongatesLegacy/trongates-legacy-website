@@ -2,8 +2,9 @@
 
 Twelve panels for <https://kick.com/trongateslegacy/about>, styled to match the website.
 Images are in `images/` at 640px wide (Kick scales them to 320px, so they stay sharp on retina screens).
-There are only **two sizes** so rows line up neatly: the six main panels are all 640×340 and the six
-social buttons are all 640×168.
+**Every image is the same size (640×340).** Kick's panel grid is responsive: 2 columns on a laptop, 3, 4 or
+more on wider screens. Rows share a top edge, so any mix of heights leaves gaps at some screen width.
+One size is the only layout that stays tidy at every column count.
 All are well under Kick's 4MB limit and have transparent cut corners, which blend into Kick's dark background.
 
 ## Layout
@@ -22,9 +23,7 @@ important things land at the top and the small social buttons group together at 
 | 7–12 | YouTube, TikTok, Instagram, X, Facebook, Club | One clickable button each |
 
 Why one panel per social: a panel's image can only link to **one** URL, so separate panels make every
-logo clickable. They're short (84px tall) so six of them take about the same room as two big panels.
-Keep the six main panels together and the six socials together: mixing the two sizes within a row is
-what makes a panel page look messy.
+logo clickable.
 
 ## How to add a panel
 
@@ -34,7 +33,8 @@ what makes a panel page look messy.
 4. **Add image** – upload the matching file from `images/`.
 5. **Image link** – paste the link. This makes the whole image clickable.
 6. **Description** – also optional. Only panels 1, 2, 4, 5 and 6 have text; the Website panel and the six
-   social buttons are image-only, which keeps those rows perfectly even.
+   social panels are image-only. Going image-only on **all** panels is the tidiest option of all, since
+   description lengths are then the only thing that could make rows uneven.
 7. **Create**, then repeat. Use the ⠿ drag handle (top-left of each panel) to fix the order if needed.
 
 > Descriptions are written as plain text with full URLs so they work whether or not Kick renders

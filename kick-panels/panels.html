@@ -1,5 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Kick panels</title><style>
-/* Two sizes only, so rows line up on Kick: .feature = 320x170, .social = 320x84 (rendered at 2x). */
+/* One size for every panel (320x170, rendered at 2x): Kick's grid changes column count with screen
+   width, so any mix of heights leaves gaps at some width. */
 @font-face { font-family: Orbitron; font-weight: 400 900; src: url(../public/assets/fonts/orbitron.woff2) format("woff2"); }
 @font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../public/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
 * { box-sizing: border-box; margin: 0; }
@@ -31,6 +32,10 @@ body { background: #111; padding: 20px; display: flex; flex-wrap: wrap; gap: 20p
 .about .outline { color: transparent; -webkit-text-stroke: 1.2px var(--c); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--c) 50%, transparent)); }
 .about .solid { background: linear-gradient(#fff 30%, var(--c) 130%); -webkit-background-clip: text; color: transparent; margin-top: 3px; }
 .about em { display: inline-block; margin-top: 12px; padding: 5px 10px; font: 700 10px/1 Orbitron; font-style: normal; letter-spacing: .22em; text-transform: uppercase; color: #001018; background: var(--c); }
+.big .ic { position: absolute; z-index: 1; right: 24px; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 !important; filter: drop-shadow(0 0 18px color-mix(in srgb, var(--c) 75%, transparent)); }
+.big .halo { right: -2px; top: 17px; }
+.big .line { font-size: 19px; margin-bottom: 4px; }
+.big em { display: inline-block; margin-top: 14px; padding: 5px 9px; font: 700 9.5px/1 Orbitron; font-style: normal; letter-spacing: .14em; text-transform: uppercase; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 60%, transparent); }
 .gang { gap: 12px; padding-left: 14px; background: linear-gradient(100deg, rgba(255,99,184,.28), rgba(88,101,242,.3)), #070d18; }
 .logos { position: relative; flex: none; width: 150px; height: 104px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
 .logos img { position: absolute; } .lulu { left: 0; top: -12px; width: 114px; transform: rotate(-6deg); } .gng { right: 0; bottom: 0; width: 104px; transform: rotate(-3deg); }
@@ -45,10 +50,10 @@ body { background: #111; padding: 20px; display: flex; flex-wrap: wrap; gap: 20p
 <div class="panel feature roster" id="04-roster" style="--c:#ffd23f"><div class="txt"><b class="line">The Roster</b><small>One streamer · three forms</small></div><img class="art r1" src="../public/assets/img/tron-yellow-mopen-eopen.webp"><img class="art r2" src="../public/assets/img/princess-peace.webp"><img class="art r3" src="../public/assets/img/blobfish-mclosed-eopen.webp"></div>
 <div class="panel feature" id="05-rules" style="--c:#ff4155"><i class="halo"></i><div class="txt"><span class="num">#</span><b class="line">Chat<br>Rules</b><small>Keep it chill</small></div><img class="art hero" src="../public/assets/img/tron-red-mclosed-eopen.webp"></div>
 <div class="panel feature" id="06-support" style="--c:#53fc18"><i class="halo"></i><div class="txt"><svg class="ic"><use href="#i-kick"/></svg><b class="line">Support<br>the Stream</b><small>Follow · Sub · Share</small></div><img class="art hero cheer" src="../public/assets/img/tron-cheering.webp"></div>
-<div class="panel social" id="07-youtube" style="--c:#ff3b3b"><svg class="ic"><use href="#i-youtube"/></svg><div class="txt"><b class="line">YouTube</b><small>VODs & shorts</small></div><span class="arrow">↗</span></div>
-<div class="panel social" id="08-tiktok" style="--c:#25f4ee"><svg class="ic"><use href="#i-tiktok"/></svg><div class="txt"><b class="line">TikTok</b><small>Clips on tap</small></div><span class="arrow">↗</span></div>
-<div class="panel social" id="09-instagram" style="--c:#ff5fa2"><svg class="ic"><use href="#i-instagram"/></svg><div class="txt"><b class="line">Instagram</b><small>Behind the Grid</small></div><span class="arrow">↗</span></div>
-<div class="panel social" id="10-x" style="--c:#e8f4ff"><svg class="ic"><use href="#i-x"/></svg><div class="txt"><b class="line">X</b><small>Go-live posts</small></div><span class="arrow">↗</span></div>
-<div class="panel social" id="11-facebook" style="--c:#4c9bff"><svg class="ic"><use href="#i-facebook"/></svg><div class="txt"><b class="line">Facebook</b><small>Updates & clips</small></div><span class="arrow">↗</span></div>
-<div class="panel social" id="12-club" style="--c:#7a4dff"><svg class="ic"><use href="#i-club"/></svg><div class="txt"><b class="line">Club</b><small>The inner circle</small></div><span class="arrow">↗</span></div>
+<div class="panel feature big" id="07-youtube" style="--c:#ff3b3b"><i class="halo"></i><div class="txt"><b class="line">YouTube</b><small>VODs & shorts</small><em>@trongateslegacy</em></div><svg class="ic"><use href="#i-youtube"/></svg></div>
+<div class="panel feature big" id="08-tiktok" style="--c:#25f4ee"><i class="halo"></i><div class="txt"><b class="line">TikTok</b><small>Clips on tap</small><em>@trongateslegacy</em></div><svg class="ic"><use href="#i-tiktok"/></svg></div>
+<div class="panel feature big" id="09-instagram" style="--c:#ff5fa2"><i class="halo"></i><div class="txt"><b class="line">Instagram</b><small>Behind the Grid</small><em>@trongateslegacy</em></div><svg class="ic"><use href="#i-instagram"/></svg></div>
+<div class="panel feature big" id="10-x" style="--c:#e8f4ff"><i class="halo"></i><div class="txt"><b class="line">X</b><small>Go-live posts</small><em>@trongateslegacy</em></div><svg class="ic"><use href="#i-x"/></svg></div>
+<div class="panel feature big" id="11-facebook" style="--c:#4c9bff"><i class="halo"></i><div class="txt"><b class="line">Facebook</b><small>Updates & clips</small><em>@trongateslegacy</em></div><svg class="ic"><use href="#i-facebook"/></svg></div>
+<div class="panel feature big" id="12-club" style="--c:#7a4dff"><i class="halo"></i><div class="txt"><b class="line">Club</b><small>The inner circle</small><em>@trongateslegacy</em></div><svg class="ic"><use href="#i-club"/></svg></div>
 </body></html>
