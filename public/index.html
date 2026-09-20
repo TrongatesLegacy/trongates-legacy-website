@@ -170,6 +170,12 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 .gang-logo .gng { right: 0; bottom: -4%; width: 66%; transform: rotate(-3deg); }
 .gang:hover .lulu { transform: rotate(-10deg) scale(1.08); }
 .gang:hover .gng { transform: rotate(1deg) scale(1.08); }
+.hero-socials { display: flex; align-items: center; gap: .55rem; margin-top: 1.3rem; }
+.hero-socials span { margin-right: .4rem; font-size: .68rem; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); }
+.hero-socials span::after { content: ''; display: inline-block; width: 1.6rem; height: 1px; margin-left: .7rem; vertical-align: middle; background: var(--a40); }
+.hero-socials a { width: 2.6rem; height: 2.6rem; display: grid; place-items: center; color: var(--muted); border: 1px solid var(--line); background: rgba(7,13,24,.75); clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); transition: color .2s, border-color .2s, background .2s, transform .25s cubic-bezier(.3,1.6,.5,1); }
+.hero-socials a:hover, .hero-socials a:focus-visible { color: var(--c); border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, rgba(7,13,24,.85)); transform: translateY(-3px); }
+.hero-socials svg.i { width: 1.1rem; height: 1.1rem; }
 .gang-txt small { display: block; font-size: .7rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
 .gang-txt b { display: flex; align-items: center; gap: .5rem; margin-top: .2rem; font: 700 .95rem/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .gang-txt b svg { color: #8c9bff; }
@@ -257,7 +263,8 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
   .stage { width: min(clamp(190px, 50vw, 300px), 34svh); }
   .eyebrow::before { display: none; }
   .lede { margin-inline: auto; }
-  .cta { justify-content: center; }
+  .cta, .hero-socials { justify-content: center; }
+  .hero-socials span { display: none; }
   .gang { margin-top: 1.8rem; max-width: 100%; gap: .8rem; padding-right: 1.1rem; }
   .gang-logo { width: 7rem; height: 3.8rem; }
   .gang-txt b { font-size: .8rem; letter-spacing: .05em; }
@@ -480,8 +487,17 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
           <img class="lulu" src="/assets/img/lulu.webp" width="250" height="187" alt="" decoding="async">
           <img class="gng" src="/assets/img/gang.webp" width="250" height="103" alt="" decoding="async">
         </span>
-        <span class="gang-txt"><small>Lulu Gang — the community HQ</small><b><svg class="i" aria-hidden="true"><use href="#i-discord"/></svg>Join the Discord <i aria-hidden="true">→</i></b></span>
+        <span class="gang-txt"><small>Lulu Gang community HQ</small><b><svg class="i" aria-hidden="true"><use href="#i-discord"/></svg>Join the Discord <i aria-hidden="true">→</i></b></span>
       </a>
+      <nav class="hero-socials" aria-label="Social links">
+        <span aria-hidden="true">Follow</span>
+        <a href="https://www.youtube.com/@trongateslegacy" target="_blank" rel="noopener" aria-label="YouTube" title="YouTube" style="--c:#ff3b3b"><svg class="i" aria-hidden="true"><use href="#i-youtube"/></svg></a>
+        <a href="https://www.tiktok.com/@trongateslegacy" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok" style="--c:#25f4ee"><svg class="i" aria-hidden="true"><use href="#i-tiktok"/></svg></a>
+        <a href="https://www.instagram.com/trongateslegacy/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram" style="--c:#ff5fa2"><svg class="i" aria-hidden="true"><use href="#i-instagram"/></svg></a>
+        <a href="https://x.com/trongateslegacy" target="_blank" rel="noopener" aria-label="X" title="X" style="--c:#e8f4ff"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></a>
+        <a href="https://www.facebook.com/trongateslegacy" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook" style="--c:#4c9bff"><svg class="i" aria-hidden="true"><use href="#i-facebook"/></svg></a>
+        <a href="https://club.com/trongateslegacy" target="_blank" rel="noopener" aria-label="Club" title="Club" style="--c:#b18cff"><svg class="i" aria-hidden="true"><use href="#i-club"/></svg></a>
+      </nav>
     </div>
     <div class="stage-wrap">
       <div class="stage" id="stage">
