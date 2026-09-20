@@ -20,19 +20,19 @@ await new Promise((r) => (ws.onopen = r));
 let id = 0; const pending = new Map();
 ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d.result); pending.delete(d.id); } };
 const send = (method, params = {}) => new Promise((r) => { pending.set(++id, r); ws.send(JSON.stringify({ id, method, params })); });
-await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 320, deviceScaleFactor: SCALE, mobile: false });
+await send("Emulation.setDeviceMetricsOverride", { width: 1440, height: 160, deviceScaleFactor: SCALE, mobile: false });
 await send("Page.navigate", { url: pathToFileURL(join(here, "banner.html")).href });
 await sleep(2500);
 for (let i = 0; i < FRAMES; i++) {
   await send("Runtime.evaluate", { expression: `setT(${i / FRAMES})` });
-  const { data } = await send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: 1440, height: 320, scale: 1 } });
+  const { data } = await send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: 1440, height: 160, scale: 1 } });
   writeFileSync(join(tmp, `f${String(i).padStart(3, "0")}.png`), Buffer.from(data, "base64"));
 }
 ws.close(); chrome.kill();
 writeFileSync(join(here, "kick-banner-static.png"), execFileSync("cat", [join(tmp, "f000.png")]));
 // decode the PNG frames to raw RGBA with ffmpeg, then write the APNG ourselves (changed pixels only)
 const raw = execFileSync("ffmpeg", ["-v", "error", "-i", join(tmp, "f%03d.png"), "-f", "rawvideo", "-pix_fmt", "rgba", "-"], { maxBuffer: 1 << 30 });
-const W = 1440 * SCALE, H = 320 * SCALE, size = W * H * 4;
+const W = 1440 * SCALE, H = 160 * SCALE, size = W * H * 4;
 const frames = Array.from({ length: FRAMES }, (_, i) => raw.subarray(i * size, (i + 1) * size));
 const out = join(here, "kick-banner-animated.png");
 writeFileSync(out, encodeApng(frames, W, H, FPS));

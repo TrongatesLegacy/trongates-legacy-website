@@ -164,15 +164,18 @@ Want to go further? Subs and gifted subs keep the stream improving: new forms, n
 
 ## Channel banner
 
-- `banner/kick-banner-animated.png` — animated PNG (APNG), 2160×480, ~2.1MB, loops forever: light cycles ride
+- `banner/kick-banner-animated.png` — animated PNG (APNG), 2160×240, ~1.7MB, loops forever: light cycles ride
   the grid, a sheen sweeps the title, and the title glitches like it does on the website.
-- `banner/kick-banner-static.png` — same design, single frame. Use this if Kick ever stops the animation.
+- `banner/kick-banner-static.png` — same design, single frame.
 
-**Size:** Kick publishes no official banner size and stores whatever you upload (other channels' banners
-range from 1280×700 to 2189×700), then crops it to fill the banner strip. Wide desktop screens show
-roughly the middle band (about 9:1); phones show roughly the middle two-thirds of the width. This banner
-is 4.5:1 with the title, tagline and "CEO of the Lulu Gang" all inside the box that survives both crops;
-the characters sit at the edges as a bonus on wider views.
+**Size:** Kick's banner cropper keeps a **9:1** strip, so the banner is built at exactly 9:1 (2160×240) and
+nothing is lost: in the cropper, leave the zoom slider at minimum and the whole image fits the frame.
+Phones show roughly the middle two-thirds of the width, which is where the title and tagline sit; the
+characters are at the edges as a bonus on wider screens.
+
+**Animation caveat:** the cropper may redraw the image when you press Apply, which would flatten an animated
+PNG to its first frame. The first frame is composed to look finished on its own, so nothing is lost if
+that happens. It's worth trying the animated file first.
 
 **Upload:** channel page → hover the banner → edit (or Settings → Profile → Banner) →
 *Upload from local device* → pick `kick-banner-animated.png` → Save. It's a normal `.png` under the 4MB
