@@ -20,7 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Person","name":"Trongate's Legacy","alternateName":"trongateslegacy","description":"Chill streamer, live on Kick.","url":"https://kick.com/trongateslegacy","sameAs":["https://kick.com/trongateslegacy","https://club.com/trongateslegacy","https://www.instagram.com/trongateslegacy/","https://www.youtube.com/@trongateslegacy","https://www.tiktok.com/@trongateslegacy","https://www.facebook.com/trongateslegacy","https://x.com/trongateslegacy"]}
+{"@context":"https://schema.org","@type":"Person","name":"Trongate's Legacy","alternateName":"trongateslegacy","description":"Chill streamer, live on Kick.","url":"https://kick.com/trongateslegacy","sameAs":["https://kick.com/trongateslegacy","https://club.com/trongateslegacy","https://www.instagram.com/trongateslegacy/","https://www.youtube.com/@trongateslegacy","https://www.tiktok.com/@trongateslegacy","https://www.facebook.com/trongateslegacy","https://x.com/trongateslegacy","https://discord.gg/FUKz6Dxk8W"]}
 </script>
 <style>
 @property --accent { syntax: '<color>'; inherits: true; initial-value: #22e5ff; }
@@ -47,6 +47,7 @@
 [data-theme="red"]      { --accent: #ff4155; }
 [data-theme="pink"],
 [data-theme="princess"] { --accent: #ff63b8; }
+[data-theme="blobfish"] { --accent: #ffb36b; }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { overflow-x: clip; background: var(--bg); color-scheme: dark; scroll-behavior: smooth; scroll-padding-top: 5rem; -webkit-text-size-adjust: 100%; }
@@ -143,7 +144,7 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 .halo .r4 { stroke-width: 3; stroke-dasharray: 24 250; stroke-linecap: round; animation: spin 7s linear infinite; filter: drop-shadow(0 0 4px var(--accent)); }
 @keyframes spin { to { transform: rotate(360deg); } }
 .tuber { position: absolute; inset: 0; animation: float 5.5s ease-in-out infinite; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 18px 30px rgba(0,0,0,.6)) drop-shadow(0 0 26px var(--a20)); }
-.tuber img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; user-select: none; -webkit-user-drag: none; }
+.tuber img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; opacity: 0; user-select: none; -webkit-user-drag: none; }
 .tuber.s-co img[data-s="co"], .tuber.s-cc img[data-s="cc"], .tuber.s-oo img[data-s="oo"], .tuber.s-oc img[data-s="oc"] { opacity: 1; }
 .tuber.bop { animation: float 5.5s ease-in-out infinite, bop .28s ease-in-out 5; }
 @keyframes float { 50% { translate: 0 -12px; } }
@@ -327,7 +328,7 @@ h2 em { font-style: normal; color: transparent; -webkit-text-stroke: 1.2px var(-
 .tile-kick small { font-size: 1rem; display: block; max-width: 62%; }
 .tile-kick img { position: absolute; right: -2%; bottom: -30%; width: 46%; z-index: -1; opacity: .95; transition: transform .45s cubic-bezier(.3,1.5,.5,1); filter: drop-shadow(0 0 28px rgba(83,252,24,.3)); }
 .tile-kick:hover img { transform: translateY(-5%) scale(1.04); }
-@media (min-width: 901px) { .tile:nth-last-child(-n+2) { grid-column: span 2; min-height: 8.5rem; gap: 1.2rem; } }
+.tile-wide { grid-column: span 2; }
 @media (max-width: 900px) { .bento { grid-template-columns: repeat(2, 1fr); } .tile { min-height: 9rem; gap: 1.4rem; } .tile-kick { min-height: 15rem; } }
 
 /* ───────── footer ───────── */
@@ -346,7 +347,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-kick" viewBox="0 0 24 24"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></symbol><symbol id="i-youtube" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></symbol><symbol id="i-instagram" viewBox="0 0 24 24"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></symbol><symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></symbol><symbol id="i-facebook" viewBox="0 0 24 24"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></symbol><symbol id="i-club" viewBox="0 0 24 24"><circle cx="12" cy="6.8" r="4.8"/><circle cx="6.3" cy="14" r="4.8"/><circle cx="17.7" cy="14" r="4.8"/><path d="M12 11c0 6-1.4 9.4-3.6 12h7.2C13.400 20.400 12 17 12 11z"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-kick" viewBox="0 0 24 24"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></symbol><symbol id="i-youtube" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></symbol><symbol id="i-instagram" viewBox="0 0 24 24"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></symbol><symbol id="i-tiktok" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></symbol><symbol id="i-facebook" viewBox="0 0 24 24"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></symbol><symbol id="i-discord" viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></symbol><symbol id="i-club" viewBox="0 0 24 24"><circle cx="12" cy="6.8" r="4.8"/><circle cx="6.3" cy="14" r="4.8"/><circle cx="17.7" cy="14" r="4.8"/><path d="M12 11c0 6-1.4 9.4-3.6 12h7.2C13.400 20.400 12 17 12 11z"/></symbol></svg>
 <div class="bg-grid" aria-hidden="true"></div>
 <canvas id="cycles" aria-hidden="true"></canvas>
 <div class="vignette" aria-hidden="true"></div>
@@ -375,11 +376,11 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <p class="lede"><strong>Chill streams, chaotic chat.</strong> Rocket League, Overwatch, Dead by Daylight, horror nights and whatever the Lulu Gang votes for — live on Kick.</p>
       <div class="cta">
         <a class="btn btn-kick" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-kick"/></svg><span data-cta-text>Watch on Kick</span></a>
-        <a class="btn btn-ghost" href="#videos">Latest videos</a>
+        <a class="btn btn-ghost" href="https://discord.gg/FUKz6Dxk8W" target="_blank" rel="noopener"><svg class="i"><use href="#i-discord"/></svg>Join the Lulu Gang</a>
       </div>
       <div class="hero-meta">
         <div><b data-status-short>KICK</b>Home base</div>
-        <div data-followers-wrap hidden><b data-followers>—</b>Lulu Gang members</div>
+        <div data-followers-wrap hidden><b data-followers>—</b>Kick followers</div>
         <div><b>3</b>Forms unlocked</div>
       </div>
     </div>
@@ -397,13 +398,14 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         </button>
         <div class="bubble" id="bubble" role="status"></div>
       </div>
-      <div class="armour" role="group" aria-label="Armour colour">
-        <span>Armour</span>
+      <div class="armour" role="group" aria-label="Choose a form">
+        <span>Form</span>
         <button class="chip" style="--c:#22e5ff" data-theme-btn="cyan" aria-pressed="true" aria-label="Cyan armour"></button>
         <button class="chip" style="--c:#ffd23f" data-theme-btn="yellow" aria-pressed="false" aria-label="Yellow armour"></button>
         <button class="chip" style="--c:#ff4155" data-theme-btn="red" aria-pressed="false" aria-label="Red armour"></button>
         <button class="chip" style="--c:#ff63b8" data-theme-btn="pink" aria-pressed="false" aria-label="Pink armour"></button>
         <button class="chip crown" style="--c:#ff63b8" data-theme-btn="princess" aria-pressed="false" aria-label="Redeem the princess">👑</button>
+        <button class="chip crown" style="--c:#ffb36b;background:linear-gradient(135deg,#ffe0bd,#ffb36b)" data-theme-btn="blobfish" aria-pressed="false" aria-label="Summon the blobfish">🎣</button>
       </div>
     </div>
   </div>
@@ -440,9 +442,9 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
           <p class="status-sub" data-status-sub>kick.com/trongateslegacy</p>
         </div>
         <div class="panel" data-followers-wrap hidden>
-          <h3>Lulu Gang</h3>
+          <h3>Kick followers</h3>
           <div class="big" data-followers>—</div>
-          <p class="status-sub">followers and counting</p>
+          <p class="status-sub">and counting</p>
         </div>
         <a class="btn btn-kick" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-kick"/></svg>Follow on Kick</a>
       </aside>
@@ -494,7 +496,8 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" style="--c:#ffb36b;--d:2" data-card="blobfish" tabindex="0">
         <span class="card-no" aria-hidden="true">03</span>
         <div class="card-art">
-          <img class="base" id="blob" src="/assets/img/blobfish-still.webp" width="300" height="372" loading="lazy" decoding="async" alt="A blobfish in a fishing hat and vest, holding a rod with the princess dangling from the hook">
+          <img class="base" src="/assets/img/blobfish-mclosed-eopen.webp" width="456" height="567" loading="lazy" decoding="async" alt="A blobfish in a fishing hat and vest, holding a rod with the princess dangling from the hook">
+          <img class="alt" data-src="/assets/img/blobfish-mopen-eopen.webp" width="456" height="567" decoding="async" alt="">
         </div>
         <div class="card-body">
           <span class="tag">Gone fishing</span>
@@ -533,7 +536,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   <div class="sec">
     <div class="sec-head reveal">
       <div><div class="kicker"><b>04</b>// Uplinks</div><h2>Join the <em>Lulu Gang</em></h2></div>
-      <p>Same handle everywhere: <strong>@trongateslegacy</strong>.</p>
+      <p>The Lulu Gang lives on Discord. Everywhere else, same handle: <strong>@trongateslegacy</strong>.</p>
     </div>
     <div class="bento reveal">
       <a class="tile tile-kick" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener">
@@ -545,6 +548,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <a class="tile" style="--c:#25f4ee" href="https://www.tiktok.com/@trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-tiktok"/></svg><span class="go">↗</span><div><b>TikTok</b><small>Clips on tap</small></div></a>
       <a class="tile" style="--c:#ff5fa2" href="https://www.instagram.com/trongateslegacy/" target="_blank" rel="noopener"><svg class="i"><use href="#i-instagram"/></svg><span class="go">↗</span><div><b>Instagram</b><small>Behind the Grid</small></div></a>
       <a class="tile" style="--c:#e8f4ff" href="https://x.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-x"/></svg><span class="go">↗</span><div><b>X</b><small>Go-live posts</small></div></a>
+      <a class="tile tile-wide" style="--c:#7d8bff" href="https://discord.gg/FUKz6Dxk8W" target="_blank" rel="noopener"><svg class="i"><use href="#i-discord"/></svg><span class="go">↗</span><div><b>Lulu Gang Discord</b><small>The community HQ — hang out between streams</small></div></a>
       <a class="tile" style="--c:#b18cff" href="https://club.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-club"/></svg><span class="go">↗</span><div><b>Club</b><small>The inner circle</small></div></a>
       <a class="tile" style="--c:#4c9bff" href="https://www.facebook.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-facebook"/></svg><span class="go">↗</span><div><b>Facebook</b><small>Updates &amp; clips</small></div></a>
     </div>
@@ -584,19 +588,21 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   $$('.reveal').forEach((el) => io.observe(el));
 
   /* ── PNGtuber: blinks on its own, talks when poked ── */
-  const THEMES = { cyan: '#22e5ff', yellow: '#ffd23f', red: '#ff4155', pink: '#ff63b8', princess: '#ff63b8' };
+  const THEMES = { cyan: '#22e5ff', yellow: '#ffd23f', red: '#ff4155', pink: '#ff63b8', princess: '#ff63b8', blobfish: '#ffb36b' };
   const STATES = { co: 'mclosed-eopen', cc: 'mclosed-eclosed', oo: 'mopen-eopen', oc: 'mopen-eclosed' };
   const LINES = {
     tron: ['Welcome to the Grid.', 'Rule #1: absolutely no cabbage.', 'I am NOT a princess. …Usually.', 'Lulu Gang, assemble!', 'Following on Kick is free. Just saying.', 'Who redeemed the princess AGAIN?', 'End of line.'],
     princess: ['Chat did this to me.', 'Peace! ✌️', 'This is NOT canon.', 'uwu… I mean— end of line.'],
+    blobfish: ['Blub.', 'Caught a princess. Keeping her.', 'Catch and release? Never heard of it.', 'Bleh.', 'The Lulu Gang is on Discord. Blub.'],
   };
   const tuber = $('#tuber'), bubble = $('#bubble');
   const tuberImgs = Object.fromEntries($$('img', tuber).map((i) => [i.dataset.s, i]));
   let theme = 'cyan', eyes = 'o', mouth = 'c', talking = 0, lineIdx = 0, bubbleTimer;
 
-  const srcFor = (t, s) => t === 'princess'
-    ? IMG + (s[0] === 'o' ? 'princess-uwu.webp' : 'princess-peace.webp')
-    : `${IMG}tron-${t}-${STATES[s]}.webp`;
+  const srcFor = (t, s) => {
+    if (t === 'princess') return IMG + (s[0] === 'o' ? 'princess-uwu.webp' : 'princess-peace.webp');
+    return t === 'blobfish' ? `${IMG}blobfish-${STATES[s]}.webp` : `${IMG}tron-${t}-${STATES[s]}.webp`;
+  };
   const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
   const preload = (src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = src; });
 
@@ -608,16 +614,16 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     root.dataset.theme = next;
     Object.keys(STATES).forEach((s, i) => { tuberImgs[s].src = srcs[i]; });
     $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.themeBtn === next));
-    const cardTheme = next === 'princess' ? 'pink' : next;
+    const cardTheme = next === 'princess' ? 'pink' : next === 'blobfish' ? 'cyan' : next;
     $$('[data-tron]').forEach((i) => { i.src = srcFor(cardTheme, i.dataset.tron); });
-    tuber.setAttribute('aria-label', next === 'princess' ? 'Poke the princess' : 'Poke Tron');
+    tuber.setAttribute('aria-label', { princess: 'Poke the princess', blobfish: 'Poke the blobfish' }[next] || 'Poke Tron');
     cycles.recolor(THEMES[next]);
     speak(next === 'princess' ? 'Who redeemed the princess?!' : null);
   }
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
 
   function speak(text) {
-    const pool = LINES[theme === 'princess' ? 'princess' : 'tron'];
+    const pool = LINES[theme] || LINES.tron;
     bubble.textContent = text || pool[lineIdx++ % pool.length];
     bubble.classList.add('on');
     clearTimeout(bubbleTimer);
@@ -659,14 +665,10 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   }
 
   /* ── roster cards: tilt + wake up ── */
-  const blob = $('#blob');
-  let blobReady = false;
-  const blobSrc = (k) => `${IMG}blobfish-${k}.webp`;
   function activate(card, on) {
     card.classList.toggle('active', on);
     const lazy = $('img[data-src]', card);
     if (on && lazy) { lazy.src = lazy.dataset.src; lazy.removeAttribute('data-src'); }
-    if (card.dataset.card === 'blobfish' && blobReady) blob.src = blobSrc(on ? 'speaking' : 'idle');
   }
   $$('.card').forEach((card) => {
     if (canHover) {
@@ -685,15 +687,6 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     card.addEventListener('focus', () => activate(card, true));
     card.addEventListener('blur', () => activate(card, false));
   });
-  // the animated blobfish is ~700KB, so it only loads when the card is actually on screen
-  if (!reduced && !saveData) {
-    new IntersectionObserver((es, o) => {
-      if (!es[0].isIntersecting) return;
-      o.disconnect();
-      preload(blobSrc('idle')).then(() => { blobReady = true; blob.src = blobSrc('idle'); });
-    }, { rootMargin: '200px' }).observe(blob);
-  }
-
   /* ── social tiles: pointer spotlight ── */
   if (canHover) $$('.tile').forEach((t) => t.addEventListener('pointermove', (e) => {
     const r = t.getBoundingClientRect();
