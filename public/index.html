@@ -181,6 +181,8 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 .hero-socials span::after { content: ''; display: inline-block; width: 1.6rem; height: 1px; margin-left: .7rem; vertical-align: middle; background: var(--a40); }
 .hero-socials a { width: 2.6rem; height: 2.6rem; display: grid; place-items: center; color: var(--muted); border: 1px solid var(--line); background: rgba(7,13,24,.75); clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); transition: color .2s, border-color .2s, background .2s, transform .25s cubic-bezier(.3,1.6,.5,1); }
 .hero-socials a:hover, .hero-socials a:focus-visible { color: var(--c); border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, rgba(7,13,24,.85)); transform: translateY(-3px); }
+/* brand colours too dark to read as an icon on this background fill the button instead */
+.hero-socials a.solid:hover, .hero-socials a.solid:focus-visible { color: #fff; background: var(--c); }
 .hero-socials svg.i { width: 1.1rem; height: 1.1rem; }
 .gang-txt small { display: block; font-size: .7rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
 .gang-txt b { display: flex; align-items: center; gap: .5rem; margin-top: .2rem; font: 700 .95rem/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
@@ -428,7 +430,7 @@ h2 em { font-style: normal; color: transparent; -webkit-text-stroke: 1.2px var(-
 .tile b { display: block; font: 700 1.05rem/1.2 var(--display); letter-spacing: .08em; text-transform: uppercase; }
 .tile small { color: var(--muted); font-size: .88rem; }
 .tile .go { position: absolute; top: 1.3rem; right: 1.4rem; color: var(--muted); transition: transform .3s, color .3s; }
-.tile:hover .go { transform: translate(3px,-3px); color: var(--c); }
+.tile:hover .go { transform: translate(3px,-3px); color: color-mix(in srgb, var(--c) 55%, #fff); }
 .tile-kick { grid-column: span 2; grid-row: span 2; --c: var(--kick); border-color: rgba(83,252,24,.35); background: radial-gradient(90% 80% at 100% 100%, rgba(83,252,24,.16), transparent 60%), rgba(7,13,24,.9); }
 .tile-kick svg.i { width: 3.2rem; height: 3.2rem; }
 .tile-kick b { font-size: clamp(1.5rem, 3.2vw, 2.2rem); font-weight: 900; }
@@ -509,7 +511,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         <a href="https://www.instagram.com/trongateslegacy/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram" style="--c:#ff5fa2"><svg class="i" aria-hidden="true"><use href="#i-instagram"/></svg></a>
         <a href="https://x.com/trongateslegacy" target="_blank" rel="noopener" aria-label="X" title="X" style="--c:#e8f4ff"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></a>
         <a href="https://www.facebook.com/trongateslegacy" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook" style="--c:#4c9bff"><svg class="i" aria-hidden="true"><use href="#i-facebook"/></svg></a>
-        <a href="https://club.com/trongateslegacy" target="_blank" rel="noopener" aria-label="Club" title="Club" style="--c:#b18cff"><svg class="i" aria-hidden="true"><use href="#i-club"/></svg></a>
+        <a href="https://club.com/trongateslegacy" target="_blank" rel="noopener" aria-label="Club" title="Club" class="solid" style="--c:#4800ff"><svg class="i" aria-hidden="true"><use href="#i-club"/></svg></a>
       </nav>
     </div>
     <div class="stage-wrap">
@@ -695,7 +697,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         </span>
         <span class="gang-txt"><small>The community HQ</small><b><svg class="i"><use href="#i-discord"/></svg>Join the Discord</b></span>
       </a>
-      <a class="tile" style="--c:#b18cff" href="https://club.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-club"/></svg><span class="go">↗</span><div><b>Club</b><small>The inner circle</small></div></a>
+      <a class="tile" style="--c:#4800ff" href="https://club.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-club"/></svg><span class="go">↗</span><div><b>Club</b><small>The inner circle</small></div></a>
       <a class="tile" style="--c:#4c9bff" href="https://www.facebook.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-facebook"/></svg><span class="go">↗</span><div><b>Facebook</b><small>Updates &amp; clips</small></div></a>
     </div>
   </div>
