@@ -46,6 +46,7 @@
   --text: #e8f4ff;
   --muted: #8ba3bd;
   --kick: #53fc18;
+  --live: #ff2740;
   --accent: #22e5ff;
   --a70: color-mix(in srgb, var(--accent) 70%, transparent);
   --a40: color-mix(in srgb, var(--accent) 40%, transparent);
@@ -167,6 +168,20 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 .halo .r3 { stroke-width: .5; opacity: .35; }
 .halo .r4 { stroke-width: 3; stroke-dasharray: 24 250; stroke-linecap: round; animation: spin 7s linear infinite; filter: drop-shadow(0 0 4px var(--accent)); }
 @keyframes spin { to { transform: rotate(360deg); } }
+/* on-air state: a red broadcast ring that reads the same on every form colour */
+.halo .r-live, .halo .ping, .live-badge { display: none; }
+[data-live="true"] .halo .r-live { display: block; stroke: var(--live); stroke-width: 2.4; filter: drop-shadow(0 0 5px var(--live)); animation: live-glow 1.8s ease-in-out infinite; }
+[data-live="true"] .halo .ping { display: block; position: absolute; inset: 10%; border-radius: 50%; border: 2px solid var(--live); opacity: 0; animation: live-ping 2.6s cubic-bezier(.2,.6,.4,1) infinite; }
+[data-live="true"] .halo .ping + .ping { animation-delay: 1.3s; }
+[data-live="true"] .halo::before { background: radial-gradient(circle, color-mix(in srgb, var(--live) 30%, var(--a40)) 0, var(--a10) 42%, transparent 68%); }
+[data-live="true"] .live-badge { position: absolute; left: -4%; top: 9%; z-index: 2; display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .8rem .45rem .65rem; font: 900 .78rem/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: #fff; background: var(--live); border-radius: 6px; transform: rotate(-6deg); box-shadow: 0 0 0 2px var(--bg), 0 0 22px var(--live); transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
+[data-live="true"] .live-badge:hover { transform: rotate(-3deg) scale(1.08); }
+.live-badge i { width: .55rem; height: .55rem; border-radius: 50%; background: #fff; animation: live-blink 1.2s steps(2, jump-none) infinite; }
+.live-badge span { font-weight: 700; letter-spacing: .06em; opacity: .9; }
+.live-badge span:empty { display: none; }
+@keyframes live-glow { 50% { opacity: .55; } }
+@keyframes live-ping { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.38); } }
+@keyframes live-blink { 50% { opacity: .25; } }
 .tuber { position: absolute; inset: 0; animation: float 5.5s ease-in-out infinite; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 18px 30px rgba(0,0,0,.6)) drop-shadow(0 0 26px var(--a20)); }
 .tuber img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; opacity: 0; user-select: none; -webkit-user-drag: none; }
 .tuber.s-co img[data-s="co"], .tuber.s-cc img[data-s="cc"], .tuber.s-oo img[data-s="oo"], .tuber.s-oc img[data-s="oc"] { opacity: 1; }
@@ -416,7 +431,8 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     <div class="stage-wrap">
       <div class="stage" id="stage">
         <div class="halo" aria-hidden="true">
-          <svg viewBox="0 0 200 200"><circle class="r1" cx="100" cy="100" r="98"/><circle class="r2" cx="100" cy="100" r="86"/><circle class="r3" cx="100" cy="100" r="74"/><circle class="r4" cx="100" cy="100" r="92"/></svg>
+          <svg viewBox="0 0 200 200"><circle class="r1" cx="100" cy="100" r="98"/><circle class="r2" cx="100" cy="100" r="86"/><circle class="r3" cx="100" cy="100" r="74"/><circle class="r4" cx="100" cy="100" r="92"/><circle class="r-live" cx="100" cy="100" r="80"/></svg>
+          <i class="ping"></i><i class="ping"></i>
         </div>
         <div class="pad" aria-hidden="true"></div>
         <button class="tuber s-co" id="tuber" aria-label="Poke Tron">
@@ -427,6 +443,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
           <img data-s="oo" alt="" width="640" height="960" decoding="async">
           <img data-s="oc" alt="" width="640" height="960" decoding="async">
         </button>
+        <a class="live-badge" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><i></i>Live<span data-live-viewers></span></a>
         <div class="bubble" id="bubble" role="status"></div>
       </div>
       <div class="armour" role="group" aria-label="Choose a form">
@@ -640,12 +657,13 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
   const preload = (src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = src; });
 
+  const isLiveNow = () => root.dataset.live === 'true';
   // everything outside the hero image that follows the current form
   function syncForm() {
     $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.themeBtn === theme));
     const cardTheme = THEMES[theme] && !['princess', 'blobfish'].includes(theme) ? theme : 'cyan';   // the Tron card only follows armour colours
     $$('[data-tron]').forEach((i) => { if (i.src || i.dataset.tron === 'co') i.src = srcFor(cardTheme, i.dataset.tron); });
-    tuber.setAttribute('aria-label', { princess: 'Poke Princess Trina', blobfish: 'Poke the blobfish' }[theme] || 'Poke Tron');
+    if (!isLiveNow()) tuber.setAttribute('aria-label', { princess: 'Poke Princess Trina', blobfish: 'Poke the blobfish' }[theme] || 'Poke Tron');
   }
   syncForm();
 
@@ -691,14 +709,15 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     }
     setTimeout(blink, 2200 + Math.random() * 3800);
   }
-  tuber.addEventListener('click', () => speak());
+  // on air, the character is a big "watch now" button; otherwise a poke makes it talk
+  tuber.addEventListener('click', () => (isLiveNow() ? window.open('https://kick.com/trongateslegacy', '_blank', 'noopener') : speak()));
 
   // the other three frames load after first paint so they never compete with the LCP image
   addEventListener('load', () => {
     ['cc', 'oo', 'oc'].forEach((s) => { tuberImgs[s].src = srcFor(theme, s); });
     $$('[data-tron="oo"]').forEach((i) => { i.src = srcFor(['princess', 'blobfish'].includes(theme) ? 'cyan' : theme, 'oo'); });
     setTimeout(blink, 1800);
-    if (!reduced) setTimeout(() => { if (!talking) speak(); }, 2600);
+    if (!reduced) setTimeout(() => { if (!talking && !isLiveNow()) speak(); }, 2600);   // when live, the go-live line stays up instead
   });
 
   if (canHover && !reduced) {
@@ -802,6 +821,9 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     if (k.live) {
       set('[data-live-text]', `Live · ${k.viewers.toLocaleString('en')} watching`);
       set('[data-cta-text]', 'Watch live now');
+      tuber.setAttribute('aria-label', 'Live now — watch on Kick');
+      speak("We're LIVE! Click me to watch.");
+      set('[data-live-viewers]', k.viewers ? k.viewers.toLocaleString('en') : '');
       set('[data-status]', 'Live now');
       set('[data-status-short]', 'LIVE');
       set('[data-status-sub]', [k.category, k.title].filter(Boolean).join(' — ') || 'The Grid is online');
@@ -819,7 +841,11 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   try { fallback = JSON.parse($('#fallback').textContent); } catch {}
   renderFeed(fallback);
   fetch('/api/feed').then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then((d) => { renderFeed(d); renderKick(d.kick); })
+    .then((d) => {
+      renderFeed(d);
+      // add ?live=1 to the URL to preview the on-air state
+      renderKick(new URLSearchParams(location.search).has('live') ? { live: true, viewers: 42, title: 'Preview stream', category: 'Rocket League', followers: null } : d.kick);
+    })
     .catch(() => renderKick(null));
 
   /* ── light cycles: a few riders tracing the background grid ── */
