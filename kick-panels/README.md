@@ -2,6 +2,8 @@
 
 Twelve panels for <https://kick.com/trongateslegacy/about>, styled to match the website.
 Images are in `images/` at 640px wide (Kick scales them to 320px, so they stay sharp on retina screens).
+There are only **two sizes** so rows line up neatly: the six main panels are all 640×340 and the six
+social buttons are all 640×168.
 All are well under Kick's 4MB limit and have transparent cut corners, which blend into Kick's dark background.
 
 ## Layout
@@ -21,14 +23,14 @@ important things land at the top and the small social buttons group together at 
 
 Why one panel per social: a panel's image can only link to **one** URL, so separate panels make every
 logo clickable. They're short (84px tall) so six of them take about the same room as two big panels.
+Keep the six main panels together and the six socials together: mixing the two sizes within a row is
+what makes a panel page look messy.
 
 ## How to add a panel
 
 1. Go to your channel → **About** tab → **Edit** (or Creator Dashboard → Channel → About/Panels).
 2. Click **Add panel**.
-3. **Title** – paste the title from below. (The image already contains the heading, so if Kick lets you
-   save with the title empty, leave it blank for a cleaner look. If the Create button stays greyed out,
-   use the title given.)
+3. **Title** – leave it empty. It's optional, and every image already has its heading built in.
 4. **Add image** – upload the matching file from `images/`.
 5. **Image link** – paste the link. This makes the whole image clickable.
 6. **Description** – paste the text. Panels 7–12 have one-line descriptions on purpose; the image does the work.
@@ -41,15 +43,14 @@ logo clickable. They're short (84px tall) so six of them take about the same roo
 
 ## 1. About Tron
 
-- **Title:** About Tron
 - **Image:** `images/01-about.png`
 - **Image link:** `https://www.trongateslegacy.com`
 - **Description:**
 
 ```
-Hey, I'm Tron — chill streamer and CEO of the Lulu Gang.
+Hey, I'm Tron, chill streamer and CEO of the Lulu Gang.
 
-Expect Rocket League, Overwatch, Dead by Daylight, Marvel Rivals, the odd horror night and plenty of gaming with friends. Laid-back vibes, bad jokes, and chat gets a say in how things go.
+Plenty of gaming with friends. Laid-back vibes, bad jokes, and chat gets a say in how things go.
 
 New here? Say hi in chat, hit follow so you catch the next stream, and come hang out in the Discord between streams.
 
@@ -58,7 +59,6 @@ GGs.
 
 ## 2. Lulu Gang Discord
 
-- **Title:** Lulu Gang Discord
 - **Image:** `images/02-lulu-gang-discord.png`
 - **Image link:** `https://discord.gg/FUKz6Dxk8W`
 - **Description:**
@@ -66,12 +66,11 @@ GGs.
 ```
 The Lulu Gang is the community HQ. Go-live pings, clips, memes, game nights and somewhere to hang out when the stream is offline.
 
-Everyone's welcome — come join: https://discord.gg/FUKz6Dxk8W
+Everyone's welcome, come join: https://discord.gg/FUKz6Dxk8W
 ```
 
 ## 3. Official Website
 
-- **Title:** Website
 - **Image:** `images/03-website.png`
 - **Image link:** `https://www.trongateslegacy.com`
 - **Description:**
@@ -84,7 +83,6 @@ https://www.trongateslegacy.com
 
 ## 4. The Roster
 
-- **Title:** The Roster
 - **Image:** `images/04-roster.png`
 - **Image link:** `https://www.trongateslegacy.com/#roster`
 - **Description:**
@@ -92,18 +90,17 @@ https://www.trongateslegacy.com
 ```
 One streamer, three forms:
 
-TRON — the default loadout. Neon armour, identity disc, suspiciously calm. Armour colour changes with the mood.
+TRON: the default loadout. Neon armour, identity disc, suspiciously calm. Armour colour changes with the mood.
 
-PRINCESS TRINA — chat's favourite redeem. One redeem and the armour gets swapped for a tiara. Not canon. Chat disagrees.
+PRINCESS TRINA: chat's favourite redeem. One redeem and the armour gets swapped for a tiara. Not canon. Chat disagrees.
 
-THE BLOBFISH — went fishing, caught Princess Trina, refuses to throw her back.
+THE BLOBFISH: went fishing, caught Princess Trina, refuses to throw her back.
 
 Pick your fighter on the website and the whole site changes with it.
 ```
 
 ## 5. Chat Rules
 
-- **Title:** Chat Rules
 - **Image:** `images/05-rules.png`
 - **Image link:** *(leave empty)*
 - **Description:** *(starter set — edit to match how you actually run chat)*
@@ -111,18 +108,17 @@ Pick your fighter on the website and the whole site changes with it.
 ```
 Keep it chill:
 
-1. Be kind. No hate speech, harassment or discrimination — zero tolerance.
+1. Be kind. No hate speech, harassment or discrimination. Zero tolerance.
 2. No spam, excessive caps or self-promo unless asked.
 3. No backseating or spoilers unless I ask for help.
 4. Keep politics, religion and drama out of chat.
-5. Respect the mods — their word is final.
+5. Respect the mods. Their word is final.
 6. English in chat please, so the mods can keep up.
 7. Have fun. That's the whole point.
 ```
 
 ## 6. Support the Stream
 
-- **Title:** Support the Stream
 - **Image:** `images/06-support.png`
 - **Image link:** `https://kick.com/trongateslegacy`
 - **Description:**
@@ -130,47 +126,41 @@ Keep it chill:
 ```
 The best support is free: follow, turn on notifications, and hang out in chat. Sharing a clip or bringing a friend helps more than you'd think.
 
-Want to go further? Subs and gifted subs keep the stream improving — new forms, new redeems, better everything. Never expected, always appreciated.
+Want to go further? Subs and gifted subs keep the stream improving: new forms, new redeems, better everything. Never expected, always appreciated.
 ```
 
 ## 7. YouTube
 
-- **Title:** YouTube
 - **Image:** `images/07-youtube.png`
 - **Image link:** `https://www.youtube.com/@trongateslegacy`
 - **Description:** `Full stream VODs and shorts. Missed a stream? It's here.`
 
 ## 8. TikTok
 
-- **Title:** TikTok
 - **Image:** `images/08-tiktok.png`
 - **Image link:** `https://www.tiktok.com/@trongateslegacy`
 - **Description:** `The best (and worst) moments, clipped.`
 
 ## 9. Instagram
 
-- **Title:** Instagram
 - **Image:** `images/09-instagram.png`
 - **Image link:** `https://www.instagram.com/trongateslegacy/`
-- **Description:** `Behind the Grid — art, updates and clips.`
+- **Description:** `Behind the Grid: art, updates and clips.`
 
 ## 10. X
 
-- **Title:** X
 - **Image:** `images/10-x.png`
 - **Image link:** `https://x.com/trongateslegacy`
 - **Description:** `Go-live posts and stream updates.`
 
 ## 11. Facebook
 
-- **Title:** Facebook
 - **Image:** `images/11-facebook.png`
 - **Image link:** `https://www.facebook.com/trongateslegacy`
 - **Description:** `Updates and clips, if Facebook is your thing.`
 
 ## 12. Club
 
-- **Title:** Club
 - **Image:** `images/12-club.png`
 - **Image link:** `https://club.com/trongateslegacy`
 - **Description:** `The inner circle.`
