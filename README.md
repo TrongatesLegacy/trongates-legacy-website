@@ -1,6 +1,6 @@
-# Trongate's Legacy
+# Trongates Legacy
 
-Single-page site for [Trongate's Legacy](https://kick.com/trongateslegacy) — live on Kick.
+Single-page site for [Trongates Legacy](https://kick.com/trongateslegacy) — live on Kick.
 
 - `public/index.html` — the whole site (HTML, CSS and JS inline, no build step)
 - `public/assets/img/` — optimised WebP character art (four mouth/eye states per form)
