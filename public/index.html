@@ -14,11 +14,25 @@
 <meta name="twitter:site" content="@trongateslegacy">
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-<link rel="preload" as="image" href="/assets/img/tron-cyan-mclosed-eopen.webp" type="image/webp" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
-<script>document.documentElement.classList.add('js')</script>
+<script>
+// Pick the form before first paint: the visitor's saved choice, otherwise a random one.
+(function () {
+  var forms = ['cyan', 'yellow', 'red', 'pink', 'princess', 'blobfish'], form;
+  try { form = localStorage.getItem('tgl-form'); } catch (e) {}
+  if (forms.indexOf(form) < 0) form = forms[Math.floor(Math.random() * forms.length)];
+  var file = form === 'princess' ? 'princess-uwu' : form === 'blobfish' ? 'blobfish-mclosed-eopen' : 'tron-' + form + '-mclosed-eopen';
+  window.__form = form;
+  window.__formSrc = '/assets/img/' + file + '.webp';
+  var root = document.documentElement, link = document.createElement('link');
+  root.classList.add('js');
+  root.dataset.theme = form;
+  link.rel = 'preload'; link.as = 'image'; link.href = window.__formSrc; link.fetchPriority = 'high';
+  document.head.appendChild(link);
+})();
+</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Person","name":"Trongate's Legacy","alternateName":"trongateslegacy","description":"Chill streamer, live on Kick.","url":"https://kick.com/trongateslegacy","sameAs":["https://kick.com/trongateslegacy","https://club.com/trongateslegacy","https://www.instagram.com/trongateslegacy/","https://www.youtube.com/@trongateslegacy","https://www.tiktok.com/@trongateslegacy","https://www.facebook.com/trongateslegacy","https://x.com/trongateslegacy","https://discord.gg/FUKz6Dxk8W"]}
 </script>
@@ -407,7 +421,9 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         </div>
         <div class="pad" aria-hidden="true"></div>
         <button class="tuber s-co" id="tuber" aria-label="Poke Tron">
-          <img data-s="co" src="/assets/img/tron-cyan-mclosed-eopen.webp" width="640" height="960" alt="Chibi Tron in glowing neon armour holding an identity disc" fetchpriority="high" decoding="async">
+          <img data-s="co" id="hero-img" width="640" height="960" alt="Trongate's Legacy chibi avatar" fetchpriority="high" decoding="async">
+          <script>document.getElementById('hero-img').src = window.__formSrc;</script>
+          <noscript><img src="/assets/img/tron-cyan-mclosed-eopen.webp" width="640" height="960" alt="" style="opacity:1"></noscript>
           <img data-s="cc" alt="" width="640" height="960" decoding="async">
           <img data-s="oo" alt="" width="640" height="960" decoding="async">
           <img data-s="oc" alt="" width="640" height="960" decoding="async">
@@ -613,7 +629,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   };
   const tuber = $('#tuber'), bubble = $('#bubble');
   const tuberImgs = Object.fromEntries($$('img', tuber).map((i) => [i.dataset.s, i]));
-  let theme = 'cyan', eyes = 'o', mouth = 'c', talking = 0, lineIdx = 0, bubbleTimer;
+  let theme = window.__form || 'cyan', eyes = 'o', mouth = 'c', talking = 0, lineIdx = 0, bubbleTimer;
 
   const srcFor = (t, s) => {
     if (t === 'princess') return IMG + (s[0] === 'o' ? 'princess-peace.webp' : 'princess-uwu.webp');
@@ -622,6 +638,15 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
   const preload = (src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = src; });
 
+  // everything outside the hero image that follows the current form
+  function syncForm() {
+    $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.themeBtn === theme));
+    const cardTheme = theme === 'princess' ? 'pink' : theme === 'blobfish' ? 'cyan' : theme;
+    $$('[data-tron]').forEach((i) => { if (i.src || i.dataset.tron === 'co') i.src = srcFor(cardTheme, i.dataset.tron); });
+    tuber.setAttribute('aria-label', { princess: 'Poke the princess', blobfish: 'Poke the blobfish' }[theme] || 'Poke Tron');
+  }
+  syncForm();
+
   async function setTheme(next) {
     if (next === theme) return;
     const srcs = Object.keys(STATES).map((s) => srcFor(next, s));
@@ -629,11 +654,9 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     theme = next;
     root.dataset.theme = next;
     Object.keys(STATES).forEach((s, i) => { tuberImgs[s].src = srcs[i]; });
-    $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.themeBtn === next));
-    const cardTheme = next === 'princess' ? 'pink' : next === 'blobfish' ? 'cyan' : next;
-    $$('[data-tron]').forEach((i) => { i.src = srcFor(cardTheme, i.dataset.tron); });
-    tuber.setAttribute('aria-label', { princess: 'Poke the princess', blobfish: 'Poke the blobfish' }[next] || 'Poke Tron');
+    syncForm();
     cycles.recolor(THEMES[next]);
+    try { localStorage.setItem('tgl-form', next); } catch {}   // only an explicit pick is remembered
     speak(next === 'princess' ? 'Who redeemed the princess?!' : null);
   }
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
@@ -667,7 +690,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   // the other three frames load after first paint so they never compete with the LCP image
   addEventListener('load', () => {
     ['cc', 'oo', 'oc'].forEach((s) => { tuberImgs[s].src = srcFor(theme, s); });
-    $$('[data-tron="oo"]').forEach((i) => { i.src = srcFor(theme, 'oo'); });
+    $$('[data-tron="oo"]').forEach((i) => { i.src = srcFor(theme === 'princess' ? 'pink' : theme === 'blobfish' ? 'cyan' : theme, 'oo'); });
     setTimeout(blink, 1800);
     if (!reduced) setTimeout(() => { if (!talking) speak(); }, 2600);
   });
@@ -797,7 +820,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   const cycles = (() => {
     const cv = $('#cycles'), ctx = cv.getContext('2d');
     const CELL = 56, RIVAL = '#ff8a3d';
-    let w = 0, h = 0, dpr = 1, riders = [], color = THEMES.cyan, raf = 0, last = 0;
+    let w = 0, h = 0, dpr = 1, riders = [], color = THEMES[theme], raf = 0, last = 0;
 
     function resize() {
       // mobile URL bars fire resize on every scroll; only a width change needs new riders
