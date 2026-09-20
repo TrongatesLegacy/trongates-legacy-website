@@ -1003,9 +1003,11 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
 
   // Videos come from /feed.json, which a scheduled GitHub Action keeps fresh (YouTube blocks
   // Netlify's servers). /api/feed supplies Kick status, plus a newer list when it can reach YouTube.
-  fetch('/feed.json').then((r) => (r.ok ? r.json() : Promise.reject(r.status))).then(renderFeed).catch(() => {});
+  // The two responses can arrive in either order, so the static fallback must never overwrite the live list.
+  let liveFeedShown = false;
+  fetch('/feed.json').then((r) => (r.ok ? r.json() : Promise.reject(r.status))).then((d) => { if (!liveFeedShown) renderFeed(d); }).catch(() => {});
   fetch('/api/feed').then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then((d) => { if (d.source === 'playlists') renderFeed(d); renderKick(mockLive() || d.kick); })
+    .then((d) => { if (d.source === 'playlists') { liveFeedShown = true; renderFeed(d); } renderKick(mockLive() || d.kick); })
     .catch(() => renderKick(mockLive()));
 
   /* ── dev only: mock the on-air state (button bottom-left, or press L). ?live=1 works anywhere ── */
