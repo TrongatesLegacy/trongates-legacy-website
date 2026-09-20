@@ -896,13 +896,42 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       const dt = Math.min((t - last) / 1000, .05); last = t;
       ctx.clearRect(0, 0, w, h);
       for (const r of riders) { step(r, dt); draw(r); }
+      dim();
       raf = requestAnimationFrame(frame);
     }
+    // Trails fade out where they pass under text and characters so they never fight the content.
+    // Zones are cached in page coordinates; nested rects give the erase a soft edge.
+    let zones = [];
+    function measure() {
+      zones = $$('.hero-in > div, .sec-head, .shorts-head, .end').map((el) => {
+        const b = el.getBoundingClientRect();
+        return [b.left, b.top + scrollY, b.width, b.height];
+      });
+    }
+    function dim() {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = '#000';
+      for (const [x, top, zw, zh] of zones) {
+        const y = top - scrollY;
+        if (y > h + 40 || y + zh < -40) continue;
+        [[40, .4], [20, .5], [0, .65]].forEach(([pad, a]) => {
+          ctx.globalAlpha = a;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(x - pad, y - pad, zw + pad * 2, zh + pad * 2, 24 + pad);
+          else ctx.rect(x - pad, y - pad, zw + pad * 2, zh + pad * 2);
+          ctx.fill();
+        });
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
     const start = () => { if (!raf && !reduced) { last = performance.now(); raf = requestAnimationFrame(frame); } };
     const stop = () => { cancelAnimationFrame(raf); raf = 0; };
 
     if (!reduced) {
-      resize(); start();
+      resize(); measure(); start();
+      new ResizeObserver(measure).observe(document.body);   // fonts, feed and form changes all move things
       let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resize, 200); });
       document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
     }
