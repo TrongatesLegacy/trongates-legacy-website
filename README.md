@@ -12,6 +12,12 @@ Single-page site for [Trongate's Legacy](https://kick.com/trongateslegacy) — l
 Import the repo in Netlify; `netlify.toml` already sets the publish directory (`public`) and the
 functions directory. No build command is needed.
 
+### Previewing the live state
+
+Running locally (`node dev.mjs`), a **DEV · mock live** button appears bottom-left — click it or press
+`L` to toggle the on-air state. It only exists on localhost. On any host, adding `?live=1` to the URL
+forces the live look for that page load.
+
 ### Live status (optional)
 
 Kick's website API usually blocks server-side requests, so for a reliable LIVE badge and auto-loading
