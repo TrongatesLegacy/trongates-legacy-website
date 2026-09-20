@@ -313,6 +313,12 @@ h2 em { font-style: normal; color: transparent; -webkit-text-stroke: 1.2px var(-
 .card.active .card-art img.alt { opacity: 1; }
 .card-body { position: relative; padding: 1.3rem 1.5rem 1.7rem; border-top: 1px solid color-mix(in srgb, var(--c) 28%, transparent); flex: 1; }
 .tag { font-size: .7rem; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--c); }
+.card-title { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.card-armour { display: flex; gap: .45rem; }
+.card-armour .chip { width: 1.5rem; height: 1.5rem; box-shadow: inset 0 0 0 3px var(--panel), 0 0 0 1px var(--line); }
+.card-armour .chip[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--panel), 0 0 0 2px var(--c), 0 0 14px var(--c); }
+.card.current { border-color: var(--c); box-shadow: 0 0 34px -10px var(--c); }
+.card.current .tag::after { content: ' · active form'; color: var(--text); opacity: .75; }
 .card h3 { margin: .35rem 0 .6rem; font: 900 1.45rem/1.1 var(--display); text-transform: uppercase; letter-spacing: .04em; }
 .card p { margin: 0 0 1.1rem; font-size: .97rem; color: var(--muted); }
 .stats { display: grid; gap: .55rem; margin: 0; }
@@ -523,7 +529,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   <div class="sec">
     <div class="sec-head reveal">
       <div><div class="kicker"><b>02</b>// Select your fighter</div><h2>The <em>roster</em></h2></div>
-      <p>One streamer, three forms. Which one shows up is mostly up to chat. Hover or tap to wake them up.</p>
+      <p>One streamer, three forms. Which one shows up is mostly up to chat. Pick one to take over the site.</p>
     </div>
     <div class="roster">
       <article class="card reveal" data-card="tron" tabindex="0">
@@ -534,7 +540,14 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         </div>
         <div class="card-body">
           <span class="tag">Main program</span>
-          <h3>Tron</h3>
+          <div class="card-title">
+            <h3>Tron</h3>
+            <div class="card-armour" role="group" aria-label="Tron's armour colour">
+              <button class="chip" style="--c:#22e5ff" data-armour-btn="cyan" aria-pressed="false" aria-label="Cyan armour"></button>
+              <button class="chip" style="--c:#ffd23f" data-armour-btn="yellow" aria-pressed="false" aria-label="Yellow armour"></button>
+              <button class="chip" style="--c:#ff4155" data-armour-btn="red" aria-pressed="false" aria-label="Red armour"></button>
+            </div>
+          </div>
           <p>Default loadout. Neon armour, identity disc, suspiciously calm under pressure. Armour colour changes with the mood.</p>
           <dl class="stats">
             <div><dt>Chill</dt><dd class="bar"><i style="--v:94"></i></dd><dd>94</dd></div>
@@ -684,12 +697,20 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
   const preload = (src) => new Promise((res) => { const i = new Image(); i.onload = i.onerror = res; i.src = src; });
 
+  const ARMOURS = ['cyan', 'yellow', 'red'];
+  let armour = 'cyan';
   const isLiveNow = () => root.dataset.live === 'true';
   // everything outside the hero image that follows the current form
   function syncForm() {
     $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.themeBtn === theme));
-    const cardTheme = THEMES[theme] && !['princess', 'blobfish'].includes(theme) ? theme : 'cyan';   // the Tron card only follows armour colours
-    $$('[data-tron]').forEach((i) => { if (i.src || i.dataset.tron === 'co') i.src = srcFor(cardTheme, i.dataset.tron); });
+    if (ARMOURS.includes(theme)) armour = theme;   // the Tron card keeps showing the last armour worn
+    $$('[data-tron]').forEach((i) => { if (i.src || i.dataset.tron === 'co') i.src = srcFor(armour, i.dataset.tron); });
+    $$('[data-armour-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.armourBtn === armour));
+    $$('.card').forEach((c) => {
+      const form = c.dataset.card;
+      c.classList.toggle('current', form === 'tron' ? ARMOURS.includes(theme) : form === theme);
+      if (form === 'tron') c.style.setProperty('--c', THEMES[armour]);
+    });
     if (!isLiveNow()) tuber.setAttribute('aria-label', { princess: 'Poke Princess Trina', blobfish: 'Poke the blobfish' }[theme] || 'Poke Tron');
   }
   syncForm();
@@ -707,6 +728,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     speak();
   }
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
+  $$('[data-armour-btn]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); setTheme(b.dataset.armourBtn); }));
 
   function nextLine() {
     const last = bags.last;
@@ -742,7 +764,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   // the other three frames load after first paint so they never compete with the LCP image
   addEventListener('load', () => {
     ['cc', 'oo', 'oc'].forEach((s) => { tuberImgs[s].src = srcFor(theme, s); });
-    $$('[data-tron="oo"]').forEach((i) => { i.src = srcFor(['princess', 'blobfish'].includes(theme) ? 'cyan' : theme, 'oo'); });
+    $$('[data-tron="oo"]').forEach((i) => { i.src = srcFor(armour, 'oo'); });
     setTimeout(blink, 1800);
     if (!reduced) setTimeout(() => { if (!talking && !isLiveNow()) speak(); }, 2600);   // when live, the go-live line stays up instead
   });
@@ -775,6 +797,10 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     } else {
       card.addEventListener('click', () => { const on = !card.classList.contains('active'); $$('.card.active').forEach((c) => activate(c, false)); activate(card, on); });
     }
+    // picking a fighter switches the whole site to that form, same as the hero selector
+    const pick = () => setTheme(card.dataset.card === 'tron' ? armour : card.dataset.card);
+    card.addEventListener('click', pick);
+    card.addEventListener('keydown', (e) => { if (e.target === card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); pick(); } });
     card.addEventListener('focus', () => activate(card, true));
     card.addEventListener('blur', () => activate(card, false));
   });
