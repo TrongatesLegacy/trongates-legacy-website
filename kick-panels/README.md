@@ -177,9 +177,9 @@ The same image is shown three different ways, always centre-cropped, so it's lai
 
 | Where | What's visible | What sits there |
 |---|---|---|
-| Chat user card (click a name in chat) | Only the **middle third**; your avatar covers the bottom-centre, badges/close button the top corners | "CEO of the" + Lulu Gang logo, Princess Trina and the Blobfish either side of the avatar |
-| Channel page, desktop | The "OFFLINE / stream title" box hides the left half; the right edge is cropped on laptops | "TRONGATES LEGACY" on two lines, in the strip that is visible at every desktop width |
-| Very wide screens | Everything | Bonus Tron on the far right |
+| Chat user card (click a name in chat) | Only the **middle third** (33%-67% of the width), full height; your avatar covers the bottom-centre, badges/close button the top corners | Lulu Gang logo + "Join the Discord", Princess Trina and the Blobfish either side, a ring that frames the avatar |
+| Channel page, desktop | A strip that is always 134px tall: wide screens lose the **top and bottom** (about 5% each at 1920 wide, about 19% at 2560), laptops lose the left/right edges, and the "OFFLINE / stream title" box hides the left half | "TRONGATES LEGACY / CEO of the Lulu Gang", placed right of the chat card's crop and left of the laptop crop; all text sits in the vertical middle |
+| Very wide screens | Everything, minus top/bottom | Bonus Tron on the far right |
 | Phones | A thin 44px strip | Too small to read anything, so nothing depends on it |
 
 Regenerate after editing `banner/banner.html`: `node --experimental-websocket kick-panels/banner/render.mjs 1 15 2`
