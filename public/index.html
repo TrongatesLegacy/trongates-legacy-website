@@ -479,8 +479,8 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" style="--c:#ff63b8;--d:1" data-card="princess" tabindex="0">
         <span class="card-no" aria-hidden="true">02</span>
         <div class="card-art">
-          <img class="base" src="/assets/img/princess-peace.webp" width="640" height="960" loading="lazy" decoding="async" alt="Tron as a chibi princess in a pink dress and tiara, throwing peace signs">
-          <img class="alt" data-src="/assets/img/princess-uwu.webp" width="640" height="960" decoding="async" alt="">
+          <img class="base" src="/assets/img/princess-uwu.webp" width="640" height="960" loading="lazy" decoding="async" alt="Tron as a chibi princess in a pink dress and tiara, winking">
+          <img class="alt" data-src="/assets/img/princess-peace.webp" width="640" height="960" decoding="async" alt="">
         </div>
         <div class="card-body">
           <span class="tag">Chat's favourite redeem</span>
@@ -600,7 +600,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   let theme = 'cyan', eyes = 'o', mouth = 'c', talking = 0, lineIdx = 0, bubbleTimer;
 
   const srcFor = (t, s) => {
-    if (t === 'princess') return IMG + (s[0] === 'o' ? 'princess-uwu.webp' : 'princess-peace.webp');
+    if (t === 'princess') return IMG + (s[0] === 'o' ? 'princess-peace.webp' : 'princess-uwu.webp');
     return t === 'blobfish' ? `${IMG}blobfish-${STATES[s]}.webp` : `${IMG}tron-${t}-${STATES[s]}.webp`;
   };
   const render = () => { tuber.className = `tuber s-${mouth}${eyes}` + (talking ? ' bop' : ''); };
