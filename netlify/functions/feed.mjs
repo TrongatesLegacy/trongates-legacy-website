@@ -29,10 +29,7 @@ async function fetchWithTimeout(url, init = {}, ms = 6000) {
   }
 }
 
-async function youtube(prefix, limit) {
-  const res = await fetchWithTimeout(playlistFeed(prefix), { headers: { "User-Agent": UA } });
-  if (!res.ok) throw new Error(`youtube ${prefix} ${res.status}`);
-  const xml = await res.text();
+function parseFeed(xml) {
   return xml
     .split("<entry>")
     .slice(1)
@@ -42,12 +39,51 @@ async function youtube(prefix, limit) {
         id: pick(/<yt:videoId>([^<]+)</),
         title: decode(pick(/<title>([^<]*)</)),
         published: pick(/<published>([^<]+)</),
+        short: /youtube\.com\/shorts\//.test(entry),
       };
     })
     .filter((v) => /^[\w-]{11}$/.test(v.id))
     // each stream VOD is uploaded twice (with and without "| Music |"); keep one per stream
-    .filter((v) => !/\|\s*Music\s*\|/i.test(v.title))
-    .slice(0, limit);
+    .filter((v) => !/\|\s*Music\s*\|/i.test(v.title));
+}
+
+// YouTube's RSS endpoints randomly answer 404/500 for feeds that exist, so retry before giving up.
+async function fetchFeed(url, attempts = 4) {
+  let lastError;
+  for (let i = 0; i < attempts; i++) {
+    if (i) await new Promise((r) => setTimeout(r, 250 * i));
+    try {
+      const res = await fetchWithTimeout(url, { headers: { "User-Agent": UA, "Accept-Language": "en" } }, 4000);
+      if (res.ok) return parseFeed(await res.text());
+      lastError = new Error(`${res.status}`);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
+}
+
+// A short answers 200 at /shorts/<id>; a regular video redirects to /watch.
+async function isShort(id) {
+  const res = await fetchWithTimeout(`https://www.youtube.com/shorts/${id}`, { method: "HEAD", redirect: "manual", headers: { "User-Agent": UA } }, 4000);
+  return res.status === 200;
+}
+
+// The per-type playlist feeds are the cleanest source but YouTube intermittently 404s them
+// (especially from cloud IPs), so fall back to the channel feed and sort entries ourselves.
+async function youtube() {
+  const strip = (list, n) => list.slice(0, n).map(({ short, ...v }) => v);
+  const [videos, shorts] = await Promise.allSettled([fetchFeed(playlistFeed("UULF")), fetchFeed(playlistFeed("UUSH"))]);
+  if (videos.status === "fulfilled" && shorts.status === "fulfilled") {
+    return { videos: strip(videos.value, 6), shorts: strip(shorts.value, 10), source: "playlists" };
+  }
+  const all = await fetchFeed(`https://www.youtube.com/feeds/videos.xml?channel_id=${YT_CHANNEL}`);
+  const flags = await Promise.all(all.map((v) => (v.short ? true : isShort(v.id).catch(() => false))));
+  return {
+    videos: strip(all.filter((_, i) => !flags[i]), 6),
+    shorts: strip(all.filter((_, i) => flags[i]), 10),
+    source: "channel",
+  };
 }
 
 // Official Kick API — used when KICK_CLIENT_ID / KICK_CLIENT_SECRET are set in Netlify
@@ -99,28 +135,32 @@ async function kickSite() {
 
 const kick = () => (process.env.KICK_CLIENT_ID && process.env.KICK_CLIENT_SECRET ? kickOfficial() : kickSite());
 
+let lastGood = null;
+
 export default async () => {
-  const [videos, shorts, kickStatus] = await Promise.allSettled([
-    youtube("UULF", 6),
-    youtube("UUSH", 10),
-    kick(),
-  ]);
-  const value = (r, fallback) => (r.status === "fulfilled" ? r.value : fallback);
+  const [yt, kickStatus] = await Promise.allSettled([youtube(), kick()]);
+  // a warm function instance remembers its last good answer, which covers most YouTube blips
+  if (yt.status === "fulfilled" && yt.value.videos.length) lastGood = yt.value;
+  const feed = yt.status === "fulfilled" ? yt.value : lastGood ? { ...lastGood, source: "memory" } : { videos: [], shorts: [], source: "none" };
 
   return new Response(
     JSON.stringify({
-      videos: value(videos, []),
-      shorts: value(shorts, []),
-      kick: value(kickStatus, null),
+      ...feed,
+      kick: kickStatus.status === "fulfilled" ? kickStatus.value : null,
       // upstream failures, so a broken source is visible at /api/feed instead of silently empty
-      errors: [videos, shorts, kickStatus].filter((r) => r.status === "rejected").map((r) => String(r.reason?.message || r.reason)),
+      errors: [["youtube", yt], ["kick", kickStatus]]
+        .filter(([, r]) => r.status === "rejected")
+        .map(([name, r]) => `${name}: ${r.reason?.message || r.reason}`),
       generated: new Date().toISOString(),
     }),
     {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "public, max-age=60",
-        "Netlify-CDN-Cache-Control": "public, s-maxage=180, stale-while-revalidate=3600",
+        "Cache-Control": feed.videos.length ? "public, max-age=60" : "no-store",
+        // a failed YouTube fetch is only cached briefly so the next visitor retries it
+        "Netlify-CDN-Cache-Control": feed.videos.length || feed.shorts.length
+          ? "public, s-maxage=180, stale-while-revalidate=3600"
+          : "public, s-maxage=15",
       },
     },
   );
