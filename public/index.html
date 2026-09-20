@@ -134,6 +134,12 @@ svg.i { width: 1.25em; height: 1.25em; fill: currentColor; flex: none; }
 [data-live="true"] .dot { background: var(--kick); box-shadow: 0 0 0 0 rgba(83,252,24,.7); animation: ping 1.6s infinite; }
 @keyframes ping { to { box-shadow: 0 0 0 .6rem rgba(83,252,24,0); } }
 @media (max-width: 760px) { .nav-links { display: none; } .pill { margin-left: auto; } }
+@media (max-width: 480px) {
+  .nav-in { gap: .6rem; }
+  .brand { min-width: 0; gap: .5rem; font-size: .8rem; letter-spacing: .1em; }
+  .brand svg { width: 1.7rem; height: 1.7rem; flex: none; }
+  .pill { flex: none; gap: .4rem; padding: .5rem .7rem; font-size: .66rem; letter-spacing: .06em; }
+}
 
 /* ───────── hero ───────── */
 .hero { position: relative; min-height: calc(100svh - 4.25rem); display: grid; align-items: center; padding: 2rem 0 5rem; isolation: isolate; }
@@ -327,7 +333,14 @@ h2 em { font-style: normal; color: transparent; -webkit-text-stroke: 1.2px var(-
 .status-sub { margin: .35rem 0 0; font-size: .92rem; color: var(--muted); overflow-wrap: anywhere; }
 .big { font: 900 2.3rem/1.1 var(--display); color: var(--accent); text-shadow: 0 0 22px var(--a40); }
 .side .btn { justify-content: center; }
-@media (max-width: 900px) { .stream { grid-template-columns: 1fr; } .side { grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); } .side .btn { grid-column: 1 / -1; } }
+@media (max-width: 900px) {
+  .stream { grid-template-columns: 1fr; }
+  /* stacked under the player: everything spans the full width, unless the followers panel is
+     showing, in which case the two panels share a row */
+  .side { grid-template-columns: 1fr 1fr; }
+  .side > * { grid-column: 1 / -1; }
+  .side:has([data-followers-wrap]:not([hidden])) .panel { grid-column: auto; }
+}
 @media (max-width: 600px) { .facade img { display: none; } }
 
 /* ───────── roster ───────── */
