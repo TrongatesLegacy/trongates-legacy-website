@@ -171,7 +171,7 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 .tuber { position: absolute; inset: 0; animation: float 5.5s ease-in-out infinite; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 18px 30px rgba(0,0,0,.6)) drop-shadow(0 0 26px var(--a20)); }
 .tuber img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; opacity: 0; user-select: none; -webkit-user-drag: none; }
 .tuber.s-co img[data-s="co"], .tuber.s-cc img[data-s="cc"], .tuber.s-oo img[data-s="oo"], .tuber.s-oc img[data-s="oc"] { opacity: 1; }
-.tuber.bop { animation: float 5.5s ease-in-out infinite, bop .28s ease-in-out 5; }
+.tuber.bop { animation: float 5.5s ease-in-out infinite, bop .3s ease-in-out 2; }
 @keyframes float { 50% { translate: 0 -12px; } }
 @keyframes bop { 50% { scale: 1.025 .985; } }
 .pad { position: absolute; left: 50%; bottom: 1%; width: 78%; height: 9%; transform: translateX(-50%); border-radius: 50%; z-index: -1;
@@ -661,22 +661,18 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   }
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
 
+  // Hold the talking pose for roughly as long as the line takes to say, then settle back to idle
+  // a beat before the bubble fades.
+  let talkTimer;
   function speak(text) {
     const pool = LINES[theme] || LINES.tron;
     bubble.textContent = text || pool[lineIdx++ % pool.length];
     bubble.classList.add('on');
-    clearTimeout(bubbleTimer);
-    const dur = 1100 + bubble.textContent.length * 45;
-    talking = performance.now() + Math.min(dur, 2400);
-    bubbleTimer = setTimeout(() => bubble.classList.remove('on'), dur + 1400);
-    flap();
-  }
-  function flap() {
-    if (performance.now() > talking) { talking = 0; mouth = 'c'; return render(); }
-    // the princess only has two poses, so she holds one instead of flapping between them
-    mouth = theme === 'princess' ? 'o' : (mouth === 'c' ? 'o' : (Math.random() < .35 ? 'o' : 'c'));
-    render();
-    setTimeout(flap, 90 + Math.random() * 110);
+    clearTimeout(bubbleTimer); clearTimeout(talkTimer);
+    const dur = 900 + bubble.textContent.length * 55;
+    talking = 1; mouth = 'o'; render();
+    talkTimer = setTimeout(() => { talking = 0; mouth = 'c'; render(); }, dur);
+    bubbleTimer = setTimeout(() => bubble.classList.remove('on'), dur + 1300);
   }
   function blink() {
     if (theme !== 'princess' && !document.hidden) {
