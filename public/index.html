@@ -177,8 +177,14 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 [data-live="true"] .live-badge { position: absolute; left: -4%; top: 9%; z-index: 2; display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .8rem .45rem .65rem; font: 900 .78rem/1 var(--display); letter-spacing: .18em; text-transform: uppercase; color: #fff; background: var(--live); border-radius: 6px; transform: rotate(-6deg); box-shadow: 0 0 0 2px var(--bg), 0 0 22px var(--live); transition: transform .25s cubic-bezier(.3,1.6,.5,1); }
 [data-live="true"] .live-badge:hover { transform: rotate(-3deg) scale(1.08); }
 .live-badge i { width: .55rem; height: .55rem; border-radius: 50%; background: #fff; animation: live-blink 1.2s steps(2, jump-none) infinite; }
-.live-badge span { font-weight: 700; letter-spacing: .06em; opacity: .9; }
-.live-badge span:empty { display: none; }
+.live-badge .lb { display: grid; }
+.live-badge .lb b { grid-area: 1 / 1; font-weight: 900; text-align: center; transition: opacity .2s, transform .25s cubic-bezier(.3,1.5,.5,1); }
+.live-badge .lb b + b { opacity: 0; transform: translateY(70%); }
+/* hovering the character or the badge swaps the label for the call to action */
+.stage:hover .live-badge { transform: rotate(-3deg) scale(1.1); background: #fff; color: var(--live); }
+.stage:hover .live-badge i { background: var(--live); }
+.stage:hover .live-badge .lb b { opacity: 0; transform: translateY(-70%); }
+.stage:hover .live-badge .lb b + b { opacity: 1; transform: none; }
 @keyframes live-glow { 50% { opacity: .55; } }
 @keyframes live-ping { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.38); } }
 @keyframes live-blink { 50% { opacity: .25; } }
@@ -453,7 +459,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
           <img data-s="oo" alt="" width="640" height="960" decoding="async">
           <img data-s="oc" alt="" width="640" height="960" decoding="async">
         </button>
-        <a class="live-badge" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><i></i>Live<span data-live-viewers></span></a>
+        <a class="live-badge" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener" aria-label="Live now — watch on Kick"><i></i><span class="lb"><b>Live now</b><b>Watch now ▶</b></span></a>
         <div class="bubble" id="bubble" role="status"></div>
       </div>
       <div class="armour" role="group" aria-label="Choose a form">
@@ -840,7 +846,6 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       set('[data-cta-text]', 'Watch live now');
       tuber.setAttribute('aria-label', 'Live now — watch on Kick');
       speak("We're LIVE! Click me to watch.");
-      set('[data-live-viewers]', k.viewers ? k.viewers.toLocaleString('en') : '');
       set('[data-status]', 'Live now');
       set('[data-status-short]', 'LIVE');
       set('[data-status-sub]', [k.category, k.title].filter(Boolean).join(' — ') || 'The Grid is online');
@@ -849,7 +854,6 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     } else {
       set('[data-live-text]', 'Watch on Kick');
       set('[data-cta-text]', 'Watch on Kick');
-      set('[data-live-viewers]', '');
       syncForm();                                   // restores the "Poke …" label
       set('[data-status]', 'Offline');
       set('[data-status-sub]', 'Follow on Kick to get the go-live alert.');
