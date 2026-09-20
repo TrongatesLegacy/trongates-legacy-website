@@ -29,7 +29,8 @@ for (let i = 0; i < FRAMES; i++) {
   writeFileSync(join(tmp, `f${String(i).padStart(3, "0")}.png`), Buffer.from(data, "base64"));
 }
 ws.close(); chrome.kill();
-writeFileSync(join(here, "kick-banner-static.png"), execFileSync("cat", [join(tmp, "f000.png")]));
+writeFileSync(join(here, "kick-banner.png"), execFileSync("cat", [join(tmp, "f000.png")]));
+if (FRAMES === 1) { console.log("static banner written"); process.exit(0); }
 // decode the PNG frames to raw RGBA with ffmpeg, then write the APNG ourselves (changed pixels only)
 const raw = execFileSync("ffmpeg", ["-v", "error", "-i", join(tmp, "f%03d.png"), "-f", "rawvideo", "-pix_fmt", "rgba", "-"], { maxBuffer: 1 << 30 });
 const W = 1440 * SCALE, H = 160 * SCALE, size = W * H * 4;

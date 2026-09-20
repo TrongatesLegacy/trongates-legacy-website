@@ -164,28 +164,28 @@ Want to go further? Subs and gifted subs keep the stream improving: new forms, n
 
 ## Channel banner
 
-- `banner/kick-banner-animated.png` — animated PNG (APNG), 2160×240, ~1.7MB, loops forever: light cycles ride
-  the grid, a sheen sweeps the title, and the title glitches like it does on the website.
-- `banner/kick-banner-static.png` — same design, single frame.
+`banner/kick-banner.png` (2160×240, 9:1). Upload via channel page → edit banner → *Upload from local device*,
+leave the cropper's zoom at minimum so the whole image fits, then Apply.
 
-**Size:** Kick's banner cropper keeps a **9:1** strip, so the banner is built at exactly 9:1 (2160×240) and
-nothing is lost: in the cropper, leave the zoom slider at minimum and the whole image fits the frame.
-Phones show roughly the middle two-thirds of the width, which is where the title and tagline sit; the
-characters are at the edges as a bonus on wider screens.
+Kick's help page asks for a minimum of 1280×700, but the cropper only ever keeps a **9:1** strip and Kick
+then stores it as a 1105×123 JPG. That also means animated PNGs are flattened, so the banner is static.
 
-**Animation caveat:** the cropper may redraw the image when you press Apply, which would flatten an animated
-PNG to its first frame. The first frame is composed to look finished on its own, so nothing is lost if
-that happens. It's worth trying the animated file first.
+The same image is shown three different ways, always centre-cropped, so it's laid out in zones:
 
-**Upload:** channel page → hover the banner → edit (or Settings → Profile → Banner) →
-*Upload from local device* → pick `kick-banner-animated.png` → Save. It's a normal `.png` under the 4MB
-limit. If it shows but doesn't animate, Kick has flattened it — nothing is lost, it just looks like the static one.
+| Where | What's visible | What sits there |
+|---|---|---|
+| Chat user card (click a name in chat) | Only the **middle third**; your avatar covers the bottom-centre, badges/close button the top corners | "CEO of the" + Lulu Gang logo, Princess Trina and the Blobfish either side of the avatar |
+| Channel page, desktop | The "OFFLINE / stream title" box hides the left half; the right edge is cropped on laptops | "TRONGATES LEGACY" on two lines, in the strip that is visible at every desktop width |
+| Very wide screens | Everything | Bonus Tron on the far right |
+| Phones | A thin 44px strip | Too small to read anything, so nothing depends on it |
 
-**Regenerate** after editing `banner/banner.html` (needs Chrome + ffmpeg):
+Regenerate after editing `banner/banner.html`: `node --experimental-websocket kick-panels/banner/render.mjs 1`
 
-```
-node --experimental-websocket kick-panels/banner/render.mjs 60 15 1.5   # frames fps scale
-```
+## Offline banner
+
+`banner/kick-offline-banner.png` (1920×1080, the size Kick's help page specifies). This fills the video
+player while you're offline. Upload via Settings → Profile → *Update Offline Banner Image*.
+Regenerate after editing `banner/offline.html`: `node --experimental-websocket kick-panels/banner/render-offline.mjs`
 
 ## Optional extras
 

@@ -3,27 +3,38 @@
 @font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../../public/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
 * { box-sizing: border-box; margin: 0; }
 html, body { background: #03060d; }
-/* 1440x160 = 9:1, the exact shape of Kick's banner cropper, so nothing is thrown away on upload.
-   Narrow phones show roughly the middle two-thirds, which is where the title sits. */
+/* 1440x160 = 9:1, the shape of Kick's banner cropper (Kick saves a 1105x123 JPG, so this is static).
+   The same image is shown three ways, all centre-cropped, so it is laid out in zones (% of width):
+     34-66  chat user card (middle third only; avatar covers the bottom-centre, buttons the top corners)
+            -> Lulu Gang logo up top, Princess and Blobfish either side of where the avatar lands
+     67-82  channel page: the "OFFLINE / stream title" box hides the left ~56% on laptops and the crop
+            ends at ~82%, so the title sits here, stacked on two lines to fit, clear of the chat card
+     0-33 / 83-100  only seen on very wide screens and phones: trails and a bonus Tron */
 #banner { position: relative; width: 1440px; height: 160px; overflow: hidden; background: #03060d; color: #e8f4ff; font-family: "Chakra Petch", sans-serif; --c: #22e5ff; }
 .grid { position: absolute; inset: 0; background:
   linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 40px 40px,
   linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 40px 40px; }
-.glow { position: absolute; inset: 0; background: radial-gradient(55% 160% at 50% 50%, rgba(34,229,255,.16), transparent 70%); }
+.glow { position: absolute; inset: 0; background: radial-gradient(40% 170% at 62% 50%, rgba(34,229,255,.16), transparent 70%); }
 canvas { position: absolute; inset: 0; }
 .art { position: absolute; top: 6px; height: 290px; filter: drop-shadow(0 0 18px rgba(34,229,255,.35)); }
-.a1 { left: 70px; } .a2 { right: 150px; height: 270px; top: 4px; filter: drop-shadow(0 0 18px rgba(255,99,184,.35)); } .a3 { right: 14px; height: 150px; top: 8px; filter: drop-shadow(0 0 16px rgba(255,179,107,.3)); }
-.center { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 9px; text-align: center; }
-.eyebrow, .tag { font-size: 13px; font-weight: 600; letter-spacing: .42em; text-transform: uppercase; color: var(--c); display: flex; align-items: center; gap: 14px; }
-.eyebrow::before, .eyebrow::after { content: ""; width: 46px; height: 1px; background: var(--c); }
-.tag { color: #8ba3bd; letter-spacing: .34em; font-size: 12px; }
+.a1 { right: 40px; height: 250px; top: 8px; } .a2 { left: 35.2%; height: 236px; top: 12px; filter: drop-shadow(0 0 18px rgba(255,99,184,.35)); } .a3 { left: 53.6%; height: 140px; top: 16px; filter: drop-shadow(0 0 16px rgba(255,179,107,.3)); }
+.center { position: absolute; top: 0; bottom: 0; left: 67.2%; width: 14.8%; display: grid; place-content: center; justify-items: start; gap: 7px; text-align: left; }
+.eyebrow, .tag { font-size: 10.5px; font-weight: 600; letter-spacing: .42em; text-transform: uppercase; color: var(--c); display: flex; align-items: center; gap: 14px; }
+.eyebrow::before, .eyebrow::after { content: ""; width: 30px; height: 1px; background: var(--c); }
+.tag { color: #8ba3bd; letter-spacing: .26em; font-size: 9.5px; }
 .tag b { color: #53fc18; font-weight: 600; }
-h1 { position: relative; font: 900 58px/1 Orbitron; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
-h1 .o { color: transparent; -webkit-text-stroke: 1.6px var(--c); }
+h1 { position: relative; font: 900 27px/1.08 Orbitron; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
+h1 span { display: block; }
+h1 .o { color: transparent; -webkit-text-stroke: 1.1px var(--c); }
 h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-h1 .ghost { position: absolute; inset: 0; opacity: 0; }
+h1 .ghost { position: absolute; inset: 0; opacity: 0; display: none; }
 h1 .ghost.r { color: #ff2d78; } h1 .ghost.b { color: #22e5ff; }
 .sheen { position: absolute; inset: -6px -20px; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(105deg, transparent 0 46%, rgba(255,255,255,.55) 50%, transparent 54% 100%) no-repeat; background-size: 300% 100%; opacity: 0; }
+.mid { position: absolute; left: 48.6%; top: 12px; width: 200px; margin-left: -100px; display: grid; justify-items: center; gap: 2px; }
+.mid .eyebrow { font-size: 8.5px; letter-spacing: .3em; gap: 8px; white-space: nowrap; }
+.mid .eyebrow::before, .mid .eyebrow::after { width: 16px; }
+.mid .logos { position: relative; width: 150px; height: 66px; filter: drop-shadow(0 3px 8px rgba(0,0,0,.6)); }
+.mid .logos img { position: absolute; } .mid .lulu { left: 4px; top: -4px; width: 88px; transform: rotate(-6deg); } .mid .gng { right: 2px; bottom: 0; width: 84px; transform: rotate(-3deg); }
 </style></head><body>
 <div id="banner">
   <div class="grid"></div><div class="glow"></div>
@@ -31,12 +42,15 @@ h1 .ghost.r { color: #ff2d78; } h1 .ghost.b { color: #22e5ff; }
   <img class="art a1" src="../../public/assets/img/tron-cyan-mclosed-eopen.webp">
   <img class="art a2" src="../../public/assets/img/princess-peace.webp">
   <img class="art a3" src="../../public/assets/img/blobfish-mclosed-eopen.webp">
+  <div class="mid">
+    <div class="eyebrow">CEO of the</div>
+    <span class="logos"><img class="lulu" src="../../public/assets/img/lulu.webp"><img class="gng" src="../../public/assets/img/gang.webp"></span>
+  </div>
   <div class="center">
-    <div class="eyebrow">CEO of the Lulu Gang</div>
-    <h1><span class="o">Trongates</span> <span class="s">Legacy</span>
+    <h1><span class="o">Trongates</span><span class="s">Legacy</span>
       <span class="ghost r" id="gr">Trongates Legacy</span><span class="ghost b" id="gb">Trongates Legacy</span>
       <span class="sheen" id="sheen"></span></h1>
-    <div class="tag">Chill streams · gaming with friends · <b>live on Kick</b></div>
+    <div class="tag"><b>Live on Kick</b></div>
   </div>
 </div>
 <script>
@@ -64,7 +78,8 @@ function setT(t) {
     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(head, y, 2.6, 0, 6.3); ctx.fill();
   }
   // like the website, trails fade out where they pass behind the text so they never cut through it
-  const box = document.querySelector('.center > h1').getBoundingClientRect();
+  const a = document.querySelector('.a2').getBoundingClientRect(), z = document.querySelector('.center').getBoundingClientRect();
+  const box = { left: a.left, width: z.right - a.left };
   ctx.globalCompositeOperation = 'destination-out';
   for (const [pad, alpha] of [[70, .4], [40, .5], [14, .7]]) {
     ctx.globalAlpha = alpha;

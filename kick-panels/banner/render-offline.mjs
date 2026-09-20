@@ -1,0 +1,23 @@
+// Renders offline.html to kick-offline-banner.png (1920x1080). Usage: node --experimental-websocket kick-panels/banner/render-offline.mjs
+import { spawn } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { dirname, join } from "node:path";
+import { tmpdir } from "node:os";
+const here = dirname(fileURLToPath(import.meta.url));
+const chrome = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", ["--headless=new", "--remote-debugging-port=9338", `--user-data-dir=${join(tmpdir(), "kick-offline-chrome")}`, "--allow-file-access-from-files", "about:blank"], { stdio: "ignore" });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+await sleep(1500);
+const tabs = await (await fetch("http://127.0.0.1:9338/json")).json();
+const ws = new WebSocket(tabs.find((t) => t.type === "page").webSocketDebuggerUrl);
+await new Promise((r) => (ws.onopen = r));
+let id = 0; const pending = new Map();
+ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d.result); pending.delete(d.id); } };
+const send = (method, params = {}) => new Promise((r) => { pending.set(++id, r); ws.send(JSON.stringify({ id, method, params })); });
+await send("Emulation.setDeviceMetricsOverride", { width: 1920, height: 1080, deviceScaleFactor: 1, mobile: false });
+await send("Page.navigate", { url: pathToFileURL(join(here, "offline.html")).href });
+await sleep(2500);
+const { data } = await send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: 1920, height: 1080, scale: 1 } });
+writeFileSync(join(here, "kick-offline-banner.png"), Buffer.from(data, "base64"));
+console.log("kick-offline-banner.png written");
+ws.close(); chrome.kill();
