@@ -1,0 +1,81 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Kick banner</title><style>
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(../../public/assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../../public/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: #03060d; }
+/* 1440x320 (4.5:1). Kick crops banners to fill: wide desktop shows roughly the middle 160px band,
+   narrow phones roughly the middle 960px — so everything important sits inside that centre box. */
+#banner { position: relative; width: 1440px; height: 320px; overflow: hidden; background: #03060d; color: #e8f4ff; font-family: "Chakra Petch", sans-serif; --c: #22e5ff; }
+.grid { position: absolute; inset: 0; background:
+  linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 40px 40px,
+  linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 40px 40px; }
+.glow { position: absolute; inset: 0; background: radial-gradient(60% 120% at 50% 50%, rgba(34,229,255,.16), transparent 70%); }
+canvas { position: absolute; inset: 0; }
+.art { position: absolute; bottom: -30px; height: 300px; filter: drop-shadow(0 0 18px rgba(34,229,255,.35)); }
+.a1 { left: 46px; } .a2 { right: 128px; height: 270px; bottom: -22px; filter: drop-shadow(0 0 18px rgba(255,99,184,.35)); } .a3 { right: 8px; height: 190px; bottom: 4px; filter: drop-shadow(0 0 16px rgba(255,179,107,.3)); }
+.center { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; text-align: center; }
+.eyebrow, .tag { font-size: 13px; font-weight: 600; letter-spacing: .42em; text-transform: uppercase; color: var(--c); display: flex; align-items: center; gap: 14px; }
+.eyebrow::before, .eyebrow::after { content: ""; width: 46px; height: 1px; background: var(--c); }
+.tag { color: #8ba3bd; letter-spacing: .34em; font-size: 12px; }
+.tag b { color: #53fc18; font-weight: 600; }
+h1 { position: relative; font: 900 62px/1 Orbitron; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
+h1 .o { color: transparent; -webkit-text-stroke: 1.6px var(--c); }
+h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h1 .ghost { position: absolute; inset: 0; opacity: 0; }
+h1 .ghost.r { color: #ff2d78; } h1 .ghost.b { color: #22e5ff; }
+.sheen { position: absolute; inset: -6px -20px; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(105deg, transparent 0 46%, rgba(255,255,255,.55) 50%, transparent 54% 100%) no-repeat; background-size: 300% 100%; opacity: 0; }
+</style></head><body>
+<div id="banner">
+  <div class="grid"></div><div class="glow"></div>
+  <canvas id="cv" width="1440" height="320"></canvas>
+  <img class="art a1" src="../../public/assets/img/tron-cyan-mclosed-eopen.webp">
+  <img class="art a2" src="../../public/assets/img/princess-peace.webp">
+  <img class="art a3" src="../../public/assets/img/blobfish-mclosed-eopen.webp">
+  <div class="center">
+    <div class="eyebrow">CEO of the Lulu Gang</div>
+    <h1><span class="o">Trongates</span> <span class="s">Legacy</span>
+      <span class="ghost r" id="gr">Trongates Legacy</span><span class="ghost b" id="gb">Trongates Legacy</span>
+      <span class="sheen" id="sheen"></span></h1>
+    <div class="tag">Chill streams · gaming with friends · <b>live on Kick</b></div>
+  </div>
+</div>
+<script>
+// Deterministic animation: setT(t) draws the frame for loop position t in [0,1), so the loop is seamless.
+const ctx = document.getElementById('cv').getContext('2d');
+const W = 1440, H = 320, CELL = 40;
+// light cycles: each rides a grid row, crossing the banner a whole number of times per loop
+const riders = [
+  { y: 1, dir: 1, laps: 1, off: .05, c: '#22e5ff', len: 360 },
+  { y: 7, dir: -1, laps: 1, off: .45, c: '#ff8a3d', len: 300 },
+  { y: 2, dir: -1, laps: 2, off: .7, c: '#22e5ff', len: 240 },
+  { y: 6, dir: 1, laps: 2, off: .2, c: '#22e5ff', len: 260 },
+];
+function setT(t) {
+  ctx.clearRect(0, 0, W, H);
+  for (const r of riders) {
+    const span = W + r.len * 2;
+    const p = ((t * r.laps + r.off) % 1) * span - r.len;
+    const head = r.dir > 0 ? p : W - p, tail = head - r.dir * r.len, y = r.y * CELL + .5;
+    const g = ctx.createLinearGradient(tail, 0, head, 0);
+    g.addColorStop(0, r.c + '00'); g.addColorStop(1, r.c);
+    ctx.strokeStyle = g; ctx.lineCap = 'round';
+    ctx.globalAlpha = .25; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(tail, y); ctx.lineTo(head, y); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(tail, y); ctx.lineTo(head, y); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(head, y, 2.6, 0, 6.3); ctx.fill();
+  }
+  // sheen sweeps the title once per loop
+  const sh = document.getElementById('sheen'), s = (t - .08) / .3;
+  sh.style.opacity = s > 0 && s < 1 ? 1 : 0;
+  sh.style.backgroundPosition = `${100 - s * 100}% 0`;
+  // two short glitch bursts, same pattern as the website title
+  const gr = document.getElementById('gr'), gb = document.getElementById('gb');
+  const bursts = [[.62, -6, 2, 'inset(10% 0 55% 0)', 5, -1, 'inset(40% 0 30% 0)'], [.66, 5, -2, 'inset(60% 0 8% 0)', -5, 1, 'inset(5% 0 72% 0)']];
+  gr.style.opacity = gb.style.opacity = 0;
+  for (const [at, rx, ry, rc, bx, by, bc] of bursts) if (t >= at && t < at + .035) {
+    gr.style.opacity = gb.style.opacity = .85;
+    gr.style.transform = `translate(${rx}px,${ry}px)`; gr.style.clipPath = rc;
+    gb.style.transform = `translate(${bx}px,${by}px)`; gb.style.clipPath = bc;
+  }
+}
+setT(0);
+</script></body></html>
