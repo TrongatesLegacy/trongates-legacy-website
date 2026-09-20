@@ -20,7 +20,7 @@
 <script>
 // Pick the form before first paint: the visitor's saved choice, otherwise a random one.
 (function () {
-  var forms = ['cyan', 'yellow', 'red', 'pink', 'princess', 'blobfish'], form;
+  var forms = ['cyan', 'yellow', 'red', 'princess', 'blobfish'], form;
   try { form = localStorage.getItem('tgl-form'); } catch (e) {}
   if (forms.indexOf(form) < 0) form = forms[Math.floor(Math.random() * forms.length)];
   var file = form === 'princess' ? 'princess-uwu' : form === 'blobfish' ? 'blobfish-mclosed-eopen' : 'tron-' + form + '-mclosed-eopen';
@@ -59,7 +59,6 @@
 }
 [data-theme="yellow"]   { --accent: #ffd23f; }
 [data-theme="red"]      { --accent: #ff4155; }
-[data-theme="pink"],
 [data-theme="princess"] { --accent: #ff63b8; }
 [data-theme="blobfish"] { --accent: #ffb36b; }
 
@@ -435,7 +434,6 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         <button class="chip" style="--c:#22e5ff" data-theme-btn="cyan" aria-pressed="true" aria-label="Cyan armour"></button>
         <button class="chip" style="--c:#ffd23f" data-theme-btn="yellow" aria-pressed="false" aria-label="Yellow armour"></button>
         <button class="chip" style="--c:#ff4155" data-theme-btn="red" aria-pressed="false" aria-label="Red armour"></button>
-        <button class="chip" style="--c:#ff63b8" data-theme-btn="pink" aria-pressed="false" aria-label="Pink armour"></button>
         <button class="chip crown" style="--c:#ff63b8" data-theme-btn="princess" aria-pressed="false" aria-label="Redeem Princess Trina">👑</button>
         <button class="chip crown" style="--c:#ffb36b;background:linear-gradient(135deg,#ffe0bd,#ffb36b)" data-theme-btn="blobfish" aria-pressed="false" aria-label="Summon the blobfish">🎣</button>
       </div>
@@ -620,16 +618,20 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   $$('.reveal').forEach((el) => io.observe(el));
 
   /* ── PNGtuber: blinks on its own, talks when poked ── */
-  const THEMES = { cyan: '#22e5ff', yellow: '#ffd23f', red: '#ff4155', pink: '#ff63b8', princess: '#ff63b8', blobfish: '#ffb36b' };
+  const THEMES = { cyan: '#22e5ff', yellow: '#ffd23f', red: '#ff4155', princess: '#ff63b8', blobfish: '#ffb36b' };
   const STATES = { co: 'mclosed-eopen', cc: 'mclosed-eclosed', oo: 'mopen-eopen', oc: 'mopen-eclosed' };
+  // every form has its own voice; nothing is shared between them
   const LINES = {
-    tron: ['Welcome to the Grid.', 'Rule #1: absolutely no cabbage.', 'I am NOT a princess. …Usually.', 'Lulu Gang, assemble!', 'Following on Kick is free. Just saying.', 'Who redeemed Princess Trina AGAIN?', 'End of line.'],
-    princess: ['Chat did this to me.', 'Peace! ✌️', 'This is NOT canon.', 'uwu… I mean— end of line.'],
-    blobfish: ['Blub.', 'Caught Princess Trina. Keeping her.', 'Catch and release? Never heard of it.', 'Bleh.', 'The Lulu Gang is on Discord. Blub.'],
+    cyan: ['Welcome to the Grid.', 'Rule #1: absolutely no cabbage.', 'I am NOT a princess. …Usually.', 'Chill streams only. Mostly.', 'Following on Kick is free. Just saying.', 'Who redeemed Princess Trina AGAIN?', 'End of line.'],
+    yellow: ['Gold armour. Still silver aim.', 'Feeling lucky. Queue it up!', 'This is the win-streak skin. Trust.', 'Shiny, right? Chat picked it.', 'Hit follow — I glow brighter.', 'One more game. For real this time.'],
+    red: ['Who whiffed that? …Oh. Me.', 'I am calm. This is my calm face.', 'Red means ranked.', 'Do NOT bring cabbage into my stream.', 'That was lag. Clip it, I dare you.', 'Tilt? Never heard of it.'],
+    princess: ['Chat did this to me.', 'Peace! ✌️', 'This is NOT canon.', 'uwu… I mean— ahem.', 'The tiara stays ON during ranked.', 'Somebody redeemed me again, didn\'t they?', 'Curtsy first, questions later.'],
+    blobfish: ['Blub.', 'Caught Princess Trina. Keeping her.', 'Catch and release? Never heard of it.', 'Bleh.', 'The Lulu Gang is on Discord. Blub.', 'I am the prettiest fish in the sea.', 'Fishing is just chilling with extra steps.'],
   };
   const tuber = $('#tuber'), bubble = $('#bubble');
   const tuberImgs = Object.fromEntries($$('img', tuber).map((i) => [i.dataset.s, i]));
-  let theme = window.__form || 'cyan', eyes = 'o', mouth = 'c', talking = 0, lineIdx = 0, bubbleTimer;
+  let theme = window.__form || 'cyan', eyes = 'o', mouth = 'c', talking = 0, bubbleTimer;
+  const bags = {};   // per-form shuffle bags: random order, no repeats until every line has been said
 
   const srcFor = (t, s) => {
     if (t === 'princess') return IMG + (s[0] === 'o' ? 'princess-peace.webp' : 'princess-uwu.webp');
@@ -641,7 +643,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   // everything outside the hero image that follows the current form
   function syncForm() {
     $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.themeBtn === theme));
-    const cardTheme = theme === 'princess' ? 'pink' : theme === 'blobfish' ? 'cyan' : theme;
+    const cardTheme = THEMES[theme] && !['princess', 'blobfish'].includes(theme) ? theme : 'cyan';   // the Tron card only follows armour colours
     $$('[data-tron]').forEach((i) => { if (i.src || i.dataset.tron === 'co') i.src = srcFor(cardTheme, i.dataset.tron); });
     tuber.setAttribute('aria-label', { princess: 'Poke Princess Trina', blobfish: 'Poke the blobfish' }[theme] || 'Poke Tron');
   }
@@ -661,12 +663,20 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   }
   $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
 
+  function nextLine() {
+    const last = bags.last;
+    if (!bags[theme] || !bags[theme].length) {
+      bags[theme] = [...LINES[theme]].sort(() => Math.random() - .5);
+      if (bags[theme].at(-1) === last) bags[theme].reverse();   // never the same line twice in a row
+    }
+    return (bags.last = bags[theme].pop());
+  }
+
   // Hold the talking pose for roughly as long as the line takes to say, then settle back to idle
   // a beat before the bubble fades.
   let talkTimer;
   function speak(text) {
-    const pool = LINES[theme] || LINES.tron;
-    bubble.textContent = text || pool[lineIdx++ % pool.length];
+    bubble.textContent = text || nextLine();
     bubble.classList.add('on');
     clearTimeout(bubbleTimer); clearTimeout(talkTimer);
     const dur = 900 + bubble.textContent.length * 55;
@@ -686,7 +696,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   // the other three frames load after first paint so they never compete with the LCP image
   addEventListener('load', () => {
     ['cc', 'oo', 'oc'].forEach((s) => { tuberImgs[s].src = srcFor(theme, s); });
-    $$('[data-tron="oo"]').forEach((i) => { i.src = srcFor(theme === 'princess' ? 'pink' : theme === 'blobfish' ? 'cyan' : theme, 'oo'); });
+    $$('[data-tron="oo"]').forEach((i) => { i.src = srcFor(['princess', 'blobfish'].includes(theme) ? 'cyan' : theme, 'oo'); });
     setTimeout(blink, 1800);
     if (!reduced) setTimeout(() => { if (!talking) speak(); }, 2600);
   });
