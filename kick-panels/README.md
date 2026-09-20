@@ -164,11 +164,14 @@ Want to go further? Subs and gifted subs keep the stream improving: new forms, n
 
 ## Channel banner
 
-`banner/kick-banner.png` (2160×240, 9:1). Upload via channel page → edit banner → *Upload from local device*,
+`banner/kick-banner.png` (2880×320, 9:1). Upload via channel page → edit banner → *Upload from local device*,
 leave the cropper's zoom at minimum so the whole image fits, then Apply.
 
 Kick's help page asks for a minimum of 1280×700, but the cropper only ever keeps a **9:1** strip and Kick
-then stores it as a 1105×123 JPG. That also means animated PNGs are flattened, so the banner is static.
+then serves it as a heavily compressed **1105×123 JPG** (about 27KB), stretched to fit the page. Nothing you
+upload can change that, so the design uses large type and thick strokes that survive it. It also means
+animated PNGs are flattened, so the banner is static. (The offline banner is served at 1500px as WebP, which
+is why that one looks crisp.)
 
 The same image is shown three different ways, always centre-cropped, so it's laid out in zones:
 
@@ -179,7 +182,7 @@ The same image is shown three different ways, always centre-cropped, so it's lai
 | Very wide screens | Everything | Bonus Tron on the far right |
 | Phones | A thin 44px strip | Too small to read anything, so nothing depends on it |
 
-Regenerate after editing `banner/banner.html`: `node --experimental-websocket kick-panels/banner/render.mjs 1`
+Regenerate after editing `banner/banner.html`: `node --experimental-websocket kick-panels/banner/render.mjs 1 15 2`
 
 ## Offline banner
 
