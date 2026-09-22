@@ -1,12 +1,12 @@
 // Renders banner.html to discord-banner.png (static) and discord-banner.gif (animated), both 1360x480.
-// Usage: node --experimental-websocket discord/render.mjs [frames=60] [fps=15]   (needs Chrome + ffmpeg)
+// Usage: node --experimental-websocket discord/render.mjs [frames=90] [fps=15]   (needs Chrome + ffmpeg)
 import { spawn, execFileSync } from "node:child_process";
 import { writeFileSync, mkdirSync, rmSync, statSync, copyFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
-const FRAMES = +process.argv[2] || 60, FPS = +process.argv[3] || 15;
+const FRAMES = +process.argv[2] || 90, FPS = +process.argv[3] || 15;
 const here = dirname(fileURLToPath(import.meta.url));
 const tmp = join(tmpdir(), "discord-banner-frames");
 rmSync(tmp, { recursive: true, force: true }); mkdirSync(tmp, { recursive: true });
@@ -23,7 +23,7 @@ await send("Emulation.setDeviceMetricsOverride", { width: 680, height: 240, devi
 await send("Page.navigate", { url: pathToFileURL(join(here, "banner.html")).href });
 await sleep(2500);
 for (let i = 0; i < FRAMES; i++) {
-  await send("Runtime.evaluate", { expression: `setT(${i / FRAMES})` });
+  await send("Runtime.evaluate", { expression: `setT(${i / FRAMES})`, awaitPromise: true });
   const { data } = await send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: 680, height: 240, scale: 1 } });
   writeFileSync(join(tmp, `f${String(i).padStart(3, "0")}.png`), Buffer.from(data, "base64"));
 }

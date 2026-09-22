@@ -5,6 +5,7 @@
      full profile / editor:      centre 23% across, top edge 52% down, radius ~17% of the width
    Anything drawn to hug the avatar would be off in one of them, so the bottom-left only gets a soft glow.
    Text and characters sit in the top-left strip above both avatar positions and in the right 60%.
+   On the right, cyan Tron, Princess Trina and the Blobfish take turns, glitching from one to the next.
    The Lulu Gang logo is centred horizontally on the popout avatar (the view most people see) and
    vertically in the space above the avatar, which is almost the same height in both views. */
 @font-face { font-family: Orbitron; font-weight: 400 900; src: url(../public/assets/fonts/orbitron.woff2) format("woff2"); }
@@ -31,15 +32,24 @@ h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-ba
 .tag { display: flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #53fc18; }
 .tag svg { width: 12px; height: 12px; fill: #53fc18; filter: drop-shadow(0 0 6px rgba(83,252,24,.6)); }
 .tag i { font-style: normal; color: #8ba3bd; letter-spacing: .14em; }
-.tron { position: absolute; right: -44px; top: 18px; height: 312px; filter: drop-shadow(0 10px 16px rgba(0,0,0,.6)) drop-shadow(0 0 20px rgba(34,229,255,.35)); }
-.halo { position: absolute; right: -2px; top: 20px; width: 150px; height: 150px; border-radius: 50%; border: 1.5px dashed rgba(34,229,255,.55); background: radial-gradient(circle, rgba(34,229,255,.28), transparent 68%); }
+.form { position: absolute; filter: drop-shadow(0 10px 16px rgba(0,0,0,.6)) drop-shadow(0 0 20px var(--fc)); }
+.f-tron { --fc: rgba(34,229,255,.35); right: -44px; top: 18px; height: 312px; }
+.f-trina { --fc: rgba(255,99,184,.4); right: -46px; top: 16px; height: 312px; }
+.f-blob { --fc: rgba(255,179,107,.35); right: -6px; top: 24px; height: 232px; transform: scaleX(-1); }
+.halo { position: absolute; right: -2px; top: 20px; width: 150px; height: 150px; border-radius: 50%; border: 1.5px dashed color-mix(in srgb, var(--hc) 60%, transparent); background: radial-gradient(circle, color-mix(in srgb, var(--hc) 30%, transparent), transparent 68%); --hc: #22e5ff; }
+/* form swap: the character tears into horizontal slices with an RGB split, old and new mixed */
+.band { position: absolute; inset: 0; filter: drop-shadow(-3px 0 rgba(255,45,120,.85)) drop-shadow(3px 0 rgba(34,229,255,.85)); }
+.band .form { filter: drop-shadow(0 0 14px var(--fc)); }   /* no dark drop shadow inside slices: it leaves black bars */
 </style></head><body>
 <div id="banner">
   <div class="grid"></div><div class="glow"></div>
   <canvas id="cv" width="1360" height="480" style="width:680px;height:240px"></canvas>
   <div class="lulu-block"><div class="eyebrow">CEO of the</div><span class="logos"><img class="lulu" src="../public/assets/img/lulu.webp"><img class="gng" src="../public/assets/img/gang.webp"></span></div>
   <i class="halo"></i>
-  <img class="tron" src="../public/assets/img/tron-cyan-mclosed-eopen.webp">
+  <img class="form f-tron" data-form="0" src="../public/assets/img/tron-cyan-mclosed-eopen.webp">
+  <img class="form f-trina" data-form="1" src="../public/assets/img/princess-peace.webp">
+  <img class="form f-blob" data-form="2" src="../public/assets/img/blobfish-mclosed-eopen.webp">
+  <div id="bands"></div>
   <div class="title">
     <h1><span class="o">Trongates</span><span class="s">Legacy</span>
       <div class="ghost r" id="gr"><span>Trongates</span><span>Legacy</span></div>
@@ -54,12 +64,14 @@ const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 ctx.scale(2, 2);
 const W = 680, H = 240, CELL = 24;
 const riders = [
-  { y: 2, dir: 1, laps: 1, off: .05, c: '#22e5ff', len: 200 },
+  { y: 2, dir: 1, laps: 2, off: .05, c: '#22e5ff', len: 200 },
   { y: 4, dir: -1, laps: 1, off: .55, c: '#ff8a3d', len: 170 },
-  { y: 8, dir: 1, laps: 2, off: .3, c: '#22e5ff', len: 150 },
-  { y: 1, dir: -1, laps: 2, off: .8, c: '#22e5ff', len: 130 },
+  { y: 8, dir: 1, laps: 3, off: .3, c: '#22e5ff', len: 150 },
+  { y: 1, dir: -1, laps: 3, off: .8, c: '#22e5ff', len: 130 },
 ];
-function setT(t) {
+const FORMS = [...document.querySelectorAll('[data-form]')], HALO = ['#22e5ff', '#ff63b8', '#ffb36b'];
+const rand = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+async function setT(t) {
   ctx.clearRect(0, 0, W, H);
   for (const r of riders) {
     const span = W + r.len * 2, p = ((t * r.laps + r.off) % 1) * span - r.len;
@@ -78,17 +90,36 @@ function setT(t) {
     for (const [pad, a] of [[36, .4], [20, .5], [6, .7]]) { ctx.globalAlpha = a; ctx.beginPath(); ctx.roundRect(b.left - pad, b.top - pad, b.width + pad * 2, b.height + pad * 2, 24); ctx.fill(); }
   }
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-  const sh = document.getElementById('sheen'), s = (t - .08) / .3;
+  const sh = document.getElementById('sheen'), s = (t - .08) / .22;
   sh.style.opacity = s > 0 && s < 1 ? Math.sin(Math.PI * s) : 0;
   sh.style.backgroundPosition = `${100 - s * 100}% 0`;
   const gr = document.getElementById('gr'), gb = document.getElementById('gb');
   gr.style.opacity = gb.style.opacity = 0;
-  for (const [at, rx, ry, rc, bx, by, bc] of [[.62, -4, 1, 'inset(10% 0 55% 0)', 4, -1, 'inset(40% 0 30% 0)'], [.66, 3, -1, 'inset(60% 0 8% 0)', -3, 1, 'inset(5% 0 72% 0)']])
+  for (const [at, rx, ry, rc, bx, by, bc] of [[.50, -4, 1, 'inset(10% 0 55% 0)', 4, -1, 'inset(40% 0 30% 0)'], [.53, 3, -1, 'inset(60% 0 8% 0)', -3, 1, 'inset(5% 0 72% 0)']])
     if (t >= at && t < at + .035) {
       gr.style.opacity = gb.style.opacity = .85;
       gr.style.transform = `translate(${rx}px,${ry}px)`; gr.style.clipPath = rc;
       gb.style.transform = `translate(${bx}px,${by}px)`; gb.style.clipPath = bc;
     }
+  // each form holds for a third of the loop; the last 14% of its slot glitches into the next one
+  const n = FORMS.length, seg = t * n, cur = Math.floor(seg) % n, next = (cur + 1) % n, u = seg % 1;
+  const bands = document.getElementById('bands'); bands.innerHTML = '';
+  const G = .86, glitching = u >= G;
+  FORMS.forEach((f, i) => { f.style.opacity = !glitching && i === cur ? 1 : 0; });
+  document.querySelector('.halo').style.setProperty('--hc', HALO[glitching && (u - G) / (1 - G) > .5 ? next : cur]);
+  if (glitching) {
+    const p = .15 + (u - G) / (1 - G) * .75, r = rand(Math.round(t * 1000) + 7);
+    for (let y = 0; y < 100;) {
+      const h = 4 + r() * 16, src = FORMS[r() < p ? next : cur], b = document.createElement('div');
+      b.className = 'band';
+      b.style.clipPath = `inset(${y}% 0 ${Math.max(0, 100 - y - h)}% 0)`;
+      b.style.transform = `translateX(${((r() - .5) * 34).toFixed(1)}px)`;
+      b.appendChild(src.cloneNode()).style.opacity = 1;
+      bands.appendChild(b); y += h;
+    }
+    await Promise.all([...bands.querySelectorAll('img')].map((i) => i.decode().catch(() => {})));
+  }
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 setT(0);
 </script></body></html>
