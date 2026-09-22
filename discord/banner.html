@@ -1,20 +1,18 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Discord banner</title><style>
-/* 680x240 (Discord's 17:6 profile banner), rendered at 2x. Measured from a live profile: the avatar is a
-   circle centred on the bottom edge at 23% across with a radius of ~17% of the width, so the bottom-left
-   is covered. The status bubble only reaches the bottom few pixels. Everything important sits in the
-   top-left strip above the avatar and in the right 60%. */
+/* 680x240 (Discord's 17:6 profile banner), rendered at 2x. Discord puts the avatar in two different
+   places, both measured from live screenshots:
+     chat popout (click a name): centre 18% across, 87% down, radius ~15% of the width
+     full profile / editor:      centre 23% across, on the bottom edge, radius ~17% of the width
+   Anything drawn to hug the avatar would be off in one of them, so the bottom-left only gets a soft glow.
+   Text and characters sit in the top-left strip above both avatar positions and in the right 60%. */
 @font-face { font-family: Orbitron; font-weight: 400 900; src: url(../public/assets/fonts/orbitron.woff2) format("woff2"); }
 @font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../public/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
 * { box-sizing: border-box; margin: 0; }
 html, body { background: #03060d; }
 #banner { position: relative; width: 680px; height: 240px; overflow: hidden; background: #03060d; color: #e8f4ff; font-family: "Chakra Petch", sans-serif; --c: #22e5ff; }
 .grid { position: absolute; inset: 0; background: linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 24px 24px; }
-.glow { position: absolute; inset: 0; background: radial-gradient(45% 80% at 62% 42%, rgba(34,229,255,.18), transparent 70%), radial-gradient(30% 50% at 23% 100%, rgba(255,99,184,.2), transparent 70%); }
+.glow { position: absolute; inset: 0; background: radial-gradient(45% 80% at 62% 42%, rgba(34,229,255,.18), transparent 70%), radial-gradient(34% 62% at 20.5% 94%, rgba(255,99,184,.24), rgba(255,99,184,.08) 55%, transparent 75%); }
 canvas { position: absolute; inset: 0; }
-/* ring the avatar docks into */
-.dock { position: absolute; left: 23%; top: 240px; width: 0; height: 0; }
-.dock svg { position: absolute; left: -150px; top: -150px; width: 300px; height: 300px; overflow: visible; }
-.dock circle { fill: none; }
 .lulu-block { position: absolute; left: 23%; top: 14px; width: 190px; margin-left: -95px; display: grid; justify-items: center; gap: 2px; }
 .eyebrow { display: flex; align-items: center; gap: 9px; font-size: 9px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: var(--c); white-space: nowrap; }
 .eyebrow::before, .eyebrow::after { content: ""; width: 18px; height: 1px; background: var(--c); box-shadow: 0 0 6px var(--c); }
@@ -37,10 +35,6 @@ h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-ba
 <div id="banner">
   <div class="grid"></div><div class="glow"></div>
   <canvas id="cv" width="1360" height="480" style="width:680px;height:240px"></canvas>
-  <div class="dock"><svg viewBox="-150 -150 300 300">
-    <circle r="126" stroke="#ff63b8" stroke-width="3" stroke-dasharray="120 26 14 26" style="filter: drop-shadow(0 0 5px #ff63b8)"/>
-    <circle r="136" stroke="#22e5ff" stroke-width="1.2" stroke-dasharray="3 7" opacity=".85"/>
-  </svg></div>
   <div class="lulu-block"><div class="eyebrow">CEO of the</div><span class="logos"><img class="lulu" src="../public/assets/img/lulu.webp"><img class="gng" src="../public/assets/img/gang.webp"></span></div>
   <i class="halo"></i>
   <img class="tron" src="../public/assets/img/tron-cyan-mclosed-eopen.webp">

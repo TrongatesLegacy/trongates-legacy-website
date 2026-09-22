@@ -13,14 +13,19 @@ refused, use the PNG.
 
 ## Layout
 
-Measured from the live profile: your avatar is a circle centred on the banner's bottom edge, about 23% of the
-way across, covering the bottom-left. So:
+Discord shows the avatar in **two different places**, both measured from live screenshots:
 
-- **Top-left, above the avatar:** "CEO of the" + the Lulu Gang logo.
-- **Around the avatar:** a pink and cyan ring the avatar sits inside. It's centred on the full profile; in the
-  smaller popout (clicking a name) the avatar sits slightly left of centre in it.
+| View | Avatar centre | Radius |
+|---|---|---|
+| Chat popout (click a name) | 18% across, 87% down | ~15% of the width |
+| Full profile / profile editor | 23% across, on the bottom edge | ~17% of the width |
+
+Anything drawn to frame the avatar would be visibly off in one of them, so the bottom-left only has a soft
+pink glow. Everything else sits where neither avatar position reaches:
+
+- **Top-left:** "CEO of the" + the Lulu Gang logo (clear of the avatar even in the popout, where it sits higher).
 - **Right 60%:** "TRONGATES LEGACY", "Live on Kick · trongateslegacy", and Tron.
-- The custom-status bubble only reaches the bottom few pixels, below all the text.
+- The custom-status bubble covers only the bottom strip, below all the text.
 
 Regenerate after editing `banner.html` (needs Chrome + ffmpeg):
 
