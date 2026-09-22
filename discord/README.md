@@ -17,14 +17,15 @@ Discord shows the avatar in **two different places**, both measured from live sc
 
 | View | Avatar centre | Radius |
 |---|---|---|
-| Chat popout (click a name) | 18% across, 87% down | ~15% of the width |
-| Full profile / profile editor | 23% across, on the bottom edge | ~17% of the width |
+| Chat popout (click a name) | 17.5% across; top edge 50.5% down | ~15% of the width |
+| Full profile / profile editor | 23% across; top edge 52% down | ~17% of the width |
 
 Anything drawn to frame the avatar would be visibly off in one of them, so the bottom-left only has a soft
 pink glow. Everything else sits where neither avatar position reaches:
 
-- **Top-left:** "CEO of the" + the Lulu Gang logo, centred over the **popout** avatar since that's the view
-  most people see. In the full profile it floats well above the avatar, a little left of centre.
+- **Top-left:** "CEO of the" + the Lulu Gang logo, centred horizontally over the **popout** avatar (the view
+  most people see) and vertically in the space above the avatar. The avatar's top edge is at almost the same
+  height in both views, so it's vertically balanced in both; in the full profile it sits a little left of centre.
 - **Right 60%:** "TRONGATES LEGACY", "Live on Kick · trongateslegacy", and Tron.
 - The custom-status bubble covers only the bottom strip, below all the text.
 
