@@ -23,7 +23,8 @@ Discord shows the avatar in **two different places**, both measured from live sc
 Anything drawn to frame the avatar would be visibly off in one of them, so the bottom-left only has a soft
 pink glow. Everything else sits where neither avatar position reaches:
 
-- **Top-left:** "CEO of the" + the Lulu Gang logo (clear of the avatar even in the popout, where it sits higher).
+- **Top-left:** "CEO of the" + the Lulu Gang logo, centred over the **popout** avatar since that's the view
+  most people see. In the full profile it floats well above the avatar, a little left of centre.
 - **Right 60%:** "TRONGATES LEGACY", "Live on Kick · trongateslegacy", and Tron.
 - The custom-status bubble covers only the bottom strip, below all the text.
 

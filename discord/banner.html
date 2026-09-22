@@ -4,7 +4,9 @@
      chat popout (click a name): centre 18% across, 87% down, radius ~15% of the width
      full profile / editor:      centre 23% across, on the bottom edge, radius ~17% of the width
    Anything drawn to hug the avatar would be off in one of them, so the bottom-left only gets a soft glow.
-   Text and characters sit in the top-left strip above both avatar positions and in the right 60%. */
+   Text and characters sit in the top-left strip above both avatar positions and in the right 60%.
+   The Lulu Gang logo is centred on the popout avatar (the view most people see); in the full profile it
+   floats well above the avatar, so the small sideways offset there barely registers. */
 @font-face { font-family: Orbitron; font-weight: 400 900; src: url(../public/assets/fonts/orbitron.woff2) format("woff2"); }
 @font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../public/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
 * { box-sizing: border-box; margin: 0; }
@@ -13,7 +15,7 @@ html, body { background: #03060d; }
 .grid { position: absolute; inset: 0; background: linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 24px 24px; }
 .glow { position: absolute; inset: 0; background: radial-gradient(45% 80% at 62% 42%, rgba(34,229,255,.18), transparent 70%), radial-gradient(34% 62% at 20.5% 94%, rgba(255,99,184,.24), rgba(255,99,184,.08) 55%, transparent 75%); }
 canvas { position: absolute; inset: 0; }
-.lulu-block { position: absolute; left: 23%; top: 14px; width: 190px; margin-left: -95px; display: grid; justify-items: center; gap: 2px; }
+.lulu-block { position: absolute; left: 18.4%; top: 9px; width: 190px; margin-left: -95px; display: grid; justify-items: center; gap: 2px; }
 .eyebrow { display: flex; align-items: center; gap: 9px; font-size: 9px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: var(--c); white-space: nowrap; }
 .eyebrow::before, .eyebrow::after { content: ""; width: 18px; height: 1px; background: var(--c); box-shadow: 0 0 6px var(--c); }
 .logos { position: relative; width: 150px; height: 62px; filter: drop-shadow(0 3px 8px rgba(0,0,0,.6)); }
