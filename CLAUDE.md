@@ -15,6 +15,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [artwork/discord/README.md](artwork/discord/README.md) | Discord profile banner |
 | [artwork/x/README.md](artwork/x/README.md) | X (Twitter) profile header |
 | [artwork/facebook/README.md](artwork/facebook/README.md) | Facebook Page cover photo |
+| [artwork/youtube/README.md](artwork/youtube/README.md) | YouTube channel banner |
 | [artwork/og/README.md](artwork/og/README.md) | the link-preview image shown when the site is shared |
 
 Project skills in `.claude/skills/` hold the step-by-step procedures: **verify-site-change** (after any
@@ -61,6 +62,7 @@ artwork/                     images made for other places, all built the same wa
   discord/                     Discord profile banner (animated GIF)
   x/                           X (Twitter) profile header
   facebook/                    Facebook Page cover photo
+  youtube/                     YouTube channel banner
   og/                          the link-preview (Open Graph) image; renders into public/assets/img/og.jpg
 ```
 
@@ -79,6 +81,7 @@ node --experimental-websocket artwork/kick/banner/render-offline.mjs
 node --experimental-websocket artwork/discord/render.mjs 90 15
 node --experimental-websocket artwork/x/render.mjs
 node --experimental-websocket artwork/facebook/render.mjs
+node --experimental-websocket artwork/youtube/render.mjs
 ```
 
 Node here is v21, which needs `--experimental-websocket` for the Chrome DevTools scripts. Tools available on

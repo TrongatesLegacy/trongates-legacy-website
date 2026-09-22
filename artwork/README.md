@@ -17,6 +17,7 @@ Images made for places other than the website itself. Every piece is built the s
 | `discord/` | animated profile banner | `node --experimental-websocket artwork/discord/render.mjs 90 15` |
 | `x/` | X (Twitter) profile header | `node --experimental-websocket artwork/x/render.mjs` |
 | `facebook/` | Facebook Page cover photo | `node --experimental-websocket artwork/facebook/render.mjs` |
+| `youtube/` | YouTube channel banner | `node --experimental-websocket artwork/youtube/render.mjs` |
 | `og/` | link-preview image (`public/assets/img/og.jpg`) | `node --experimental-websocket artwork/og/render.mjs` |
 
 Needs Google Chrome and ffmpeg. Changes here don't trigger a website deploy, except the OG render, which writes

@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><title>YouTube banner</title><style>
+/* 2560x1440 (16:9) YouTube channel banner. YouTube's upload dialog asks for at least 2048x1152 and 6MB or
+   less; the same image is shown at very different crops:
+     TV        the whole 16:9 image
+     desktop   a full-width band about 2560x423 through the middle
+     phone     only the centre "safe area", 1546x423 here (1235x338 at the 2048x1152 minimum)
+   So every word and every character sits inside the centre 1546x423 box (x 507-2053, y 508-931), and the
+   rest of the canvas is grid, glow, floor and light trails that simply extend it for desktop and TV. */
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(../../public/assets/img/../fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../../public/assets/img/../fonts/chakra-petch-600.woff2) format("woff2"); }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: #03060d; }
+#banner { position: relative; width: 2560px; height: 1440px; overflow: hidden; background: #03060d; color: #e8f4ff; font-family: "Chakra Petch", sans-serif; --c: #22e5ff; }
+.grid { position: absolute; inset: 0; background: linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 64px 64px, linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 64px 64px; }
+.glow { position: absolute; inset: 0; background:
+  radial-gradient(26% 42% at 68% 50%, rgba(34,229,255,.24), transparent 70%),
+  radial-gradient(18% 30% at 58% 62%, rgba(255,99,184,.15), transparent 70%),
+  radial-gradient(18% 30% at 79% 62%, rgba(255,179,107,.13), transparent 70%),
+  radial-gradient(34% 50% at 22% 55%, rgba(34,229,255,.12), transparent 70%); }
+.floor { position: absolute; left: 0; right: 0; bottom: 0; height: 620px; overflow: hidden; perspective: 900px; perspective-origin: 66% 0;
+  -webkit-mask-image: linear-gradient(transparent 4%, #000 60%); }
+.floor::before { content: ""; position: absolute; top: 0; left: -50%; right: -50%; height: 170%; transform-origin: 50% 0; transform: rotateX(68deg);
+  background: linear-gradient(rgba(34,229,255,.4) 3px, transparent 3px) 0 0 / 110px 110px, linear-gradient(90deg, rgba(34,229,255,.4) 3px, transparent 3px) 0 0 / 110px 110px; }
+.trail { position: absolute; height: 4px; border-radius: 4px; box-shadow: 0 0 14px currentColor; }
+.trail::after { content: ""; position: absolute; right: -5px; top: -4px; width: 12px; height: 12px; border-radius: 50%; background: #fff; }
+.halo { position: absolute; left: 1720px; top: 700px; width: 470px; height: 470px; margin: -235px 0 0 -235px; border-radius: 50%; }
+.halo i { position: absolute; inset: 0; border-radius: 50%; }
+.halo .h1 { border: 3px dashed rgba(34,229,255,.4); }
+.halo .h2 { inset: 26px; border: 4px solid transparent; border-top-color: #22e5ff; border-right-color: rgba(34,229,255,.55); transform: rotate(-32deg); filter: drop-shadow(0 0 8px #22e5ff); }
+/* hero box + per-artwork transforms so the heads match (docs/design-system.md) */
+.who { position: absolute; top: 522px; width: 260px; height: 390px; }
+.who img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
+.who.tron { left: 1635px; z-index: 3; filter: drop-shadow(0 16px 22px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(34,229,255,.4)); }
+.who.trina { left: 1470px; z-index: 2; filter: drop-shadow(0 14px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,99,184,.35)); }
+.who.trina img { transform: translate(.75%, -1.9%) scale(.937); }
+.who.blob { left: 1802px; z-index: 2; filter: drop-shadow(0 14px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,179,107,.3)); }
+.who.blob img { transform: translate(-12.7%, -5.8%) scale(1.18); }
+.pad { position: absolute; left: 1725px; top: 878px; width: 580px; height: 66px; margin-left: -290px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(34,229,255,.45), rgba(34,229,255,.1) 50%, transparent 72%); z-index: 1; }
+.copy { position: absolute; left: 560px; top: 508px; height: 423px; width: 760px; display: grid; align-content: center; gap: 20px; z-index: 5; }
+.eyebrow { display: flex; align-items: center; gap: 14px; font-size: 21px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: var(--c); white-space: nowrap; }
+.eyebrow::before { content: ""; width: 44px; height: 2px; background: var(--c); box-shadow: 0 0 8px var(--c); }
+h1 { font: 900 88px/1 Orbitron; letter-spacing: .02em; text-transform: uppercase; }
+h1 span { display: block; }
+h1 .o { color: transparent; -webkit-text-stroke: 2.6px var(--c); filter: drop-shadow(0 0 14px rgba(34,229,255,.5)); }
+h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 18px rgba(34,229,255,.45)); }
+.links { display: flex; align-items: center; gap: 18px; font-size: 26px; font-weight: 600; white-space: nowrap; }
+.links b { display: inline-flex; align-items: center; gap: 10px; color: #53fc18; }
+.links svg { width: 27px; height: 27px; fill: #53fc18; filter: drop-shadow(0 0 7px rgba(83,252,24,.5)); }
+.links i { font-style: normal; color: #3a4a63; }
+.links span { color: #cfe3f5; }
+</style></head><body>
+<div id="banner">
+  <div class="grid"></div><div class="glow"></div>
+  <i class="trail" style="left:60px;top:300px;width:560px;color:#22e5ff;background:linear-gradient(90deg,transparent,#22e5ff)"></i>
+  <i class="trail" style="left:1640px;top:250px;width:520px;color:#ff8a3d;background:linear-gradient(90deg,transparent,#ff8a3d)"></i>
+  <i class="trail" style="left:2000px;top:1120px;width:480px;color:#22e5ff;background:linear-gradient(90deg,transparent,#22e5ff)"></i>
+  <div class="floor"></div>
+  <div class="halo"><i class="h1"></i><i class="h2"></i></div>
+  <i class="pad"></i>
+  <div class="who trina"><img src="../../public/assets/img/princess-peace.webp"></div>
+  <div class="who blob"><img src="../../public/assets/img/blobfish-mclosed-eopen.webp"></div>
+  <div class="who tron"><img src="../../public/assets/img/tron-cyan-mclosed-eopen.webp"></div>
+  <div class="copy">
+    <div class="eyebrow">CEO of the Lulu Gang</div>
+    <h1><span class="o">Trongates</span><span class="s">Legacy</span></h1>
+    <div class="links"><b><svg viewBox="0 0 24 24"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></svg>Live on Kick</b><i>/</i><span>trongateslegacy.com</span></div>
+  </div>
+</div></body></html>
