@@ -224,6 +224,18 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 .tuber { position: absolute; inset: 0; animation: float 5.5s ease-in-out infinite; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 18px 30px rgba(0,0,0,.6)) drop-shadow(0 0 26px var(--a20)); }
 .tuber img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; opacity: 0; user-select: none; -webkit-user-drag: none; }
 .tuber.s-co img[data-s="co"], .tuber.s-cc img[data-s="cc"], .tuber.s-oo img[data-s="oo"], .tuber.s-oc img[data-s="oc"] { opacity: 1; }
+/* form switch: ~240ms of horizontal slices mixing the old and new character, with a red/cyan split */
+.glitch { position: absolute; inset: 0; display: none; pointer-events: none; }
+.tuber.glitching img { opacity: 0 !important; }
+/* The artwork files aren't drawn at the same scale, so each is nudged to match Tron: Trina fills more of her
+   canvas (scaled down); the blobfish is drawn smaller and sits low and right because its rod and catch take the
+   left of the image. Matched on head width, head top and head centre (measured ignoring the thin rod). */
+.tuber img, .glitch b { transform-origin: 50% 80%; }
+.tuber[data-art="princess"] img { transform: translate(.75%, -1.9%) scale(.937); }
+.tuber[data-art="blobfish"] img { transform: translate(-22.7%, -5.8%) scale(1.18); }
+.tuber.glitching .glitch { display: block; }
+.glitch i { position: absolute; inset: 0; filter: drop-shadow(-3px 0 rgba(255,45,120,.75)) drop-shadow(3px 0 rgba(34,229,255,.75)); }
+.glitch b { position: absolute; inset: 0; background: no-repeat 50% 80% / contain; }
 .tuber.bop { animation: float 5.5s ease-in-out infinite, bop .3s ease-in-out 2; }
 @keyframes float { 50% { translate: 0 -12px; } }
 @keyframes bop { 50% { scale: 1.025 .985; } }
@@ -523,11 +535,12 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         <div class="pad" aria-hidden="true"></div>
         <button class="tuber s-co" id="tuber" aria-label="Poke Tron">
           <img data-s="co" id="hero-img" width="640" height="960" alt="Trongates Legacy chibi avatar" fetchpriority="high" decoding="async">
-          <script>(function (i) { i.sizes = window.__sizes; i.srcset = window.__srcset(window.__formSrc); i.src = window.__formSrc; })(document.getElementById('hero-img'));</script>
+          <script>(function (i) { i.sizes = window.__sizes; i.srcset = window.__srcset(window.__formSrc); i.src = window.__formSrc; i.parentNode.dataset.art = window.__form === 'princess' || window.__form === 'blobfish' ? window.__form : 'tron'; })(document.getElementById('hero-img'));</script>
           <noscript><img src="/assets/img/tron-cyan-mclosed-eopen.webp" width="640" height="960" alt="" style="opacity:1"></noscript>
           <img data-s="cc" alt="" width="640" height="960" decoding="sync">
           <img data-s="oo" alt="" width="640" height="960" decoding="sync">
           <img data-s="oc" alt="" width="640" height="960" decoding="sync">
+          <span class="glitch" id="glitch" aria-hidden="true"></span>
         </button>
         <a class="live-badge" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><i></i><span class="lb"><b>Live now</b><b aria-hidden="true">Watch now ▶</b></span></a>
         <div class="bubble" id="bubble" role="status"></div>
@@ -758,17 +771,19 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   // A frame is only shown once the browser has it decoded. Swapping to one that isn't ready would
   // blank the character for a frame (the flicker on the first blink), so fall back to a ready pose.
   const frameReady = (k) => tuberImgs[k].dataset.ready === tuberImgs[k].currentSrc && tuberImgs[k].currentSrc !== '';
+  let glitchOn = false;                          // render() rebuilds the class list, so the state lives here
   const render = () => {
     const want = mouth + eyes;
     const show = [want, mouth + 'o', 'c' + eyes, 'co'].find(frameReady) || 'co';
-    tuber.className = `tuber s-${show}` + (talking ? ' bop' : '');
+    tuber.className = `tuber s-${show}` + (talking ? ' bop' : '') + (glitchOn ? ' glitching' : '');
   };
   // decode() resolves once the pixels are ready to paint; decoding="sync" then keeps them on hand
   const setFrame = (k, src) => {
     const img = tuberImgs[k];
+    delete img.dataset.ready;                     // the previous artwork no longer counts as ready
     setImg(img, src);
     img.decoding = 'sync';
-    img.decode().catch(() => {}).then(() => { img.dataset.ready = img.currentSrc; render(); });
+    return img.decode().catch(() => {}).then(() => { img.dataset.ready = img.currentSrc; render(); });
   };
   const setImg = (img, src, sizes = window.__sizes) => { img.sizes = sizes; img.srcset = window.__srcset(src); img.src = src; };
   const CARD_SIZES = '(max-width: 900px) 45vw, 250px';
@@ -795,9 +810,31 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
   // Colours, chips and cards switch instantly; the character follows as soon as its idle frame is
   // decoded (normally already cached by warmForms below), so a slow network never stalls the click.
   let switchId = 0;
+  // Four quick steps of slices, each showing more of the new form, then the clean swap.
+  const glitchEl = $('#glitch');
+  const artOf = (form) => (form === 'princess' || form === 'blobfish' ? form : 'tron');
+  const ART_T = { tron: 'none', princess: 'translate(.75%, -1.9%) scale(.937)', blobfish: 'translate(-22.7%, -5.8%) scale(1.18)' };
+  async function glitchSwap(from, to, id) {
+    glitchOn = true; tuber.classList.add('glitching');
+    for (const p of [.25, .5, .75, .92]) {
+      let html = '', y = 0;
+      while (y < 100) {
+        const h = 10 + Math.random() * 16, dx = (Math.random() - .5) * 26;
+        const [src, art] = Math.random() < p ? to : from;
+        html += `<i style="clip-path:inset(${y.toFixed(1)}% 0 ${Math.max(0, 100 - y - h).toFixed(1)}% 0);transform:translateX(${dx.toFixed(1)}px)"><b style="background-image:url('${src}');transform:${ART_T[art]}"></b></i>`;
+        y += h;
+      }
+      glitchEl.innerHTML = html;
+      await new Promise((r) => setTimeout(r, 60));
+      if (id !== switchId) return;                // a newer pick took over; it runs its own glitch
+    }
+  }
+  const endGlitch = () => { glitchOn = false; tuber.classList.remove('glitching'); glitchEl.innerHTML = ''; };
+
   async function setTheme(next) {
     if (next === theme) return;
     const id = ++switchId;
+    const from = [tuberImgs[tuber.className.match(/s-(..)/)[1]].currentSrc || tuberImgs.co.currentSrc, tuber.dataset.art];
     theme = next;
     root.dataset.theme = next;
     root.classList.remove('no-pick');
@@ -809,7 +846,17 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
     setImg(next0, srcs[0]);                       // character changes in a single frame
     await next0.decode().catch(() => {});
     if (id !== switchId) return;                  // a newer pick overtook this one
-    Object.keys(STATES).forEach((s, i) => setFrame(s, srcs[i]));
+    if (!reduced) {
+      await glitchSwap(from, [next0.currentSrc || next0.src, artOf(next)], id);
+      if (id !== switchId) return;
+    }
+    const idle = Object.keys(STATES).map((s, i) => setFrame(s, srcs[i]))[0];
+    // keep the last glitch frame up until the new idle pose is ready, or the old one flashes back
+    await Promise.race([idle, new Promise((r) => setTimeout(r, 1500))]);
+    if (id !== switchId) return;
+    tuber.dataset.art = artOf(next);              // the size adjustment moves with the artwork, not the theme
+    mouth = 'c'; render();
+    endGlitch();
     speak();
   }
 
