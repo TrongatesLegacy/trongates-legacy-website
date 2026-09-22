@@ -19,7 +19,7 @@ description: Check a change to the Trongates Legacy website before calling it do
 7. For timing-sensitive behaviour, sample state in the page with `--eval` (e.g. poll classes every 15ms)
    rather than trusting a single screenshot.
 8. If the brand, tagline, character art or character sizing changed, re-render the link-preview image
-   (`node --experimental-websocket og/render.mjs`, see og/README.md) and look at it.
+   (`node --experimental-websocket artwork/og/render.mjs`, see artwork/og/README.md) and look at it.
 9. Run `scripts/lighthouse.sh --local` (dev server running) and fix anything it reports before pushing.
    Performance isn't gated locally; the other scores and layout shift are.
 10. Commit with a message explaining why and push (see CLAUDE.md for the git identity).

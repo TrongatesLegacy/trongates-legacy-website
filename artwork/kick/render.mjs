@@ -1,5 +1,5 @@
 // Renders every .panel in panels.html to images/<id>.png at 2x (640px wide; Kick displays them at 320px).
-// Usage: node --experimental-websocket kick-panels/render.mjs   (needs Google Chrome installed)
+// Usage: node --experimental-websocket artwork/kick/render.mjs   (needs Google Chrome installed)
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";

@@ -31,7 +31,7 @@ transform to screen coordinates. The character sizing table in design-system.md 
 ## Platform crops (Kick, Discord)
 
 These platforms crop and overlay images differently in different views, and it isn't documented anywhere.
-The numbers in kick-panels/README.md and discord/README.md were measured from the owner's screenshots of the
+The numbers in artwork/kick/README.md and artwork/discord/README.md were measured from the owner's screenshots of the
 live pages. When the owner sends a new screenshot, re-measure from it (draw a grid over a crop of the image to
 read positions) rather than trusting earlier numbers, then simulate the crop with ffmpeg on the rendered
 image and look at the result before handing it over.

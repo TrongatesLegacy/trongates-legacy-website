@@ -1,6 +1,6 @@
 [build]
   publish = "public"
-  # Skip the build (exit 0) when a push only touches files the site doesn't use, e.g. kick-panels/ or the README.
+  # Skip the build (exit 0) when a push only touches files the site doesn't use, e.g. artwork/kick/ or the README.
   # $CACHED_COMMIT_REF is the last deployed commit; if it's missing (first build), git errors and the build runs.
   ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- public netlify netlify.toml"
 

@@ -1,4 +1,4 @@
-// Renders offline.html to kick-offline-banner.png (1920x1080). Usage: node --experimental-websocket kick-panels/banner/render-offline.mjs
+// Renders offline.html to kick-offline-banner.png (1920x1080). Usage: node --experimental-websocket artwork/kick/banner/render-offline.mjs
 import { spawn } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";

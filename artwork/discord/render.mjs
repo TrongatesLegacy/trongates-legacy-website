@@ -1,5 +1,5 @@
 // Renders banner.html to discord-banner.png (static) and discord-banner.gif (animated), both 1360x480.
-// Usage: node --experimental-websocket discord/render.mjs [frames=90] [fps=15]   (needs Chrome + ffmpeg)
+// Usage: node --experimental-websocket artwork/discord/render.mjs [frames=90] [fps=15]   (needs Chrome + ffmpeg)
 import { spawn, execFileSync } from "node:child_process";
 import { writeFileSync, mkdirSync, rmSync, statSync, copyFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";

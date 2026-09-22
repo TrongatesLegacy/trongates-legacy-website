@@ -182,13 +182,13 @@ The same image is shown three different ways, always centre-cropped, so it's lai
 | Very wide screens | Everything, minus top/bottom | Bonus Tron on the far right |
 | Phones | A thin 44px strip | Too small to read anything, so nothing depends on it |
 
-Regenerate after editing `banner/banner.html`: `node --experimental-websocket kick-panels/banner/render.mjs 1 15 2`
+Regenerate after editing `banner/banner.html`: `node --experimental-websocket artwork/kick/banner/render.mjs 1 15 2`
 
 ## Offline banner
 
 `banner/kick-offline-banner.png` (1920×1080, the size Kick's help page specifies). This fills the video
 player while you're offline. Upload via Settings → Profile → *Update Offline Banner Image*.
-Regenerate after editing `banner/offline.html`: `node --experimental-websocket kick-panels/banner/render-offline.mjs`
+Regenerate after editing `banner/offline.html`: `node --experimental-websocket artwork/kick/banner/render-offline.mjs`
 
 ## Optional extras
 
@@ -201,7 +201,7 @@ Regenerate after editing `banner/offline.html`: `node --experimental-websocket k
 The images are generated from `panels.html` (same fonts, colours and art as the website):
 
 ```
-node --experimental-websocket kick-panels/render.mjs
+node --experimental-websocket artwork/kick/render.mjs
 ```
 
 Edit the text or colours in `panels.html`, run that, and re-upload the changed PNG to Kick.

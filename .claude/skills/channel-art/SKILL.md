@@ -6,7 +6,7 @@ description: Create or adjust Trongates Legacy artwork for other platforms (Kick
 # Channel artwork
 
 All platform art is HTML rendered to PNG/GIF with headless Chrome, so it shares the site's fonts, colours and
-character art. Read the relevant guide first: kick-panels/README.md, discord/README.md or og/README.md, and
+character art. Read the relevant guide first: artwork/kick/README.md, artwork/discord/README.md or artwork/og/README.md, and
 docs/design-system.md for the visual language.
 
 1. **Find the real display geometry before designing.** Platforms crop, overlay and compress art in several

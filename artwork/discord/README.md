@@ -33,5 +33,5 @@ pink glow. Everything else sits where neither avatar position reaches:
 Regenerate after editing `banner.html` (needs Chrome + ffmpeg):
 
 ```
-node --experimental-websocket discord/render.mjs 90 15   # frames fps
+node --experimental-websocket artwork/discord/render.mjs 90 15   # frames fps
 ```

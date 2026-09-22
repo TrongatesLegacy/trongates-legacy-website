@@ -80,7 +80,7 @@ verification.md). Keep it there:
 ## SEO and sharing
 
 Canonical `https://www.trongateslegacy.com/`, full Open Graph + Twitter card tags, `og.jpg` (1200×630, a
-dedicated design rendered by `og/render.mjs`, see og/README.md; the render bumps the `?v=` date on the image URL
+dedicated design rendered by `artwork/og/render.mjs`, see artwork/og/README.md; the render bumps the `?v=` date on the image URL
 because platforms cache previews by URL), JSON-LD `WebSite` + `Person` with every social profile in `sameAs`, robots.txt and
 sitemap.xml. `www` is the primary domain; the apex redirects to it (DNS: A record to Netlify's load balancer
 on the apex, CNAME for `www`, at OVH).
@@ -89,4 +89,4 @@ on the apex, CNAME for `www`, at OVH).
 
 Netlify builds from `main` with no build command; publish dir `public`, functions dir `netlify/functions`.
 The `ignore` rule in netlify.toml skips builds when a push doesn't touch `public/`, `netlify/` or
-`netlify.toml` (e.g. edits to kick-panels/, discord/, docs/).
+`netlify.toml` (e.g. edits to artwork/kick/, artwork/discord/, docs/).

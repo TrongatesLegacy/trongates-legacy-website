@@ -1,13 +1,13 @@
-// Renders og/og.html to public/assets/img/og.jpg (1200x630) and bumps the ?v= date on the og:image /
+// Renders artwork/og/og.html to public/assets/img/og.jpg (1200x630) and bumps the ?v= date on the og:image /
 // twitter:image URLs in public/index.html, so platforms that cache link previews by URL fetch the new one.
-// Usage: node --experimental-websocket og/render.mjs   (needs Google Chrome + ffmpeg)
+// Usage: node --experimental-websocket artwork/og/render.mjs   (needs Google Chrome + ffmpeg)
 import { spawn, execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, statSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 
-const here = dirname(fileURLToPath(import.meta.url)), root = join(here, "..");
+const here = dirname(fileURLToPath(import.meta.url)), root = join(here, "..", "..");
 const chrome = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", ["--headless=new", "--remote-debugging-port=9347", `--user-data-dir=${join(tmpdir(), "og-chrome")}`, "--allow-file-access-from-files", "about:blank"], { stdio: "ignore" });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 await sleep(1500);

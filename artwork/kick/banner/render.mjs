@@ -1,5 +1,5 @@
 // Renders banner.html to an animated PNG: frames via headless Chrome, assembled with ffmpeg.
-// Usage: node --experimental-websocket kick-panels/banner/render.mjs [frames=48] [fps=12] [scale=1]
+// Usage: node --experimental-websocket artwork/kick/banner/render.mjs [frames=48] [fps=12] [scale=1]
 import { spawn, execFileSync } from "node:child_process";
 import { writeFileSync, mkdirSync, rmSync, statSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";

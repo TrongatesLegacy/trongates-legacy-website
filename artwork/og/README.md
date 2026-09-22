@@ -4,7 +4,7 @@
 Facebook, iMessage, Slack, etc. It's a dedicated design (`og.html`), not a screenshot of the site.
 
 ```
-node --experimental-websocket og/render.mjs
+node --experimental-websocket artwork/og/render.mjs
 ```
 
 renders it and bumps the `?v=` date on the `og:image` / `twitter:image` URLs in `public/index.html`.

@@ -10,9 +10,10 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [docs/website.md](docs/website.md) | changing a section, the live state, video feed, SEO or performance |
 | [docs/content-and-voice.md](docs/content-and-voice.md) | writing any copy, speech lines or names |
 | [docs/verification.md](docs/verification.md) | finishing any change: how to check it actually works and looks right |
-| [kick-panels/README.md](kick-panels/README.md) | Kick about panels, channel banner, offline banner |
-| [discord/README.md](discord/README.md) | Discord profile banner |
-| [og/README.md](og/README.md) | the link-preview image shown when the site is shared |
+| [artwork/README.md](artwork/README.md) | making or changing any artwork: how every piece is built |
+| [artwork/kick/README.md](artwork/kick/README.md) | Kick about panels, channel banner, offline banner |
+| [artwork/discord/README.md](artwork/discord/README.md) | Discord profile banner |
+| [artwork/og/README.md](artwork/og/README.md) | the link-preview image shown when the site is shared |
 
 Project skills in `.claude/skills/` hold the step-by-step procedures: **verify-site-change** (after any
 website edit) and **channel-art** (Kick/Discord/other platform artwork).
@@ -53,9 +54,10 @@ netlify.toml                 publish dir, functions dir, headers, build-skip rul
 scripts/update-feed.mjs      refreshes public/feed.json (run by .github/workflows/update-feed.yml)
 scripts/shot.mjs             headless-Chrome screenshots for checking changes
 dev.mjs                      local server: public/ + /api/feed on http://localhost:8888
-kick-panels/                 Kick panel images, banner, offline banner, their renderers and guide
-discord/                     Discord profile banner, renderer and guide
-og/                          the link-preview (Open Graph) image design, renderer and guide
+artwork/                     images made for other places, all built the same way (see artwork/README.md):
+  kick/                        Kick about panels, channel banner, offline banner
+  discord/                     Discord profile banner (animated GIF)
+  og/                          the link-preview (Open Graph) image; renders into public/assets/img/og.jpg
 ```
 
 ## Commands
@@ -63,14 +65,14 @@ og/                          the link-preview (Open Graph) image design, rendere
 ```
 node dev.mjs                                                  # local preview on :8888
 node --experimental-websocket scripts/shot.mjs                # screenshot; options in the file's header
-node --experimental-websocket og/render.mjs                     # re-render the link-preview (OG) image
+node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image
 scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running)
 scripts/lighthouse.sh                                          # Lighthouse on the live site after deploy
 YOUTUBE_API_KEY=… node scripts/update-feed.mjs                 # refresh public/feed.json by hand
-node --experimental-websocket kick-panels/render.mjs           # re-render Kick panels
-node --experimental-websocket kick-panels/banner/render.mjs 1 15 2
-node --experimental-websocket kick-panels/banner/render-offline.mjs
-node --experimental-websocket discord/render.mjs 90 15
+node --experimental-websocket artwork/kick/render.mjs           # re-render Kick panels
+node --experimental-websocket artwork/kick/banner/render.mjs 1 15 2
+node --experimental-websocket artwork/kick/banner/render-offline.mjs
+node --experimental-websocket artwork/discord/render.mjs 90 15
 ```
 
 Node here is v21, which needs `--experimental-websocket` for the Chrome DevTools scripts. Tools available on
