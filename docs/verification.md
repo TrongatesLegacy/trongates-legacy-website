@@ -44,18 +44,19 @@ image and look at the result before handing it over.
 
 - After deploy, check `/api/feed` on the live site: `source` should be `playlists` and `errors` empty.
 
-## Lighthouse (required after every website change)
+## Lighthouse (required for every website change)
 
-After pushing a change to `public/` or `netlify/` and the deploy is live (check the changed file is served,
-e.g. `curl -s https://www.trongateslegacy.com/ | grep <something new>`), run:
+Run it twice:
 
-```
-scripts/lighthouse.sh
-```
+1. **Before pushing**, with `node dev.mjs` running: `scripts/lighthouse.sh --local`. Gates on accessibility and
+   best practices 100, every SEO audit passing, CLS < 0.1 and TBT < 200ms. Performance is printed but not
+   gated, because the dev server has no compression, caching or CDN: local mobile performance runs around
+   94 when live is 100. A drop well below that, or a slower LCP than before, is still worth a look.
+2. **After the deploy is live** (check the changed file is served, e.g.
+   `curl -s https://www.trongateslegacy.com/ | grep <something new>`): `scripts/lighthouse.sh`. Adds the
+   performance gates: mobile ≥95, desktop ≥98.
 
-It runs mobile and desktop, prints scores, metrics and any failing audits, and says whether the result is at
-or above baseline: mobile performance ≥95, desktop ≥98, accessibility and best practices 100, every SEO
-audit passing. Mobile performance varies by a few points run to run; if it dips just under, run it again
+Both print scores, metrics and any failing audits, and exit non-zero when below baseline. Mobile performance varies by a few points run to run; if it dips just under, run it again
 before investigating. Include the scores when reporting the change to the owner.
 
 The local run can't produce an overall SEO score (its "canonical" audit crashes on Node 21), so the script

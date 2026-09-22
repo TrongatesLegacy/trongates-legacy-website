@@ -18,8 +18,10 @@ description: Check a change to the Trongates Legacy website before calling it do
 6. For anything animated, confirm the reduced-motion path and that rapid repeated input settles cleanly.
 7. For timing-sensitive behaviour, sample state in the page with `--eval` (e.g. poll classes every 15ms)
    rather than trusting a single screenshot.
-8. Commit with a message explaining why and push (see CLAUDE.md for the git identity).
-9. **Run Lighthouse** once the deploy is live: confirm the new version is served
+8. Run `scripts/lighthouse.sh --local` (dev server running) and fix anything it reports before pushing.
+   Performance isn't gated locally; the other scores and layout shift are.
+9. Commit with a message explaining why and push (see CLAUDE.md for the git identity).
+10. **Run Lighthouse on the live site** once the deploy is live: confirm the new version is served
    (`curl -s https://www.trongateslegacy.com/ | grep …`), then `scripts/lighthouse.sh`. If it reports below
    baseline, re-run once (mobile varies by a few points), then fix what it lists before moving on.
-10. Tell the owner what you checked, the Lighthouse scores, and anything you couldn't verify.
+11. Tell the owner what you checked, both sets of Lighthouse scores, and anything you couldn't verify.

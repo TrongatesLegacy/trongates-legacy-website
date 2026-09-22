@@ -31,9 +31,11 @@ website edit) and **channel-art** (Kick/Discord/other platform artwork).
   actually is. Alignment and sizing decisions are made from measured visible pixels (docs/verification.md).
 - **Verify visually before saying done.** Screenshot desktop and phone with `scripts/shot.mjs` and look at the
   images. Check reduced motion for anything animated.
-- **Run Lighthouse after every website change** (anything under `public/` or `netlify/`): push, wait for the
-  deploy, run `scripts/lighthouse.sh`, and report the scores. Don't leave it below baseline (mobile
-  performance ≥95, desktop ≥98, accessibility and best practices 100, all SEO audits passing).
+- **Run Lighthouse twice for every website change** (anything under `public/` or `netlify/`):
+  `scripts/lighthouse.sh --local` before pushing (catches accessibility, SEO, best-practice, layout-shift and
+  blocking regressions), then `scripts/lighthouse.sh` on the live site once deployed (the only trustworthy
+  performance numbers). Report both. Don't leave it below baseline (live: mobile performance ≥95, desktop ≥98;
+  both: accessibility and best practices 100, all SEO audits passing).
 - **Commit small and push** when a change is verified; the owner reviews on the live site. Pushes that only
   touch files outside `public/`, `netlify/` and `netlify.toml` don't trigger a Netlify build (see netlify.toml).
 
@@ -59,7 +61,8 @@ discord/                     Discord profile banner, renderer and guide
 ```
 node dev.mjs                                                  # local preview on :8888
 node --experimental-websocket scripts/shot.mjs                # screenshot; options in the file's header
-scripts/lighthouse.sh                                          # Lighthouse mobile + desktop on the live site
+scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running)
+scripts/lighthouse.sh                                          # Lighthouse on the live site after deploy
 YOUTUBE_API_KEY=… node scripts/update-feed.mjs                 # refresh public/feed.json by hand
 node --experimental-websocket kick-panels/render.mjs           # re-render Kick panels
 node --experimental-websocket kick-panels/banner/render.mjs 1 15 2
