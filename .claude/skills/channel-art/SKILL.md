@@ -1,12 +1,12 @@
 ---
 name: channel-art
-description: Create or adjust Trongates Legacy artwork for other platforms (Kick about panels, Kick channel banner, Kick offline banner, Discord profile banner, or a new platform). Use when the owner asks for a banner, panel, header or profile image, or sends a screenshot of how one looks on a platform.
+description: Create or adjust Trongates Legacy artwork for other platforms (Kick about panels, Kick channel banner, Kick offline banner, Discord profile banner, the website's link-preview/OG image, or a new platform). Use when the owner asks for a banner, panel, header or profile image, or sends a screenshot of how one looks on a platform.
 ---
 
 # Channel artwork
 
 All platform art is HTML rendered to PNG/GIF with headless Chrome, so it shares the site's fonts, colours and
-character art. Read the relevant guide first: kick-panels/README.md or discord/README.md, and
+character art. Read the relevant guide first: kick-panels/README.md, discord/README.md or og/README.md, and
 docs/design-system.md for the visual language.
 
 1. **Find the real display geometry before designing.** Platforms crop, overlay and compress art in several

@@ -12,6 +12,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [docs/verification.md](docs/verification.md) | finishing any change: how to check it actually works and looks right |
 | [kick-panels/README.md](kick-panels/README.md) | Kick about panels, channel banner, offline banner |
 | [discord/README.md](discord/README.md) | Discord profile banner |
+| [og/README.md](og/README.md) | the link-preview image shown when the site is shared |
 
 Project skills in `.claude/skills/` hold the step-by-step procedures: **verify-site-change** (after any
 website edit) and **channel-art** (Kick/Discord/other platform artwork).
@@ -54,6 +55,7 @@ scripts/shot.mjs             headless-Chrome screenshots for checking changes
 dev.mjs                      local server: public/ + /api/feed on http://localhost:8888
 kick-panels/                 Kick panel images, banner, offline banner, their renderers and guide
 discord/                     Discord profile banner, renderer and guide
+og/                          the link-preview (Open Graph) image design, renderer and guide
 ```
 
 ## Commands
@@ -61,6 +63,7 @@ discord/                     Discord profile banner, renderer and guide
 ```
 node dev.mjs                                                  # local preview on :8888
 node --experimental-websocket scripts/shot.mjs                # screenshot; options in the file's header
+node --experimental-websocket og/render.mjs                     # re-render the link-preview (OG) image
 scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running)
 scripts/lighthouse.sh                                          # Lighthouse on the live site after deploy
 YOUTUBE_API_KEY=… node scripts/update-feed.mjs                 # refresh public/feed.json by hand

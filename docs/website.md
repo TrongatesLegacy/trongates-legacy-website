@@ -79,8 +79,9 @@ verification.md). Keep it there:
 
 ## SEO and sharing
 
-Canonical `https://www.trongateslegacy.com/`, full Open Graph + Twitter card tags, `og.jpg` (1200×630,
-generated from the hero), JSON-LD `WebSite` + `Person` with every social profile in `sameAs`, robots.txt and
+Canonical `https://www.trongateslegacy.com/`, full Open Graph + Twitter card tags, `og.jpg` (1200×630, a
+dedicated design rendered by `og/render.mjs`, see og/README.md; the render bumps the `?v=` date on the image URL
+because platforms cache previews by URL), JSON-LD `WebSite` + `Person` with every social profile in `sameAs`, robots.txt and
 sitemap.xml. `www` is the primary domain; the apex redirects to it (DNS: A record to Netlify's load balancer
 on the apex, CNAME for `www`, at OVH).
 

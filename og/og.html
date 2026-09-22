@@ -1,0 +1,69 @@
+<!doctype html><html><head><meta charset="utf-8"><title>OG image</title><style>
+/* 1200x630 link-preview image (Open Graph / X large card). Platforms show it at anything from ~500px wide
+   (Discord, iMessage) down to thumbnails, and X crops to 2:1, trimming ~15px top and bottom; so text is large,
+   and everything important stays 48px inside the edges. Characters use the hero's box + per-art transforms,
+   so their heads match exactly as they do on the site (docs/design-system.md, "Character sizing"). */
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(../public/assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 400; src: url(../public/assets/fonts/chakra-petch-400.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../public/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: #03060d; }
+#og { position: relative; width: 1200px; height: 630px; overflow: hidden; background: #03060d; color: #e8f4ff; font-family: "Chakra Petch", sans-serif; --c: #22e5ff; }
+.grid { position: absolute; inset: 0; background: linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 56px 56px, linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 56px 56px; }
+.glow { position: absolute; inset: 0; background:
+  radial-gradient(40% 55% at 75% 42%, rgba(34,229,255,.22), transparent 70%),
+  radial-gradient(30% 40% at 58% 70%, rgba(255,99,184,.16), transparent 70%),
+  radial-gradient(30% 40% at 92% 72%, rgba(255,179,107,.14), transparent 70%); }
+.floor { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; overflow: hidden; perspective: 700px; perspective-origin: 72% 0;
+  -webkit-mask-image: linear-gradient(transparent 5%, #000 85%); }
+.floor::before { content: ""; position: absolute; top: 0; left: -60%; right: -60%; height: 170%; transform-origin: 50% 0; transform: rotateX(66deg);
+  background: linear-gradient(rgba(34,229,255,.45) 2px, transparent 2px) 0 0 / 80px 80px, linear-gradient(90deg, rgba(34,229,255,.45) 2px, transparent 2px) 0 0 / 80px 80px; }
+.trail { position: absolute; height: 3px; border-radius: 3px; box-shadow: 0 0 12px currentColor; }
+.trail::after { content: ""; position: absolute; right: -4px; top: -3px; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
+.halo { position: absolute; left: 903px; top: 262px; width: 420px; height: 420px; margin: -210px 0 0 -210px; border-radius: 50%; }
+.halo i { position: absolute; inset: 0; border-radius: 50%; }
+.halo .h1 { border: 2px dashed rgba(34,229,255,.45); }
+.halo .h2 { inset: 22px; border: 3px solid transparent; border-top-color: #22e5ff; border-right-color: rgba(34,229,255,.6); transform: rotate(-30deg); filter: drop-shadow(0 0 6px #22e5ff); }
+.halo .h3 { inset: 46px; border: 1px solid rgba(34,229,255,.3); }
+/* same box and transforms as the hero's .tuber, scaled */
+.who { position: absolute; top: 118px; width: 250px; height: 375px; }
+.who img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
+.who.tron { left: 778px; z-index: 3; filter: drop-shadow(0 18px 24px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(34,229,255,.4)); }
+.who.trina { left: 628px; z-index: 2; filter: drop-shadow(0 16px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,99,184,.35)); }
+.who.trina img { transform: translate(.75%, -1.9%) scale(.937); }
+.who.blob { left: 934px; z-index: 2; filter: drop-shadow(0 16px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,179,107,.3)); }
+.who.blob img { transform: translate(-12.7%, -5.8%) scale(1.18); }
+.pad { position: absolute; left: 895px; top: 452px; width: 560px; height: 70px; margin-left: -230px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(34,229,255,.5), rgba(34,229,255,.12) 50%, transparent 72%); z-index: 1; }
+.copy { position: absolute; left: 64px; top: 0; bottom: 0; width: 560px; display: grid; align-content: center; gap: 22px; z-index: 5; }
+.eyebrow { display: flex; align-items: center; gap: 14px; font-size: 19px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase; color: var(--c); }
+.eyebrow::before { content: ""; width: 44px; height: 2px; background: var(--c); box-shadow: 0 0 8px var(--c); }
+h1 { font: 900 76px/.98 Orbitron; letter-spacing: .02em; text-transform: uppercase; }
+h1 span { display: block; }
+h1 .o { color: transparent; -webkit-text-stroke: 2.4px var(--c); filter: drop-shadow(0 0 14px rgba(34,229,255,.5)); }
+h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 20px rgba(34,229,255,.45)); }
+.tag { font-size: 27px; line-height: 1.35; color: #a9bfd6; max-width: 520px; }
+.tag b { color: #e8f4ff; font-weight: 600; }
+.cta { display: flex; align-items: center; gap: 22px; margin-top: 6px; }
+.kick { flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 12px; padding: 15px 24px; font: 700 21px/1 Orbitron; letter-spacing: .14em; text-transform: uppercase; color: #041200; background: #53fc18;
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); filter: drop-shadow(0 0 16px rgba(83,252,24,.5)); }
+.kick svg { width: 24px; height: 24px; fill: currentColor; }
+.url { font: 700 19px/1 Orbitron; letter-spacing: .1em; color: #cfe3f5; }
+</style></head><body>
+<div id="og">
+  <div class="grid"></div><div class="glow"></div>
+  <i class="trail" style="left:-20px;top:56px;width:420px;color:#22e5ff;background:linear-gradient(90deg,transparent,#22e5ff)"></i>
+  <i class="trail" style="left:760px;top:36px;width:360px;color:#ff8a3d;background:linear-gradient(90deg,transparent,#ff8a3d)"></i>
+  <div class="floor"></div>
+  <div class="halo"><i class="h1"></i><i class="h2"></i><i class="h3"></i></div>
+  <i class="pad"></i>
+  <div class="who trina"><img src="../public/assets/img/princess-peace.webp"></div>
+  <div class="who blob"><img src="../public/assets/img/blobfish-mclosed-eopen.webp"></div>
+  <div class="who tron"><img src="../public/assets/img/tron-cyan-mclosed-eopen.webp"></div>
+  <div class="copy">
+    <div class="eyebrow">CEO of the Lulu Gang</div>
+    <h1><span class="o">Trongates</span><span class="s">Legacy</span></h1>
+    <p class="tag"><b>Chill streams, gaming with friends.</b></p>
+    <div class="cta"><span class="kick"><svg viewBox="0 0 24 24"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></svg>Watch on Kick</span><span class="url">trongateslegacy.com</span></div>
+  </div>
+</div></body></html>
