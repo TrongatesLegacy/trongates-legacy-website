@@ -89,14 +89,15 @@ last pick (`switchId`). Skipped for reduced motion.
 ## Character sizing
 
 The artwork files are not drawn at the same scale or position, so each form gets a measured CSS transform to
-match **Tron's head**: same head width, same head top, same head centre line. Measured from visible pixels,
+match **Tron's head**: same head width, same head top, and the same centre line where the figure allows it
+(a figure with a lot off to one side, like the blobfish, is balanced on its whole silhouette instead). Measured from visible pixels,
 using the longest solid run of pixels per row so thin details (the blobfish's fishing rod) don't count.
 
 | Art | Transform (hero, origin 50% 80%) | Why |
 |---|---|---|
 | Tron (all armours) | none | the reference |
 | Princess Trina | `translate(.75%, -1.9%) scale(.937)` | her art fills more of its canvas |
-| Blobfish | `translate(-22.7%, -5.8%) scale(1.18)` | drawn smaller, and offset right because the rod and catch fill the left of the image |
+| Blobfish | `translate(-12.7%, -5.8%) scale(1.18)` | drawn smaller, and sits right in its image because the rod and catch fill the left. Horizontally it's a compromise: centring its head like Tron's pushed the whole figure 61px left and the hanging catch off the stage, so the head sits ~40px right of Tron's and the whole figure (catch included) stays inside the stage |
 
 The same transforms are applied inside the glitch slices (`ART_T`), and the class that applies them
 (`data-art` on `.tuber`) moves with the artwork, not the theme. If character art is replaced, re-measure
