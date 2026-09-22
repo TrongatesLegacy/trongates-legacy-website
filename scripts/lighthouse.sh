@@ -21,7 +21,8 @@ for mode, floor in (("mobile", 95), ("desktop", 98)):
     d = json.load(open(f"{out}/{mode}.json")); a = d["audits"]
     sc = {k: (None if v["score"] is None else round(v["score"] * 100)) for k, v in d["categories"].items()}
     print(f"{mode:8} performance {sc.get('performance')}  accessibility {sc.get('accessibility')}  best-practices {sc.get('best-practices')}  seo {sc.get('seo') if sc.get('seo') is not None else '(n/a locally)'}")
-    print("         " + "  ".join(f"{k.split('-')[0].upper() if k!='largest-contentful-paint' else 'LCP'} {a[k]['displayValue']}" for k in ("first-contentful-paint", "largest-contentful-paint", "total-blocking-time", "cumulative-layout-shift")).replace("\xa0", " ") + f"  weight {a['total-byte-weight']['displayValue']}")
+    m = {"FCP": "first-contentful-paint", "LCP": "largest-contentful-paint", "TBT": "total-blocking-time", "CLS": "cumulative-layout-shift"}
+    print("         " + "  ".join(f"{k} {a[v]['displayValue']}" for k, v in m.items()).replace("\xa0", " ") + f"  page weight {round(a['total-byte-weight']['numericValue'] / 1024)} KB")
     if (sc.get("performance") or 0) < floor or any((sc.get(k) or 0) < 100 for k in ("accessibility", "best-practices")): bad = True
     seo_fail = [r["id"] for r in d["categories"]["seo"]["auditRefs"] if a[r["id"]].get("score") == 0]
     if seo_fail: bad = True; print("         failing SEO audits:", ", ".join(seo_fail))
