@@ -1,5 +1,7 @@
 # Trongates Legacy
 
+> Working on this with an AI assistant? Start with [CLAUDE.md](CLAUDE.md); design decisions are in [docs/](docs/).
+
 Single-page site for [Trongates Legacy](https://kick.com/trongateslegacy) — live on Kick.
 
 - `public/index.html` — the whole site (HTML, CSS and JS inline, no build step)
