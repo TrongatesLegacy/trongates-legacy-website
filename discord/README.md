@@ -26,7 +26,7 @@ pink glow. Everything else sits where neither avatar position reaches:
 - **Top-left:** "CEO of the" + the Lulu Gang logo, centred horizontally over the **popout** avatar (the view
   most people see) and vertically in the space above the avatar. The avatar's top edge is at almost the same
   height in both views, so it's vertically balanced in both; in the full profile it sits a little left of centre.
-- **Right 60%:** "TRONGATES LEGACY", "Live on Kick · trongateslegacy", and the current form (the halo
+- **Right 60%:** "TRONGATES LEGACY", "Live on Kick", and the current form (the halo
   changes to each form's colour).
 - The custom-status bubble covers only the bottom strip, below all the text.
 
