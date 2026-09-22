@@ -15,7 +15,8 @@ banners).
 ## Tone
 
 Chill, playful, a bit self-deprecating; gaming slang is fine. Tagline:
-**"Chill streams, gaming with friends."** Game lists end with "and more" rather than enumerating.
+**"Chill streams, gaming with friends."** followed by "Laid-back vibes, bad jokes and good company, live on Kick."
+The hero doesn't name specific games (the lineup changes); the scrolling ticker is the only place games are listed.
 
 ## Speech lines
 
