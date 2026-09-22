@@ -1,0 +1,98 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Discord banner</title><style>
+/* 680x240 (Discord's 17:6 profile banner), rendered at 2x. Measured from a live profile: the avatar is a
+   circle centred on the bottom edge at 23% across with a radius of ~17% of the width, so the bottom-left
+   is covered. The status bubble only reaches the bottom few pixels. Everything important sits in the
+   top-left strip above the avatar and in the right 60%. */
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(../public/assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../public/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: #03060d; }
+#banner { position: relative; width: 680px; height: 240px; overflow: hidden; background: #03060d; color: #e8f4ff; font-family: "Chakra Petch", sans-serif; --c: #22e5ff; }
+.grid { position: absolute; inset: 0; background: linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 24px 24px, linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 24px 24px; }
+.glow { position: absolute; inset: 0; background: radial-gradient(45% 80% at 62% 42%, rgba(34,229,255,.18), transparent 70%), radial-gradient(30% 50% at 23% 100%, rgba(255,99,184,.2), transparent 70%); }
+canvas { position: absolute; inset: 0; }
+/* ring the avatar docks into */
+.dock { position: absolute; left: 23%; top: 240px; width: 0; height: 0; }
+.dock svg { position: absolute; left: -150px; top: -150px; width: 300px; height: 300px; overflow: visible; }
+.dock circle { fill: none; }
+.lulu-block { position: absolute; left: 23%; top: 14px; width: 190px; margin-left: -95px; display: grid; justify-items: center; gap: 2px; }
+.eyebrow { display: flex; align-items: center; gap: 9px; font-size: 9px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: var(--c); white-space: nowrap; }
+.eyebrow::before, .eyebrow::after { content: ""; width: 18px; height: 1px; background: var(--c); box-shadow: 0 0 6px var(--c); }
+.logos { position: relative; width: 150px; height: 62px; filter: drop-shadow(0 3px 8px rgba(0,0,0,.6)); }
+.logos img { position: absolute; } .lulu { left: 4px; top: -4px; width: 88px; transform: rotate(-6deg); } .gng { right: 2px; bottom: 0; width: 84px; transform: rotate(-3deg); }
+.title { position: absolute; left: 40.5%; top: 0; bottom: 20px; display: grid; align-content: center; gap: 10px; }
+h1 { position: relative; font: 900 33px/1.08 Orbitron; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
+h1 span, .ghost span { display: block; }
+h1 .o { color: transparent; -webkit-text-stroke: 1.5px var(--c); filter: drop-shadow(0 0 10px rgba(34,229,255,.45)); }
+h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 14px rgba(34,229,255,.45)); }
+.ghost { position: absolute; inset: 0; opacity: 0; }
+.ghost.r { color: #ff2d78; } .ghost.b { color: #22e5ff; }
+.sheen { position: absolute; inset: -6px -14px; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(105deg, transparent 0 46%, rgba(255,255,255,.6) 50%, transparent 54% 100%) no-repeat; background-size: 300% 100%; opacity: 0; }
+.tag { display: flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #53fc18; }
+.tag svg { width: 12px; height: 12px; fill: #53fc18; filter: drop-shadow(0 0 6px rgba(83,252,24,.6)); }
+.tag i { font-style: normal; color: #8ba3bd; letter-spacing: .14em; }
+.tron { position: absolute; right: -44px; top: 18px; height: 312px; filter: drop-shadow(0 10px 16px rgba(0,0,0,.6)) drop-shadow(0 0 20px rgba(34,229,255,.35)); }
+.halo { position: absolute; right: -2px; top: 20px; width: 150px; height: 150px; border-radius: 50%; border: 1.5px dashed rgba(34,229,255,.55); background: radial-gradient(circle, rgba(34,229,255,.28), transparent 68%); }
+</style></head><body>
+<div id="banner">
+  <div class="grid"></div><div class="glow"></div>
+  <canvas id="cv" width="1360" height="480" style="width:680px;height:240px"></canvas>
+  <div class="dock"><svg viewBox="-150 -150 300 300">
+    <circle r="126" stroke="#ff63b8" stroke-width="3" stroke-dasharray="120 26 14 26" style="filter: drop-shadow(0 0 5px #ff63b8)"/>
+    <circle r="136" stroke="#22e5ff" stroke-width="1.2" stroke-dasharray="3 7" opacity=".85"/>
+  </svg></div>
+  <div class="lulu-block"><div class="eyebrow">CEO of the</div><span class="logos"><img class="lulu" src="../public/assets/img/lulu.webp"><img class="gng" src="../public/assets/img/gang.webp"></span></div>
+  <i class="halo"></i>
+  <img class="tron" src="../public/assets/img/tron-cyan-mclosed-eopen.webp">
+  <div class="title">
+    <h1><span class="o">Trongates</span><span class="s">Legacy</span>
+      <div class="ghost r" id="gr"><span>Trongates</span><span>Legacy</span></div>
+      <div class="ghost b" id="gb"><span>Trongates</span><span>Legacy</span></div>
+      <span class="sheen" id="sheen"></span></h1>
+    <div class="tag"><svg viewBox="0 0 24 24"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></svg>Live on Kick <i>· trongateslegacy</i></div>
+  </div>
+</div>
+<script>
+// setT(t) draws loop position t in [0,1), so the animation loops seamlessly.
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+ctx.scale(2, 2);
+const W = 680, H = 240, CELL = 24;
+const riders = [
+  { y: 2, dir: 1, laps: 1, off: .05, c: '#22e5ff', len: 200 },
+  { y: 4, dir: -1, laps: 1, off: .55, c: '#ff8a3d', len: 170 },
+  { y: 8, dir: 1, laps: 2, off: .3, c: '#22e5ff', len: 150 },
+  { y: 1, dir: -1, laps: 2, off: .8, c: '#22e5ff', len: 130 },
+];
+function setT(t) {
+  ctx.clearRect(0, 0, W, H);
+  for (const r of riders) {
+    const span = W + r.len * 2, p = ((t * r.laps + r.off) % 1) * span - r.len;
+    const head = r.dir > 0 ? p : W - p, tail = head - r.dir * r.len, y = r.y * CELL + .5;
+    const g = ctx.createLinearGradient(tail, 0, head, 0);
+    g.addColorStop(0, r.c + '00'); g.addColorStop(1, r.c);
+    ctx.strokeStyle = g; ctx.lineCap = 'round';
+    ctx.globalAlpha = .25; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(tail, y); ctx.lineTo(head, y); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(tail, y); ctx.lineTo(head, y); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(head, y, 2, 0, 6.3); ctx.fill();
+  }
+  // trails fade out behind the text and logo, as on the website
+  ctx.globalCompositeOperation = 'destination-out';
+  for (const el of document.querySelectorAll('.title, .lulu-block')) {
+    const b = el.getBoundingClientRect();
+    for (const [pad, a] of [[36, .4], [20, .5], [6, .7]]) { ctx.globalAlpha = a; ctx.beginPath(); ctx.roundRect(b.left - pad, b.top - pad, b.width + pad * 2, b.height + pad * 2, 24); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  const sh = document.getElementById('sheen'), s = (t - .08) / .3;
+  sh.style.opacity = s > 0 && s < 1 ? Math.sin(Math.PI * s) : 0;
+  sh.style.backgroundPosition = `${100 - s * 100}% 0`;
+  const gr = document.getElementById('gr'), gb = document.getElementById('gb');
+  gr.style.opacity = gb.style.opacity = 0;
+  for (const [at, rx, ry, rc, bx, by, bc] of [[.62, -4, 1, 'inset(10% 0 55% 0)', 4, -1, 'inset(40% 0 30% 0)'], [.66, 3, -1, 'inset(60% 0 8% 0)', -3, 1, 'inset(5% 0 72% 0)']])
+    if (t >= at && t < at + .035) {
+      gr.style.opacity = gb.style.opacity = .85;
+      gr.style.transform = `translate(${rx}px,${ry}px)`; gr.style.clipPath = rc;
+      gb.style.transform = `translate(${bx}px,${by}px)`; gb.style.clipPath = bc;
+    }
+}
+setT(0);
+</script></body></html>
