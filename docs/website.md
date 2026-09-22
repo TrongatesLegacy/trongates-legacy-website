@@ -50,13 +50,25 @@ website API returns 403 to server-side requests. So:
 
 ## Performance
 
-Lighthouse on the live site: mobile **96 / 100 / 100**, desktop **100 / 100 / 100** (performance /
-accessibility / best practices); every SEO audit passes (the local run can't produce an SEO score, see
+Lighthouse on the live site: see the latest `scripts/lighthouse.sh` run; the baseline is mobile performance
+≥95 and desktop ≥98 with accessibility and best practices 100 (performance / accessibility / best practices); every SEO audit passes (the local run can't produce an SEO score, see
 verification.md). Keep it there:
 
 - Fonts self-hosted and preloaded (no render-blocking requests).
 - Character art ships at 400w and 640w via `srcset`; phones get the 400w. The hero's first frame is
   preloaded with `fetchpriority=high`, chosen before first paint from the saved form.
+- **Nothing else downloads until the hero has painted.** The current form's blink/talk frames start 900ms
+  after load, every other form's art 3s after load when idle. Starting them at load put ~600KB in
+  competition with the hero image; Lighthouse's slow-phone model counts every request that starts before
+  the first paint, and mobile performance was 94 because of it (99 after). Keep new below-the-fold images
+  lazy/low priority for the same reason (the hero's Discord card logos are `loading=lazy fetchpriority=low`).
+- **The main script starts after the first frame** (`requestAnimationFrame(() => setTimeout(boot))`), so setting up
+  the rest of the page never delays the hero. Code in `boot` that waits for the load event must use `onLoad()`,
+  which also runs if load has already fired.
+- **Continuous animations only animate `transform` and `opacity`** (GPU-composited). Rotating rings are each
+  their own `<svg>` (rotating a `<circle>` inside an svg repaints every frame), the grid floor moves by
+  `translateY` rather than `background-position`, and pulses scale a pseudo-element rather than animating
+  `box-shadow`. Anything else repaints every frame, costs battery, and competes with loading.
 - Other forms, the Kick player and YouTube players load only when needed.
 - Canvas animation caps devicePixelRatio at 1.5, pauses when hidden, rebuilds riders only on width changes
   (mobile URL bars fire resize on scroll).
