@@ -41,8 +41,22 @@ image and look at the result before handing it over.
 - Syntax-check the inline scripts:
   `node -e "const s=require('fs').readFileSync('public/index.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m,i)=>new Function(m[1]))"`
 - Desktop + phone screenshots of what changed; reduced motion if it animates.
-- For performance-sensitive changes, run Lighthouse against the deployed site:
-  `CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" npx lighthouse https://www.trongateslegacy.com/ --chrome-flags="--headless=new"`
-  (the local Lighthouse's SEO "canonical" audit crashes on Node 21; PageSpeed Insights gives the official
-  SEO score).
+
 - After deploy, check `/api/feed` on the live site: `source` should be `playlists` and `errors` empty.
+
+## Lighthouse (required after every website change)
+
+After pushing a change to `public/` or `netlify/` and the deploy is live (check the changed file is served,
+e.g. `curl -s https://www.trongateslegacy.com/ | grep <something new>`), run:
+
+```
+scripts/lighthouse.sh
+```
+
+It runs mobile and desktop, prints scores, metrics and any failing audits, and says whether the result is at
+or above baseline: mobile performance ≥95, desktop ≥98, accessibility and best practices 100, every SEO
+audit passing. Mobile performance varies by a few points run to run; if it dips just under, run it again
+before investigating. Include the scores when reporting the change to the owner.
+
+The local run can't produce an overall SEO score (its "canonical" audit crashes on Node 21), so the script
+checks the individual SEO audits instead; https://pagespeed.web.dev gives the official number.
