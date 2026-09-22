@@ -15,6 +15,7 @@ Images made for places other than the website itself. Every piece is built the s
 |---|---|---|
 | `kick/` | 12 about panels, channel banner, offline banner | `node --experimental-websocket artwork/kick/render.mjs`, `…/kick/banner/render.mjs 1 15 2`, `…/kick/banner/render-offline.mjs` |
 | `discord/` | animated profile banner | `node --experimental-websocket artwork/discord/render.mjs 90 15` |
+| `x/` | X (Twitter) profile header | `node --experimental-websocket artwork/x/render.mjs` |
 | `og/` | link-preview image (`public/assets/img/og.jpg`) | `node --experimental-websocket artwork/og/render.mjs` |
 
 Needs Google Chrome and ffmpeg. Changes here don't trigger a website deploy, except the OG render, which writes

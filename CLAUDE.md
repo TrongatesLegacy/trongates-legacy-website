@@ -13,6 +13,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [artwork/README.md](artwork/README.md) | making or changing any artwork: how every piece is built |
 | [artwork/kick/README.md](artwork/kick/README.md) | Kick about panels, channel banner, offline banner |
 | [artwork/discord/README.md](artwork/discord/README.md) | Discord profile banner |
+| [artwork/x/README.md](artwork/x/README.md) | X (Twitter) profile header |
 | [artwork/og/README.md](artwork/og/README.md) | the link-preview image shown when the site is shared |
 
 Project skills in `.claude/skills/` hold the step-by-step procedures: **verify-site-change** (after any
@@ -57,6 +58,7 @@ dev.mjs                      local server: public/ + /api/feed on http://localho
 artwork/                     images made for other places, all built the same way (see artwork/README.md):
   kick/                        Kick about panels, channel banner, offline banner
   discord/                     Discord profile banner (animated GIF)
+  x/                           X (Twitter) profile header
   og/                          the link-preview (Open Graph) image; renders into public/assets/img/og.jpg
 ```
 
@@ -73,6 +75,7 @@ node --experimental-websocket artwork/kick/render.mjs           # re-render Kick
 node --experimental-websocket artwork/kick/banner/render.mjs 1 15 2
 node --experimental-websocket artwork/kick/banner/render-offline.mjs
 node --experimental-websocket artwork/discord/render.mjs 90 15
+node --experimental-websocket artwork/x/render.mjs
 ```
 
 Node here is v21, which needs `--experimental-websocket` for the Chrome DevTools scripts. Tools available on

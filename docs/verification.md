@@ -28,11 +28,12 @@ figure (starting from the first row whose run is ≥30% of the widest), so a fis
 doesn't count as the top of the head. Then map through the element's `object-fit`, `object-position` and CSS
 transform to screen coordinates. The character sizing table in design-system.md was produced this way.
 
-## Platform crops (Kick, Discord)
+## Platform crops (Kick, Discord, X)
 
 These platforms crop and overlay images differently in different views, and it isn't documented anywhere.
 The numbers in artwork/kick/README.md and artwork/discord/README.md were measured from the owner's screenshots of the
-live pages. When the owner sends a new screenshot, re-measure from it (draw a grid over a crop of the image to
+live pages. artwork/x/README.md is the exception: help.x.com and x.com block automated browsers, so its geometry
+is from published values and still needs checking against a screenshot. When the owner sends a new screenshot, re-measure from it (draw a grid over a crop of the image to
 read positions) rather than trusting earlier numbers, then simulate the crop with ffmpeg on the rendered
 image and look at the result before handing it over.
 

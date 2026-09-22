@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset="utf-8"><title>X header</title><style>
+/* 1500x500 (3:1) X/Twitter profile header, rendered at 2x.
+   X shows the whole image (it doesn't crop the 3:1), but the profile picture overlaps the bottom-left and the
+   display name sits just under the header, so:
+     - avatar: a circle roughly 22% of the header's width, centred near x=14%, half of it below the bottom edge
+       -> it covers about x 40-370, y 330-500 in these coordinates. Nothing important goes there.
+     - everything else stays 40px inside the edges; the bottom strip is kept quiet because small screens
+       round the corners and the avatar ring sits there. */
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(../../public/assets/img/../fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../../public/assets/img/../fonts/chakra-petch-600.woff2) format("woff2"); }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: #03060d; }
+#hdr { position: relative; width: 1500px; height: 500px; overflow: hidden; background: #03060d; color: #e8f4ff; font-family: "Chakra Petch", sans-serif; --c: #22e5ff; }
+.grid { position: absolute; inset: 0; background: linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 50px 50px, linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 50px 50px; }
+.glow { position: absolute; inset: 0; background:
+  radial-gradient(38% 70% at 78% 45%, rgba(34,229,255,.22), transparent 70%),
+  radial-gradient(26% 50% at 64% 75%, rgba(255,99,184,.15), transparent 70%),
+  radial-gradient(26% 50% at 93% 75%, rgba(255,179,107,.13), transparent 70%),
+  radial-gradient(30% 60% at 10% 80%, rgba(34,229,255,.12), transparent 70%); }
+.floor { position: absolute; left: 0; right: 0; bottom: 0; height: 190px; overflow: hidden; perspective: 620px; perspective-origin: 76% 0;
+  -webkit-mask-image: linear-gradient(transparent 6%, #000 80%); }
+.floor::before { content: ""; position: absolute; top: 0; left: -60%; right: -60%; height: 170%; transform-origin: 50% 0; transform: rotateX(66deg);
+  background: linear-gradient(rgba(34,229,255,.4) 2px, transparent 2px) 0 0 / 70px 70px, linear-gradient(90deg, rgba(34,229,255,.4) 2px, transparent 2px) 0 0 / 70px 70px; }
+.trail { position: absolute; height: 3px; border-radius: 3px; box-shadow: 0 0 12px currentColor; }
+.trail::after { content: ""; position: absolute; right: -4px; top: -3px; width: 9px; height: 9px; border-radius: 50%; background: #fff; }
+.halo { position: absolute; left: 1170px; top: 215px; width: 360px; height: 360px; margin: -180px 0 0 -180px; border-radius: 50%; }
+.halo i { position: absolute; inset: 0; border-radius: 50%; }
+.halo .h1 { border: 2px dashed rgba(34,229,255,.42); }
+.halo .h2 { inset: 20px; border: 3px solid transparent; border-top-color: #22e5ff; border-right-color: rgba(34,229,255,.55); transform: rotate(-32deg); filter: drop-shadow(0 0 6px #22e5ff); }
+/* hero box + per-artwork transforms, so heads match exactly (docs/design-system.md) */
+.who { position: absolute; top: 78px; width: 210px; height: 315px; }
+.who img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
+.who.tron { left: 1105px; z-index: 3; filter: drop-shadow(0 14px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(34,229,255,.4)); }
+.who.trina { left: 970px; z-index: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(255,99,184,.35)); }
+.who.trina img { transform: translate(.75%, -1.9%) scale(.937); }
+.who.blob { left: 1240px; z-index: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(255,179,107,.3)); }
+.who.blob img { transform: translate(-12.7%, -5.8%) scale(1.18); }
+.pad { position: absolute; left: 1175px; top: 372px; width: 470px; height: 56px; margin-left: -235px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(34,229,255,.45), rgba(34,229,255,.1) 50%, transparent 72%); z-index: 1; }
+.copy { position: absolute; left: 430px; top: 0; bottom: 0; width: 520px; display: grid; align-content: center; gap: 16px; z-index: 5; }
+.eyebrow { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: var(--c); white-space: nowrap; }
+.eyebrow::before { content: ""; width: 36px; height: 2px; background: var(--c); box-shadow: 0 0 8px var(--c); }
+h1 { font: 900 66px/1 Orbitron; letter-spacing: .02em; text-transform: uppercase; }
+h1 span { display: block; }
+h1 .o { color: transparent; -webkit-text-stroke: 2px var(--c); filter: drop-shadow(0 0 12px rgba(34,229,255,.5)); }
+h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 16px rgba(34,229,255,.45)); }
+.tag { display: flex; align-items: center; gap: 14px; font-size: 22px; font-weight: 600; letter-spacing: .04em; color: #a9bfd6; white-space: nowrap; }
+.tag b { display: inline-flex; align-items: center; gap: 8px; color: #53fc18; }
+.tag svg { width: 22px; height: 22px; fill: #53fc18; filter: drop-shadow(0 0 6px rgba(83,252,24,.5)); }
+.tag i { font-style: normal; color: #3a4a63; }
+</style></head><body>
+<div id="hdr">
+  <div class="grid"></div><div class="glow"></div>
+  <i class="trail" style="left:-20px;top:46px;width:360px;color:#22e5ff;background:linear-gradient(90deg,transparent,#22e5ff)"></i>
+  <i class="trail" style="left:900px;top:28px;width:320px;color:#ff8a3d;background:linear-gradient(90deg,transparent,#ff8a3d)"></i>
+  <div class="floor"></div>
+  <div class="halo"><i class="h1"></i><i class="h2"></i></div>
+  <i class="pad"></i>
+  <div class="who trina"><img src="../../public/assets/img/princess-peace.webp"></div>
+  <div class="who blob"><img src="../../public/assets/img/blobfish-mclosed-eopen.webp"></div>
+  <div class="who tron"><img src="../../public/assets/img/tron-cyan-mclosed-eopen.webp"></div>
+  <div class="copy">
+    <div class="eyebrow">CEO of the Lulu Gang</div>
+    <h1><span class="o">Trongates</span><span class="s">Legacy</span></h1>
+    <div class="tag"><b><svg viewBox="0 0 24 24"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></svg>Live on Kick</b><i>/</i>trongateslegacy.com</div>
+  </div>
+</div></body></html>
