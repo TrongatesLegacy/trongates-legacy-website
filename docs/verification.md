@@ -54,7 +54,7 @@ Run it twice:
    94 when live is 100. A drop well below that, or a slower LCP than before, is still worth a look.
 2. **After the deploy is live** (check the changed file is served, e.g.
    `curl -s https://www.trongateslegacy.com/ | grep <something new>`): `scripts/lighthouse.sh`. Adds the
-   performance gates: mobile ≥95, desktop ≥98.
+   performance gates: mobile ≥97, desktop ≥98.
 
 Both print scores, metrics and any failing audits, and exit non-zero when below baseline. Mobile performance varies by a few points run to run; if it dips just under, run it again
 before investigating. Include the scores when reporting the change to the owner.

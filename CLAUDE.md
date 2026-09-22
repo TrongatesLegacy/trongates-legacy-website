@@ -34,7 +34,7 @@ website edit) and **channel-art** (Kick/Discord/other platform artwork).
 - **Run Lighthouse twice for every website change** (anything under `public/` or `netlify/`):
   `scripts/lighthouse.sh --local` before pushing (catches accessibility, SEO, best-practice, layout-shift and
   blocking regressions), then `scripts/lighthouse.sh` on the live site once deployed (the only trustworthy
-  performance numbers). Report both. Don't leave it below baseline (live: mobile performance ≥95, desktop ≥98;
+  performance numbers). Report both. Don't leave it below baseline (live: mobile performance ≥97, desktop ≥98;
   both: accessibility and best practices 100, all SEO audits passing).
 - **Commit small and push** when a change is verified; the owner reviews on the live site. Pushes that only
   touch files outside `public/`, `netlify/` and `netlify.toml` don't trigger a Netlify build (see netlify.toml).

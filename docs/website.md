@@ -51,7 +51,7 @@ website API returns 403 to server-side requests. So:
 ## Performance
 
 Lighthouse on the live site: see the latest `scripts/lighthouse.sh` run; the baseline is mobile performance
-≥95 and desktop ≥98 with accessibility and best practices 100 (performance / accessibility / best practices); every SEO audit passes (the local run can't produce an SEO score, see
+≥97 and desktop ≥98 with accessibility and best practices 100 (performance / accessibility / best practices); every SEO audit passes (the local run can't produce an SEO score, see
 verification.md). Keep it there:
 
 - Fonts self-hosted and preloaded (no render-blocking requests).

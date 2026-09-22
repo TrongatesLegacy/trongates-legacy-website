@@ -5,7 +5,7 @@
 # The local dev server has no CDN, compression or caching headers, so local performance scores run lower
 # than live (e.g. 94 vs 100 on mobile) and aren't gated. Local runs gate on what *is* comparable:
 #   accessibility and best practices 100, all SEO audits passing, CLS < 0.1, TBT < 200ms
-# Live runs additionally gate on performance: mobile >= 95, desktop >= 98.
+# Live runs additionally gate on performance: mobile >= 97, desktop >= 98.
 LOCAL=0
 if [ "$1" = "--local" ]; then LOCAL=1; URL="http://localhost:8888/"
   curl -s -o /dev/null -m 3 "$URL" || { echo "dev server not running: start it with: node dev.mjs"; exit 1; }
@@ -21,7 +21,7 @@ python3 - "$OUT" "$LOCAL" <<'PY'
 import json, sys
 out, local = sys.argv[1], sys.argv[2] == "1"
 bad = False
-for mode, floor in (("mobile", 95), ("desktop", 98)):
+for mode, floor in (("mobile", 97), ("desktop", 98)):
     d = json.load(open(f"{out}/{mode}.json")); a = d["audits"]
     sc = {k: (None if v["score"] is None else round(v["score"] * 100)) for k, v in d["categories"].items()}
     print(f"{mode:8} performance {sc.get('performance')}  accessibility {sc.get('accessibility')}  best-practices {sc.get('best-practices')}  seo {sc.get('seo') if sc.get('seo') is not None else '(n/a locally)'}")
