@@ -1,0 +1,126 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Club cover</title><style>
+/* 1600x538 (~3:1) club.com profile cover, rendered 2x for the static JPG and 1x for the animated GIF.
+   Confirmed from a live profile screenshot: club.com displays the whole uploaded image at its own aspect
+   (the title lands at 21% across and the character at 76%, exactly as designed). The upload dialog shows a
+   2:1 crop box, but the result keeps the full 3:1 frame, so the canvas stays 3:1.
+   Measured from a screenshot of the live profile (see README): club.com lays the profile *on top* of the
+   cover and darkens its lower half:
+     avatar    circle r~34 centred (57, 340)      name/handle  from x~150, y~300-390
+     bio + social icons  x 40-700, y 420-500      "Edit Profile" button  top right, ~x 1380-1560, y 440-500
+   So the bottom-left half holds nothing, the title sits in the upper middle and the forms stand on the right.
+   Club also says the cover "scales to fit any screen. On wide screens, parts may crop", so nothing important
+   goes in the outer 6% on either side. */
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(../../public/assets/img/../fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../../public/assets/img/../fonts/chakra-petch-600.woff2) format("woff2"); }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: #03060d; }
+#cover { position: relative; width: 1600px; height: 538px; overflow: hidden; background: #03060d; color: #e8f4ff; font-family: "Chakra Petch", sans-serif; --c: #22e5ff; }
+.grid { position: absolute; inset: 0; background: linear-gradient(#0e2034 1px, transparent 1px) 0 0 / 48px 48px, linear-gradient(90deg, #0e2034 1px, transparent 1px) 0 0 / 48px 48px; }
+.glow { position: absolute; inset: 0; background:
+  radial-gradient(34% 60% at 76% 45%, rgba(34,229,255,.22), transparent 70%),
+  radial-gradient(26% 46% at 30% 30%, rgba(34,229,255,.12), transparent 70%); }
+.floor { position: absolute; left: 0; right: 0; bottom: 0; height: 220px; overflow: hidden; perspective: 640px; perspective-origin: 74% 0;
+  -webkit-mask-image: linear-gradient(transparent 6%, #000 80%); }
+.floor::before { content: ""; position: absolute; top: 0; left: -60%; right: -60%; height: 170%; transform-origin: 50% 0; transform: rotateX(66deg);
+  background: linear-gradient(rgba(34,229,255,.4) 2px, transparent 2px) 0 0 / 74px 74px, linear-gradient(90deg, rgba(34,229,255,.4) 2px, transparent 2px) 0 0 / 74px 74px; }
+canvas { position: absolute; inset: 0; }
+.halo { position: absolute; left: 1235px; top: 250px; width: 400px; height: 400px; margin: -200px 0 0 -200px; border-radius: 50%; }
+.halo i { position: absolute; inset: 0; border-radius: 50%; }
+.halo .h1 { border: 2px dashed color-mix(in srgb, var(--hc, #22e5ff) 45%, transparent); }
+.halo .h2 { inset: 22px; border: 3px solid transparent; border-top-color: var(--hc, #22e5ff); border-right-color: color-mix(in srgb, var(--hc, #22e5ff) 55%, transparent); transform: rotate(-32deg); filter: drop-shadow(0 0 6px var(--hc, #22e5ff)); }
+/* hero box + per-artwork transforms so the heads match (docs/design-system.md) */
+.who { position: absolute; top: 74px; width: 232px; height: 348px; }
+.who img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
+.who.tron { left: 1120px; z-index: 3; filter: drop-shadow(0 14px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(34,229,255,.4)); }
+.who.trina { left: 1120px; z-index: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(255,99,184,.35)); }
+.who.trina img { transform: translate(.75%, -1.9%) scale(.937); }
+.who.blob { left: 1120px; z-index: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(255,179,107,.3)); }
+.who.blob img { transform: translate(-12.7%, -5.8%) scale(1.18); }
+.pad { position: absolute; left: 1240px; top: 402px; width: 500px; height: 56px; margin-left: -250px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(34,229,255,.42), rgba(34,229,255,.1) 50%, transparent 72%); z-index: 1; }
+/* form swap glitch, same language as the site and the Discord banner */
+.band { position: absolute; inset: 0; z-index: 4; filter: drop-shadow(-3px 0 rgba(255,45,120,.8)) drop-shadow(3px 0 rgba(34,229,255,.8)); }
+.band .who { filter: none; }
+.copy { position: absolute; left: 330px; top: 76px; width: 640px; display: grid; gap: 14px; z-index: 5; }
+.eyebrow { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: var(--c); white-space: nowrap; }
+.eyebrow::before { content: ""; width: 36px; height: 2px; background: var(--c); box-shadow: 0 0 8px var(--c); }
+h1 { position: relative; font: 900 68px/1 Orbitron; letter-spacing: .02em; text-transform: uppercase; }
+h1 span { display: block; }
+h1 .o { color: transparent; -webkit-text-stroke: 2px var(--c); filter: drop-shadow(0 0 12px rgba(34,229,255,.5)); }
+h1 .s { background: linear-gradient(180deg, #fff 30%, var(--c) 125%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 16px rgba(34,229,255,.45)); }
+.sheen { position: absolute; inset: -6px -16px; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(105deg, transparent 0 46%, rgba(255,255,255,.55) 50%, transparent 54% 100%) no-repeat; background-size: 300% 100%; opacity: 0; }
+.links { display: flex; align-items: center; gap: 14px; font-size: 21px; font-weight: 600; white-space: nowrap; }
+.links b { display: inline-flex; align-items: center; gap: 9px; color: #53fc18; }
+.links svg { width: 22px; height: 22px; fill: #53fc18; filter: drop-shadow(0 0 6px rgba(83,252,24,.5)); }
+.links i { font-style: normal; color: #3a4a63; }
+.links span { color: #cfe3f5; }
+</style></head><body>
+<div id="cover">
+  <div class="grid"></div><div class="glow"></div>
+  <canvas id="cv" width="1600" height="538"></canvas>
+  <div class="floor"></div>
+  <div class="halo"><i class="h1"></i><i class="h2"></i></div>
+  <i class="pad"></i>
+  <div class="who trina" data-form="1"><img src="../../public/assets/img/princess-peace.webp"></div>
+  <div class="who blob" data-form="2"><img src="../../public/assets/img/blobfish-mclosed-eopen.webp"></div>
+  <div class="who tron" data-form="0"><img src="../../public/assets/img/tron-cyan-mclosed-eopen.webp"></div>
+  <div id="bands"></div>
+  <div class="copy">
+    <div class="eyebrow">CEO of the Lulu Gang</div>
+    <h1><span class="o">Trongates</span><span class="s">Legacy</span><span class="sheen" id="sheen"></span></h1>
+    <div class="links"><b><svg viewBox="0 0 24 24"><path d="M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z"/></svg>Live on Kick</b><i>/</i><span>trongateslegacy.com</span></div>
+  </div>
+</div>
+<script>
+// setT(t) draws loop position t in [0,1): light trails, a sheen across the title, and the three forms
+// taking turns with the glitch swap. Frame 0 is the static cover (Tron).
+const ctx = document.getElementById('cv').getContext('2d');
+const W = 1600, H = 538, CELL = 48;
+const riders = [
+  { y: 2, dir: 1, laps: 1, off: .05, c: '#22e5ff', len: 300 },
+  { y: 6, dir: -1, laps: 1, off: .5, c: '#ff8a3d', len: 240 },
+  { y: 1, dir: -1, laps: 2, off: .75, c: '#22e5ff', len: 200 },
+];
+const FORMS = [...document.querySelectorAll('[data-form]')].sort((a, b) => a.dataset.form - b.dataset.form), HALO = ['#22e5ff', '#ff63b8', '#ffb36b'];
+const rand = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+async function setT(t) {
+  ctx.clearRect(0, 0, W, H);
+  for (const r of riders) {
+    const span = W + r.len * 2, p = ((t * r.laps + r.off) % 1) * span - r.len;
+    const head = r.dir > 0 ? p : W - p, tail = head - r.dir * r.len, y = r.y * CELL + .5;
+    const g = ctx.createLinearGradient(tail, 0, head, 0);
+    g.addColorStop(0, r.c + '00'); g.addColorStop(1, r.c);
+    ctx.strokeStyle = g; ctx.lineCap = 'round';
+    ctx.globalAlpha = .25; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(tail, y); ctx.lineTo(head, y); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(tail, y); ctx.lineTo(head, y); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(head, y, 2.2, 0, 6.3); ctx.fill();
+  }
+  // keep trails off the text
+  ctx.globalCompositeOperation = 'destination-out';
+  const b = document.querySelector('.copy').getBoundingClientRect();
+  for (const [pad, a] of [[34, .4], [18, .55], [6, .75]]) { ctx.globalAlpha = a; ctx.beginPath(); ctx.roundRect(b.left - pad, b.top - pad, b.width + pad * 2, b.height + pad * 2, 22); ctx.fill(); }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  const sh = document.getElementById('sheen'), s = (t - .1) / .25;
+  sh.style.opacity = s > 0 && s < 1 ? Math.sin(Math.PI * s) : 0;
+  sh.style.backgroundPosition = `${100 - s * 100}% 0`;
+  const n = FORMS.length, seg = t * n, cur = Math.floor(seg) % n, next = (cur + 1) % n, u = seg % 1;
+  const bands = document.getElementById('bands'); bands.innerHTML = '';
+  const G = .86, glitching = u >= G;
+  FORMS.forEach((f, i) => { f.style.opacity = !glitching && i === cur ? 1 : 0; });
+  document.querySelector('.halo').style.setProperty('--hc', HALO[glitching && (u - G) / (1 - G) > .5 ? next : cur]);
+  if (glitching) {
+    const p = .15 + (u - G) / (1 - G) * .75, r = rand(Math.round(t * 1000) + 11);
+    for (let y = 0; y < 100;) {
+      const h = 4 + r() * 16, src = FORMS[r() < p ? next : cur], el = document.createElement('div');
+      el.className = 'band';
+      el.style.clipPath = `inset(${y}% 0 ${Math.max(0, 100 - y - h)}% 0)`;
+      el.style.transform = `translateX(${((r() - .5) * 30).toFixed(1)}px)`;
+      const c = src.cloneNode(true); c.style.opacity = 1; el.appendChild(c);
+      bands.appendChild(el); y += h;
+    }
+    await Promise.all([...bands.querySelectorAll('img')].map((i) => i.decode().catch(() => {})));
+  }
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+}
+setT(0);
+</script></body></html>
