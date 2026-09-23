@@ -116,3 +116,14 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
   color: #111; background: #ffe14d; white-space: pre; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+
+/* ---- character art on scenes without veadotube (starting, BRB, ending) ----------------------------- */
+/* Same box and per-artwork transforms as the website hero (docs/design-system.md, "Character sizing"),
+   so every form's head lands in the same place. */
+.art-stage .art { position: absolute; inset: 0; filter: drop-shadow(0 22px 30px rgba(0,0,0,.6)) drop-shadow(0 0 28px var(--a20)); animation: float 5.5s ease-in-out infinite; }
+.art-stage .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; transition: opacity .25s; }
+.art-stage .art img.swap { opacity: 0; }
+html[data-form="princess"] .art-stage .art img { transform: translate(.75%, -1.9%) scale(.937); }
+html[data-form="blobfish"] .art-stage .art img { transform: translate(-12.7%, -5.8%) scale(1.18); }
+.no-art .art-stage .art { display: none; }
+@keyframes float { 50% { translate: 0 -14px; } }

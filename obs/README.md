@@ -11,8 +11,10 @@ Five 1920×1080 overlays in the site's style, plus an optional control dock:
 | Ending | `ending.html` |
 | Control dock (optional) | `control.html` |
 
-Each overlay is the background and frames only. Your PNGtuber (veadotube via Spout) and Botrix widgets are
-separate OBS sources placed on top, in the spaces the overlays leave for them.
+Your PNGtuber (veadotube via Spout) appears on **Game** and **Just chatting** only; those overlays leave a space
+for it. **Starting soon**, **Be right back** and **Ending** show the current form's character art instead,
+which swaps automatically with your form. Botrix widgets are separate OBS sources placed on top, in the
+frames the overlays draw for them.
 
 ## Where OBS loads them from: local files
 
@@ -81,9 +83,8 @@ dashed box labelled with its exact X, Y, W and H. Remove it when you're done.
 
 | Scene | Source | X | Y | W | H |
 |---|---|---|---|---|---|
-| Starting soon | veadotube (Spout) | 1180 | 130 | 620 | 820 |
-| Be right back | veadotube (Spout) | 830 | 300 | 440 | 650 |
-| | Botrix chat | 1348 | 122 | 494 | 800 |
+| Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
+| Be right back | Botrix chat | 1348 | 122 | 494 | 800 |
 | Just chatting | veadotube (Spout) | 180 | 110 | 980 | 880 |
 | | Botrix chat | 1308 | 96 | 554 | 730 |
 | | Botrix follower goal | 1308 | 916 | 554 | 58 |
@@ -92,11 +93,11 @@ dashed box labelled with its exact X, Y, W and H. Remove it when you're done.
 | | Botrix chat | 58 | 302 | 394 | 470 |
 | | Botrix follower goal | 58 | 982 | 394 | 40 |
 | | Botrix alerts | 0 | 0 | 1920 | 1080 (full screen; alerts appear top-centre) |
-| Ending | veadotube (Spout) | 1180 | 130 | 620 | 820 |
+| Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
-The PNGtuber spaces are sized so the avatar's feet land on the glowing pad and the rings sit behind its head.
-Nudge the veadotube source by eye to suit your avatar's framing. The order in each scene's source list, top
-to bottom: Botrix widgets → veadotube → Overlay (→ game capture on the Game scene).
+The PNGtuber spaces (Just chatting, Game) are sized so the avatar's feet land on the glowing pad and the rings
+sit behind its head. Nudge the veadotube source by eye to suit your avatar's framing. The order in each
+scene's source list, top to bottom: Botrix widgets → veadotube → Overlay (→ game capture on the Game scene).
 
 ### Options per scene (add to the URL)
 
@@ -106,6 +107,7 @@ to bottom: Botrix widgets → veadotube → Overlay (→ game capture on the Gam
 | `at=19:30` | Starting soon | counts down to that local time instead |
 | `topic=Rocket%20League` | Just chatting | changes "Just chatting" in the top bar |
 | `chat=0` / `goal=0` | Game | hides the chat / goal frame if you don't use it there |
+| `art=0` | Starting soon, Be right back, Ending | hides the character art |
 | `form=princess` | all | the colour to start on before veadotube connects |
 | `noveado=1` | all | don't connect to veadotube |
 
@@ -113,9 +115,9 @@ Combine options with `&`, e.g. `…/starting.html?minutes=10&map=fishing:blobfis
 
 ## Sharing the PNGtuber across scenes
 
-Add the veadotube Spout source once, then reuse it: in the other scenes use **+ → Spout2 Capture → Add
-Existing** (or copy the source and **Paste (Reference)**), and set its transform per scene from the table.
-All scenes then share one capture.
+Add the veadotube Spout source once (in Just chatting), then reuse it in Game: use **+ → Spout2 Capture → Add
+Existing** (or copy the source and **Paste (Reference)**), and set its transform from the table.
+Both scenes then share one capture.
 
 ## Botrix widgets
 

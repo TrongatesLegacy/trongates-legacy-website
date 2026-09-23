@@ -104,6 +104,18 @@
     requestAnimationFrame(frame);
   }
 
+  // ---- character art (starting, BRB, ending): the current form's idle frame -------------------------
+  const ART = { cyan: 'tron-cyan-mclosed-eopen', yellow: 'tron-yellow-mclosed-eopen', red: 'tron-red-mclosed-eopen', princess: 'princess-uwu', blobfish: 'blobfish-mclosed-eopen' };
+  if (TGL.param('art') === '0') document.documentElement.classList.add('no-art');
+  const setArt = (form, animate) => $$('img[data-form-art]').forEach((img) => {
+    const src = `assets/forms/${ART[form] || ART.cyan}.webp`;
+    if (!animate) { img.src = src; return; }
+    const next = new Image(); next.src = src;
+    next.decode().catch(() => {}).then(() => { img.classList.add('swap'); setTimeout(() => { img.src = src; img.classList.remove('swap'); }, 250); });
+  });
+  setArt(TGL.form, false);
+  TGL.onChange((form) => setArt(form, true));
+
   // ---- glitch the title whenever the form changes --------------------------------------------------
   TGL.onChange(() => $$('.glitch').forEach((el) => { el.classList.remove('now'); void el.offsetWidth; el.classList.add('now'); }));
 

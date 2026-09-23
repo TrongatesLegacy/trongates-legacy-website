@@ -27,7 +27,11 @@ def ring(): return '''<div class="halo"></div>
   <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg></div>
   <div class="pad"></div>'''
 def stage(x, y, w, h, label='PNGtuber: veadotube (Spout)'):
+    # a space for the veadotube (Spout) source: Game and Just chatting only
     return f'<div class="stage" data-slot="{label}" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">\n  {ring()}\n</div>\n'
+def art_stage(x, y, w, h):
+    # the current form's character art (no veadotube on these scenes); follows the form, hidden with ?art=0
+    return f'<div class="stage art-stage" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">\n  {ring()}\n  <div class="art"><img data-form-art alt=""></div>\n</div>\n'
 def frame(x, y, w, h, tab, icon, slot, extra=''):
     # the Botrix widget goes in the inner box (data-slot); the frame itself is drawn by the overlay
     return f'''<div class="frame {extra}" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
@@ -61,7 +65,7 @@ scenes['starting'] = dict(title='Starting soon', body_class='', riders=7, glow=G
   <div class="sub">Grab a drink and <b>say hi in chat</b>.</div>
   {SOCIALS}
 </div>
-{stage(1180, 130, 620, 820)}{ticker()}''')
+{art_stage(1180, 130, 620, 820)}{ticker()}''')
 
 # ---- BE RIGHT BACK: title left, PNGtuber centre, chat framed on the right ------------------------------
 scenes['brb'] = dict(title='Be right back', body_class='', riders=6, glow='radial-gradient(30% 46% at 55% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 15% 30%, var(--a10), transparent 70%)', css='''
@@ -73,7 +77,7 @@ scenes['brb'] = dict(title='Be right back', body_class='', riders=6, glow='radia
   <div class="timer" data-elapsed></div>
   <div class="sub">Grabbing snacks. <b>Keep chat alive.</b></div>
 </div>
-{stage(830, 300, 440, 650)}{frame(1330, 70, 530, 870, 'Chat', 'kick', 'Botrix chat')}{ticker()}''')
+{art_stage(830, 300, 440, 650)}{frame(1330, 70, 530, 870, 'Chat', 'kick', 'Botrix chat')}{ticker()}''')
 
 # ---- JUST CHATTING: big PNGtuber stage, chat + goal on the right ---------------------------------------
 scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='radial-gradient(36% 56% at 36% 52%, var(--a20), transparent 70%)', css='''
@@ -120,7 +124,7 @@ scenes['ending'] = dict(title='Ending', body_class='', riders=7, glow=GLOW_RIGHT
     <span><small>Hang out between streams</small><b><svg class="i"><use href="#i-discord"/></svg>discord.gg/FUKz6Dxk8W</b></span></div>
   {SOCIALS}
 </div>
-{stage(1180, 130, 620, 820)}{ticker()}''')
+{art_stage(1180, 130, 620, 820)}{ticker()}''')
 
 for name, s in scenes.items():
     html = HEAD.format(name=name, **s) + BG.format(**s) + s['body'] + '\n' + FOOT
