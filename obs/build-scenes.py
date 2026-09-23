@@ -6,15 +6,16 @@ OUT = pathlib.Path(__file__).parent.parent / 'public' / 'obs'
 HEAD = '''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>{title} · Trongates Legacy OBS</title>
 <meta name="robots" content="noindex">
-<!-- OBS browser source: URL https://www.trongateslegacy.com/obs/{name}.html, 1920x1080, 30 FPS. See obs/README.md. -->
-<link rel="stylesheet" href="/obs/shared/overlay.css">
-<script src="/obs/shared/theme.js"></script>
+<!-- OBS browser source (Local file, or https://www.trongateslegacy.com/obs/{name}.html), 1920x1080, 30 FPS. See obs/README.md.
+     Paths are relative so the folder works both hosted and as local files. -->
+<link rel="stylesheet" href="shared/overlay.css">
+<script src="shared/theme.js"></script>
 <style>{css}</style>
 </head>
 <body class="{body_class}">
-<script src="/obs/shared/icons.js"></script>
+<script src="shared/icons.js"></script>
 '''
-FOOT = '''<script src="/obs/shared/scene.js"></script>
+FOOT = '''<script src="shared/scene.js"></script>
 </body></html>
 '''
 BG = '''<div class="grid"></div>
@@ -115,7 +116,7 @@ scenes['ending'] = dict(title='Ending', body_class='', riders=7, glow=GLOW_RIGHT
   <div class="eyebrow">That's a wrap</div>
   <div class="title glitch" data-t="Thanks for watching"><span class="o">Thanks for</span><span class="s">Watching</span></div>
   <div class="sub"><b>GGs, Lulu Gang.</b> Catch the next one on Kick.</div>
-  <div class="gang"><span class="logos"><img class="lulu" src="/assets/img/lulu.webp" alt=""><img class="gng" src="/assets/img/gang.webp" alt=""></span>
+  <div class="gang"><span class="logos"><img class="lulu" src="assets/lulu.webp" alt=""><img class="gng" src="assets/gang.webp" alt=""></span>
     <span><small>Hang out between streams</small><b><svg class="i"><use href="#i-discord"/></svg>discord.gg/FUKz6Dxk8W</b></span></div>
   {SOCIALS}
 </div>

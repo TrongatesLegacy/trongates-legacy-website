@@ -1,8 +1,8 @@
 /* Shared look for every OBS overlay: same palette, fonts and motifs as the website (docs/design-system.md).
    Every scene is 1920x1080. Continuous animation only moves transform/opacity, so OBS stays light on CPU. */
-@font-face { font-family: Orbitron; font-weight: 400 900; src: url(/assets/fonts/orbitron.woff2) format("woff2"); }
-@font-face { font-family: "Chakra Petch"; font-weight: 400; src: url(/assets/fonts/chakra-petch-400.woff2) format("woff2"); }
-@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(../assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 400; src: url(../assets/fonts/chakra-petch-400.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../assets/fonts/chakra-petch-600.woff2) format("woff2"); }
 @property --accent { syntax: '<color>'; inherits: true; initial-value: #22e5ff; }
 
 :root {

@@ -78,6 +78,7 @@ node dev.mjs                                                  # local preview on
 node --experimental-websocket scripts/shot.mjs                # screenshot; options in the file's header
 node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image
 python3 obs/build-scenes.py                                    # regenerate the OBS scene overlays
+obs/sync-dropbox.sh                                            # copy them to Dropbox/Kick/obs-overlays for the streaming PC
 scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running)
 scripts/lighthouse.sh                                          # Lighthouse on the live site after deploy
 YOUTUBE_API_KEY=… node scripts/update-feed.mjs                 # refresh public/feed.json by hand
