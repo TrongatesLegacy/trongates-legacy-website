@@ -1,0 +1,20 @@
+/* Trongates Legacy styling for Botrix widgets in OBS.
+   Botrix doesn't offer custom CSS on widgets yet, so this is injected by OBS instead. In the Botrix browser
+   source's properties, put this single line in the "Custom CSS" box (replace whatever is there):
+
+       @import url("https://www.trongateslegacy.com/obs/botrix/widgets.css");
+
+   These rules are deliberately generic (fonts, colours, transparent background, readable sizes) because
+   Botrix's widget markup isn't documented. Chat-specific rules live in chat.css. */
+@font-face { font-family: "TGL Orbitron"; font-weight: 400 900; src: url("https://www.trongateslegacy.com/assets/fonts/orbitron.woff2") format("woff2"); }
+@font-face { font-family: "TGL Chakra"; font-weight: 400; src: url("https://www.trongateslegacy.com/assets/fonts/chakra-petch-400.woff2") format("woff2"); }
+@font-face { font-family: "TGL Chakra"; font-weight: 600; src: url("https://www.trongateslegacy.com/assets/fonts/chakra-petch-600.woff2") format("woff2"); }
+
+/* the overlay draws the themed frame behind the widget, so the widget itself stays see-through */
+html, body { background: transparent !important; }
+body, body * { font-family: "TGL Chakra", "Chakra Petch", system-ui, sans-serif !important; }
+body { color: #e8f4ff !important; text-shadow: 0 1px 2px rgba(0, 0, 0, .8); }
+h1, h2, h3, h4, strong, b { font-family: "TGL Orbitron", "Orbitron", sans-serif !important; letter-spacing: .04em; }
+/* progress bars (goals): cyan fill on a dark track */
+progress, [class*="progress" i], [class*="bar" i] { accent-color: #22e5ff; }
+[class*="fill" i], [class*="progress" i] > div { background: linear-gradient(90deg, #22e5ff, #7ff3ff) !important; box-shadow: 0 0 12px rgba(34, 229, 255, .6); }

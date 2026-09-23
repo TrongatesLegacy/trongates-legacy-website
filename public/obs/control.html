@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Trongates control</title>
+<meta name="robots" content="noindex">
+<!-- OBS custom browser dock (Docks → Custom Browser Docks): https://www.trongateslegacy.com/obs/control.html?obs=4455
+     Shows whether the overlays can see veadotube, which state maps to which form, and has manual form buttons
+     that recolour every scene through the OBS WebSocket server. See obs/README.md. -->
+<script>window.TGL_NO_AUTOCONNECT = true;</script>
+<script src="/obs/shared/theme.js"></script>
+<style>
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(/assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
+:root { --accent: #22e5ff; }
+* { box-sizing: border-box; margin: 0; }
+body { padding: 14px; background: #070d18; color: #e8f4ff; font: 600 14px/1.4 "Chakra Petch", system-ui, sans-serif; }
+h1 { font: 900 15px/1 Orbitron; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+h2 { font: 700 11px/1 Orbitron; letter-spacing: .18em; text-transform: uppercase; color: #8ba3bd; margin: 16px 0 8px; }
+.forms { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.forms button { padding: 10px 6px; border: 2px solid var(--c); border-radius: 8px; background: color-mix(in srgb, var(--c) 12%, #070d18); color: #e8f4ff; font: 700 12px/1.2 Orbitron; letter-spacing: .06em; cursor: pointer; }
+.forms button[aria-pressed="true"] { background: var(--c); color: #03060d; box-shadow: 0 0 14px var(--c); }
+.row { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #4a5b70; flex: none; }
+.dot.ok { background: #53fc18; box-shadow: 0 0 8px #53fc18; } .dot.bad { background: #ff4155; }
+.states { display: grid; gap: 4px; }
+.states div { display: flex; justify-content: space-between; gap: 10px; padding: 5px 8px; border-radius: 6px; background: #0b1424; }
+.states .on { outline: 1px solid var(--accent); }
+.states b { color: var(--c); }
+.hint { color: #8ba3bd; font-weight: 400; font-size: 12.5px; margin-top: 6px; }
+code { font-family: ui-monospace, monospace; font-size: 12px; color: #cfe3f5; }
+</style></head>
+<body>
+<h1>Trongates · scenes</h1>
+
+<h2>Colour theme</h2>
+<div class="forms" id="forms"></div>
+<p class="hint">Buttons recolour every scene now. If veadotube is connected, the scenes follow it automatically and
+switching avatar state there changes them again.</p>
+
+<h2>Connections</h2>
+<div class="row"><i class="dot" id="d-veado"></i><span>veadotube: <span id="s-veado">…</span></span></div>
+<div class="row"><i class="dot" id="d-obs"></i><span>OBS WebSocket: <span id="s-obs">…</span></span></div>
+
+<h2>veadotube states → form</h2>
+<div class="states" id="states"><p class="hint">Waiting for veadotube…</p></div>
+<p class="hint">If a state gets the wrong colour, add <code>map=state name:form</code> to each scene's URL
+(e.g. <code>&amp;map=fishing:blobfish</code>). Forms: cyan, yellow, red, princess, blobfish.</p>
+
+<script>
+(() => {
+  const params = new URLSearchParams(location.search);
+  const F = TGL.FORMS, formsEl = document.getElementById('forms');
+  let obsWs = null;
+  for (const [key, f] of Object.entries(F)) {
+    const b = document.createElement('button');
+    b.textContent = f.label; b.style.setProperty('--c', f.accent); b.dataset.form = key;
+    b.onclick = () => broadcast(key);
+    formsEl.appendChild(b);
+  }
+  const mark = () => formsEl.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.form === TGL.form));
+  function broadcast(form) {
+    TGL.set(form); mark();
+    if (obsWs && obsWs.readyState === 1)
+      obsWs.send(JSON.stringify({ op: 6, d: { requestType: 'BroadcastCustomEvent', requestId: 'tgl-' + Date.now(), requestData: { eventData: { tgl: 'form', form } } } }));
+  }
+
+  // --- OBS WebSocket (needed for the buttons to reach the scenes) ---
+  const setStatus = (id, ok, text) => { document.getElementById('d-' + id).className = 'dot ' + (ok === true ? 'ok' : ok === false ? 'bad' : ''); document.getElementById('s-' + id).textContent = text; };
+  if (params.get('obs')) {
+    TGL.onStatus((s) => setStatus('obs', s.obs === 'connected' ? true : s.obs === 'off' ? null : false, s.obs === 'connected' ? 'connected, buttons reach every scene' : s.obs));
+    obsWs = TGL.connectObs((ws) => { obsWs = ws; });
+  } else {
+    setStatus('obs', null, 'not set up: add ?obs=4455 to this dock\'s URL (and &obspw=… if you set a password)');
+  }
+
+  // --- veadotube: show connection, states and what each maps to ---
+  const addr = params.get('veado') || '127.0.0.1:2424';
+  const statesEl = document.getElementById('states');
+  let states = [], current = null;
+  function drawStates() {
+    if (!states.length) return;
+    statesEl.innerHTML = '';
+    for (const name of states) {
+      const form = TGL.formForState(name), row = document.createElement('div');
+      row.className = name === current ? 'on' : '';
+      row.style.setProperty('--c', F[form].accent);
+      row.innerHTML = `<span></span><b>${F[form].label}</b>`;
+      row.firstChild.textContent = name;
+      statesEl.appendChild(row);
+    }
+  }
+  function connectVeado() {
+    const ws = new WebSocket(`ws://${addr}?n=${encodeURIComponent('Trongates control')}`);
+    const send = (payload) => ws.send('nodes:' + JSON.stringify({ event: 'payload', type: 'stateEvents', id: 'mini', payload }));
+    ws.onopen = () => { setStatus('veado', true, `connected (${addr})`); send({ event: 'listen', token: 'tgl-control' }); send({ event: 'list' }); send({ event: 'peek' }); };
+    ws.onmessage = (e) => {
+      const t = String(e.data), i = t.indexOf(':');
+      if (t.slice(0, i).trim() !== 'nodes') return;
+      let m; try { m = JSON.parse(t.slice(i + 1)); } catch { return; }
+      if (m.type !== 'stateEvents' || !m.payload) return;
+      if (Array.isArray(m.payload.states)) states = m.payload.states.map((s) => s.name || s.id);
+      if (m.payload.state) { current = m.payload.state; TGL.set(TGL.formForState(current)); mark(); }
+      drawStates();
+    };
+    ws.onclose = () => { setStatus('veado', false, `not reachable at ${addr} (is veadotube mini open? retrying…)`); setTimeout(connectVeado, 5000); };
+  }
+  connectVeado();
+  TGL.onChange(mark); mark();
+})();
+</script>
+</body></html>

@@ -18,6 +18,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [artwork/youtube/README.md](artwork/youtube/README.md) | YouTube channel banner |
 | [artwork/club/README.md](artwork/club/README.md) | club.com profile cover (animated) |
 | [artwork/og/README.md](artwork/og/README.md) | the link-preview image shown when the site is shared |
+| [obs/README.md](obs/README.md) | the OBS scene overlays, control dock and Botrix CSS (hosted under /obs/) |
 
 Project skills in `.claude/skills/` hold the step-by-step procedures: **verify-site-change** (after any
 website edit) and **channel-art** (Kick/Discord/other platform artwork).
@@ -53,11 +54,13 @@ public/assets/img/           character art (WebP, 400w + 640w), logos, OG image,
 public/assets/fonts/         self-hosted Orbitron + Chakra Petch (latin woff2)
 public/feed.json             static fallback list of YouTube videos/shorts (refreshed daily by CI)
 public/robots.txt, sitemap.xml
+public/obs/                  OBS scene overlays, control dock, Botrix CSS (hosted at /obs/, noindex); see obs/README.md
 netlify/functions/feed.mjs   GET /api/feed: live YouTube list + Kick live status
 netlify.toml                 publish dir, functions dir, headers, build-skip rule
 scripts/update-feed.mjs      refreshes public/feed.json (run by .github/workflows/update-feed.yml)
 scripts/shot.mjs             headless-Chrome screenshots for checking changes
 dev.mjs                      local server: public/ + /api/feed on http://localhost:8888
+obs/                         OBS setup guide + build-scenes.py (generates public/obs/*.html)
 artwork/                     images made for other places, all built the same way (see artwork/README.md):
   kick/                        Kick about panels, channel banner, offline banner
   discord/                     Discord profile banner (animated GIF)
@@ -74,6 +77,7 @@ artwork/                     images made for other places, all built the same wa
 node dev.mjs                                                  # local preview on :8888
 node --experimental-websocket scripts/shot.mjs                # screenshot; options in the file's header
 node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image
+python3 obs/build-scenes.py                                    # regenerate the OBS scene overlays
 scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running)
 scripts/lighthouse.sh                                          # Lighthouse on the live site after deploy
 YOUTUBE_API_KEY=… node scripts/update-feed.mjs                 # refresh public/feed.json by hand

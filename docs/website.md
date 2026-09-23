@@ -85,6 +85,13 @@ because platforms cache previews by URL), JSON-LD `WebSite` + `Person` with ever
 sitemap.xml. `www` is the primary domain; the apex redirects to it (DNS: A record to Netlify's load balancer
 on the apex, CNAME for `www`, at OVH).
 
+## OBS overlays
+
+`public/obs/` holds the stream overlays (see obs/README.md). They're deployed with the site so OBS on the
+streaming PC can load them by URL, kept out of search results by `robots.txt` (`Disallow: /obs/`) and a
+`noindex` meta tag, and never linked from the site. `/assets/fonts/*` sends `Access-Control-Allow-Origin: *` so
+the Botrix CSS injected by OBS (loaded inside botrix.live pages) can use the site's fonts.
+
 ## Deploy
 
 Netlify builds from `main` with no build command; publish dir `public`, functions dir `netlify/functions`.

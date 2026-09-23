@@ -18,3 +18,10 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  # OBS browser sources load Botrix widgets from botrix.live; the injected CSS (public/obs/botrix/) pulls
+  # these fonts cross-origin, which browsers only allow with this header.
+  for = "/assets/fonts/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"

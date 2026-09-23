@@ -1,0 +1,118 @@
+/* Shared look for every OBS overlay: same palette, fonts and motifs as the website (docs/design-system.md).
+   Every scene is 1920x1080. Continuous animation only moves transform/opacity, so OBS stays light on CPU. */
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(/assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 400; src: url(/assets/fonts/chakra-petch-400.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(/assets/fonts/chakra-petch-600.woff2) format("woff2"); }
+@property --accent { syntax: '<color>'; inherits: true; initial-value: #22e5ff; }
+
+:root {
+  --bg: #03060d; --panel: #070d18; --line: #0e2034; --text: #e8f4ff; --muted: #8ba3bd; --kick: #53fc18;
+  --accent: #22e5ff;
+  --a70: color-mix(in srgb, var(--accent) 70%, transparent);
+  --a40: color-mix(in srgb, var(--accent) 40%, transparent);
+  --a20: color-mix(in srgb, var(--accent) 20%, transparent);
+  --a10: color-mix(in srgb, var(--accent) 10%, transparent);
+  transition: --accent .7s ease;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; }
+body { background: var(--bg); color: var(--text); font-family: "Chakra Petch", sans-serif; }
+body.transparent { background: transparent; }
+svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
+
+/* ---- background ------------------------------------------------------------------------------------ */
+.grid { position: absolute; inset: 0; background:
+  linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 60px 60px,
+  linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 60px 60px; }
+.glow { position: absolute; inset: 0; pointer-events: none; }
+.floor { position: absolute; left: 0; right: 0; bottom: 0; height: 430px; overflow: hidden; perspective: 900px; perspective-origin: 50% 0;
+  -webkit-mask-image: linear-gradient(transparent 4%, #000 72%); }
+.floor::before { content: ""; position: absolute; top: -110px; left: -80%; right: -80%; height: calc(170% + 110px); transform-origin: 50% 110px;
+  background: linear-gradient(var(--a40) 3px, transparent 3px) 0 0 / 110px 110px, linear-gradient(90deg, var(--a40) 3px, transparent 3px) 0 0 / 110px 110px;
+  animation: floor 2.2s linear infinite; will-change: transform; }
+@keyframes floor { from { transform: rotateX(68deg) translateY(0); } to { transform: rotateX(68deg) translateY(110px); } }
+.horizon { position: absolute; left: 0; right: 0; bottom: 430px; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); box-shadow: 0 0 22px var(--accent); opacity: .55; }
+#trails { position: absolute; inset: 0; pointer-events: none; }
+
+/* ---- title ----------------------------------------------------------------------------------------- */
+.eyebrow { display: flex; align-items: center; gap: 18px; font-size: 24px; font-weight: 600; letter-spacing: .38em; text-transform: uppercase; color: var(--accent); }
+.eyebrow::before { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.title { position: relative; font: 900 132px/.96 Orbitron; letter-spacing: .02em; text-transform: uppercase; }
+.title span { display: block; }
+.title .o { color: transparent; -webkit-text-stroke: 3px var(--accent); filter: drop-shadow(0 0 18px var(--a40)); }
+.title .s { background: linear-gradient(180deg, #fff 30%, var(--accent) 125%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 26px var(--a40)); }
+/* periodic glitch, same pattern as the website title; also fired by JS when the form changes */
+.glitch { position: relative; }
+.glitch::before, .glitch::after { content: attr(data-t); position: absolute; inset: 0; opacity: 0; pointer-events: none; -webkit-text-fill-color: currentColor; }
+.glitch::before { color: #ff2d78; animation: glitch-a 8s infinite steps(1); }
+.glitch::after { color: #22e5ff; animation: glitch-b 8s infinite steps(1); }
+.glitch.now::before { animation: glitch-a .5s 1 steps(1); } .glitch.now::after { animation: glitch-b .5s 1 steps(1); }
+@keyframes glitch-a { 0%,91%,100% { opacity: 0; } 92% { opacity: .8; transform: translate(-6px,2px); clip-path: inset(10% 0 55% 0); } 94% { opacity: .8; transform: translate(5px,-2px); clip-path: inset(60% 0 8% 0); } 96% { opacity: 0; } }
+@keyframes glitch-b { 0%,91%,100% { opacity: 0; } 93% { opacity: .8; transform: translate(6px,-1px); clip-path: inset(40% 0 30% 0); } 95% { opacity: .8; transform: translate(-5px,1px); clip-path: inset(5% 0 75% 0); } 97% { opacity: 0; } }
+.status { display: inline-flex; align-items: center; gap: 18px; white-space: nowrap; padding: 18px 30px; font: 900 34px/1 Orbitron; letter-spacing: .18em; text-transform: uppercase; color: #03060d; background: var(--accent);
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); box-shadow: 0 0 40px var(--a40); }
+.status .dots i { display: inline-block; width: 10px; height: 10px; margin-left: 6px; background: currentColor; animation: dot 1.4s infinite; opacity: .25; }
+.status .dots i:nth-child(2) { animation-delay: .2s; } .status .dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes dot { 30% { opacity: 1; } }
+.sub { font-size: 30px; font-weight: 600; color: #a9bfd6; letter-spacing: .04em; }
+.sub b { color: var(--text); }
+.timer { white-space: nowrap; font: 700 30px/1 Orbitron; letter-spacing: .12em; color: var(--text); font-variant-numeric: tabular-nums; }
+.timer em { font-style: normal; color: var(--accent); }
+
+/* ---- socials row ----------------------------------------------------------------------------------- */
+.socials { display: grid; grid-template-columns: auto auto; gap: 14px 40px; font-size: 24px; font-weight: 600; color: #cfe3f5; }
+.socials span { display: inline-flex; align-items: center; gap: 12px; }
+.socials .i { width: 28px; height: 28px; color: var(--accent); filter: drop-shadow(0 0 8px var(--a40)); }
+.socials .kick .i { color: var(--kick); filter: drop-shadow(0 0 8px rgba(83,252,24,.5)); }
+.socials .discord .i { color: #8c9bff; }
+
+/* ---- slots: where OBS sources go ------------------------------------------------------------------ */
+/* PNGtuber stage: the veadotube (Spout) source sits on top of this, feet on the glow pad. */
+.stage { position: absolute; }
+.stage .ring { position: absolute; left: 50%; top: 44%; aspect-ratio: 1; width: 92%; translate: -50% -50%; }
+.stage .ring svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 50%; }
+.stage .ring circle { fill: none; stroke: var(--accent); }
+.stage .r1 { opacity: .6; animation: spin 60s linear infinite; } .stage .r1 circle { stroke-width: .5; stroke-dasharray: 2 5; }
+.stage .r2 { opacity: .9; animation: spin 26s linear infinite reverse; filter: drop-shadow(0 0 4px var(--accent)); } .stage .r2 circle { stroke-width: 1.4; stroke-dasharray: 70 22 8 22; }
+.stage .r3 { animation: spin 9s linear infinite; filter: drop-shadow(0 0 5px var(--accent)); } .stage .r3 circle { stroke-width: 2.6; stroke-dasharray: 24 250; stroke-linecap: round; }
+.stage .halo { position: absolute; left: 50%; top: 44%; aspect-ratio: 1; width: 80%; translate: -50% -50%; border-radius: 50%; background: radial-gradient(circle, var(--a40) 0, var(--a10) 42%, transparent 68%); }
+.stage .pad { position: absolute; left: 50%; bottom: 2%; width: 78%; height: 9%; translate: -50% 0; border-radius: 50%; background: radial-gradient(ellipse, var(--a70) 0, var(--a20) 45%, transparent 70%); animation: pad 5.5s ease-in-out infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pad { 50% { opacity: .55; scale: .88 1; } }
+
+/* Framed panel for a Botrix widget (chat, goal...). The widget's own background should be transparent;
+   this frame supplies the themed border and a dark glass behind it. */
+.frame { position: absolute; background: linear-gradient(180deg, var(--a10), rgba(5,10,20,.78) 18%); backdrop-filter: blur(6px);
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px)); }
+.frame::before { content: ""; position: absolute; inset: 0; border: 2px solid var(--a40);
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px)); }
+.frame::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top right, transparent calc(50% - 1px), var(--a40) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) top right / 26px 26px no-repeat,
+              linear-gradient(to top right, transparent calc(50% - 1px), var(--a40) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) bottom left / 26px 26px no-repeat; }
+.frame .tab { position: absolute; left: 22px; top: -1px; display: flex; align-items: center; gap: 10px; padding: 9px 16px 8px; font: 700 15px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase;
+  color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 12px 100%); }
+.frame .tab .i { width: 18px; height: 18px; }
+.frame.clear { background: transparent; backdrop-filter: none; }
+
+/* corner brackets for the game overlay */
+.corner { position: absolute; width: 70px; height: 70px; border: 3px solid var(--accent); filter: drop-shadow(0 0 8px var(--accent)); opacity: .85; }
+.corner.tl { left: 18px; top: 18px; border-right: 0; border-bottom: 0; } .corner.tr { right: 18px; top: 18px; border-left: 0; border-bottom: 0; }
+.corner.bl { left: 18px; bottom: 18px; border-right: 0; border-top: 0; } .corner.br { right: 18px; bottom: 18px; border-left: 0; border-top: 0; }
+
+/* bottom ticker */
+.ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; overflow: hidden; border-top: 1px solid var(--a40);
+  background: linear-gradient(90deg, var(--a10), rgba(5,10,20,.92) 30%, rgba(5,10,20,.92) 70%, var(--a10)); }
+.ticker .track { display: flex; width: max-content; height: 100%; align-items: center; animation: marquee 50s linear infinite; }
+.ticker .item { display: inline-flex; align-items: center; gap: 12px; padding: 0 34px; font: 700 20px/1 Orbitron; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+.ticker .item .i { width: 24px; height: 24px; color: var(--accent); }
+.ticker .item.kick .i { color: var(--kick); } .ticker .item.discord .i { color: #8c9bff; } .ticker .item.club .i { color: #9b7dff; }
+.ticker .item::after { content: ""; width: 9px; height: 9px; margin-left: 34px; background: var(--accent); transform: rotate(45deg); box-shadow: 0 0 10px var(--accent); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* ---- guide mode (?guide=1): labelled boxes showing where to put each OBS source ------------------- */
+.slot-label { display: none; }
+.guide [data-slot] { outline: 3px dashed #ffe14d; outline-offset: -3px; }
+.guide .slot-label { display: block; position: absolute; left: 10px; top: 10px; z-index: 50; padding: 8px 12px; font: 600 18px/1.35 "Chakra Petch", sans-serif;
+  color: #111; background: #ffe14d; white-space: pre; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }

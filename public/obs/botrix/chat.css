@@ -1,0 +1,17 @@
+/* Trongates Legacy styling for the Botrix chat widget in OBS. Put this line in the chat browser source's
+   "Custom CSS" box:
+
+       @import url("https://www.trongateslegacy.com/obs/botrix/chat.css");
+
+   Pairs with the framed chat panel drawn by the scene overlays (brb, chatting, game). */
+@import url("https://www.trongateslegacy.com/obs/botrix/widgets.css");
+
+body { font-size: 22px !important; line-height: 1.35 !important; overflow: hidden !important; }
+/* each message: a little breathing room and a faint divider */
+[class*="message" i] { padding: 4px 2px !important; }
+/* usernames: bold display face; Botrix keeps each viewer's own colour */
+[class*="user" i], [class*="name" i], [class*="author" i] { font-family: "TGL Orbitron", "Orbitron", sans-serif !important; font-weight: 700 !important; font-size: .86em !important; letter-spacing: .03em; }
+/* emotes sit on the text line */
+img { vertical-align: middle; max-height: 1.6em; }
+/* badges a touch smaller so names stay aligned */
+[class*="badge" i] img, img[class*="badge" i] { max-height: 1.1em; }
