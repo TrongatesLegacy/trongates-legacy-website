@@ -39,16 +39,17 @@ def frame(x, y, w, h, tab, icon, slot, extra=''):
   <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
 '''
-ITEMS = [('kick','kick.com/trongateslegacy'),('discord','Lulu Gang Discord · discord.gg/FUKz6Dxk8W'),('web','trongateslegacy.com'),
+ITEMS = [('kick','kick.com/trongateslegacy'),('discord','Lulu Gang Discord · type <b class="cmd">!discord</b>'),('web','trongateslegacy.com'),
          ('youtube','@trongateslegacy'),('tiktok','@trongateslegacy'),('instagram','@trongateslegacy'),('club','club.com/trongateslegacy')]
-def ticker():
-    items=''.join(f'<span class="item {k}"><svg class="i"><use href="#i-{k}"/></svg>{t}</span>' for k,t in ITEMS)
+def ticker(skip=()):
+    # the scrolling strip of socials; skip=('discord',) where the scene already features the Discord
+    items=''.join(f'<span class="item {k}"><svg class="i"><use href="#i-{k}"/></svg>{t}</span>' for k,t in ITEMS if k not in skip)
     return f'<div class="ticker"><div class="track">{items}{items}</div></div>\n'
 SOCIALS = '''<div class="socials">
       <span class="kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span>
-      <span class="discord"><svg class="i"><use href="#i-discord"/></svg>discord.gg/FUKz6Dxk8W</span>
       <span><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span>
       <span><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span>
+      <span><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span>
     </div>'''
 GLOW_RIGHT = 'radial-gradient(34% 50% at 75% 50%, var(--a20), transparent 70%), radial-gradient(40% 60% at 20% 30%, var(--a10), transparent 70%)'
 
@@ -64,10 +65,10 @@ scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', ride
   <div class="title glitch" data-t="Trongates Legacy"><span class="o">Trongates</span><span class="s">Legacy</span></div>
   <div class="status">Stream starting soon <span class="dots"><i></i><i></i><i></i></span></div>
   <div class="timer" data-countdown hidden></div>
-  <div class="sub">Grab a drink and <b>say hi in chat</b>.</div>
+  <div class="sub">Grab a drink, <b>say hi in chat</b>, and type <b>!discord</b> to join the Lulu Gang.</div>
   {SOCIALS}
 </div>
-{art_stage(1180, 130, 620, 820)}{ticker()}''')
+{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
 
 # ---- BE RIGHT BACK: title left, PNGtuber centre, chat framed on the right ------------------------------
 scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 55% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 15% 30%, var(--a10), transparent 70%)', css='''
@@ -87,25 +88,32 @@ scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='
 .head .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); } .head .s { color: var(--text); }
 .head .sep { width: 2px; height: 30px; background: var(--a40); }
 .head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }''', body=f'''
-<div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep"></span><span class="topic" id="topic">Just chatting</span></div>
+<div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep" hidden></span><span class="topic" id="topic" hidden></span></div>
 {stage(180, 110, 980, 880)}{frame(1290, 44, 590, 800, 'Chat', 'kick', 'Botrix chat')}{frame(1290, 864, 590, 128, 'Goal', 'kick', 'Botrix follower goal')}{ticker()}
-<script>document.getElementById('topic').textContent = new URLSearchParams(location.search).get('topic') || 'Just chatting';</script>''')
+<script>{{ const t = new URLSearchParams(location.search).get('topic'); if (t) {{ const el = document.getElementById('topic'); el.textContent = t; el.hidden = false; el.previousElementSibling.hidden = false; }} }}</script>''')
 
-# ---- GAME: transparent frame over the game capture ----------------------------------------------------
-scenes['game'] = dict(title='Game', body_class='transparent', riders=0, glow='none', css='''
-.grid, .floor, .horizon, #trails { display: none; }
-.brand { position: absolute; left: 44px; top: 40px; display: flex; align-items: center; gap: 14px; padding: 10px 18px 10px 14px; font: 900 20px/1 Orbitron; letter-spacing: .08em; text-transform: uppercase;
-  background: rgba(5,10,20,.72); border: 1px solid var(--a40); clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
-.brand .o { color: transparent; -webkit-text-stroke: 1px var(--accent); } .brand .k { display: inline-flex; align-items: center; gap: 8px; font: 700 16px/1 Orbitron; color: var(--kick); letter-spacing: .14em; }
-.brand .k .i { width: 18px; height: 18px; }
-.stage .halo { opacity: .7; }
-.alerts { position: absolute; left: 660px; top: 60px; width: 600px; height: 300px; }
-.chat-off .chat { display: none; } .goal-off .goal { display: none; }''', body=f'''
-<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-<div class="brand"><span class="o">Trongates</span> Legacy <span class="k"><svg class="i"><use href="#i-kick"/></svg>Live</span></div>
-<div class="alerts" data-slot="Botrix alerts (full-screen source; alerts show here)"></div>
-{stage(1500, 560, 380, 480)}{frame(40, 250, 430, 540, 'Chat', 'kick', 'Botrix chat (hide with ?chat=0)', 'chat')}{frame(40, 930, 430, 110, 'Goal', 'kick', 'Botrix follower goal (hide with ?goal=0)', 'goal')}
-<script>const q = new URLSearchParams(location.search); if (q.get('chat') === '0') document.body.classList.add('chat-off'); if (q.get('goal') === '0') document.body.classList.add('goal-off');</script>''')
+# ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
+# appears. No character art; veadotube goes bottom-right, chat on the left, big "loading" text in the middle.
+scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradient(34% 52% at 50% 46%, var(--a20), transparent 70%)', css="""
+.head { position: absolute; left: 60px; top: 44px; display: flex; align-items: center; gap: 22px; font: 900 30px/1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
+.head .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); } .head .s { color: var(--text); }
+.head .sep { width: 2px; height: 30px; background: var(--a40); }
+.head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
+.copy { position: absolute; left: 600px; top: 250px; width: 780px; display: grid; gap: 30px; justify-items: center; text-align: center; }
+.copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.copy .title { font-size: 120px; }
+.bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+.bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
+@keyframes load { from { transform: translateX(-100%); } to { transform: translateX(290%); } }""", body=f'''
+<div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep"></span><span class="topic" id="topic">Game time</span></div>
+<div class="copy" data-quiet>
+  <div class="eyebrow">Hang tight</div>
+  <div class="title glitch" data-t="Loading the game"><span class="o">Loading</span><span class="s">The game</span></div>
+  <div class="bar"><i></i></div>
+  <div class="sub">The game will pop up <b>any second now</b>.</div>
+</div>
+{frame(50, 140, 500, 700, 'Chat', 'kick', 'Botrix chat')}{frame(50, 862, 500, 128, 'Goal', 'kick', 'Botrix follower goal')}{stage(1400, 400, 470, 600)}{ticker()}
+<script>document.getElementById('topic').textContent = new URLSearchParams(location.search).get('topic') || 'Game time';</script>''')
 
 # ---- ENDING: thanks, socials and the Discord, PNGtuber on the right -----------------------------------
 scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glow=GLOW_RIGHT, css='''
@@ -117,16 +125,21 @@ scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glo
 .gang .logos img { position: absolute; } .gang .lulu { left: 0; top: -14px; width: 136px; transform: rotate(-6deg); } .gang .gng { right: 0; bottom: 0; width: 124px; transform: rotate(-3deg); }
 .gang small { display: block; font-size: 18px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #cfb6d8; }
 .gang b { display: flex; align-items: center; gap: 12px; margin-top: 6px; font: 700 30px/1.1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
-.gang b .i { width: 32px; height: 32px; color: #8c9bff; }''', body=f'''
+.gang b .i { width: 32px; height: 32px; color: #8c9bff; }
+.gang .qr { width: 150px; height: 150px; padding: 8px; background: #eef6ff; border-radius: 12px; box-shadow: 0 0 24px rgba(255,99,184,.35); }
+.gang .qr img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.gang em { display: block; margin-top: 10px; font-style: normal; font-size: 22px; font-weight: 600; color: #cfe3f5; }
+.gang em b { display: inline; margin: 0; font: inherit; color: #fff; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">That's a wrap</div>
   <div class="title glitch" data-t="Thanks for watching"><span class="o">Thanks for</span><span class="s">Watching</span></div>
   <div class="sub"><b>GGs, Lulu Gang.</b> Catch the next one on Kick.</div>
   <div class="gang"><span class="logos"><img class="lulu" src="assets/lulu.webp" alt=""><img class="gng" src="assets/gang.webp" alt=""></span>
-    <span><small>Hang out between streams</small><b><svg class="i"><use href="#i-discord"/></svg>discord.gg/FUKz6Dxk8W</b></span></div>
+    <span><small>Hang out between streams</small><b><svg class="i"><use href="#i-discord"/></svg>Join the Discord</b><em>Scan the code or type <b>!discord</b> in chat</em></span>
+    <span class="qr"><img src="assets/discord-qr.svg" alt="QR code for the Lulu Gang Discord"></span></div>
   {SOCIALS}
 </div>
-{art_stage(1180, 130, 620, 820)}{ticker()}''')
+{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
 
 for name, s in scenes.items():
     html = HEAD.format(name=name, html_attr=' data-cycle' if s.get('cycle') else '', **s) + BG.format(**s) + s['body'] + '\n' + FOOT

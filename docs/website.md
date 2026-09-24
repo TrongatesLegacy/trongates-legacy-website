@@ -89,8 +89,9 @@ on the apex, CNAME for `www`, at OVH).
 
 `public/obs/` holds the stream overlays (see obs/README.md). OBS loads them from the hosted URLs. The two that follow
 veadotube (Game, Just chatting) talk to 127.0.0.1, which newer browsers block from public sites, so the folder is
-self-contained (relative paths, own fonts and art) and also works as local files if OBS ever enforces that. They're kept out of search results by `robots.txt` (`Disallow: /obs/`) and a
-`noindex` meta tag, and never linked from the site. `/assets/fonts/*` sends `Access-Control-Allow-Origin: *` so
+self-contained (relative paths, own fonts and art) and also works as local files if OBS ever enforces that. They're kept out of search results by an `X-Robots-Tag: noindex, nofollow` header on
+`/obs/*` (netlify.toml) plus a `noindex` meta tag. Deliberately *not* disallowed in robots.txt: a blocked URL
+can't be crawled, so Google would never see the noindex and could still list the bare URL, and never linked from the site. `/assets/fonts/*` sends `Access-Control-Allow-Origin: *` so
 the Botrix CSS injected by OBS (loaded inside botrix.live pages) can use the site's fonts.
 
 ## Deploy

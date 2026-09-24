@@ -6,39 +6,46 @@
 <link rel="stylesheet" href="shared/overlay.css">
 <script src="shared/theme.js"></script>
 <style>
-.grid, .floor, .horizon, #trails { display: none; }
-.brand { position: absolute; left: 44px; top: 40px; display: flex; align-items: center; gap: 14px; padding: 10px 18px 10px 14px; font: 900 20px/1 Orbitron; letter-spacing: .08em; text-transform: uppercase;
-  background: rgba(5,10,20,.72); border: 1px solid var(--a40); clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
-.brand .o { color: transparent; -webkit-text-stroke: 1px var(--accent); } .brand .k { display: inline-flex; align-items: center; gap: 8px; font: 700 16px/1 Orbitron; color: var(--kick); letter-spacing: .14em; }
-.brand .k .i { width: 18px; height: 18px; }
-.stage .halo { opacity: .7; }
-.alerts { position: absolute; left: 660px; top: 60px; width: 600px; height: 300px; }
-.chat-off .chat { display: none; } .goal-off .goal { display: none; }</style>
+.head { position: absolute; left: 60px; top: 44px; display: flex; align-items: center; gap: 22px; font: 900 30px/1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
+.head .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); } .head .s { color: var(--text); }
+.head .sep { width: 2px; height: 30px; background: var(--a40); }
+.head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
+.copy { position: absolute; left: 600px; top: 250px; width: 780px; display: grid; gap: 30px; justify-items: center; text-align: center; }
+.copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.copy .title { font-size: 120px; }
+.bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+.bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
+@keyframes load { from { transform: translateX(-100%); } to { transform: translateX(290%); } }</style>
 </head>
-<body class="transparent">
+<body class="">
 <script src="shared/icons.js"></script>
 <div class="grid"></div>
-<div class="glow" style="background:none"></div>
+<div class="glow" style="background:radial-gradient(34% 52% at 50% 46%, var(--a20), transparent 70%)"></div>
 <div class="floor"></div><div class="horizon"></div>
-<canvas id="trails" data-riders="0"></canvas>
+<canvas id="trails" data-riders="6"></canvas>
 
-<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-<div class="brand"><span class="o">Trongates</span> Legacy <span class="k"><svg class="i"><use href="#i-kick"/></svg>Live</span></div>
-<div class="alerts" data-slot="Botrix alerts (full-screen source; alerts show here)"></div>
-<div class="stage" data-slot="PNGtuber: veadotube (Spout)" style="left:1500px;top:560px;width:380px;height:480px">
+<div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep"></span><span class="topic" id="topic">Game time</span></div>
+<div class="copy" data-quiet>
+  <div class="eyebrow">Hang tight</div>
+  <div class="title glitch" data-t="Loading the game"><span class="o">Loading</span><span class="s">The game</span></div>
+  <div class="bar"><i></i></div>
+  <div class="sub">The game will pop up <b>any second now</b>.</div>
+</div>
+<div class="frame " style="left:50px;top:140px;width:500px;height:700px">
+  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Chat</div>
+  <div data-slot="Botrix chat" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
+</div>
+<div class="frame " style="left:50px;top:862px;width:500px;height:128px">
+  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Goal</div>
+  <div data-slot="Botrix follower goal" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
+</div>
+<div class="stage" data-slot="PNGtuber: veadotube (Spout)" style="left:1400px;top:400px;width:470px;height:600px">
   <div class="halo"></div>
   <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg></div>
   <div class="pad"></div>
 </div>
-<div class="frame chat" style="left:40px;top:250px;width:430px;height:540px">
-  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Chat</div>
-  <div data-slot="Botrix chat (hide with ?chat=0)" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
-</div>
-<div class="frame goal" style="left:40px;top:930px;width:430px;height:110px">
-  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Goal</div>
-  <div data-slot="Botrix follower goal (hide with ?goal=0)" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
-</div>
+<div class="ticker"><div class="track"><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span></div></div>
 
-<script>const q = new URLSearchParams(location.search); if (q.get('chat') === '0') document.body.classList.add('chat-off'); if (q.get('goal') === '0') document.body.classList.add('goal-off');</script>
+<script>document.getElementById('topic').textContent = new URLSearchParams(location.search).get('topic') || 'Game time';</script>
 <script src="shared/scene.js"></script>
 </body></html>

@@ -115,6 +115,9 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .guide .slot-label { display: block; position: absolute; left: 10px; top: 10px; z-index: 50; padding: 8px 12px; font: 600 18px/1.35 "Chakra Petch", sans-serif;
   color: #111; background: #ffe14d; white-space: pre; }
 
+/* chat commands appear exactly as typed, never uppercased by a heading style */
+.cmd, .gang em b { text-transform: none !important; letter-spacing: .02em !important; font-family: "Chakra Petch", sans-serif !important; font-weight: 600 !important; }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
 
 /* ---- character art on scenes without veadotube (starting, BRB, ending) ----------------------------- */

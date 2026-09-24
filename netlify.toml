@@ -25,3 +25,10 @@
   for = "/assets/fonts/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  # OBS overlays: never indexed. A header (not robots.txt) so crawlers can fetch the URL and see it, and so it
+  # also covers the CSS, SVG and JS under /obs/ that a meta tag can't.
+  for = "/obs/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

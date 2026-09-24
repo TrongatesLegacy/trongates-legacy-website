@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /obs/
 
 Sitemap: https://www.trongateslegacy.com/sitemap.xml
