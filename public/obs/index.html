@@ -23,7 +23,8 @@ h1 small { display: block; margin-top: 8px; font: 600 14px/1 "Chakra Petch", san
 label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 /* the right-hand column keeps the width its controls need; the scene grid takes whatever is left */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 20px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 20px; }
+/* at most three scenes per row (3 + 2 for the five), fewer as the window narrows */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, max(360px, (100% - 40px) / 3)), 1fr)); gap: 20px; }
 .side { position: sticky; top: 16px; width: clamp(330px, 22vw, 400px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
 @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } .side { position: static; width: auto; max-height: none; } }
 .links { display: grid; gap: 12px; font-size: 14px; }
@@ -110,7 +111,7 @@ footer code { color: #cfe3f5; }
 
 <footer>Setup guide: <code>obs/README.md</code> in the repo. Each card's address is what goes in the OBS browser
 source (1920 × 1080). The control panel's colour buttons set the colour the previews are shown in; Starting
-soon, Be right back and Ending cycle the forms on their own.</footer>
+soon, Be right back and Ending open on the selected form, then cycle through the others.</footer>
 
 <script>
 (() => {

@@ -22,9 +22,10 @@ right of the chat. Your full-screen game capture sits on top of it, so once the 
 shows. No space is reserved for the PNGtuber: put veadotube in the far bottom-right corner, over everything.
 
 **Just chatting** has the chat on the left and a big space for your PNGtuber (veadotube via Spout) on the right. **Starting soon**, **Be right
-back** and **Ending** have no veadotube: instead they cycle through
-cyan Tron → Princess Trina → the Blobfish every 6 seconds with the website's glitch swap, and the whole scene
-recolours with the form on show. All three carry the Lulu Gang Discord block (logos, *type !discord in chat*
+back** and **Ending** have no veadotube: instead they open on the selected form (`form=`, else the last one
+picked with the control buttons or veadotube), then cycle through the others (cyan Tron, Princess Trina, the Blobfish) every
+6 seconds with the website's glitch swap, and the whole scene recolours with the form on show. Picking a form while
+one is up glitches straight to it, and switching to the scene in OBS starts it on the selected form again. All three carry the Lulu Gang Discord block (logos, *type !discord in chat*
 and the QR code). Botrix widgets are separate OBS sources placed on top, in the frames the
 overlays draw for them.
 
