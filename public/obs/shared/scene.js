@@ -104,17 +104,46 @@
     requestAnimationFrame(frame);
   }
 
-  // ---- character art (starting, BRB, ending): the current form's idle frame -------------------------
+  // ---- character art (starting, BRB, ending): cycles the forms with the website's glitch swap ------
+  // cyan Tron -> Princess Trina -> the Blobfish, holding each for HOLD ms; the scene colour follows the form
+  // on show. The glitch is the hero's: four 60ms steps of horizontal slices mixing the old and new art, with a
+  // red/cyan split. ?cycle=0 shows the veadotube form (static) instead, ?art=0 hides the art.
   const ART = { cyan: 'tron-cyan-mclosed-eopen', yellow: 'tron-yellow-mclosed-eopen', red: 'tron-red-mclosed-eopen', princess: 'princess-uwu', blobfish: 'blobfish-mclosed-eopen' };
+  const ART_T = { cyan: 'none', yellow: 'none', red: 'none', princess: 'translate(.75%, -1.9%) scale(.937)', blobfish: 'translate(-12.7%, -5.8%) scale(1.18)' };
+  const CYCLE = ['cyan', 'princess', 'blobfish'], HOLD = 6000;
+  const artSrc = (f) => `assets/forms/${ART[f] || ART.cyan}.webp`;
+  const artBox = document.querySelector('.art-stage .art');
   if (TGL.param('art') === '0') document.documentElement.classList.add('no-art');
-  const setArt = (form, animate) => $$('img[data-form-art]').forEach((img) => {
-    const src = `assets/forms/${ART[form] || ART.cyan}.webp`;
-    if (!animate) { img.src = src; return; }
-    const next = new Image(); next.src = src;
-    next.decode().catch(() => {}).then(() => { img.classList.add('swap'); setTimeout(() => { img.src = src; img.classList.remove('swap'); }, 250); });
-  });
-  setArt(TGL.form, false);
-  TGL.onChange((form) => setArt(form, true));
+  if (artBox) {
+    const img = artBox.querySelector('img[data-form-art]');
+    const glitchEl = document.createElement('div'); glitchEl.className = 'art-glitch'; artBox.appendChild(glitchEl);
+    const show = (f) => { img.src = artSrc(f); img.style.transform = ART_T[f]; };
+    CYCLE.forEach((f) => { const i = new Image(); i.src = artSrc(f); });          // warm all three
+    if (!TGL.cycling) { show(TGL.form); TGL.onChange(show); }
+    else {
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let n = 0; TGL.paint(CYCLE[0]); show(CYCLE[0]);
+      const step = (ms) => new Promise((r) => setTimeout(r, ms));
+      const slices = (from, to, p) => {
+        let html = '', y = 0;
+        while (y < 100) {
+          const h = 10 + Math.random() * 16, f = Math.random() < p ? to : from, dx = (Math.random() - .5) * 30;
+          html += `<i style="clip-path:inset(${y.toFixed(1)}% 0 ${Math.max(0, 100 - y - h).toFixed(1)}% 0);transform:translateX(${dx.toFixed(1)}px)"><b style="background-image:url('${artSrc(f)}');transform:${ART_T[f]}"></b></i>`;
+          y += h;
+        }
+        glitchEl.innerHTML = html;
+      };
+      setInterval(async () => {
+        const from = CYCLE[n], to = CYCLE[(n = (n + 1) % CYCLE.length)];
+        if (reduced) { TGL.paint(to); show(to); return; }
+        artBox.classList.add('glitching');
+        for (const [i, p] of [.25, .5, .75, .92].entries()) { if (i === 2) TGL.paint(to); slices(from, to, p); await step(60); }
+        show(to);
+        await img.decode().catch(() => {});
+        artBox.classList.remove('glitching'); glitchEl.innerHTML = '';
+      }, HOLD);
+    }
+  }
 
   // ---- glitch the title whenever the form changes --------------------------------------------------
   TGL.onChange(() => $$('.glitch').forEach((el) => { el.classList.remove('now'); void el.offsetWidth; el.classList.add('now'); }));

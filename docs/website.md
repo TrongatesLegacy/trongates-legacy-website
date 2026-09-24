@@ -87,9 +87,9 @@ on the apex, CNAME for `www`, at OVH).
 
 ## OBS overlays
 
-`public/obs/` holds the stream overlays (see obs/README.md). OBS loads them as local files (a Dropbox copy made
-by `obs/sync-dropbox.sh`) because browsers block public sites from reaching veadotube on 127.0.0.1; the hosted
-copy is for previews and for the Botrix CSS. They're kept out of search results by `robots.txt` (`Disallow: /obs/`) and a
+`public/obs/` holds the stream overlays (see obs/README.md). OBS loads them from the hosted URLs. The two that follow
+veadotube (Game, Just chatting) talk to 127.0.0.1, which newer browsers block from public sites, so the folder is
+self-contained (relative paths, own fonts and art) and also works as local files if OBS ever enforces that. They're kept out of search results by `robots.txt` (`Disallow: /obs/`) and a
 `noindex` meta tag, and never linked from the site. `/assets/fonts/*` sends `Access-Control-Allow-Origin: *` so
 the Botrix CSS injected by OBS (loaded inside botrix.live pages) can use the site's fonts.
 

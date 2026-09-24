@@ -24,7 +24,10 @@
     princess: { accent: '#ff63b8', label: 'Princess Trina' },
     blobfish: { accent: '#ffb36b', label: 'The Blobfish' },
   };
-  // veadotube state name -> form. First match wins; anything unmatched is cyan Tron.
+  // The avatar's actual state names (read from chibi-v1-animated-with-blobfish.veado): pinned exactly.
+  // 'pink' is Tron in pink armour; the site dropped that form because Princess Trina owns pink.
+  const KNOWN_STATES = { cyan: 'cyan', red: 'red', yellow: 'yellow', pink: 'princess', animated: 'cyan', princess: 'princess', blobfish: 'blobfish' };
+  // Any other state name: first matching rule wins, anything unmatched is cyan Tron.
   // Exact names can be pinned with ?map=stateName:form,other:form on the URL, which takes precedence.
   const FORM_RULES = [
     [/princess|trina|tiara|dress|pink/i, 'princess'],
@@ -44,11 +47,16 @@
 
   function formForState(name) {
     if (!name) return null;
-    const pinned = cfg.stateMap[String(name).toLowerCase()];
+    const key = String(name).toLowerCase(), pinned = cfg.stateMap[key] || KNOWN_STATES[key];
     if (valid(pinned)) return pinned;
     const hit = FORM_RULES.find(([re]) => re.test(name));
     return hit ? hit[1] : 'cyan';
   }
+
+  // Starting soon / BRB / Ending cycle through the forms themselves (<html data-cycle>), so they don't follow
+  // veadotube unless ?cycle=0.
+  const cycling = root.hasAttribute('data-cycle') && params.get('cycle') !== '0';
+  function paint(f) { if (!valid(f)) return; root.dataset.form = f; root.style.setProperty('--accent', FORMS[f].accent); }
 
   function apply(next, source) {
     if (!valid(next)) return;
@@ -126,7 +134,7 @@
     set(next) { apply(next, 'local'); try { channel && channel.postMessage(next); } catch {} },
     onChange(fn) { listeners.add(fn); },
     onStatus(fn) { statusListeners.add(fn); fn({ ...status, form }); },
-    connectObs,
+    connectObs, paint, cycling,
     guide: params.get('guide') === '1',
     param: (k, d) => params.get(k) ?? d,
   };
@@ -134,5 +142,5 @@
   root.dataset.form = form;
   root.style.setProperty('--accent', FORMS[form].accent);
   if (window.TGL.guide) root.classList.add('guide');
-  if (!window.TGL_NO_AUTOCONNECT) { connectVeado(); connectObs(); }
+  if (!window.TGL_NO_AUTOCONNECT && !cycling) { connectVeado(); connectObs(); }
 })();

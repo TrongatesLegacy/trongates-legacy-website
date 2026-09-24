@@ -12,53 +12,44 @@ Five 1920×1080 overlays in the site's style, plus an optional control dock:
 | Control dock (optional) | `control.html` |
 
 Your PNGtuber (veadotube via Spout) appears on **Game** and **Just chatting** only; those overlays leave a space
-for it. **Starting soon**, **Be right back** and **Ending** show the current form's character art instead,
-which swaps automatically with your form. Botrix widgets are separate OBS sources placed on top, in the
-frames the overlays draw for them.
+for it. **Starting soon**, **Be right back** and **Ending** have no veadotube: instead they cycle through
+cyan Tron → Princess Trina → the Blobfish every 6 seconds with the website's glitch swap, and the whole scene
+recolours with the form on show. Botrix widgets are separate OBS sources placed on top, in the frames the
+overlays draw for them.
 
-## Where OBS loads them from: local files
+## Colours on Game and Just chatting follow veadotube
 
-Use the copy in **`Dropbox/Kick/obs-overlays`** on the streaming PC (`obs/sync-dropbox.sh` puts it there from
-this repo; re-run it after any change and Dropbox delivers the update).
-
-Why local files and not the website: the scenes recolour by talking to veadotube on `127.0.0.1`, and browsers
-now block public websites from reaching local services (`ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`). A page
-opened from a local file is allowed to. The same files are also hosted at
-`https://www.trongateslegacy.com/obs/…` for previewing, but from there the colours won't follow veadotube.
-
-In OBS, point a browser source at a local file with options by **unticking "Local file"** and typing a
-`file:///` URL, with forward slashes, e.g.:
-
-```
-file:///C:/Users/YOU/Dropbox/Kick/obs-overlays/starting.html?minutes=10
-```
-
-(Find the real folder in File Explorer, click the address bar and copy it; swap `\` for `/`.) If you don't need
-options, you can instead tick **Local file** and browse to the `.html`.
-
-## Colours follow your form automatically
-
-Every overlay connects to **veadotube mini's local API** and listens for avatar state changes. Your Stream Deck
-already switches veadotube's state, so **one Stream Deck press changes your PNGtuber *and* recolours every
+Those two overlays connect to **veadotube mini's local API** and listen for avatar state changes. Your Stream
+Deck already switches veadotube's state, so **one Stream Deck press changes your PNGtuber *and* recolours the
 scene**. There's nothing to set up for this.
 
-The colour is picked from the state's name:
+Your avatar's states (read from `chibi-v1-animated-with-blobfish.veado`) are mapped exactly:
 
-| State name contains | Colour |
+| veadotube state | Scene colour |
 |---|---|
-| princess, trina, tiara, dress, pink | Princess Trina pink |
-| blob, fish | Blobfish orange |
-| red, angry, rage, mad | red |
-| yellow, gold, happy | gold |
-| anything else | Tron cyan |
+| `cyan`, `animated` | Tron cyan |
+| `red` | red |
+| `yellow` | gold |
+| `pink`, `princess` | Princess Trina pink |
+| `blobfish` | Blobfish orange |
 
-To see exactly what each of your states maps to, open the control dock (below). It lists them all. If one
-is wrong, add `map=state name:form` to the end of each scene URL. For example:
-`file:///…/obs-overlays/starting.html?map=fishing:blobfish,cheering:yellow`.
-The forms are `cyan`, `yellow`, `red`, `princess` and `blobfish`.
+A state added later is matched by name (princess/pink → pink, blob/fish → orange, red → red, yellow/gold →
+gold, anything else → cyan); the control dock lists every state and its colour, and `map=state name:form`
+on the URL overrides one (e.g. `map=cheering:yellow`; forms are `cyan`, `yellow`, `red`, `princess`,
+`blobfish`). veadotube must be open on the **same PC** as OBS; if its server isn't `127.0.0.1:2424`, add
+`veado=address:port`.
 
-veadotube must be open on the **same PC** as OBS. If it uses a server address other than `127.0.0.1:2424`,
-add `veado=address:port` to the URLs.
+### If the colours don't follow on Game / Just chatting
+
+The overlays reach veadotube on `127.0.0.1`, and newer browsers block public websites from talking to local
+programs (`ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`; seen in Chrome 153). OBS's built-in browser is an older
+Chromium that may still allow it. The control dock shows **veadotube: connected** when it works. If it
+doesn't, load those two overlays as local files instead: download the repo
+(<https://github.com/TrongatesLegacy/trongates-legacy-website> → **Code → Download ZIP**), keep the
+`public/obs` folder somewhere on the streaming PC, and point the browser source at it with a `file:///` URL
+(untick **Local file** so you can add options), e.g.
+`file:///C:/Users/YOU/obs/chatting.html?topic=Chilling`. The folder is self-contained (its own fonts and art).
+The cycling scenes and the Botrix CSS don't depend on veadotube, so the hosted URLs are fine for them.
 
 ## Adding a scene in OBS
 
@@ -66,7 +57,7 @@ For each of the five scenes:
 
 1. **Scene Collection**: in the Scenes panel click **+**, name it (e.g. *Starting soon*).
 2. **Sources → + → Browser**, name it *Overlay*:
-   - **URL**: the scene's `file:///…/obs-overlays/<scene>.html` URL (plus any `?…` options)
+   - **URL**: the scene's URL from the table at the top (plus any `?…` options)
    - **Width** `1920`, **Height** `1080`, **FPS** `30`
    - tick **Refresh browser when scene becomes active** on *Be right back* only (restarts its "Away for" timer)
    - leave **Shutdown source when not visible** unticked
@@ -108,10 +99,11 @@ scene's source list, top to bottom: Botrix widgets → veadotube → Overlay (�
 | `topic=Rocket%20League` | Just chatting | changes "Just chatting" in the top bar |
 | `chat=0` / `goal=0` | Game | hides the chat / goal frame if you don't use it there |
 | `art=0` | Starting soon, Be right back, Ending | hides the character art |
+| `cycle=0` | Starting soon, Be right back, Ending | stop cycling: show the veadotube form (static) and follow its colour |
 | `form=princess` | all | the colour to start on before veadotube connects |
 | `noveado=1` | all | don't connect to veadotube |
 
-Combine options with `&`, e.g. `…/starting.html?minutes=10&map=fishing:blobfish`.
+Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/starting.html?minutes=10`.
 
 ## Sharing the PNGtuber across scenes
 
@@ -148,16 +140,15 @@ to, and has manual colour buttons for when veadotube isn't running.
 
 1. **Tools → WebSocket Server Settings**: tick **Enable WebSocket server**, note the port (4455) and the password.
 2. **Docks → Custom Browser Docks**: name it *Trongates*, with URL
-   `file:///…/obs-overlays/control.html?obs=4455&obspw=YOURPASSWORD` (drop `&obspw=…` if you didn't set a
-   password). It has to be the local file too, for the same local-network reason.
+   `https://www.trongateslegacy.com/obs/control.html?obs=4455&obspw=YOURPASSWORD` (drop `&obspw=…` if you
+   didn't set a password). If it can't connect, use the local copy (see above).
 3. For the buttons to reach the scenes, the scene overlays also need the WebSocket: add
    `obs=4455&obspw=YOURPASSWORD` to their URLs. Only do this if you want the manual buttons. The automatic
    veadotube colour change doesn't need it.
 
 ## Changing the scenes
 
-After any change: `obs/sync-dropbox.sh` (updates the PC's copy via Dropbox), then commit and push (updates the
-hosted copy and the Botrix CSS).
+After any change, commit and push: that updates the hosted overlays and the Botrix CSS.
 
 
 The scene pages are generated from one template:

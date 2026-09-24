@@ -4,7 +4,7 @@ import pathlib
 OUT = pathlib.Path(__file__).parent.parent / 'public' / 'obs'
 
 HEAD = '''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>{title} · Trongates Legacy OBS</title>
+<html lang="en"{html_attr}><head><meta charset="utf-8"><title>{title} · Trongates Legacy OBS</title>
 <meta name="robots" content="noindex">
 <!-- OBS browser source (Local file, or https://www.trongateslegacy.com/obs/{name}.html), 1920x1080, 30 FPS. See obs/README.md.
      Paths are relative so the folder works both hosted and as local files. -->
@@ -54,8 +54,10 @@ GLOW_RIGHT = 'radial-gradient(34% 50% at 75% 50%, var(--a20), transparent 70%), 
 
 scenes = {}
 
+# Scenes with cycle=True show character art that cycles the forms (no veadotube on them).
+
 # ---- STARTING SOON: title and countdown on the left, the PNGtuber on the right -------------------------
-scenes['starting'] = dict(title='Starting soon', body_class='', riders=7, glow=GLOW_RIGHT, css='''
+scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', riders=7, glow=GLOW_RIGHT, css='''
 .copy { position: absolute; left: 120px; top: 150px; width: 1010px; display: grid; gap: 30px; justify-items: start; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">CEO of the Lulu Gang</div>
@@ -68,7 +70,7 @@ scenes['starting'] = dict(title='Starting soon', body_class='', riders=7, glow=G
 {art_stage(1180, 130, 620, 820)}{ticker()}''')
 
 # ---- BE RIGHT BACK: title left, PNGtuber centre, chat framed on the right ------------------------------
-scenes['brb'] = dict(title='Be right back', body_class='', riders=6, glow='radial-gradient(30% 46% at 55% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 15% 30%, var(--a10), transparent 70%)', css='''
+scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 55% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 15% 30%, var(--a10), transparent 70%)', css='''
 .copy { position: absolute; left: 120px; top: 190px; width: 660px; display: grid; gap: 30px; justify-items: start; }
 .copy .title { font-size: 108px; }''', body=f'''
 <div class="copy" data-quiet>
@@ -106,7 +108,7 @@ scenes['game'] = dict(title='Game', body_class='transparent', riders=0, glow='no
 <script>const q = new URLSearchParams(location.search); if (q.get('chat') === '0') document.body.classList.add('chat-off'); if (q.get('goal') === '0') document.body.classList.add('goal-off');</script>''')
 
 # ---- ENDING: thanks, socials and the Discord, PNGtuber on the right -----------------------------------
-scenes['ending'] = dict(title='Ending', body_class='', riders=7, glow=GLOW_RIGHT, css='''
+scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glow=GLOW_RIGHT, css='''
 .copy { position: absolute; left: 120px; top: 130px; width: 1000px; display: grid; gap: 28px; justify-items: start; }
 .copy .title { font-size: 116px; }
 .gang { display: flex; align-items: center; gap: 22px; padding: 16px 30px 16px 18px; border: 1px solid rgba(255,99,184,.45); border-radius: 22px;
@@ -127,6 +129,6 @@ scenes['ending'] = dict(title='Ending', body_class='', riders=7, glow=GLOW_RIGHT
 {art_stage(1180, 130, 620, 820)}{ticker()}''')
 
 for name, s in scenes.items():
-    html = HEAD.format(name=name, **s) + BG.format(**s) + s['body'] + '\n' + FOOT
+    html = HEAD.format(name=name, html_attr=' data-cycle' if s.get('cycle') else '', **s) + BG.format(**s) + s['body'] + '\n' + FOOT
     (OUT / f'{name}.html').write_text(html)
     print('wrote', f'public/obs/{name}.html')
