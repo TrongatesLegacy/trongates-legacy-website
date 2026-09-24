@@ -115,6 +115,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `cycle=0` | Starting soon, Be right back, Ending | stop cycling: show the veadotube form (static) and follow its colour |
 | `form=princess` | all | the colour to start on before veadotube connects |
 | `noveado=1` | all | don't connect to veadotube |
+| `chat=…`, `goal=…` | Be right back (chat), Just chatting, Game | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 
 Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting.html?topic=Chilling&form=princess`.
 
@@ -126,8 +127,30 @@ Both scenes then share one capture.
 
 ## Botrix widgets
 
-Botrix doesn't support custom CSS on widgets yet (its docs list it as *upcoming*), so the styling is injected
-by OBS instead:
+### Embedded in the scenes (recommended)
+
+The scenes can load your Botrix widgets straight into their frames, so each scene is **one** browser source in
+OBS: no Botrix sources to position and no Custom CSS.
+
+1. On the index page, paste the **chat** widget link (Botrix → Widgets → Chat → *Widget URL* → Copy) and,
+   once you have it, the **follower goal** link into the *Botrix widgets* panel. They're stored in that browser
+   only (Botrix says not to share them), never in the repo or on the website.
+2. The previews then show the widgets in their frames, with Botrix's sample messages so you can see the look.
+3. Each card's **Copy** now gives the scene address with the links included (`?chat=…&goal=…`, URL-encoded,
+   without the sample messages). Use that as the scene's browser source URL.
+
+Botrix keeps every setting in the link itself (`theme=neoncards`, `hideMessages=false`, font size…), so after
+changing a setting in Botrix, copy the link again, paste it on the index, and re-copy the scene addresses.
+
+Settings chosen for the frames (Botrix → Widgets → Chat): **Design ★ Neon Cards** (dark cards edged in each
+viewer's colour, closest to the scenes' panels); **Hide old messages off** (the frame never sits empty);
+background transparent; font size 21. The embedded widget fades out at the top of its frame instead of cutting a
+message in half. Frames that get a widget: Be right back (chat), Just chatting and Game (chat + goal).
+
+### As separate OBS sources
+
+If you'd rather keep Botrix as its own sources (the positions are in the table above): Botrix doesn't support
+custom CSS on widgets yet (its docs list it as *upcoming*), so the styling is injected by OBS instead:
 
 1. In Botrix, copy the widget's **browser source URL** (e.g. the chat widget).
 2. In OBS, **+ → Browser**, paste it as the URL, and set Width/Height to the W/H from the table.

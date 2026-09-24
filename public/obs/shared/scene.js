@@ -14,6 +14,19 @@
     });
   }
 
+  // ---- Botrix widgets embedded in their frames ------------------------------------------------------
+  // ?chat=<Botrix chat widget URL>&goal=<follower goal widget URL> (URL-encoded) loads the widget straight into
+  // the frame, so it needs no browser source, position or Custom CSS of its own in OBS. The widget's look is
+  // set in Botrix (design, font size); the links carry the account's widget id, so they only ever live in the
+  // OBS source's URL (and the index page's browser storage), never in the repo.
+  for (const [key, slot] of [['chat', 'Botrix chat'], ['goal', 'Botrix follower goal']]) {
+    const url = TGL.param(key), el = document.querySelector(`[data-slot="${slot}"]`);
+    if (!url || !el || !/^https:\/\//.test(url)) continue;
+    const f = document.createElement('iframe');
+    f.src = url; f.title = slot; f.className = 'widget';
+    el.appendChild(f);
+  }
+
   // ---- light cycles: riders on the grid that turn at intersections --------------------------------
   // Same idea as the website's background; they fade out under [data-quiet] zones (text) so they never
   // cut through copy. Canvas is capped at 30fps, which is plenty for OBS.
