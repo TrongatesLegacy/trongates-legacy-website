@@ -58,9 +58,9 @@ GANG = gang()
 
 SOCIALS = '''<div class="socials">
       <span class="kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span>
-      <span><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span>
-      <span><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span>
-      <span><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span>
+      <span class="youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span>
+      <span class="tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span>
+      <span class="instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span>
     </div>'''
 GLOW_RIGHT = 'radial-gradient(34% 50% at 75% 50%, var(--a20), transparent 70%), radial-gradient(40% 60% at 20% 30%, var(--a10), transparent 70%)'
 
