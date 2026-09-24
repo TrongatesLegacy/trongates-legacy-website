@@ -2,8 +2,9 @@
 
 Five 1920×1080 overlays in the site's style, plus an optional control dock. **Start at the index,
 `https://www.trongateslegacy.com/obs/`**: live previews of every scene in a grid, click one to open it, a Copy
-button for each OBS address, colour chips to preview each form and a toggle that shows where every OBS source
-goes.
+button for each OBS address, and an **Enlarge** button that shows the scene as big as the window with every
+OBS source's position labelled (← → steps through the scenes, Esc closes). The control panel is built into
+the index too: its colour buttons set the colour the previews show.
 
 | Scene | File |
 |---|---|
@@ -18,7 +19,7 @@ goes.
 right of the chat. Your full-screen game capture sits on top of it, so once the game is up none of the overlay
 shows. No space is reserved for the PNGtuber: put veadotube in the far bottom-right corner, over everything.
 
-**Just chatting** leaves a big space for your PNGtuber (veadotube via Spout). **Starting soon**, **Be right
+**Just chatting** has the chat on the left and a big space for your PNGtuber (veadotube via Spout) on the right. **Starting soon**, **Be right
 back** and **Ending** have no veadotube: instead they cycle through
 cyan Tron → Princess Trina → the Blobfish every 6 seconds with the website's glitch swap, and the whole scene
 recolours with the form on show. All three carry the Lulu Gang Discord block (logos, *type !discord in chat*
@@ -91,9 +92,9 @@ dashed box labelled with its exact X, Y, W and H. Remove it when you're done.
 |---|---|---|---|---|---|
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
 | Be right back | Botrix chat | 1348 | 122 | 494 | 800 |
-| Just chatting | veadotube (Spout) | 180 | 110 | 980 | 880 |
-| | Botrix chat | 1308 | 96 | 554 | 730 |
-| | Botrix follower goal | 1308 | 916 | 554 | 58 |
+| Just chatting | Botrix chat | 58 | 96 | 554 | 730 |
+| | Botrix follower goal | 58 | 916 | 554 | 58 |
+| | veadotube (Spout) | 760 | 110 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
 | | Botrix chat | 68 | 192 | 464 | 630 |
@@ -147,7 +148,7 @@ usernames keep each viewer's colour. The CSS injected by OBS is fixed and can't 
 
 ## The control dock (optional)
 
-A small OBS panel that shows whether veadotube is connected, lists your avatar states and the colour each maps
+The same panel as on the index, as an OBS dock. It shows whether veadotube is connected, lists your avatar states and the colour each maps
 to, and has manual colour buttons for when veadotube isn't running.
 
 1. **Tools → WebSocket Server Settings**: tick **Enable WebSocket server**, note the port (4455) and the password.

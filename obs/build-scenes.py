@@ -91,14 +91,14 @@ scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6,
 </div>
 {art_stage(860, 300, 440, 650)}{frame(1330, 70, 530, 870, 'Chat', 'kick', 'Botrix chat')}{ticker(skip=('discord',))}''')
 
-# ---- JUST CHATTING: big PNGtuber stage, chat + goal on the right ---------------------------------------
-scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='radial-gradient(36% 56% at 36% 52%, var(--a20), transparent 70%)', css='''
-.head { position: absolute; left: 60px; top: 44px; display: flex; align-items: center; gap: 22px; font: 900 30px/1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
+# ---- JUST CHATTING: chat + goal on the left, big PNGtuber stage on the right ---------------------------------------
+scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='radial-gradient(36% 56% at 64% 52%, var(--a20), transparent 70%)', css='''
+.head { position: absolute; right: 60px; top: 44px; display: flex; align-items: center; gap: 22px; font: 900 30px/1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
 .head .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); } .head .s { color: var(--text); }
 .head .sep { width: 2px; height: 30px; background: var(--a40); }
 .head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }''', body=f'''
 <div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep" hidden></span><span class="topic" id="topic" hidden></span></div>
-{stage(180, 110, 980, 880)}{frame(1290, 44, 590, 800, 'Chat', 'kick', 'Botrix chat')}{frame(1290, 864, 590, 128, 'Goal', 'kick', 'Botrix follower goal')}{ticker()}
+{frame(40, 44, 590, 800, 'Chat', 'kick', 'Botrix chat')}{frame(40, 864, 590, 128, 'Goal', 'kick', 'Botrix follower goal')}{stage(760, 110, 980, 880)}{ticker()}
 <script>{{ const t = new URLSearchParams(location.search).get('topic'); if (t) {{ const el = document.getElementById('topic'); el.textContent = t; el.hidden = false; el.previousElementSibling.hidden = false; }} }}</script>''')
 
 # ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
