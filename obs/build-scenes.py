@@ -92,7 +92,7 @@ scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6,
   <div class="sub">Grabbing snacks. <b>Keep chat alive.</b></div>
   {gang(compact=True)}
 </div>
-{np(800, 40, 500, 100)}{art_stage(860, 300, 440, 650)}{frame(1330, 70, 530, 768, 'Chat', 'kick', 'Botrix chat')}{frame(1330, 858, 530, 134, 'Goal', 'kick', 'Botrix follower goal')}{ticker(skip=('discord',))}''')
+{np(800, 40, 500, 100)}{art_stage(860, 300, 440, 650)}{frame(1330, 40, 530, 798, 'Chat', 'kick', 'Botrix chat')}{frame(1330, 858, 530, 134, 'Goal', 'kick', 'Botrix follower goal')}{ticker(skip=('discord',))}''')
 
 # ---- JUST CHATTING: chat + goal on the left, big PNGtuber stage on the right ---------------------------------------
 scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='radial-gradient(36% 56% at 64% 52%, var(--a20), transparent 70%)', css='''

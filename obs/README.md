@@ -100,7 +100,7 @@ the bottom edge is kept clear of anything that matters.
 | Scene | Source | X | Y | W | H |
 |---|---|---|---|---|---|
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
-| Be right back | Botrix chat | 1348 | 186 | 494 | 698 |
+| Be right back | Botrix chat | 1348 | 156 | 494 | 728 |
 | | Botrix follower goal | 1348 | 974 | 494 | 64 |
 | Just chatting | Botrix chat | 58 | 160 | 554 | 724 |
 | | Botrix follower goal | 58 | 974 | 554 | 64 |
