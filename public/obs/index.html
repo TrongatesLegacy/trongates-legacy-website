@@ -278,6 +278,7 @@ soon, Be right back and Ending open on the selected form, then cycle through the
   const load = () => {
     document.querySelectorAll('.card').forEach((c) => {
       c.querySelector('iframe').src = previewSrc(c.dataset.file);
+      c.href = obsUrl(c.dataset.file);
       const w = widgets(c.dataset.file, false);
       c.querySelector('code').textContent = new URL(c.dataset.file, location.href).href + (w ? ' + Botrix ' + sceneWidgets(c.dataset.file).join(' + ') : '');
     });
@@ -305,7 +306,7 @@ soon, Be right back and Ending open on the selected form, then cycle through the
   const showScene = () => {
     const [file, title] = SCENES[current];
     document.getElementById('v-title').textContent = title;
-    document.getElementById('v-open').href = file;
+    document.getElementById('v-open').href = obsUrl(file);   // with the key / links, like Copy
     vFrame.src = previewSrc(file, vGuide.checked);
   };
   // positions start on until Botrix links are added (then the widgets are the point); a manual tick sticks
