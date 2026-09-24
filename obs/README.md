@@ -145,9 +145,11 @@ OBS: no Botrix sources to position and no Custom CSS.
 3. Each card's **Copy** now gives the scene address with the links included (`?chat=…&goal=…`, URL-encoded,
    without the sample messages). Use that as the scene's browser source URL.
 4. **Copy bookmark link** (under the links) gives the index address with both links packed after the `#`
-   (`#w=` + base64url of `{"chat":…,"goal":…}`). Bookmark it or open it on another computer: the index fills the
-   links in, saves them in that browser and tidies the `#…` out of the address bar. The part after `#` is never
-   sent to the server, but it's only encoded, not encrypted, so keep the bookmark as private as the links.
+   (`#w=` + base64url of `{"chat":…,"goal":…}`). Open it anywhere (new tab, another browser or computer, or pasted
+   into a tab that already has the index) and the links fill in and are saved in that browser. The `#…` stays in
+   the address bar, so bookmarking the page keeps it, and editing a link updates it. A cut-off link shows a warning
+   instead of silently doing nothing. It's a `#`, not a `?`, because the part after `#` is never sent to the server
+   (a query string would land in Netlify's logs); it's only encoded, not encrypted, so keep the bookmark private.
 
 Botrix keeps every setting in the link itself (`theme=neoncards`, `hideMessages=false`, font size…), so after
 changing a setting in Botrix, copy the link again, paste it on the index, and re-copy the scene addresses.

@@ -35,6 +35,7 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .links .hint { margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
 .links .share { justify-self: start; padding: 9px 14px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 12px/1 Orbitron; letter-spacing: .1em; cursor: pointer; }
 .links .share.done { background: var(--accent); color: var(--bg); }
+.links .warn { color: #ff8a96; }
 .links .share:disabled { opacity: .4; cursor: default; }
 .links summary { color: var(--muted); font-size: 13px; cursor: pointer; }
 .card { min-width: 0; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); text-decoration: none; color: inherit; transition: border-color .2s, transform .2s;
@@ -83,13 +84,15 @@ footer code { color: #cfe3f5; }
       <label class="field">Follower goal widget link<input type="password" id="w-goal" autocomplete="off" spellcheck="false" placeholder="https://botrix.live/widgets/…"></label>
       <label><input type="checkbox" id="w-sample" checked> Sample chat messages in the previews</label>
       <button type="button" class="share" id="w-share">Copy bookmark link</button>
+      <p class="hint warn" id="w-bad" role="status" hidden>This bookmark link is incomplete, probably cut off when it was copied, so
+        nothing was filled in. Copy it again with Copy bookmark link (on a browser that has the links) and paste the whole thing.</p>
       <details><summary>How this works</summary><p class="hint">Paste each link from Botrix's widget page. They're kept in this browser only, never on the website.
         The scenes then show the widgets inside their frames, and each card's Copy includes them, so in OBS the scene
         is the only source you need (no Botrix sources or Custom CSS). Botrix puts the settings in the link, so copy it
         again after changing them.</p>
         <p class="hint">Copy bookmark link gives this page's address with both links packed onto the end (after the #).
         Bookmark it, or open it in another browser or on another computer, and the links fill themselves in. The
-        packed part never leaves your browser, but it's only scrambled, not locked: treat the bookmark as privately
+        packed part (after the #, never a ?) never leaves your browser, but it's only scrambled, not locked: treat the bookmark as privately
         as the Botrix links themselves.</p></details>
     </section>
     <section class="panel dock" id="dock" aria-label="Control dock"></section>
@@ -131,25 +134,37 @@ soon, Be right back and Ending open on the selected form, then cycle through the
   const W = { chat: document.getElementById('w-chat'), goal: document.getElementById('w-goal') }, sample = document.getElementById('w-sample');
   // a bookmark link carries them after the # (never sent to the server): #w=<base64url of {"chat":…,"goal":…}>
   const b64 = { enc: (s) => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''), dec: (s) => atob(s.replace(/-/g, '+').replace(/_/g, '/')) };
-  const packed = new URLSearchParams(location.hash.slice(1)).get('w');
-  if (packed) {
+  const bad = document.getElementById('w-bad');
+  const linksNow = () => Object.fromEntries(Object.entries(W).filter(([, el]) => /^https:\/\//.test(el.value.trim())).map(([k, el]) => [k, el.value.trim()]));
+  const bookmark = () => location.origin + location.pathname + location.search + '#w=' + b64.enc(JSON.stringify(linksNow()));
+  // the # stays in the address bar, so bookmarking the page keeps the links
+  const importHash = () => {
+    const packed = new URLSearchParams(location.hash.slice(1)).get('w');
+    if (!packed) return false;
     try {
       const got = JSON.parse(b64.dec(packed));
       for (const k of Object.keys(W)) if (typeof got[k] === 'string' && /^https:\/\//.test(got[k])) localStorage.setItem('tgl-botrix-' + k, got[k]);
-    } catch {}
-    history.replaceState(null, '', location.pathname + location.search);   // keep the links out of the address bar
-  }
+      bad.hidden = true;
+    } catch { bad.hidden = false; return false; }
+    for (const [k, el] of Object.entries(W)) el.value = localStorage.getItem('tgl-botrix-' + k) || '';
+    return true;
+  };
+  importHash();
   for (const [k, el] of Object.entries(W)) {
     el.value = localStorage.getItem('tgl-botrix-' + k) || '';
-    el.addEventListener('change', () => { el.value = el.value.trim(); localStorage.setItem('tgl-botrix-' + k, el.value); load(); });
+    el.addEventListener('change', () => {
+      el.value = el.value.trim(); localStorage.setItem('tgl-botrix-' + k, el.value);
+      if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());   // keep the address a current bookmark
+      load();
+    });
   }
+  addEventListener('hashchange', () => { if (importHash()) { shareState(); load(); } });   // a bookmark pasted into an open tab
   sample.onchange = () => load();
   const share = document.getElementById('w-share');
   const shareState = () => { share.disabled = !Object.values(W).some((el) => /^https:\/\//.test(el.value)); };
   Object.values(W).forEach((el) => el.addEventListener('input', shareState)); shareState();
   share.addEventListener('click', async () => {
-    const links = Object.fromEntries(Object.entries(W).filter(([, el]) => /^https:\/\//.test(el.value.trim())).map(([k, el]) => [k, el.value.trim()]));
-    const full = location.origin + location.pathname + location.search + '#w=' + b64.enc(JSON.stringify(links));
+    const full = bookmark();
     try { await navigator.clipboard.writeText(full); } catch { const t = document.createElement('textarea'); t.value = full; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
     share.textContent = 'Copied'; share.classList.add('done');
     setTimeout(() => { share.textContent = 'Copy bookmark link'; share.classList.remove('done'); }, 1400);
