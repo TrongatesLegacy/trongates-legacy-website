@@ -56,8 +56,8 @@
     };
     const swap = () => Object.values(copies).forEach((x) => x.classList.toggle('shown', !!x.dataset.want));
     showFor(document.documentElement.dataset.form);
-    // the cycling scenes switch every few seconds: load their forms' copies up front (same list as CYCLE below)
-    if (TGL.cycling) for (const f of ['cyan', 'princess', 'blobfish']) if (!copies[f]) { const now = document.documentElement.dataset.form; showFor(f); showFor(now); }
+    // the cycling scenes switch every few seconds, through any of the forms: load every form's copy up front
+    if (TGL.cycling) for (const f of Object.keys(TGL.FORMS)) if (!copies[f]) { const now = document.documentElement.dataset.form; showFor(f); showFor(now); }
     // the colour changes through theme.js (dock, veadotube) and the cycling scenes' paint(): both set data-form
     new MutationObserver(() => showFor(document.documentElement.dataset.form)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-form'] });
   }
@@ -191,14 +191,15 @@
   }
 
   // ---- character art (starting, BRB, ending): cycles the forms with the website's glitch swap ------
-  // Starts on the selected form (?form=, else the last one picked by the dock or veadotube), then glitches through
-  // the others (cyan Tron, Princess Trina, the Blobfish), holding each for HOLD ms; the scene colour follows the
-  // form on show. Picking a form while it runs glitches straight to it, and OBS showing the scene again restarts
-  // the cycle on the selected form. The glitch is the hero's: four 60ms steps of horizontal slices mixing the old and new art, with a
+  // Three turns: Tron, Princess Trina, the Blobfish, holding each for HOLD ms; the scene colour follows the form
+  // on show. Tron's turn is cyan the first time and then a random one of cyan / gold / red. Starts on the selected
+  // form (?form=, else the last one picked by the dock or veadotube; a Tron colour counts as Tron's first turn).
+  // Picking a form while it runs glitches straight to it, and OBS showing the scene again starts over. The glitch is the hero's: four 60ms steps of horizontal slices mixing the old and new art, with a
   // red/cyan split. ?cycle=0 shows the veadotube form (static) instead, ?art=0 hides the art.
   const ART = { cyan: 'tron-cyan-mclosed-eopen', yellow: 'tron-yellow-mclosed-eopen', red: 'tron-red-mclosed-eopen', princess: 'princess-uwu', blobfish: 'blobfish-mclosed-eopen' };
   const ART_T = { cyan: 'none', yellow: 'none', red: 'none', princess: 'translate(.75%, -1.9%) scale(.937)', blobfish: 'translate(-12.7%, -5.8%) scale(1.18)' };
-  const CYCLE = ['cyan', 'princess', 'blobfish'], HOLD = 6000;
+  const CYCLE = ['tron', 'princess', 'blobfish'], TRONS = ['cyan', 'yellow', 'red'], HOLD = 6000;
+  const turnOf = (f) => (TRONS.includes(f) ? 'tron' : f);
   const artSrc = (f) => `assets/forms/${ART[f] || ART.cyan}.webp`;
   const artBox = document.querySelector('.art-stage .art');
   if (TGL.param('art') === '0') document.documentElement.classList.add('no-art');
@@ -206,13 +207,19 @@
     const img = artBox.querySelector('img[data-form-art]');
     const glitchEl = document.createElement('div'); glitchEl.className = 'art-glitch'; artBox.appendChild(glitchEl);
     const show = (f) => { img.src = artSrc(f); img.style.transform = ART_T[f]; };
-    CYCLE.forEach((f) => { const i = new Image(); i.src = artSrc(f); });          // warm all three
+    Object.keys(ART).forEach((f) => { const i = new Image(); i.src = artSrc(f); });   // warm all five
     if (!TGL.cycling) { show(TGL.form); TGL.onChange(show); }
     else {
       const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const order = (f) => [f, ...CYCLE.filter((c) => c !== f)];
-      let seq = order(TGL.form), n = 0, timer, busy = Promise.resolve();
-      TGL.paint(seq[0]); show(seq[0]);
+      let n = 0, tronSeen = false, timer, busy = Promise.resolve();
+      // fresh = the scene (re)starting: Tron's next turn is cyan again unless it's on now; a pick mid-cycle keeps the count
+      const startOn = (f, fresh = true) => { n = Math.max(0, CYCLE.indexOf(turnOf(f))); tronSeen = (fresh ? false : tronSeen) || turnOf(f) === 'tron'; };
+      const formFor = (turn) => {
+        if (turn !== 'tron') return turn;
+        const f = tronSeen ? TRONS[Math.floor(Math.random() * TRONS.length)] : 'cyan';
+        tronSeen = true; return f;
+      };
+      startOn(TGL.form); TGL.paint(TGL.form); show(TGL.form);
       const step = (ms) => new Promise((r) => setTimeout(r, ms));
       const slices = (from, to, p) => {
         let html = '', y = 0;
@@ -223,7 +230,7 @@
         }
         glitchEl.innerHTML = html;
       };
-      let shown = seq[0];
+      let shown = TGL.form;
       const glitchTo = (to) => (busy = busy.then(async () => {
         const from = shown; shown = to;
         if (from === to) return;
@@ -234,12 +241,12 @@
         await img.decode().catch(() => {});
         artBox.classList.remove('glitching'); glitchEl.innerHTML = '';
       }));
-      const next = () => { clearTimeout(timer); timer = setTimeout(async () => { await glitchTo(seq[n = (n + 1) % seq.length]); next(); }, HOLD); };
+      const next = () => { clearTimeout(timer); timer = setTimeout(async () => { await glitchTo(formFor(CYCLE[n = (n + 1) % CYCLE.length])); next(); }, HOLD); };
       next();
-      TGL.onChange((f) => { seq = order(f); n = 0; glitchTo(f); next(); });
+      TGL.onChange((f) => { startOn(f, false); glitchTo(f); next(); });
       addEventListener('obsSourceActiveChanged', (e) => {   // OBS browser sources: the scene became visible again
         if (!e.detail || !e.detail.active) return;
-        seq = order(TGL.form); n = 0; shown = seq[0]; TGL.paint(shown); show(shown); next();
+        startOn(TGL.form); shown = TGL.form; TGL.paint(shown); show(shown); next();
       });
     }
   }
