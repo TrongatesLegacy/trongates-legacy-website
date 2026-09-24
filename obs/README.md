@@ -6,14 +6,14 @@ button for each OBS address, and an **Enlarge** button that shows the scene as b
 OBS source's position labelled (← → steps through the scenes, Esc closes). The control panel sits in a column on the right of
 the index too: its colour buttons set the colour the previews show.
 
-| Scene | File |
-|---|---|
-| Starting soon | `starting.html` |
-| Be right back | `brb.html` |
-| Just chatting | `chatting.html` |
-| Game | `game.html` |
-| Ending | `ending.html` |
-| Control dock (optional) | `control.html` |
+| Scene | Address (after `https://www.trongateslegacy.com/obs/`) | File |
+|---|---|---|
+| Starting soon | `starting` | `starting.html` |
+| Be right back | `brb` | `brb.html` |
+| Just chatting | `chatting` | `chatting.html` |
+| Game | `game` | `game.html` |
+| Ending | `ending` | `ending.html` |
+| Control dock (optional) | `control` | `control.html` |
 
 **Game** is a backdrop for the moments before your game appears: big "Loading the game" text centred to the
 right of the chat. Your full-screen game capture sits on top of it, so once the game is up none of the overlay
@@ -120,7 +120,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `noveado=1` | all | don't connect to veadotube |
 | `chat=…`, `goal=…` | Be right back (chat), Just chatting, Game | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 
-Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting.html?topic=Chilling&form=princess`.
+Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting?topic=Chilling&form=princess`.
 
 ## Sharing the PNGtuber across scenes
 
@@ -183,7 +183,7 @@ to, and has manual colour buttons for when veadotube isn't running.
 
 1. **Tools → WebSocket Server Settings**: tick **Enable WebSocket server**, note the port (4455) and the password.
 2. **Docks → Custom Browser Docks**: name it *Trongates*, with URL
-   `https://www.trongateslegacy.com/obs/control.html?obs=4455&obspw=YOURPASSWORD` (drop `&obspw=…` if you
+   `https://www.trongateslegacy.com/obs/control?obs=4455&obspw=YOURPASSWORD` (drop `&obspw=…` if you
    didn't set a password). If it can't connect, use the local copy (see above).
 3. For the buttons to reach the scenes, the scene overlays also need the WebSocket: add
    `obs=4455&obspw=YOURPASSWORD` to their URLs. Only do this if you want the manual buttons. The automatic

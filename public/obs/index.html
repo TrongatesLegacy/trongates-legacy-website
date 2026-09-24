@@ -117,11 +117,11 @@ soon, Be right back and Ending cycle the forms on their own.</footer>
   // The control dock (shared/control.js) sits in the right-hand column; its colour buttons also set
   // the colour the previews are shown in.
   const SCENES = [
-    ['starting.html', 'Starting soon', 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code.'],
-    ['brb.html', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; framed Botrix chat on the right.', ['chat']],
-    ['chatting.html', 'Just chatting', 'Big PNGtuber space (veadotube), Botrix chat and follower goal. Colour follows veadotube.', ['chat', 'goal']],
-    ['game.html', 'Game', 'Loading backdrop behind the full-screen game capture. Chat on the left; colour follows veadotube.', ['chat', 'goal']],
-    ['ending.html', 'Ending', 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials.'],
+    ['starting', 'Starting soon', 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code.'],
+    ['brb', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; framed Botrix chat on the right.', ['chat']],
+    ['chatting', 'Just chatting', 'Big PNGtuber space (veadotube), Botrix chat and follower goal. Colour follows veadotube.', ['chat', 'goal']],
+    ['game', 'Game', 'Loading backdrop behind the full-screen game capture. Chat on the left; colour follows veadotube.', ['chat', 'goal']],
+    ['ending', 'Ending', 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials.'],
   ];
   const grid = document.getElementById('grid'), guide = document.getElementById('guide');
   let form = TGL.form;
@@ -195,13 +195,13 @@ soon, Be right back and Ending cycle the forms on their own.</footer>
     if (viewer.classList.contains('open')) showScene();
   };
 
-  // the embedded control dock: same panel as the OBS dock (control.html), in the right-hand column
+  // the embedded control dock: same panel as the OBS dock (control), in the right-hand column
   const dock = document.getElementById('dock');
   TGLControl.mount(dock, { onForm: (f) => { if (f !== form) { form = f; load(); } } });
   const dockNote = document.createElement('p');
   dockNote.className = 'hint';
   dockNote.innerHTML = 'Also available as an OBS dock: <code></code>';
-  dockNote.querySelector('code').textContent = new URL('control.html?obs=4455', location.href).href;
+  dockNote.querySelector('code').textContent = new URL('control?obs=4455', location.href).href;
   dock.appendChild(dockNote);
 
   guide.onchange = load;

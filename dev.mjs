@@ -15,8 +15,9 @@ createServer(async (req, res) => {
     return res.end(await r.text());
   }
   try {
-    const file = join("public", normalize(path === "/" ? "/index.html" : path));
-    const body = await readFile(file);
+    let file = join("public", normalize(path.endsWith("/") ? path + "index.html" : path));
+    // like Netlify: /obs/brb serves /obs/brb.html
+    const body = await readFile(file).catch(() => readFile((file += ".html")));
     res.writeHead(200, { "Content-Type": TYPES[extname(file)] || "application/octet-stream" });
     res.end(body);
   } catch {

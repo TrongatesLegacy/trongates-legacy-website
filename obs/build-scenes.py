@@ -6,7 +6,7 @@ OUT = pathlib.Path(__file__).parent.parent / 'public' / 'obs'
 HEAD = '''<!doctype html>
 <html lang="en"{html_attr}><head><meta charset="utf-8"><title>{title} · Trongates Legacy OBS</title>
 <meta name="robots" content="noindex">
-<!-- OBS browser source (Local file, or https://www.trongateslegacy.com/obs/{name}.html), 1920x1080, 30 FPS. See obs/README.md.
+<!-- OBS browser source (Local file, or https://www.trongateslegacy.com/obs/{name}), 1920x1080, 30 FPS. See obs/README.md.
      Paths are relative so the folder works both hosted and as local files. -->
 <link rel="stylesheet" href="shared/overlay.css">
 <script src="shared/theme.js"></script>
