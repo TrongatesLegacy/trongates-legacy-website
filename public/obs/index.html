@@ -99,7 +99,8 @@ footer code { color: #cfe3f5; }
         <p class="hint">Or keep the links in Netlify (env vars <code>BOTRIX_CHAT_URL</code>, <code>BOTRIX_GOAL_URL</code>,
         plus a password of your choosing in <code>OBS_KEY</code>) and type that key here instead. Copy then gives each
         scene with <code>?key=…</code>, and the scene fetches the current links from Netlify when it loads, so changing a
-        link in Netlify updates every OBS source. A link pasted above still wins for its frame.</p></details>
+        link in Netlify updates every OBS source. A link pasted above still wins for its frame. The key can also go in
+        this page's address: <code>/obs/#key=…</code> (or <code>?key=…</code>).</p></details>
     </section>
     <section class="panel dock" id="dock" aria-label="Control dock"></section>
   </aside>
@@ -172,7 +173,14 @@ soon, Be right back and Ending open on the selected form, then cycle through the
       load();
     });
   }
-  // the Netlify key: ask /api/obs-widgets which links it has
+  // the Netlify key: ask /api/obs-widgets which links it has. It can also come in the address, like the scenes:
+  // ?key=… or #key=… (the # never reaches the server), and is then saved like a typed one.
+  const keyFromUrl = () => {
+    const k = (new URLSearchParams(location.hash.slice(1)).get('key') || new URLSearchParams(location.search).get('key') || '').trim();
+    if (k) localStorage.setItem('tgl-obs-key', k);
+    return !!k;
+  };
+  keyFromUrl();
   keyEl.value = localStorage.getItem('tgl-obs-key') || '';
   const say = (t, warn) => { keyStatus.hidden = !t; keyStatus.textContent = t; keyStatus.classList.toggle('warn', !!warn); };
   async function checkKey() {
@@ -198,7 +206,10 @@ soon, Be right back and Ending open on the selected form, then cycle through the
     if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());
     checkKey();
   });
-  addEventListener('hashchange', () => { if (importHash()) checkKey(); });   // a bookmark pasted into an open tab
+  addEventListener('hashchange', () => {
+    const k = keyFromUrl(); if (k) keyEl.value = localStorage.getItem('tgl-obs-key');
+    if (importHash() || k) checkKey();
+  });   // a bookmark pasted into an open tab
   sample.onchange = () => load();
   const share = document.getElementById('w-share');
   const shareState = () => { share.disabled = !Object.values(W).some((el) => /^https:\/\//.test(el.value)) && !keyEl.value.trim(); };

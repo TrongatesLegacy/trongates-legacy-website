@@ -184,7 +184,9 @@ only carry a key, and changing a Botrix setting means updating one variable, not
    - `OBS_KEY`: a long random password you make up (it's what unlocks the links; anyone with it can read them)
 2. Redeploy (Deploys → Trigger deploy) so the function sees them.
 3. On the index, type the key into *Or the Netlify key*. The panel shows `Netlify: chat ✓, goal ✓` when it works.
-   Each card's **Copy** then gives `…/obs/chatting?key=…`, and the bookmark link carries the key.
+   Each card's **Copy** then gives `…/obs/chatting?key=…`, and the bookmark link carries the key. The index also
+   takes the key in its own address, like the scenes: bookmark `https://www.trongateslegacy.com/obs/#key=…`
+   (`?key=…` works too, but the `#` form never reaches the server).
 
 `/api/obs-widgets` (`netlify/functions/obs-widgets.mjs`) hands the links only to requests whose `X-OBS-Key`
 header matches `OBS_KEY`, and never lets them be cached. Scenes loaded as local files ask the live site. A link
