@@ -18,7 +18,8 @@ body { min-height: 100vh; padding: 24px clamp(16px, 3vw, 40px) 40px; color: var(
 header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px 40px; margin-bottom: 20px; }
 h1 { font: 900 clamp(26px, 3vw, 36px)/1 Orbitron; text-transform: uppercase; letter-spacing: .02em; }
 h1 .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); }
-h1 small { display: block; margin-top: 8px; font: 600 14px/1 "Chakra Petch", sans-serif; letter-spacing: .3em; color: var(--accent); }
+.title { display: grid; gap: 12px; justify-items: start; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; font-size: 14px; color: var(--muted); }
 .tabs { display: flex; }
 .tabs button { padding: 9px 16px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 700 12px/1 Orbitron; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
@@ -83,12 +84,14 @@ footer code { color: #cfe3f5; }
 </style></head>
 <body>
 <header>
-  <h1><span class="o">Trongates</span> Legacy<small>OBS scenes · click one to open it</small></h1>
-  <div class="tools">
+  <div class="title">
+    <h1><span class="o">Trongates</span> Legacy <span class="sr">OBS</span></h1>
     <nav class="tabs" aria-label="Show">
       <button type="button" data-view="scenes" aria-pressed="true">Scenes</button>
       <button type="button" data-view="widgets" aria-pressed="false">Widgets</button>
     </nav>
+  </div>
+  <div class="tools">
     <label><input type="checkbox" id="guide"> Show source positions</label>
   </div>
 </header>
