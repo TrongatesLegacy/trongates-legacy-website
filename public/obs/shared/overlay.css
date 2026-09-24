@@ -72,7 +72,7 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .gang small { display: block; font-size: 18px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #cfb6d8; }
 .gang b { display: flex; align-items: center; gap: 12px; margin-top: 6px; font: 700 30px/1.1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
 .gang b .i { width: 32px; height: 32px; color: #8c9bff; }
-.gang .qr { width: 150px; height: 150px; padding: 8px; background: #eef6ff; border-radius: 12px; box-shadow: 0 0 24px rgba(255,99,184,.35); }
+.gang .qr { width: 150px; height: 150px; overflow: hidden; background: #eef6ff; border-radius: 8px; box-shadow: 0 0 24px rgba(255,99,184,.35); }
 .gang .qr img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
 .gang em { display: block; margin-top: 10px; font-style: normal; font-size: 22px; font-weight: 600; color: #cfe3f5; }
 .gang em b { display: inline; margin: 0; font: inherit; color: #fff; }

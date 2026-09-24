@@ -37,7 +37,8 @@ overlays draw for them.
 The Discord link itself is never printed on stream (nobody can click it). Each scene mentions it **once**, as
 the chat command: *type **!discord** in chat* (your Botrix command). **Ending** also shows a QR code for
 `https://discord.gg/FUKz6Dxk8W` (`public/obs/assets/discord-qr.svg`, high error correction; checked with an
-independent decoder at 400, 200 and 120px). If the invite ever changes, regenerate the QR code (see
+independent decoder at 400, 200 and 120px). The SVG's viewBox trims the quiet zone to 2 modules so the code fills
+its white square (read by Chrome's barcode detector in the scenes at 1080p and at 720p, down to 87px). If the invite ever changes, regenerate the QR code (see
 *Changing the scenes*).
 
 ## Colours on Game and Just chatting follow veadotube
