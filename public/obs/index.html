@@ -235,13 +235,17 @@ soon, Be right back and Ending open on the selected form, then cycle through the
     document.getElementById('v-open').href = file;
     vFrame.src = previewSrc(file, vGuide.checked);
   };
-  function openViewer(file) { current = SCENES.findIndex(([f]) => f === file); fit(); showScene(); viewer.classList.add('open'); document.getElementById('v-close').focus(); }
+  // positions start on until Botrix links are added (then the widgets are the point); a manual tick sticks
+  let guideTouched = false;
+  function openViewer(file) {
+    if (!guideTouched) vGuide.checked = !Object.values(W).some((el) => /^https:\/\//.test(el.value));
+    current = SCENES.findIndex(([f]) => f === file); fit(); showScene(); viewer.classList.add('open'); document.getElementById('v-close').focus(); }
   const closeViewer = () => { viewer.classList.remove('open'); vFrame.src = 'about:blank'; };
   const step = (d) => { current = (current + d + SCENES.length) % SCENES.length; showScene(); };
   document.getElementById('v-close').onclick = closeViewer;
   document.getElementById('v-prev').onclick = () => step(-1);
   document.getElementById('v-next').onclick = () => step(1);
-  vGuide.onchange = showScene;
+  vGuide.onchange = () => { guideTouched = true; showScene(); };
   viewer.addEventListener('click', (e) => { if (e.target === viewer) closeViewer(); });
   addEventListener('keydown', (e) => {
     if (!viewer.classList.contains('open')) return;
