@@ -4,7 +4,9 @@ Five 1920×1080 overlays in the site's style, plus an optional control dock. **S
 `https://www.trongateslegacy.com/obs/`**: live previews of every scene in a grid, click one to open it, a Copy
 button for each OBS address, and an **Enlarge** button that shows the scene as big as the window with every
 OBS source's position labelled (← → steps through the scenes, Esc closes). The control panel sits in a column on the right of
-the index too: its colour buttons set the colour the previews show.
+the index too: its colour buttons set the colour the previews show. It doesn't connect to veadotube there: a website
+talking to a local app makes Chrome label the page "Not Secure" (after you allow "Apps on device"). The scenes and
+the OBS dock still follow veadotube.
 
 | Scene | Address (after `https://www.trongateslegacy.com/obs/`) | File |
 |---|---|---|

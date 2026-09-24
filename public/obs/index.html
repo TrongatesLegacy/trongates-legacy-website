@@ -197,7 +197,7 @@ soon, Be right back and Ending cycle the forms on their own.</footer>
 
   // the embedded control dock: same panel as the OBS dock (control), in the right-hand column
   const dock = document.getElementById('dock');
-  TGLControl.mount(dock, { onForm: (f) => { if (f !== form) { form = f; load(); } } });
+  TGLControl.mount(dock, { veado: false, onForm: (f) => { if (f !== form) { form = f; load(); } } });
   const dockNote = document.createElement('p');
   dockNote.className = 'hint';
   dockNote.innerHTML = 'Also available as an OBS dock: <code></code>';

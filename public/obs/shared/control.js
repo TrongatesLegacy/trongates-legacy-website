@@ -2,7 +2,10 @@
 // with the colour each maps to. Used by control.html (the OBS custom dock) and embedded in index.html.
 // Needs theme.js loaded first (with window.TGL_NO_AUTOCONNECT = true, so this panel owns the connections).
 //
-//   TGLControl.mount(element, { onForm(form) {} })
+//   TGLControl.mount(element, { onForm(form) {}, veado: true })
+//
+// veado: false leaves veadotube out (the hosted index: a website talking to a local app makes Chrome call the page
+// "Not Secure"). The scenes and the OBS dock still follow veadotube.
 //
 // URL options on the page that mounts it: obs=4455 (+ obspw=…) to broadcast switches to the scenes through the
 // OBS WebSocket server; veado=127.0.0.1:2424 if veadotube uses another address.
@@ -38,12 +41,16 @@ switching avatar state there changes them again.</p>
 <p class="hint">If a state gets the wrong colour, add <code>map=state name:form</code> to each scene's URL
 (e.g. <code>&amp;map=fishing:blobfish</code>). Forms: cyan, yellow, red, princess, blobfish.</p>`;
 
-  function mount(el, { onForm } = {}) {
+  function mount(el, { onForm, veado = true } = {}) {
     if (!document.getElementById('tgl-control-css')) {
       const st = document.createElement('style'); st.id = 'tgl-control-css'; st.textContent = CSS; document.head.appendChild(st);
     }
     el.classList.add('tgl-control');
     el.innerHTML = HTML;
+    if (!veado) {   // drop the veadotube status row, the states list and its heading and hint
+      el.querySelector('[data-dot="veado"]').closest('.row').remove();
+      [...el.querySelectorAll('h2, .hint, [data-states]')].filter((n) => n.matches('[data-states]') || /veadotube states|map=state/.test(n.textContent)).forEach((n) => n.remove());
+    }
     const params = new URLSearchParams(location.search);
     const F = TGL.FORMS, q = (s) => el.querySelector(s), formsEl = q('[data-forms]');
     let obsWs = null;
@@ -111,7 +118,7 @@ switching avatar state there changes them again.</p>
         setTimeout(connectVeado, 5000);
       };
     }
-    connectVeado();
+    if (veado) connectVeado();
     TGL.onChange(mark); mark();
     return { broadcast };
   }
