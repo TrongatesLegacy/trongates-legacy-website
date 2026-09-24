@@ -23,13 +23,44 @@
   // changing them there updates every scene; a chat=/goal= on the URL still wins for its frame. demo=1 adds
   // Botrix's sample messages (the index previews).
   const SLOTS = { chat: 'Botrix chat', goal: 'Botrix follower goal' };
+  const demo = (url) => url + (TGL.param('demo') === '1' ? '&isDemo=true&preview=1' : '');
   const embed = (key, url) => {
     const el = document.querySelector(`[data-slot="${SLOTS[key]}"]`);
     if (!url || !el || !/^https:\/\//.test(url) || el.querySelector('.widget')) return;
+    if (key === 'goal' && TGL.param('goalcolor') !== '0') return goalInColour(el, url);
     const f = document.createElement('iframe');
-    f.src = url + (TGL.param('demo') === '1' ? '&isDemo=true&preview=1' : ''); f.title = SLOTS[key]; f.className = 'widget ' + key;
+    f.src = demo(url); f.title = SLOTS[key]; f.className = 'widget ' + key;
     el.appendChild(f);
   };
+  // The goal follows the scene colour: Botrix takes its colours from the link, so each form gets its own copy
+  // of the widget with fill/accent/border/track in that colour, made the first time the form shows and kept
+  // (switching crossfades, nothing reloads; the cycling scenes only ever make three).
+  function goalInColour(el, url) {
+    const copies = {};
+    const inColour = (f) => {
+      const u = new URL(url), c = TGL.FORMS[f].accent;
+      for (const [k, v] of [['fillColor', c], ['accentColor', c], ['borderColor', c + '66'], ['trackColor', c + '22']]) u.searchParams.set(k, v);
+      return demo(u.href);
+    };
+    const showFor = (f) => {
+      if (!TGL.FORMS[f]) return;
+      let fr = copies[f];
+      if (!fr) {
+        fr = copies[f] = document.createElement('iframe');
+        fr.title = SLOTS.goal; fr.className = 'widget goal'; fr.dataset.form = f;
+        fr.onload = () => setTimeout(() => { fr.dataset.ready = '1'; if (fr.dataset.want) swap(); }, 800);   // let it draw first
+        fr.src = inColour(f); el.appendChild(fr);
+      }
+      Object.values(copies).forEach((x) => delete x.dataset.want); fr.dataset.want = '1';
+      if (fr.dataset.ready) swap();
+    };
+    const swap = () => Object.values(copies).forEach((x) => x.classList.toggle('shown', !!x.dataset.want));
+    showFor(document.documentElement.dataset.form);
+    // the cycling scenes switch every few seconds: load their forms' copies up front (same list as CYCLE below)
+    if (TGL.cycling) for (const f of ['cyan', 'princess', 'blobfish']) if (!copies[f]) { const now = document.documentElement.dataset.form; showFor(f); showFor(now); }
+    // the colour changes through theme.js (dock, veadotube) and the cycling scenes' paint(): both set data-form
+    new MutationObserver(() => showFor(document.documentElement.dataset.form)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-form'] });
+  }
   for (const key of Object.keys(SLOTS)) embed(key, TGL.param(key));
   const siteKey = TGL.param('key');
   if (siteKey && Object.keys(SLOTS).some((k) => document.querySelector(`[data-slot="${SLOTS[k]}"]`) && !TGL.param(k))) {

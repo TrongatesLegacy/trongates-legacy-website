@@ -128,6 +128,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `chat=…`, `goal=…` | Be right back, Just chatting, Game, chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 | `key=…` | Be right back, Just chatting, Game, chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
 | `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
+| `goalcolor=0` | the same | keep the goal in the colours from its Botrix link instead of following the scene's form |
 | `music=…` | Starting soon, Be right back, Just chatting, Ending, music | now playing: `0` off, `1` also outside OBS, `always` stay up while paused, `demo` a sample track |
 | `musichost=…` | the same | SMTC Bridge's address if not `127.0.0.1:5000` |
 | `app=…` | the same | only follow this player (part of its Windows app id, e.g. `spotify`, `applemusic`); default: whichever Windows has in focus |
@@ -179,6 +180,11 @@ transparent, so the frame's glass shows through), `accentColor=#22e5ff`, `border
 on Botrix's page; accent, border, track and sub-text colours are link-only. Colours take an alpha
 (`#rrggbbaa`), which is how "transparent" works. Theme ids are kebab-case versions of the design names
 (`glass-panel`, `xp-surge`…), except ★ Rainbow, which is `arcoiris`.
+
+The goal follows the scene's colour: `scene.js` sets `fillColor`, `accentColor`, `borderColor` (40%) and
+`trackColor` (13%) in the link to the current form's accent. Changing the link reloads the widget, so each form
+gets its own copy, made the first time that form shows (the cycling scenes load their three up front) and kept;
+switching crossfades to it once it has drawn. `goalcolor=0` turns this off.
 
 ### A widget on its own (chat.html, goal.html)
 
