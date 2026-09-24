@@ -3,7 +3,7 @@
 Five 1920×1080 overlays in the site's style, plus an optional control dock. **Start at the index,
 `https://www.trongateslegacy.com/obs/`**: live previews of every scene in a grid, click one to open it, a Copy
 button for each OBS address, and an **Enlarge** button that shows the scene as big as the window with every
-OBS source's position labelled (← → steps through the scenes, Esc closes). The control panel is built into
+OBS source's position labelled (← → steps through the scenes, Esc closes). The control panel sits in a column on the right of
 the index too: its colour buttons set the colour the previews show.
 
 | Scene | File |
