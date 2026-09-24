@@ -204,7 +204,10 @@ a small Windows tray app that serves whatever Windows' media controls show (Spot
 a browser tab…) as JSON at `http://127.0.0.1:5000/now-playing`. Nothing to add in OBS: install the bridge on the
 streaming PC, tick *Start with Windows* in its tray menu, and the panel appears while music plays and fades out
 when it stops (or when the bridge isn't running). The Game scene has none: put `/obs/music` on top of the game
-instead (Widgets tab on the index; 560 × 100 suggested).
+instead (Widgets tab on the index; 560 × 100 suggested). To always follow one player (so a YouTube tab can't take
+over), type it in the index's *Now playing: music app* field (e.g. `cider`, `applemusic`, `spotify`; any part
+of the app's Windows id, listed at `http://127.0.0.1:5000/sessions` on the streaming PC): Copy then adds `app=…`
+to the scenes with Now playing and the music page, and the bookmark link carries it.
 
 It only asks the bridge from inside OBS: a normal browser would ask for *Apps on device* and label the page
 "Not Secure", so there it stays hidden unless the URL has `music=1`. The index previews use a sample track.

@@ -38,6 +38,8 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .links { display: grid; gap: 12px; font-size: 14px; }
 .links h2 { font: 900 15px/1 Orbitron; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 .links .field { display: grid; gap: 6px; color: var(--muted); cursor: default; }
+.links input[type=text] { width: 100%; padding: 9px 10px; border: 1px solid var(--line); background: #0b1424; color: #cfe3f5; font: 13px/1.4 ui-monospace, monospace; }
+.links input[type=text]:focus { outline: 1px solid var(--accent); }
 .links input[type=password] { width: 100%; padding: 9px 10px; border: 1px solid var(--line); background: #0b1424; color: #cfe3f5; font: 13px/1.4 ui-monospace, monospace; }
 .links input[type=password]:focus { outline: 1px solid var(--accent); }
 .links .hint { margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
@@ -108,11 +110,12 @@ footer code { color: #cfe3f5; }
   </div>
   <aside class="side">
     <section class="panel links" aria-labelledby="links-h">
-      <h2 id="links-h">Botrix widgets</h2>
+      <h2 id="links-h">Widgets</h2>
       <label class="field">Chat widget link<input type="password" id="w-chat" autocomplete="off" spellcheck="false" placeholder="https://botrix.live/widgets/chat/?bid=…"></label>
       <label class="field">Follower goal widget link<input type="password" id="w-goal" autocomplete="off" spellcheck="false" placeholder="https://botrix.live/widgets/…"></label>
       <label class="field">Or the Netlify key (links kept in Netlify)<input type="password" id="w-key" autocomplete="off" spellcheck="false" placeholder="OBS_KEY"></label>
       <p class="hint" id="w-key-status" role="status" hidden></p>
+      <label class="field">Now playing: music app (optional)<input type="text" id="w-app" autocomplete="off" spellcheck="false" placeholder="e.g. cider, applemusic, spotify"></label>
       <label><input type="checkbox" id="w-sample" checked> Sample messages and music in the previews</label>
       <div class="acts"><button type="button" class="share" id="w-share">Copy bookmark link</button>
         <button type="button" class="share clear" id="w-clear">Clear saved data</button></div>
@@ -172,7 +175,10 @@ footer code { color: #cfe3f5; }
   const keyEl = document.getElementById('w-key'), keyStatus = document.getElementById('w-key-status');
   let envLinks = {};                                   // what Netlify returned for the key
   const linksNow = () => Object.fromEntries(Object.entries(W).filter(([, el]) => /^https:\/\//.test(el.value.trim())).map(([k, el]) => [k, el.value.trim()]));
-  const packNow = () => ({ ...linksNow(), ...(keyEl.value.trim() ? { key: keyEl.value.trim() } : {}) });
+  // the music app (SMTC Bridge target, app=) for the scenes with Now playing; blank = whatever Windows has in focus
+  const appEl = document.getElementById('w-app');
+  const MUSIC = new Set(['starting', 'brb', 'chatting', 'ending', 'music']);
+  const packNow = () => ({ ...linksNow(), ...(keyEl.value.trim() ? { key: keyEl.value.trim() } : {}), ...(appEl.value.trim() ? { app: appEl.value.trim() } : {}) });
   const bookmark = () => location.origin + location.pathname + location.search + '#w=' + b64.enc(JSON.stringify(packNow()));
   // where each widget comes from: a pasted link wins, else Netlify (through the key)
   const source = (k) => (/^https:\/\//.test(W[k].value) ? 'link' : envLinks[k] ? 'env' : null);
@@ -185,10 +191,12 @@ footer code { color: #cfe3f5; }
       const got = JSON.parse(b64.dec(packed));
       for (const k of Object.keys(W)) if (typeof got[k] === 'string' && /^https:\/\//.test(got[k])) localStorage.setItem('tgl-botrix-' + k, got[k]);
       if (typeof got.key === 'string' && got.key) localStorage.setItem('tgl-obs-key', got.key);
+      if (typeof got.app === 'string' && got.app) localStorage.setItem('tgl-obs-app', got.app);
       bad.hidden = true;
     } catch { bad.hidden = false; return false; }
     for (const [k, el] of Object.entries(W)) el.value = localStorage.getItem('tgl-botrix-' + k) || '';
     keyEl.value = localStorage.getItem('tgl-obs-key') || '';
+    appEl.value = localStorage.getItem('tgl-obs-app') || '';
     return true;
   };
   importHash();
@@ -228,6 +236,12 @@ footer code { color: #cfe3f5; }
     }
     shareState(); load();
   }
+  appEl.value = localStorage.getItem('tgl-obs-app') || '';
+  appEl.addEventListener('change', () => {
+    appEl.value = appEl.value.trim(); localStorage.setItem('tgl-obs-app', appEl.value);
+    if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());
+    load();
+  });
   keyEl.addEventListener('change', () => {
     keyEl.value = keyEl.value.trim(); localStorage.setItem('tgl-obs-key', keyEl.value);
     if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());
@@ -236,9 +250,9 @@ footer code { color: #cfe3f5; }
   // forget everything this page saved in the browser: links, key, colour; and the #… that would bring them back
   const clearBtn = document.getElementById('w-clear');
   clearBtn.addEventListener('click', () => {
-    if (!confirm('Clear the Botrix links, Netlify key and colour saved in this browser?')) return;
+    if (!confirm('Clear the Botrix links, Netlify key, music app and colour saved in this browser?')) return;
     for (const k of Object.keys(localStorage)) if (k.startsWith('tgl-')) localStorage.removeItem(k);
-    Object.values(W).forEach((el) => { el.value = ''; }); keyEl.value = ''; bad.hidden = true;
+    Object.values(W).forEach((el) => { el.value = ''; }); keyEl.value = ''; appEl.value = ''; bad.hidden = true;
     const u = new URL(location.href); u.searchParams.delete('key'); u.hash = '';
     history.replaceState(null, '', u.pathname + u.search);
     clearBtn.textContent = 'Cleared'; clearBtn.classList.add('done');
@@ -251,8 +265,8 @@ footer code { color: #cfe3f5; }
   });   // a bookmark pasted into an open tab
   sample.onchange = () => load();
   const share = document.getElementById('w-share');
-  const shareState = () => { share.disabled = !Object.values(W).some((el) => /^https:\/\//.test(el.value)) && !keyEl.value.trim(); };
-  [...Object.values(W), keyEl].forEach((el) => el.addEventListener('input', shareState)); shareState();
+  const shareState = () => { share.disabled = !Object.values(W).some((el) => /^https:\/\//.test(el.value)) && !keyEl.value.trim() && !appEl.value.trim(); };
+  [...Object.values(W), keyEl, appEl].forEach((el) => el.addEventListener('input', shareState)); shareState();
   share.addEventListener('click', async () => {
     const full = bookmark();
     try { await navigator.clipboard.writeText(full); } catch { const t = document.createElement('textarea'); t.value = full; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
@@ -269,11 +283,11 @@ footer code { color: #cfe3f5; }
   ];
   const sceneWidgets = (file) => ([...SCENES, ...SOLO].find(([f]) => f === file)[3] || []).filter(source);
   const widgets = (file, preview) => {
-    const ks = sceneWidgets(file);
-    if (!ks.length) return '';
+    const ks = sceneWidgets(file), app = appEl.value.trim();
     return ks.filter((k) => source(k) === 'link').map((k) => `&${k}=` + encodeURIComponent(W[k].value)).join('')
       + (ks.some((k) => source(k) === 'env') ? '&key=' + encodeURIComponent(keyEl.value.trim()) : '')
-      + (preview && sample.checked ? '&demo=1' : '');
+      + (!preview && app && MUSIC.has(file) ? '&app=' + encodeURIComponent(app) : '')
+      + (preview && sample.checked && ks.length ? '&demo=1' : '');
   };
   const obsUrl = (file) => { const w = widgets(file, false); return new URL(file, location.href).href + (w ? '?' + w.slice(1) : ''); };
   // previews never talk to local apps: no veadotube, and a sample track instead of SMTC Bridge (or none)
