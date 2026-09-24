@@ -183,7 +183,7 @@ on a transparent page, for when one is wanted as its own OBS browser source: on 
 of your own. The frame fills whatever size the source is given; suggested **chat 500 × 800**, **goal 500 × 134**
 (the goal design needs at least about 464 wide and the frame 134 tall). They take the same options as the scenes:
 `key=` or `chat=`/`goal=` for the widget, and the colour follows veadotube / the dock / `form=`. The index's
-*Widgets on their own* panel copies them with your links or key.
+**Widgets** tab (next to **Scenes**, top right) previews them and copies them with your links or key.
 
 ### Kept in Netlify (instead of pasting them)
 

@@ -20,6 +20,10 @@ h1 { font: 900 clamp(26px, 3vw, 36px)/1 Orbitron; text-transform: uppercase; let
 h1 .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); }
 h1 small { display: block; margin-top: 8px; font: 600 14px/1 "Chakra Petch", sans-serif; letter-spacing: .3em; color: var(--accent); }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; font-size: 14px; color: var(--muted); }
+.tabs { display: flex; }
+.tabs button { padding: 9px 16px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 700 12px/1 Orbitron; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.tabs button + button { border-left: 0; }
+.tabs button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--bg); }
 label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 /* the right-hand column keeps the width its controls need; the scene grid takes whatever is left */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 20px; }
@@ -39,12 +43,6 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .links .share { justify-self: start; padding: 9px 14px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 12px/1 Orbitron; letter-spacing: .1em; cursor: pointer; }
 .links .share.done { background: var(--accent); color: var(--bg); }
 .links .warn { color: #ff8a96; }
-.solo { display: grid; gap: 10px; }
-.solo-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
-.solo-row b { display: block; font-size: 14px; } .solo-row span { color: var(--muted); font-size: 12.5px; }
-.solo-row code { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: #cfe3f5; }
-.solo-row button, .solo-row a { padding: 9px 12px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 12px/1 Orbitron; letter-spacing: .1em; text-decoration: none; cursor: pointer; }
-.solo-row button.done { background: var(--accent); color: var(--bg); }
 .links .acts { display: flex; flex-wrap: wrap; gap: 8px; }
 .links .share.clear { border-color: #ff8a96; color: #ff8a96; }
 .links .share.clear.done { background: #ff8a96; color: var(--bg); }
@@ -54,6 +52,10 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
   clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
 .card:hover, .card:focus-visible { border-color: var(--accent); transform: translateY(-3px); outline: none; }
 .shot { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
+/* widget cards: just the frame (chat.html, goal.html), previewed at their suggested size */
+.grid[hidden] { display: none; }
+.wgrid { grid-template-columns: repeat(auto-fill, minmax(280px, 360px)); align-items: start; }
+.wgrid .shot { background: #07101c; }
 .shot iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; transform: scale(var(--s, .25)); pointer-events: none; }
 .info { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 12px 16px 14px; }
 .info h2 { font: 700 17px/1.2 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
@@ -83,13 +85,20 @@ footer code { color: #cfe3f5; }
 <header>
   <h1><span class="o">Trongates</span> Legacy<small>OBS scenes · click one to open it</small></h1>
   <div class="tools">
+    <nav class="tabs" aria-label="Show">
+      <button type="button" data-view="scenes" aria-pressed="true">Scenes</button>
+      <button type="button" data-view="widgets" aria-pressed="false">Widgets</button>
+    </nav>
     <label><input type="checkbox" id="guide"> Show source positions</label>
   </div>
 </header>
 
 <div class="layout">
   <div class="main-col">
-  <main class="grid" id="grid"></main>
+  <main>
+    <div class="grid" id="grid"></div>
+    <div class="grid wgrid" id="wgrid" hidden></div>
+  </main>
   <footer>Setup guide: <code>obs/README.md</code> in the repo. Each card's address is what goes in the OBS browser
   source (1920 × 1080). The control panel's colour buttons set the colour the previews are shown in; Starting
   soon, Be right back and Ending open on the selected form, then cycle through the others.</footer>
@@ -119,11 +128,6 @@ footer code { color: #cfe3f5; }
         scene with <code>?key=…</code>, and the scene fetches the current links from Netlify when it loads, so changing a
         link in Netlify updates every OBS source. A link pasted above still wins for its frame. The key can also go in
         this page's address: <code>/obs/#key=…</code> (or <code>?key=…</code>).</p></details>
-    </section>
-    <section class="panel links" aria-labelledby="solo-h">
-      <h2 id="solo-h">Widgets on their own</h2>
-      <p class="hint">Just the frame, as its own OBS browser source (e.g. on top of the game). Uses the links or key above.</p>
-      <div class="solo" id="solo"></div>
     </section>
     <section class="panel dock" id="dock" aria-label="Control dock"></section>
   </aside>
@@ -254,7 +258,11 @@ footer code { color: #cfe3f5; }
   });
   // pasted links go in whole (chat=/goal=); Netlify ones as the key; previews add demo=1 for sample messages
   // the frames on their own (chat.html, goal.html): [file, title, suggested size, widget]
-  const SOLO = [['chat', 'Chat box', '500 × 800', ['chat']], ['goal', 'Follower goal', '500 × 134', ['goal']]];
+  // [file, title, description, widget, preview width, height]
+  const SOLO = [
+    ['chat', 'Chat box', 'Just the framed chat, as its own browser source (e.g. on top of the game). 500 × 800 suggested; any size works.', ['chat'], 500, 800],
+    ['goal', 'Follower goal', 'Just the framed follower goal, as its own browser source. 500 × 134 suggested (at least ~464 wide).', ['goal'], 500, 134],
+  ];
   const sceneWidgets = (file) => ([...SCENES, ...SOLO].find(([f]) => f === file)[3] || []).filter(source);
   const widgets = (file, preview) => {
     const ks = sceneWidgets(file);
@@ -265,17 +273,20 @@ footer code { color: #cfe3f5; }
   };
   const obsUrl = (file) => { const w = widgets(file, false); return new URL(file, location.href).href + (w ? '?' + w.slice(1) : ''); };
   const previewSrc = (file, g = guide.checked) => `${file}?noveado=1&form=${form}${g ? '&guide=1' : ''}${widgets(file, true)}`;
-  const card = (file, title, desc, extra = '') => {
-    const a = document.createElement('a');
-    a.className = 'card' + extra; a.href = file; a.target = '_blank'; a.rel = 'noopener';
+  const card = (file, title, desc, { w = 1920, h = 1080, into = grid } = {}) => {
+    const a = document.createElement('a'), scene = into === grid;
+    a.className = 'card'; a.href = file; a.target = '_blank'; a.rel = 'noopener';
     const url = new URL(file, location.href).href;   // shown; the copied address adds the widget links
     a.innerHTML = `<div class="shot"><iframe loading="lazy" tabindex="-1" title=""></iframe></div>
-      <div class="info"><h2></h2><p></p><div class="url"><code></code><button type="button" data-copy>Copy</button><button type="button" class="big" data-big>Enlarge</button></div></div>`;
+      <div class="info"><h2></h2><p></p><div class="url"><code></code><button type="button" data-copy>Copy</button>${scene ? '<button type="button" class="big" data-big>Enlarge</button>' : ''}</div></div>`;
+    const shot = a.querySelector('.shot'), frame = a.querySelector('iframe');
+    shot.style.aspectRatio = `${w} / ${h}`; shot.dataset.w = w;
+    frame.style.width = w + 'px'; frame.style.height = h + 'px';
     a.querySelector('h2').textContent = title;
     a.querySelector('p').textContent = desc;
     a.querySelector('code').textContent = url;
     a.querySelector('iframe').title = title + ' preview';
-    a.querySelector('[data-big]').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openViewer(file); });
+    if (scene) a.querySelector('[data-big]').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openViewer(file); });
     a.querySelector('[data-copy]').addEventListener('click', async (e) => {
       e.preventDefault(); e.stopPropagation();
       const full = obsUrl(file);
@@ -284,13 +295,25 @@ footer code { color: #cfe3f5; }
       setTimeout(() => { e.target.textContent = 'Copy'; e.target.classList.remove('done'); }, 1400);
     });
     a.dataset.file = file;
-    grid.appendChild(a);
+    into.appendChild(a);
     return a;
   };
   SCENES.forEach(([f, t, d]) => card(f, t, d));
+  const wgrid = document.getElementById('wgrid');
+  SOLO.forEach(([f, t, d, , w, h]) => card(f, t, d, { w, h, into: wgrid }));
 
-  // scale each 1920x1080 preview to its card
-  const ro = new ResizeObserver((entries) => entries.forEach((e) => e.target.style.setProperty('--s', e.contentRect.width / 1920)));
+  // Scenes | Widgets tabs (remembered in this browser)
+  const tabs = [...document.querySelectorAll('.tabs button')];
+  const showView = (v) => {
+    tabs.forEach((b) => b.setAttribute('aria-pressed', b.dataset.view === v));
+    grid.hidden = v !== 'scenes'; wgrid.hidden = v !== 'widgets';
+    localStorage.setItem('tgl-obs-view', v);
+  };
+  tabs.forEach((b) => (b.onclick = () => showView(b.dataset.view)));
+  showView(localStorage.getItem('tgl-obs-view') === 'widgets' ? 'widgets' : 'scenes');
+
+  // scale each preview (1920x1080, or the widget's size) to its card
+  const ro = new ResizeObserver((entries) => entries.forEach((e) => e.target.style.setProperty('--s', e.contentRect.width / e.target.dataset.w)));
   document.querySelectorAll('.card .shot').forEach((el) => ro.observe(el));
 
   const load = () => {
@@ -301,28 +324,7 @@ footer code { color: #cfe3f5; }
       c.querySelector('code').textContent = new URL(c.dataset.file, location.href).href + (w ? ' + Botrix ' + sceneWidgets(c.dataset.file).join(' + ') : '');
     });
     if (viewer.classList.contains('open')) showScene();
-    drawSolo();
   };
-  const copyText = async (text, btn) => {
-    try { await navigator.clipboard.writeText(text); } catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-    const was = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('done');
-    setTimeout(() => { btn.textContent = was; btn.classList.remove('done'); }, 1400);
-  };
-  const soloEl = document.getElementById('solo');
-  function drawSolo() {
-    soloEl.innerHTML = '';
-    for (const [file, title, size] of SOLO) {
-      const row = document.createElement('div'), url = obsUrl(file);
-      row.className = 'solo-row';
-      row.innerHTML = '<div><b></b><span></span><code></code></div><button type="button">Copy</button><a target="_blank" rel="noopener">Open</a>';
-      row.querySelector('b').textContent = title;
-      row.querySelector('span').textContent = size + ' suggested';
-      row.querySelector('code').textContent = new URL(file, location.href).href + (sceneWidgets(file).length ? ' + Botrix' : ' (add a link or key above)');
-      row.querySelector('a').href = url;
-      row.querySelector('button').onclick = (e) => copyText(url, e.target);
-      soloEl.appendChild(row);
-    }
-  }
 
   // the embedded control dock: same panel as the OBS dock (control), in the right-hand column
   const dock = document.getElementById('dock');
