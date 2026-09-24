@@ -134,7 +134,7 @@
   // cut through copy. Canvas is capped at 30fps, which is plenty for OBS.
   function trails() {
     const cv = document.getElementById('trails');
-    if (!cv || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!cv || TGL.reduced) return;
     const ctx = cv.getContext('2d'), W = cv.width = 1920, H = cv.height = 1080, CELL = 60;
     const count = +cv.dataset.riders || 6;
     const accent = () => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#22e5ff';
@@ -210,7 +210,7 @@
     Object.keys(ART).forEach((f) => { const i = new Image(); i.src = artSrc(f); });   // warm all five
     if (!TGL.cycling) { show(TGL.form); TGL.onChange(show); }
     else {
-      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reduced = TGL.reduced;
       let n = 0, tronSeen = false, timer, busy = Promise.resolve();
       // fresh = the scene (re)starting: Tron's next turn is cyan again unless it's on now; a pick mid-cycle keeps the count
       const startOn = (f, fresh = true) => { n = Math.max(0, CYCLE.indexOf(turnOf(f))); tronSeen = (fresh ? false : tronSeen) || turnOf(f) === 'tron'; };

@@ -136,11 +136,16 @@
     onStatus(fn) { statusListeners.add(fn); fn({ ...status, form }); },
     connectObs, paint, cycling,
     guide: params.get('guide') === '1',
+    // Reduced motion: the system setting, except inside OBS, where it's the streaming PC's setting, not the
+    // viewers' (Windows' "Animation effects" off would otherwise freeze every scene). ?motion=reduce|full forces it.
+    reduced: params.get('motion') === 'reduce' || (params.get('motion') !== 'full' && !window.obsstudio
+      && matchMedia('(prefers-reduced-motion: reduce)').matches),
     param: (k, d) => params.get(k) ?? d,
   };
 
   root.dataset.form = form;
   root.style.setProperty('--accent', FORMS[form].accent);
   if (window.TGL.guide) root.classList.add('guide');
+  if (window.TGL.reduced) root.classList.add('reduce-motion');
   if (!window.TGL_NO_AUTOCONNECT && !cycling) { connectVeado(); connectObs(); }
 })();

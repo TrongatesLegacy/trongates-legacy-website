@@ -130,6 +130,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `key=…` | Be right back, Just chatting, Game, chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
 | `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
 | `goalcolor=0` | the same | keep the goal in the colours from its Botrix link instead of following the scene's form |
+| `motion=full` / `motion=reduce` | every scene and widget page | force animations on or off. By default a normal browser follows the system's reduce-motion setting, but OBS ignores it (Windows' *Animation effects* off would otherwise freeze the scenes on stream) |
 | `music=…` | Starting soon, Be right back, Just chatting, Ending, music | now playing: `0` off, `1` also outside OBS, `always` stay up while paused, `demo` a sample track |
 | `musichost=…` | the same | SMTC Bridge's address if not `127.0.0.1:5000` |
 | `app=…` | the same | only follow this player (part of its Windows app id, e.g. `spotify`, `applemusic`); default: whichever Windows has in focus |

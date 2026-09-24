@@ -147,7 +147,8 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 /* chat commands appear exactly as typed, never uppercased by a heading style */
 .cmd, .gang em b { text-transform: none !important; letter-spacing: .02em !important; font-family: "Chakra Petch", sans-serif !important; font-weight: 600 !important; }
 
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+/* .reduce-motion is set by theme.js (TGL.reduced): the system setting, but not inside OBS */
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation: none !important; }
 
 /* ---- character art on scenes without veadotube (starting, BRB, ending) ----------------------------- */
 /* Same box and per-artwork transforms as the website hero (docs/design-system.md, "Character sizing"),
@@ -181,7 +182,7 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .np-eq i:nth-child(2) { animation-delay: -.35s; } .np-eq i:nth-child(3) { animation-delay: -.7s; }
 .np.paused .np-eq i { animation-play-state: paused; }
 @keyframes eq { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
-@media (prefers-reduced-motion: reduce) { .np-eq i { animation: none; transform: scaleY(.6); } }
+.reduce-motion .np-eq i { transform: scaleY(.6); }
 .np-title, .np-artist { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .np-title { font: 700 20px/1.25 Orbitron; letter-spacing: .03em; color: var(--text); }
 .np-artist { font: 600 16px/1.25 "Chakra Petch", sans-serif; color: #a9bfd6; }
