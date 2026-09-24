@@ -39,6 +39,9 @@ def frame(x, y, w, h, tab, icon, slot, extra=''):
   <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
 '''
+def np(x, y, w, h):
+    # now playing (SMTC Bridge): built into the scene, not an OBS source; filled and shown by scene.js
+    return f'<div class="np" data-np style="left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
 ITEMS = [('kick','kick.com/trongateslegacy'),('discord','Lulu Gang Discord · type <b class="cmd">!discord</b>'),('web','trongateslegacy.com'),
          ('youtube','@trongateslegacy'),('tiktok','@trongateslegacy'),('instagram','@trongateslegacy'),('club','club.com/trongateslegacy')]
 def ticker(skip=()):
@@ -77,7 +80,7 @@ scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', ride
   {GANG}
   {SOCIALS}
 </div>
-{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
+{np(1220, 22, 560, 100)}{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
 
 # ---- BE RIGHT BACK: title left, PNGtuber centre, chat and goal framed on the right -----------------------
 scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 55% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 15% 30%, var(--a10), transparent 70%)', css='''
@@ -89,7 +92,7 @@ scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6,
   <div class="sub">Grabbing snacks. <b>Keep chat alive.</b></div>
   {gang(compact=True)}
 </div>
-{art_stage(860, 300, 440, 650)}{frame(1330, 70, 530, 768, 'Chat', 'kick', 'Botrix chat')}{frame(1330, 858, 530, 134, 'Goal', 'kick', 'Botrix follower goal')}{ticker(skip=('discord',))}''')
+{np(800, 40, 500, 100)}{art_stage(860, 300, 440, 650)}{frame(1330, 70, 530, 768, 'Chat', 'kick', 'Botrix chat')}{frame(1330, 858, 530, 134, 'Goal', 'kick', 'Botrix follower goal')}{ticker(skip=('discord',))}''')
 
 # ---- JUST CHATTING: chat + goal on the left, big PNGtuber stage on the right ---------------------------------------
 scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='radial-gradient(36% 56% at 64% 52%, var(--a20), transparent 70%)', css='''
@@ -98,7 +101,7 @@ scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='
 .head .sep { width: 2px; height: 30px; background: var(--a40); }
 .head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }''', body=f'''
 <div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep" hidden></span><span class="topic" id="topic" hidden></span></div>
-{frame(40, 44, 590, 794, 'Chat', 'kick', 'Botrix chat')}{frame(40, 858, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{stage(760, 110, 980, 880)}{ticker()}
+{frame(40, 44, 590, 794, 'Chat', 'kick', 'Botrix chat')}{frame(40, 858, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{np(690, 4, 560, 100)}{stage(760, 110, 980, 880)}{ticker()}
 <script>{{ const t = new URLSearchParams(location.search).get('topic'); if (t) {{ const el = document.getElementById('topic'); el.textContent = t; el.hidden = false; el.previousElementSibling.hidden = false; }} }}</script>''')
 
 # ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
@@ -136,7 +139,7 @@ scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glo
   {GANG}
   {SOCIALS}
 </div>
-{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
+{np(1220, 22, 560, 100)}{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
 
 for name, s in scenes.items():
     # the socials ticker runs along the top (the bottom gets covered by video players' controls); everything
@@ -155,12 +158,13 @@ WIDGET_HEAD = HEAD.replace('1920x1080, 30 FPS', '{size} suggested (any size work
 widgets = {
     'chat': dict(title='Chat box', size='500x800', tab='Chat', slot='Botrix chat'),
     'goal': dict(title='Follower goal', size='500x134', tab='Goal', slot='Botrix follower goal'),
+    'music': dict(title='Now playing', size='560x100'),
 }
 for name, w in widgets.items():
     css = """
 html, body { width: 100%; height: 100%; }
-.frame { inset: 0; }"""
-    body = f'''<div class="frame">
+.frame, .np { inset: 0; }"""
+    body = '<div class="np" data-np></div>\n' if name == 'music' else f'''<div class="frame">
   <div class="tab"><svg class="i"><use href="#i-kick"/></svg>{w['tab']}</div>
   <div data-slot="{w['slot']}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>

@@ -113,7 +113,7 @@ footer code { color: #cfe3f5; }
       <label class="field">Follower goal widget link<input type="password" id="w-goal" autocomplete="off" spellcheck="false" placeholder="https://botrix.live/widgets/…"></label>
       <label class="field">Or the Netlify key (links kept in Netlify)<input type="password" id="w-key" autocomplete="off" spellcheck="false" placeholder="OBS_KEY"></label>
       <p class="hint" id="w-key-status" role="status" hidden></p>
-      <label><input type="checkbox" id="w-sample" checked> Sample chat messages in the previews</label>
+      <label><input type="checkbox" id="w-sample" checked> Sample messages and music in the previews</label>
       <div class="acts"><button type="button" class="share" id="w-share">Copy bookmark link</button>
         <button type="button" class="share clear" id="w-clear">Clear saved data</button></div>
       <p class="hint warn" id="w-bad" role="status" hidden>This bookmark link is incomplete, probably cut off when it was copied, so
@@ -155,11 +155,11 @@ footer code { color: #cfe3f5; }
   // The control dock (shared/control.js) sits in the right-hand column; its colour buttons also set
   // the colour the previews are shown in.
   const SCENES = [
-    ['starting', 'Starting soon', 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code.'],
-    ['brb', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; framed Botrix chat and follower goal on the right.', ['chat', 'goal']],
-    ['chatting', 'Just chatting', 'Big PNGtuber space (veadotube), Botrix chat and follower goal. Colour follows veadotube.', ['chat', 'goal']],
+    ['starting', 'Starting soon', 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code; now playing.'],
+    ['brb', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; now playing; framed Botrix chat and follower goal on the right.', ['chat', 'goal']],
+    ['chatting', 'Just chatting', 'Big PNGtuber space (veadotube), Botrix chat and follower goal, now playing. Colour follows veadotube.', ['chat', 'goal']],
     ['game', 'Game', 'Loading backdrop behind the full-screen game capture. Chat on the left; colour follows veadotube.', ['chat', 'goal']],
-    ['ending', 'Ending', 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials.'],
+    ['ending', 'Ending', 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials; now playing.'],
   ];
   const grid = document.getElementById('grid'), guide = document.getElementById('guide');
   let form = TGL.form;
@@ -265,6 +265,7 @@ footer code { color: #cfe3f5; }
   const SOLO = [
     ['chat', 'Chat box', 'Just the framed chat, as its own browser source (e.g. on top of the game). 500 × 800 suggested; any size works.', ['chat'], 500, 800],
     ['goal', 'Follower goal', 'Just the framed follower goal, as its own browser source. 500 × 134 suggested (at least ~464 wide).', ['goal'], 500, 134],
+    ['music', 'Now playing', 'Song from SMTC Bridge (Windows), shown while music plays. Built into Starting soon, Be right back, Just chatting and Ending; this is it on its own (e.g. over the game). 560 × 100 suggested.', [], 560, 100],
   ];
   const sceneWidgets = (file) => ([...SCENES, ...SOLO].find(([f]) => f === file)[3] || []).filter(source);
   const widgets = (file, preview) => {
@@ -275,7 +276,8 @@ footer code { color: #cfe3f5; }
       + (preview && sample.checked ? '&demo=1' : '');
   };
   const obsUrl = (file) => { const w = widgets(file, false); return new URL(file, location.href).href + (w ? '?' + w.slice(1) : ''); };
-  const previewSrc = (file, g = guide.checked) => `${file}?noveado=1&form=${form}${g ? '&guide=1' : ''}${widgets(file, true)}`;
+  // previews never talk to local apps: no veadotube, and a sample track instead of SMTC Bridge (or none)
+  const previewSrc = (file, g = guide.checked) => `${file}?noveado=1&form=${form}${g ? '&guide=1' : ''}&music=${sample.checked ? 'demo' : '0'}${widgets(file, true)}`;
   const card = (file, title, desc, { w = 1920, h = 1080, into = grid } = {}) => {
     const a = document.createElement('a'), scene = into === grid;
     a.className = 'card'; a.href = file; a.target = '_blank'; a.rel = 'noopener';

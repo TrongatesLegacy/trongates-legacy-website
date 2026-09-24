@@ -17,6 +17,7 @@ the OBS dock still follow veadotube.
 | Ending | `ending` | `ending.html` |
 | Chat box on its own (optional) | `chat` | `chat.html` |
 | Follower goal on its own (optional) | `goal` | `goal.html` |
+| Now playing on its own (optional) | `music` | `music.html` |
 | Control dock (optional) | `control` | `control.html` |
 
 **Game** is a backdrop for the moments before your game appears: big "Loading the game" text centred to the
@@ -127,6 +128,9 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `chat=…`, `goal=…` | Be right back, Just chatting, Game, chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 | `key=…` | Be right back, Just chatting, Game, chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
 | `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
+| `music=…` | Starting soon, Be right back, Just chatting, Ending, music | now playing: `0` off, `1` also outside OBS, `always` stay up while paused, `demo` a sample track |
+| `musichost=…` | the same | SMTC Bridge's address if not `127.0.0.1:5000` |
+| `app=…` | the same | only follow this player (part of its Windows app id, e.g. `spotify`, `applemusic`); default: whichever Windows has in focus |
 
 Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting?topic=Chilling&form=princess`.
 
@@ -184,6 +188,22 @@ of your own. The frame fills whatever size the source is given; suggested **chat
 (the goal design needs at least about 464 wide and the frame 134 tall). They take the same options as the scenes:
 `key=` or `chat=`/`goal=` for the widget, and the colour follows veadotube / the dock / `form=`. The index's
 **Widgets** tab (next to **Scenes**, top right) previews them and copies them with your links or key.
+
+## Now playing (SMTC Bridge, Windows)
+
+Starting soon, Be right back, Just chatting and Ending show the current song in their own panel (album art,
+title, artist, progress, in the scene's colour), read from [SMTC Bridge](https://github.com/nuttylmao/smtc-bridge):
+a small Windows tray app that serves whatever Windows' media controls show (Spotify, Apple Music, YouTube Music,
+a browser tab…) as JSON at `http://127.0.0.1:5000/now-playing`. Nothing to add in OBS: install the bridge on the
+streaming PC, tick *Start with Windows* in its tray menu, and the panel appears while music plays and fades out
+when it stops (or when the bridge isn't running). The Game scene has none: put `/obs/music` on top of the game
+instead (Widgets tab on the index; 560 × 100 suggested).
+
+It only asks the bridge from inside OBS: a normal browser would ask for *Apps on device* and label the page
+"Not Secure", so there it stays hidden unless the URL has `music=1`. The index previews use a sample track.
+Positions (for reference; it isn't an OBS source): Starting soon / Ending X 1220 Y 86 W 560 H 100, Be right back
+X 800 Y 104 W 500 H 100, Just chatting X 690 Y 68 W 560 H 100. This replaces nutty's Universal Now Playing
+widget (same bridge), so that one isn't needed; it can still be layered on top as a browser source if preferred.
 
 ### Kept in Netlify (instead of pasting them)
 

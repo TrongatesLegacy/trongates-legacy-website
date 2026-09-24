@@ -42,6 +42,62 @@
     load();
   }
 
+  // ---- now playing: SMTC Bridge (Windows; https://github.com/nuttylmao/smtc-bridge) ------------------
+  // The bridge serves whatever Windows' media controls show (Spotify, Apple Music, YouTube Music, browsers…) as
+  // JSON at http://127.0.0.1:5000/now-playing, CORS open. Polled once a second, only inside OBS (a normal browser
+  // would ask for "Apps on device" and mark the page Not Secure) unless ?music=1. Options:
+  //   music=0 off · music=1 poll outside OBS too · music=demo sample track · music=always stay up while paused
+  //   musichost=127.0.0.1:5000 the bridge's address · app=Spotify only follow this app (part of its id)
+  const np = document.querySelector('[data-np]');
+  if (np) {
+    const mode = TGL.param('music', '');
+    np.innerHTML = `<div class="np-art"><img alt=""></div><div class="np-info">
+      <div class="np-top"><span class="np-eq"><i></i><i></i><i></i></span>Now playing<span class="np-time"></span></div>
+      <div class="np-title"></div><div class="np-artist"></div><div class="np-bar"><i></i></div></div>`;
+    const img = np.querySelector('img'), q = (s) => np.querySelector(s);
+    const mmss = (ms) => { const t = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+    let track = null, lastPlaying = 0;
+    const show = (t) => {                       // t: {title, artist, art, pos, end, at, playing}
+      track = t;
+      if (!t) { np.classList.remove('on'); return; }
+      q('.np-title').textContent = t.title; q('.np-artist').textContent = t.artist || '';
+      if (t.art && img.getAttribute('src') !== t.art) img.src = t.art;
+      if (!t.art) img.removeAttribute('src');
+      np.classList.toggle('paused', !t.playing);
+      np.classList.add('on');
+    };
+    const tick = () => {                        // progress between polls, from the bridge's last position
+      if (!track || !track.end) { q('.np-bar i').style.width = '0'; q('.np-time').textContent = ''; return; }
+      const pos = Math.min(track.end, track.pos + (track.playing ? Date.now() - track.at : 0));
+      q('.np-bar i').style.width = (100 * pos / track.end).toFixed(2) + '%';
+      q('.np-time').textContent = `${mmss(pos)} / ${mmss(track.end)}`;
+    };
+    setInterval(tick, 250);
+    if (mode === 'demo') {
+      const start = Date.now();
+      show({ title: 'Neon Grid Runner', artist: 'Lulu Gang Radio', art: '', pos: 72000, end: 214000, at: start, playing: true });
+    } else if (mode !== '0' && (window.obsstudio || mode === '1' || mode === 'always')) {
+      const host = TGL.param('musichost', '127.0.0.1:5000'), app = TGL.param('app', '').toLowerCase();
+      const poll = async () => {
+        try {
+          const d = await (await fetch(`http://${host}/now-playing`, { cache: 'no-store' })).json();
+          const list = d.sessions || [];
+          const s = (app ? list.find((x) => (x.source_app_id || '').toLowerCase().includes(app))
+            : list.find((x) => x.source_app_id === d.current_session_id)) || list.find((x) => x.playback_info?.PlaybackStatus === 4);
+          const m = s?.media_properties, tl = s?.timeline_properties || {};
+          const playing = s?.playback_info?.PlaybackStatus === 4;
+          if (playing) lastPlaying = Date.now();
+          // keep it up through track changes (status 2) for a few seconds; ?music=always keeps it up while paused
+          if (!m || !m.Title || (!playing && mode !== 'always' && Date.now() - lastPlaying > 4000)) show(null);
+          else show({ title: m.Title, artist: m.Artist, art: m.Thumbnail, pos: (tl.Position || 0) - (tl.StartTime || 0),
+            end: (tl.EndTime || 0) - (tl.StartTime || 0), at: tl.LastUpdatedTime ? Date.parse(tl.LastUpdatedTime) : Date.now(), playing });
+        } catch { show(null); }                  // bridge not running: stay hidden, keep asking
+        setTimeout(poll, 1000);
+      };
+      poll();
+    }
+  }
+
   // ---- light cycles: riders on the grid that turn at intersections --------------------------------
   // Same idea as the website's background; they fade out under [data-quiet] zones (text) so they never
   // cut through copy. Canvas is capped at 30fps, which is plenty for OBS.
