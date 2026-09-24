@@ -109,7 +109,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 .head .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); } .head .s { color: var(--text); }
 .head .sep { width: 2px; height: 30px; background: var(--a40); }
 .head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
-.copy { position: absolute; left: 550px; right: 0; top: 0; bottom: 64px; align-content: center; display: grid; gap: 30px; justify-items: center; text-align: center; }
+.copy { position: absolute; left: 550px; right: 0; top: 0; bottom: 0; align-content: center; display: grid; gap: 30px; justify-items: center; text-align: center; }
 .copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 .copy .title { font-size: 120px; }
 .bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
@@ -139,6 +139,10 @@ scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glo
 {art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
 
 for name, s in scenes.items():
-    html = HEAD.format(name=name, html_attr=' data-cycle' if s.get('cycle') else '', **s) + BG.format(**s) + s['body'] + '\n' + FOOT
+    # the socials ticker runs along the top (the bottom gets covered by video players' controls); everything
+    # else sits in .content, which starts below it, so positions in the scenes are measured from under the ticker
+    body, tick = s['body'].split('<div class="ticker">')
+    body = f'<div class="content">\n{body}</div>\n<div class="ticker">{tick}'
+    html = HEAD.format(name=name, html_attr=' data-cycle' if s.get('cycle') else '', **s) + BG.format(**s) + body + '\n' + FOOT
     (OUT / f'{name}.html').write_text(html)
     print('wrote', f'public/obs/{name}.html')

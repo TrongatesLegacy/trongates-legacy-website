@@ -114,8 +114,10 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .corner.tl { left: 18px; top: 18px; border-right: 0; border-bottom: 0; } .corner.tr { right: 18px; top: 18px; border-left: 0; border-bottom: 0; }
 .corner.bl { left: 18px; bottom: 18px; border-right: 0; border-top: 0; } .corner.br { right: 18px; bottom: 18px; border-left: 0; border-top: 0; }
 
-/* bottom ticker */
-.ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; overflow: hidden; border-top: 1px solid var(--a40);
+/* socials ticker, along the top: players' controls cover the bottom of the picture. The scene's content
+   starts under it. */
+.content { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; }
+.ticker { position: absolute; left: 0; right: 0; top: 0; height: 64px; overflow: hidden; border-bottom: 1px solid var(--a40); z-index: 5;
   background: linear-gradient(90deg, var(--a10), rgba(5,10,20,.92) 30%, rgba(5,10,20,.92) 70%, var(--a10)); }
 .ticker .track { display: flex; width: max-content; height: 100%; align-items: center; animation: marquee 50s linear infinite; }
 .ticker .item { display: inline-flex; align-items: center; gap: 12px; padding: 0 34px; font: 700 20px/1 Orbitron; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }

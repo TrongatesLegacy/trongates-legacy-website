@@ -88,17 +88,20 @@ dashed box labelled with its exact X, Y, W and H. Remove it when you're done.
 
 ### Source positions (1920×1080 canvas)
 
+The socials strip runs along the **top** of every scene (a video player's controls cover the bottom), so
+the bottom edge is kept clear of anything that matters.
+
 | Scene | Source | X | Y | W | H |
 |---|---|---|---|---|---|
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
-| Be right back | Botrix chat | 1348 | 122 | 494 | 800 |
-| Just chatting | Botrix chat | 58 | 96 | 554 | 730 |
-| | Botrix follower goal | 58 | 916 | 554 | 58 |
-| | veadotube (Spout) | 760 | 110 | 980 | 880 |
+| Be right back | Botrix chat | 1348 | 186 | 494 | 800 |
+| Just chatting | Botrix chat | 58 | 160 | 554 | 730 |
+| | Botrix follower goal | 58 | 980 | 554 | 58 |
+| | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
-| | Botrix chat | 68 | 192 | 464 | 630 |
-| | Botrix follower goal | 68 | 914 | 464 | 58 |
+| | Botrix chat | 68 | 256 | 464 | 630 |
+| | Botrix follower goal | 68 | 978 | 464 | 58 |
 | Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
 The PNGtuber space on Just chatting is sized so the avatar's feet land on the glowing pad and the rings
