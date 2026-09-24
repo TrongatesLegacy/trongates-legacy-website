@@ -82,6 +82,8 @@ footer code { color: #cfe3f5; }
       <h2 id="links-h">Botrix widgets</h2>
       <label class="field">Chat widget link<input type="password" id="w-chat" autocomplete="off" spellcheck="false" placeholder="https://botrix.live/widgets/chat/?bid=…"></label>
       <label class="field">Follower goal widget link<input type="password" id="w-goal" autocomplete="off" spellcheck="false" placeholder="https://botrix.live/widgets/…"></label>
+      <label class="field">Or the Netlify key (links kept in Netlify)<input type="password" id="w-key" autocomplete="off" spellcheck="false" placeholder="OBS_KEY"></label>
+      <p class="hint" id="w-key-status" role="status" hidden></p>
       <label><input type="checkbox" id="w-sample" checked> Sample chat messages in the previews</label>
       <button type="button" class="share" id="w-share">Copy bookmark link</button>
       <p class="hint warn" id="w-bad" role="status" hidden>This bookmark link is incomplete, probably cut off when it was copied, so
@@ -93,7 +95,11 @@ footer code { color: #cfe3f5; }
         <p class="hint">Copy bookmark link gives this page's address with both links packed onto the end (after the #).
         Bookmark it, or open it in another browser or on another computer, and the links fill themselves in. The
         packed part (after the #, never a ?) never leaves your browser, but it's only scrambled, not locked: treat the bookmark as privately
-        as the Botrix links themselves.</p></details>
+        as the Botrix links themselves.</p>
+        <p class="hint">Or keep the links in Netlify (env vars <code>BOTRIX_CHAT_URL</code>, <code>BOTRIX_GOAL_URL</code>,
+        plus a password of your choosing in <code>OBS_KEY</code>) and type that key here instead. Copy then gives each
+        scene with <code>?key=…</code>, and the scene fetches the current links from Netlify when it loads, so changing a
+        link in Netlify updates every OBS source. A link pasted above still wins for its frame.</p></details>
     </section>
     <section class="panel dock" id="dock" aria-label="Control dock"></section>
   </aside>
@@ -135,8 +141,14 @@ soon, Be right back and Ending open on the selected form, then cycle through the
   // a bookmark link carries them after the # (never sent to the server): #w=<base64url of {"chat":…,"goal":…}>
   const b64 = { enc: (s) => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''), dec: (s) => atob(s.replace(/-/g, '+').replace(/_/g, '/')) };
   const bad = document.getElementById('w-bad');
+  const keyEl = document.getElementById('w-key'), keyStatus = document.getElementById('w-key-status');
+  let envLinks = {};                                   // what Netlify returned for the key
   const linksNow = () => Object.fromEntries(Object.entries(W).filter(([, el]) => /^https:\/\//.test(el.value.trim())).map(([k, el]) => [k, el.value.trim()]));
-  const bookmark = () => location.origin + location.pathname + location.search + '#w=' + b64.enc(JSON.stringify(linksNow()));
+  const packNow = () => ({ ...linksNow(), ...(keyEl.value.trim() ? { key: keyEl.value.trim() } : {}) });
+  const bookmark = () => location.origin + location.pathname + location.search + '#w=' + b64.enc(JSON.stringify(packNow()));
+  // where each widget comes from: a pasted link wins, else Netlify (through the key)
+  const source = (k) => (/^https:\/\//.test(W[k].value) ? 'link' : envLinks[k] ? 'env' : null);
+  const anyWidget = () => Object.keys(W).some(source);
   // the # stays in the address bar, so bookmarking the page keeps the links
   const importHash = () => {
     const packed = new URLSearchParams(location.hash.slice(1)).get('w');
@@ -144,9 +156,11 @@ soon, Be right back and Ending open on the selected form, then cycle through the
     try {
       const got = JSON.parse(b64.dec(packed));
       for (const k of Object.keys(W)) if (typeof got[k] === 'string' && /^https:\/\//.test(got[k])) localStorage.setItem('tgl-botrix-' + k, got[k]);
+      if (typeof got.key === 'string' && got.key) localStorage.setItem('tgl-obs-key', got.key);
       bad.hidden = true;
     } catch { bad.hidden = false; return false; }
     for (const [k, el] of Object.entries(W)) el.value = localStorage.getItem('tgl-botrix-' + k) || '';
+    keyEl.value = localStorage.getItem('tgl-obs-key') || '';
     return true;
   };
   importHash();
@@ -158,20 +172,52 @@ soon, Be right back and Ending open on the selected form, then cycle through the
       load();
     });
   }
-  addEventListener('hashchange', () => { if (importHash()) { shareState(); load(); } });   // a bookmark pasted into an open tab
+  // the Netlify key: ask /api/obs-widgets which links it has
+  keyEl.value = localStorage.getItem('tgl-obs-key') || '';
+  const say = (t, warn) => { keyStatus.hidden = !t; keyStatus.textContent = t; keyStatus.classList.toggle('warn', !!warn); };
+  async function checkKey() {
+    const key = keyEl.value.trim();
+    envLinks = {};
+    if (!key) say('');
+    else {
+      try {
+        const r = await fetch('/api/obs-widgets', { headers: { 'X-OBS-Key': key }, cache: 'no-store' });
+        if (r.status === 401) say('Netlify: wrong key.', true);
+        else if (r.status === 404) say('Netlify: not set up yet (add OBS_KEY, BOTRIX_CHAT_URL and BOTRIX_GOAL_URL, then redeploy).', true);
+        else if (!r.ok) throw 0;
+        else {
+          envLinks = await r.json();
+          say('Netlify: ' + Object.keys(W).map((k) => (k === 'chat' ? 'chat ' : 'goal ') + (envLinks[k] ? '✓' : '✗ (not set)')).join(', '), !Object.keys(envLinks).length);
+        }
+      } catch { say("Netlify: couldn't reach /api/obs-widgets.", true); }
+    }
+    shareState(); load();
+  }
+  keyEl.addEventListener('change', () => {
+    keyEl.value = keyEl.value.trim(); localStorage.setItem('tgl-obs-key', keyEl.value);
+    if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());
+    checkKey();
+  });
+  addEventListener('hashchange', () => { if (importHash()) checkKey(); });   // a bookmark pasted into an open tab
   sample.onchange = () => load();
   const share = document.getElementById('w-share');
-  const shareState = () => { share.disabled = !Object.values(W).some((el) => /^https:\/\//.test(el.value)); };
-  Object.values(W).forEach((el) => el.addEventListener('input', shareState)); shareState();
+  const shareState = () => { share.disabled = !Object.values(W).some((el) => /^https:\/\//.test(el.value)) && !keyEl.value.trim(); };
+  [...Object.values(W), keyEl].forEach((el) => el.addEventListener('input', shareState)); shareState();
   share.addEventListener('click', async () => {
     const full = bookmark();
     try { await navigator.clipboard.writeText(full); } catch { const t = document.createElement('textarea'); t.value = full; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
     share.textContent = 'Copied'; share.classList.add('done');
     setTimeout(() => { share.textContent = 'Copy bookmark link'; share.classList.remove('done'); }, 1400);
   });
-  const widgets = (file, preview) => (SCENES.find(([f]) => f === file)[3] || [])
-    .filter((k) => /^https:\/\//.test(W[k].value))
-    .map((k) => `&${k}=` + encodeURIComponent(W[k].value + (preview && sample.checked ? '&isDemo=true&preview=1' : ''))).join('');
+  // pasted links go in whole (chat=/goal=); Netlify ones as the key; previews add demo=1 for sample messages
+  const sceneWidgets = (file) => (SCENES.find(([f]) => f === file)[3] || []).filter(source);
+  const widgets = (file, preview) => {
+    const ks = sceneWidgets(file);
+    if (!ks.length) return '';
+    return ks.filter((k) => source(k) === 'link').map((k) => `&${k}=` + encodeURIComponent(W[k].value)).join('')
+      + (ks.some((k) => source(k) === 'env') ? '&key=' + encodeURIComponent(keyEl.value.trim()) : '')
+      + (preview && sample.checked ? '&demo=1' : '');
+  };
   const obsUrl = (file) => { const w = widgets(file, false); return new URL(file, location.href).href + (w ? '?' + w.slice(1) : ''); };
   const previewSrc = (file, g = guide.checked) => `${file}?noveado=1&form=${form}${g ? '&guide=1' : ''}${widgets(file, true)}`;
   const card = (file, title, desc, extra = '') => {
@@ -206,7 +252,7 @@ soon, Be right back and Ending open on the selected form, then cycle through the
     document.querySelectorAll('.card').forEach((c) => {
       c.querySelector('iframe').src = previewSrc(c.dataset.file);
       const w = widgets(c.dataset.file, false);
-      c.querySelector('code').textContent = new URL(c.dataset.file, location.href).href + (w ? ' + Botrix ' + (SCENES.find(([f]) => f === c.dataset.file)[3].filter((k) => W[k].value).join(' + ')) : '');
+      c.querySelector('code').textContent = new URL(c.dataset.file, location.href).href + (w ? ' + Botrix ' + sceneWidgets(c.dataset.file).join(' + ') : '');
     });
     if (viewer.classList.contains('open')) showScene();
   };
@@ -238,7 +284,7 @@ soon, Be right back and Ending open on the selected form, then cycle through the
   // positions start on until Botrix links are added (then the widgets are the point); a manual tick sticks
   let guideTouched = false;
   function openViewer(file) {
-    if (!guideTouched) vGuide.checked = !Object.values(W).some((el) => /^https:\/\//.test(el.value));
+    if (!guideTouched) vGuide.checked = !anyWidget();
     current = SCENES.findIndex(([f]) => f === file); fit(); showScene(); viewer.classList.add('open'); document.getElementById('v-close').focus(); }
   const closeViewer = () => { viewer.classList.remove('open'); vFrame.src = 'about:blank'; };
   const step = (d) => { current = (current + d + SCENES.length) % SCENES.length; showScene(); };
@@ -252,7 +298,7 @@ soon, Be right back and Ending open on the selected form, then cycle through the
     if (e.key === 'Escape') closeViewer(); else if (e.key === 'ArrowRight') step(1); else if (e.key === 'ArrowLeft') step(-1);
   });
   addEventListener('resize', () => viewer.classList.contains('open') && fit());
-  load();
+  checkKey();   // loads the previews (after asking Netlify, if a key is saved)
 })();
 </script>
 </body></html>

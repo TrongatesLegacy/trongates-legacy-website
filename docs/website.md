@@ -38,6 +38,9 @@ website API returns 403 to server-side requests. So:
   `KICK_CLIENT_SECRET`, client-credentials token cached per warm instance). Falls back to RSS / Kick's site API
   if the keys are missing. Reports upstream failures in an `errors` array.
 - Cached at Netlify's CDN for 180s (stale-while-revalidate 1h); failures only 15s.
+- **`/api/obs-widgets`** (`netlify/functions/obs-widgets.mjs`) is for the OBS scenes, not the site: it returns the
+  Botrix links from `BOTRIX_CHAT_URL` / `BOTRIX_GOAL_URL`, only with the `X-OBS-Key` header matching `OBS_KEY`
+  (never cached). See obs/README.md.
 - **`public/feed.json`** is a static copy the page renders first; a GitHub Action (`update-feed.yml`,
   daily at 05:17 UTC) refreshes it with the same API key (repo secret) and commits only when it changes. The
   page never lets `feed.json` overwrite a newer live list (both fetches race).

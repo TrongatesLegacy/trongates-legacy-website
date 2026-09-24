@@ -30,7 +30,8 @@ website edit) and **channel-art** (Kick/Discord/other platform artwork).
   TrongatesLegacy account's token. The machine's global git/gh identity is the owner's work account: never
   change it, never `gh auth switch`. For `gh` commands use `GH_TOKEN=$(gh auth token --user TrongatesLegacy) gh …`.
 - **Never commit secrets.** `YOUTUBE_API_KEY`, `KICK_CLIENT_ID`, `KICK_CLIENT_SECRET` live in Netlify env vars
-  (and `YOUTUBE_API_KEY` also as a GitHub Actions secret). Netlify's secret scanner fails the build if a
+  (and `YOUTUBE_API_KEY` also as a GitHub Actions secret), as do the OBS scenes' `OBS_KEY`, `BOTRIX_CHAT_URL` and
+  `BOTRIX_GOAL_URL` (the Botrix links carry the account's widget id: never print or commit them). Netlify's secret scanner fails the build if a
   secret's *value* appears in the repo.
 - **No build step, no framework, no dependencies.** The site is `public/index.html` (HTML, CSS and JS inline)
   plus static assets. Keep it that way unless the owner asks otherwise. See docs/website.md for why.

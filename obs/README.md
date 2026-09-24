@@ -122,6 +122,8 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `form=princess` | all | the colour to start on before veadotube connects |
 | `noveado=1` | all | don't connect to veadotube |
 | `chat=…`, `goal=…` | Be right back (chat), Just chatting, Game | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
+| `key=…` | Be right back (chat), Just chatting, Game | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
+| `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
 
 Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting?topic=Chilling&form=princess`.
 
@@ -170,6 +172,24 @@ transparent, so the frame's glass shows through), `accentColor=#22e5ff`, `border
 on Botrix's page; accent, border, track and sub-text colours are link-only. Colours take an alpha
 (`#rrggbbaa`), which is how "transparent" works. Theme ids are kebab-case versions of the design names
 (`glass-panel`, `xp-surge`…), except ★ Rainbow, which is `arcoiris`.
+
+### Kept in Netlify (instead of pasting them)
+
+The links can live in the site's Netlify environment variables instead of in each browser. Then the OBS sources
+only carry a key, and changing a Botrix setting means updating one variable, not re-copying every scene.
+
+1. Netlify → Site configuration → Environment variables, add (tick *Contains secret values* for each):
+   - `BOTRIX_CHAT_URL`: the chat widget link
+   - `BOTRIX_GOAL_URL`: the follower goal widget link
+   - `OBS_KEY`: a long random password you make up (it's what unlocks the links; anyone with it can read them)
+2. Redeploy (Deploys → Trigger deploy) so the function sees them.
+3. On the index, type the key into *Or the Netlify key*. The panel shows `Netlify: chat ✓, goal ✓` when it works.
+   Each card's **Copy** then gives `…/obs/chatting?key=…`, and the bookmark link carries the key.
+
+`/api/obs-widgets` (`netlify/functions/obs-widgets.mjs`) hands the links only to requests whose `X-OBS-Key`
+header matches `OBS_KEY`, and never lets them be cached. Scenes loaded as local files ask the live site. A link
+pasted on the index (or `chat=`/`goal=` on a scene URL) still wins for its frame. To change the key, update
+`OBS_KEY`, redeploy, and re-copy the scene addresses.
 
 ### As separate OBS sources
 

@@ -19,12 +19,27 @@
   // the frame, so it needs no browser source, position or Custom CSS of its own in OBS. The widget's look is
   // set in Botrix (design, font size); the links carry the account's widget id, so they only ever live in the
   // OBS source's URL (and the index page's browser storage), never in the repo.
-  for (const [key, slot] of [['chat', 'Botrix chat'], ['goal', 'Botrix follower goal']]) {
-    const url = TGL.param(key), el = document.querySelector(`[data-slot="${slot}"]`);
-    if (!url || !el || !/^https:\/\//.test(url)) continue;
+  // ?key=<OBS_KEY> instead fetches the links kept in Netlify env vars (netlify/functions/obs-widgets.mjs), so
+  // changing them there updates every scene; a chat=/goal= on the URL still wins for its frame. demo=1 adds
+  // Botrix's sample messages (the index previews).
+  const SLOTS = { chat: 'Botrix chat', goal: 'Botrix follower goal' };
+  const embed = (key, url) => {
+    const el = document.querySelector(`[data-slot="${SLOTS[key]}"]`);
+    if (!url || !el || !/^https:\/\//.test(url) || el.querySelector('.widget')) return;
     const f = document.createElement('iframe');
-    f.src = url; f.title = slot; f.className = 'widget ' + key;
+    f.src = url + (TGL.param('demo') === '1' ? '&isDemo=true&preview=1' : ''); f.title = SLOTS[key]; f.className = 'widget ' + key;
     el.appendChild(f);
+  };
+  for (const key of Object.keys(SLOTS)) embed(key, TGL.param(key));
+  const siteKey = TGL.param('key');
+  if (siteKey && Object.keys(SLOTS).some((k) => document.querySelector(`[data-slot="${SLOTS[k]}"]`) && !TGL.param(k))) {
+    // local files (file://) ask the live site
+    const api = (/^https?:$/.test(location.protocol) ? '' : 'https://www.trongateslegacy.com') + '/api/obs-widgets';
+    const load = () => fetch(api, { headers: { 'X-OBS-Key': siteKey }, cache: 'no-store' })
+      .then((r) => (r.status === 401 || r.status === 404 ? {} : r.ok ? r.json() : Promise.reject()))
+      .then((links) => Object.entries(links).forEach(([k, url]) => { if (!TGL.param(k)) embed(k, url); }))
+      .catch(() => setTimeout(load, 30000));          // offline or starting up: try again
+    load();
   }
 
   // ---- light cycles: riders on the grid that turn at intersections --------------------------------
