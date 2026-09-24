@@ -1,5 +1,5 @@
-// Behaviour shared by the scene overlays: light trails on the grid, countdown / elapsed timers, the layout
-// guide labels, and a glitch on the title when the form changes. Loaded after theme.js.
+// Behaviour shared by the scene overlays: light trails on the grid, the layout guide labels, the form-cycling
+// character art, and a glitch on the title when the form changes. Loaded after theme.js.
 (() => {
   const $$ = (s) => [...document.querySelectorAll(s)];
 
@@ -12,35 +12,6 @@
       if (!label) { label = document.createElement('div'); label.className = 'slot-label'; el.appendChild(label); }
       label.textContent = `${el.dataset.slot}\nX ${Math.round(b.left)}  Y ${Math.round(b.top)}  W ${Math.round(b.width)}  H ${Math.round(b.height)}`;
     });
-  }
-
-  // ---- timers ---------------------------------------------------------------------------------------
-  // <span data-countdown>: counts down from ?minutes=N (or ?at=HH:MM local time), then shows "any second now".
-  // <span data-elapsed>: counts up from when the source became visible (tick "Refresh browser when scene
-  // becomes active" in OBS so it restarts each time you switch to the scene).
-  const pad = (n) => String(n).padStart(2, '0');
-  const fmt = (s) => `${Math.floor(s / 60)}:${pad(Math.floor(s % 60))}`;
-  function startTimers() {
-    const started = Date.now();
-    let end = null;
-    const mins = parseFloat(TGL.param('minutes', ''));
-    const at = TGL.param('at', '');
-    if (mins > 0) end = started + mins * 60000;
-    else if (/^\d{1,2}:\d{2}$/.test(at)) {
-      const [h, m] = at.split(':').map(Number), d = new Date(); d.setHours(h, m, 0, 0);
-      if (d < new Date()) d.setDate(d.getDate() + 1);
-      end = d.getTime();
-    }
-    const tick = () => {
-      $$('[data-countdown]').forEach((el) => {
-        if (!end) { el.hidden = true; return; }
-        const left = Math.max(0, (end - Date.now()) / 1000);
-        el.hidden = false;
-        el.innerHTML = left > 0 ? `Starting in <em>${fmt(left)}</em>` : '<em>Any second now</em>';
-      });
-      $$('[data-elapsed]').forEach((el) => { el.innerHTML = `Away for <em>${fmt((Date.now() - started) / 1000)}</em>`; });
-    };
-    tick(); setInterval(tick, 500);
   }
 
   // ---- light cycles: riders on the grid that turn at intersections --------------------------------
@@ -148,5 +119,5 @@
   // ---- glitch the title whenever the form changes --------------------------------------------------
   TGL.onChange(() => $$('.glitch').forEach((el) => { el.classList.remove('now'); void el.offsetWidth; el.classList.add('now'); }));
 
-  document.fonts.ready.then(() => { labelSlots(); startTimers(); trails(); });
+  document.fonts.ready.then(() => { labelSlots(); trails(); });
 })();

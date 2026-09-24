@@ -56,8 +56,6 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 @keyframes dot { 30% { opacity: 1; } }
 .sub { font-size: 30px; font-weight: 600; color: #a9bfd6; letter-spacing: .04em; }
 .sub b { color: var(--text); }
-.timer { white-space: nowrap; font: 700 30px/1 Orbitron; letter-spacing: .12em; color: var(--text); font-variant-numeric: tabular-nums; }
-.timer em { font-style: normal; color: var(--accent); }
 
 /* ---- socials row ----------------------------------------------------------------------------------- */
 .socials { display: grid; grid-template-columns: auto auto; gap: 14px 40px; font-size: 24px; font-weight: 600; color: #cfe3f5; }
@@ -65,6 +63,23 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .socials .i { width: 28px; height: 28px; color: var(--accent); filter: drop-shadow(0 0 8px var(--a40)); }
 .socials .kick .i { color: var(--kick); filter: drop-shadow(0 0 8px rgba(83,252,24,.5)); }
 .socials .discord .i { color: #8c9bff; }
+
+/* ---- Lulu Gang Discord block (Starting soon, Be right back, Ending) --------------------------------- */
+.gang { display: flex; align-items: center; gap: 22px; padding: 16px 30px 16px 18px; border: 1px solid rgba(255,99,184,.45); border-radius: 22px;
+  background: linear-gradient(100deg, rgba(255,99,184,.18), rgba(88,101,242,.16)); }
+.gang .logos { position: relative; width: 190px; height: 96px; }
+.gang .logos img { position: absolute; } .gang .lulu { left: 0; top: -14px; width: 136px; transform: rotate(-6deg); } .gang .gng { right: 0; bottom: 0; width: 124px; transform: rotate(-3deg); }
+.gang small { display: block; font-size: 18px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #cfb6d8; }
+.gang b { display: flex; align-items: center; gap: 12px; margin-top: 6px; font: 700 30px/1.1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
+.gang b .i { width: 32px; height: 32px; color: #8c9bff; }
+.gang .qr { width: 150px; height: 150px; padding: 8px; background: #eef6ff; border-radius: 12px; box-shadow: 0 0 24px rgba(255,99,184,.35); }
+.gang .qr img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+.gang em { display: block; margin-top: 10px; font-style: normal; font-size: 22px; font-weight: 600; color: #cfe3f5; }
+.gang em b { display: inline; margin: 0; font: inherit; color: #fff; }
+.gang.compact { gap: 16px; padding: 14px 20px 14px 12px; }
+.gang.compact .logos { width: 150px; height: 78px; } .gang.compact .lulu { width: 108px; } .gang.compact .gng { width: 98px; }
+.gang.compact b { font-size: 25px; } .gang.compact small { font-size: 15px; } .gang.compact em { font-size: 19px; }
+.gang.compact .qr { width: 130px; height: 130px; }
 
 /* ---- slots: where OBS sources go ------------------------------------------------------------------ */
 /* PNGtuber stage: the veadotube (Spout) source sits on top of this, feet on the glow pad. */

@@ -54,7 +54,7 @@ public/assets/img/           character art (WebP, 400w + 640w), logos, OG image,
 public/assets/fonts/         self-hosted Orbitron + Chakra Petch (latin woff2)
 public/feed.json             static fallback list of YouTube videos/shorts (refreshed daily by CI)
 public/robots.txt, sitemap.xml
-public/obs/                  OBS scene overlays, control dock, Botrix CSS (hosted at /obs/, noindex); see obs/README.md
+public/obs/                  OBS scene overlays, index page, control dock, Botrix CSS (hosted at /obs/, noindex); see obs/README.md
 netlify/functions/feed.mjs   GET /api/feed: live YouTube list + Kick live status
 netlify.toml                 publish dir, functions dir, headers, build-skip rule
 scripts/update-feed.mjs      refreshes public/feed.json (run by .github/workflows/update-feed.yml)

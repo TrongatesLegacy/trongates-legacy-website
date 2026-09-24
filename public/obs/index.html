@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>OBS scenes · Trongates Legacy</title>
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Index of the OBS overlays: live previews of every scene; click one to open it full size.
+     https://www.trongateslegacy.com/obs/ (also works opened as a local file). -->
+<style>
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 400; src: url(assets/fonts/chakra-petch-400.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(assets/fonts/chakra-petch-600.woff2) format("woff2"); }
+:root { --bg: #03060d; --panel: #070d18; --line: #12233a; --text: #e8f4ff; --muted: #8ba3bd; --accent: #22e5ff; }
+* { box-sizing: border-box; margin: 0; }
+body { min-height: 100vh; padding: 40px clamp(16px, 4vw, 56px) 60px; color: var(--text); font: 400 16px/1.5 "Chakra Petch", system-ui, sans-serif;
+  background: linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 56px 56px, linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 56px 56px, var(--bg); }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px 40px; margin-bottom: 32px; }
+h1 { font: 900 clamp(28px, 4vw, 44px)/1 Orbitron; text-transform: uppercase; letter-spacing: .02em; }
+h1 .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); }
+h1 small { display: block; margin-top: 10px; font: 600 14px/1 "Chakra Petch", sans-serif; letter-spacing: .3em; color: var(--accent); }
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; font-size: 14px; color: var(--muted); }
+.chips { display: flex; gap: 8px; }
+.chips button { width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--c); cursor: pointer; box-shadow: inset 0 0 0 3px var(--bg), 0 0 0 1px var(--line); }
+.chips button[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--bg), 0 0 0 2px var(--c), 0 0 12px var(--c); }
+label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 26px; }
+.card { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); text-decoration: none; color: inherit; transition: border-color .2s, transform .2s;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
+.card:hover, .card:focus-visible { border-color: var(--accent); transform: translateY(-3px); outline: none; }
+.shot { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
+.shot iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; transform: scale(var(--s, .25)); pointer-events: none; }
+.info { display: grid; gap: 6px; padding: 16px 20px 20px; }
+.info h2 { font: 700 20px/1.2 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
+.info p { color: var(--muted); font-size: 15px; }
+.url { display: flex; gap: 8px; margin-top: 6px; }
+.url code { flex: 1; min-width: 0; padding: 8px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 13px/1.4 ui-monospace, monospace; color: #cfe3f5; background: #0b1424; border: 1px solid var(--line); }
+.url button { padding: 0 14px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 12px/1 Orbitron; letter-spacing: .1em; cursor: pointer; }
+.url button.done { background: var(--accent); color: var(--bg); }
+.dock .shot { display: grid; place-items: center; background: #070d18; }
+.dock .shot iframe { position: static; width: 380px; height: 640px; transform: scale(var(--sd, .3)); transform-origin: 50% 50%; }
+footer { margin-top: 36px; color: var(--muted); font-size: 14px; }
+footer code { color: #cfe3f5; }
+</style></head>
+<body>
+<header>
+  <h1><span class="o">Trongates</span> Legacy<small>OBS scenes · click one to open it</small></h1>
+  <div class="tools">
+    <span>Preview colour</span>
+    <div class="chips" id="chips"></div>
+    <label><input type="checkbox" id="guide"> Show source positions</label>
+  </div>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<footer>Setup guide: <code>obs/README.md</code> in the repo. Each card's address is what goes in the OBS browser
+source (1920 × 1080). Previews don't connect to veadotube; Starting soon, Be right back and Ending cycle the
+forms on their own.</footer>
+
+<script>
+(() => {
+  const SCENES = [
+    ['starting.html', 'Starting soon', 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code.'],
+    ['brb.html', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; framed Botrix chat on the right.'],
+    ['chatting.html', 'Just chatting', 'Big PNGtuber space (veadotube), Botrix chat and follower goal. Colour follows veadotube.'],
+    ['game.html', 'Game', 'Loading backdrop behind the full-screen game capture. Chat on the left; colour follows veadotube.'],
+    ['ending.html', 'Ending', 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials.'],
+  ];
+  const FORMS = { cyan: '#22e5ff', yellow: '#ffd23f', red: '#ff4155', princess: '#ff63b8', blobfish: '#ffb36b' };
+  const grid = document.getElementById('grid'), chips = document.getElementById('chips'), guide = document.getElementById('guide');
+  let form = 'cyan';
+
+  const previewSrc = (file) => `${file}?noveado=1&form=${form}${guide.checked ? '&guide=1' : ''}`;
+  const card = (file, title, desc, extra = '') => {
+    const a = document.createElement('a');
+    a.className = 'card' + extra; a.href = file; a.target = '_blank'; a.rel = 'noopener';
+    const url = new URL(file, location.href).href;
+    a.innerHTML = `<div class="shot"><iframe loading="lazy" tabindex="-1" title=""></iframe></div>
+      <div class="info"><h2></h2><p></p><div class="url"><code></code><button type="button">Copy</button></div></div>`;
+    a.querySelector('h2').textContent = title;
+    a.querySelector('p').textContent = desc;
+    a.querySelector('code').textContent = url;
+    a.querySelector('iframe').title = title + ' preview';
+    a.querySelector('button').addEventListener('click', async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      try { await navigator.clipboard.writeText(url); } catch { const r = document.createRange(); r.selectNodeContents(a.querySelector('code')); getSelection().removeAllRanges(); getSelection().addRange(r); document.execCommand('copy'); }
+      e.target.textContent = 'Copied'; e.target.classList.add('done');
+      setTimeout(() => { e.target.textContent = 'Copy'; e.target.classList.remove('done'); }, 1400);
+    });
+    a.dataset.file = file;
+    grid.appendChild(a);
+    return a;
+  };
+  SCENES.forEach(([f, t, d]) => card(f, t, d));
+  const dock = card('control.html', 'Control dock', 'OBS custom browser dock: veadotube status, your states and their colours, manual colour buttons.', ' dock');
+
+  // scale each 1920x1080 preview to its card
+  const ro = new ResizeObserver((entries) => entries.forEach((e) => e.target.style.setProperty('--s', e.contentRect.width / 1920)));
+  document.querySelectorAll('.card:not(.dock) .shot').forEach((el) => ro.observe(el));
+  new ResizeObserver(([e]) => dock.querySelector('.shot').style.setProperty('--sd', Math.min(e.contentRect.height / 640, 1))).observe(dock.querySelector('.shot'));
+
+  const load = () => document.querySelectorAll('.card').forEach((c) => {
+    const f = c.dataset.file, iframe = c.querySelector('iframe');
+    iframe.src = f === 'control.html' ? 'control.html?veado=0.0.0.0:1' : previewSrc(f);
+  });
+  for (const [k, c] of Object.entries(FORMS)) {
+    const b = document.createElement('button');
+    b.style.setProperty('--c', c); b.title = k; b.setAttribute('aria-label', 'Preview in ' + k); b.setAttribute('aria-pressed', k === form);
+    b.onclick = () => { form = k; chips.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', x === b)); document.documentElement.style.setProperty('--accent', c); load(); };
+    chips.appendChild(b);
+  }
+  guide.onchange = load;
+  load();
+})();
+</script>
+</body></html>

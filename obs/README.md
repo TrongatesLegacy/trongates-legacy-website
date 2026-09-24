@@ -1,6 +1,9 @@
 # OBS scenes
 
-Five 1920×1080 overlays in the site's style, plus an optional control dock:
+Five 1920×1080 overlays in the site's style, plus an optional control dock. **Start at the index,
+`https://www.trongateslegacy.com/obs/`**: live previews of every scene in a grid, click one to open it, a Copy
+button for each OBS address, colour chips to preview each form and a toggle that shows where every OBS source
+goes.
 
 | Scene | File |
 |---|---|
@@ -11,14 +14,15 @@ Five 1920×1080 overlays in the site's style, plus an optional control dock:
 | Ending | `ending.html` |
 | Control dock (optional) | `control.html` |
 
-**Game** is a backdrop for the moments before your game appears: big "Loading the game" text, chat on the
-left, and your PNGtuber bottom-right. Your full-screen game capture sits on top of it, so once the game is up
-none of the overlay shows.
+**Game** is a backdrop for the moments before your game appears: big "Loading the game" text centred to the
+right of the chat. Your full-screen game capture sits on top of it, so once the game is up none of the overlay
+shows. No space is reserved for the PNGtuber: put veadotube in the far bottom-right corner, over everything.
 
-Your PNGtuber (veadotube via Spout) appears on **Game** and **Just chatting** only; those overlays leave a space
-for it. **Starting soon**, **Be right back** and **Ending** have no veadotube: instead they cycle through
+**Just chatting** leaves a big space for your PNGtuber (veadotube via Spout). **Starting soon**, **Be right
+back** and **Ending** have no veadotube: instead they cycle through
 cyan Tron → Princess Trina → the Blobfish every 6 seconds with the website's glitch swap, and the whole scene
-recolours with the form on show. Botrix widgets are separate OBS sources placed on top, in the frames the
+recolours with the form on show. All three carry the Lulu Gang Discord block (logos, *type !discord in chat*
+and the QR code). Botrix widgets are separate OBS sources placed on top, in the frames the
 overlays draw for them.
 
 ## The Discord
@@ -71,7 +75,6 @@ For each of the five scenes:
 2. **Sources → + → Browser**, name it *Overlay*:
    - **URL**: the scene's URL from the table at the top (plus any `?…` options)
    - **Width** `1920`, **Height** `1080`, **FPS** `30`
-   - tick **Refresh browser when scene becomes active** on *Be right back* only (restarts its "Away for" timer)
    - leave **Shutdown source when not visible** unticked
    - OK. It fills the canvas; right-click → **Transform → Reset Transform** if it doesn't.
 3. Add your **veadotube (Spout)** source above the overlay (see *Sharing the PNGtuber* below), and the Botrix
@@ -91,13 +94,13 @@ dashed box labelled with its exact X, Y, W and H. Remove it when you're done.
 | Just chatting | veadotube (Spout) | 180 | 110 | 980 | 880 |
 | | Botrix chat | 1308 | 96 | 554 | 730 |
 | | Botrix follower goal | 1308 | 916 | 554 | 58 |
-| Game | your game capture, full screen, *above* everything else | 0 | 0 | 1920 | 1080 |
-| | veadotube (Spout) | 1400 | 400 | 470 | 600 |
+| Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
+| | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
 | | Botrix chat | 68 | 192 | 464 | 630 |
 | | Botrix follower goal | 68 | 914 | 464 | 58 |
 | Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
-The PNGtuber spaces (Just chatting, Game) are sized so the avatar's feet land on the glowing pad and the rings
+The PNGtuber space on Just chatting is sized so the avatar's feet land on the glowing pad and the rings
 sit behind its head. Nudge the veadotube source by eye to suit your avatar's framing. The order in each
 scene's source list, top to bottom: Botrix widgets → veadotube → Overlay. On **Game**, your full-screen game
 capture goes at the very top, so the overlay is only seen before the game appears.
@@ -106,15 +109,13 @@ capture goes at the very top, so the overlay is only seen before the game appear
 
 | Option | Scenes | What it does |
 |---|---|---|
-| `minutes=10` | Starting soon | shows "Starting in 9:59" counting down, then "Any second now" |
-| `at=19:30` | Starting soon | counts down to that local time instead |
 | `topic=Rocket%20League` | Just chatting, Game | adds a label next to the name in the top bar (Game shows "Game time" by default; Just chatting shows none) |
 | `art=0` | Starting soon, Be right back, Ending | hides the character art |
 | `cycle=0` | Starting soon, Be right back, Ending | stop cycling: show the veadotube form (static) and follow its colour |
 | `form=princess` | all | the colour to start on before veadotube connects |
 | `noveado=1` | all | don't connect to veadotube |
 
-Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/starting.html?minutes=10`.
+Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting.html?topic=Chilling&form=princess`.
 
 ## Sharing the PNGtuber across scenes
 
@@ -174,7 +175,7 @@ python3 obs/build-scenes.py        # writes public/obs/{starting,brb,chatting,ga
 
 Paths inside `public/obs` are relative and it carries its own fonts and logos (`public/obs/assets/`), so the
 folder works anywhere. Shared pieces: `public/obs/shared/overlay.css` (look), `theme.js` (form colours, veadotube + OBS WebSocket),
-`scene.js` (light trails, timers, guide labels), `icons.js` (platform icons). The control dock is
+`scene.js` (light trails, form-cycling art, guide labels), `icons.js` (platform icons). The control dock is
 `public/obs/control.html`; the Botrix CSS is `public/obs/botrix/`. Everything under `public/` deploys with
 the site, so check it the same way as any site change (docs/verification.md). `?guide=1` plus
 `scripts/shot.mjs` at `--width=1920 --height=1080` is the quickest check.
