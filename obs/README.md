@@ -82,7 +82,9 @@ For each of the five scenes:
 1. **Scene Collection**: in the Scenes panel click **+**, name it (e.g. *Starting soon*).
 2. **Sources → + → Browser**, name it *Overlay*:
    - **URL**: the scene's URL from the table at the top (plus any `?…` options)
-   - **Width** `1920`, **Height** `1080`, **FPS** `30`
+   - **Width** `1920`, **Height** `1080`
+   - tick **Use custom frame rate** and set **FPS** `30`: with it unticked the animations (glitch, ticker, light
+     trails, rings) may not play at all
    - leave **Shutdown source when not visible** unticked
    - OK. It fills the canvas; right-click → **Transform → Reset Transform** if it doesn't.
 3. Add your **veadotube (Spout)** source above the overlay (see *Sharing the PNGtuber* below), and the Botrix
