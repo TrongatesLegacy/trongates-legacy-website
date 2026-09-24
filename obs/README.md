@@ -188,6 +188,9 @@ only carry a key, and changing a Botrix setting means updating one variable, not
    takes the key in its own address, like the scenes: bookmark `https://www.trongateslegacy.com/obs/#key=…`
    (`?key=…` works too, but the `#` form never reaches the server).
 
+**Clear saved data** (next to Copy bookmark link) forgets everything the index saved in that browser: both links,
+the key and the last colour, and takes any `#w=`/`#key=`/`?key=` out of the address so a reload doesn't bring them back.
+
 `/api/obs-widgets` (`netlify/functions/obs-widgets.mjs`) hands the links only to requests whose `X-OBS-Key`
 header matches `OBS_KEY`, and never lets them be cached. Scenes loaded as local files ask the live site. A link
 pasted on the index (or `chat=`/`goal=` on a scene URL) still wins for its frame. To change the key, update
