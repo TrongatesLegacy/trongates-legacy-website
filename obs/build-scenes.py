@@ -79,7 +79,7 @@ scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', ride
 </div>
 {art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
 
-# ---- BE RIGHT BACK: title left, PNGtuber centre, chat framed on the right ------------------------------
+# ---- BE RIGHT BACK: title left, PNGtuber centre, chat and goal framed on the right -----------------------
 scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 55% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 15% 30%, var(--a10), transparent 70%)', css='''
 .copy { position: absolute; left: 90px; top: 150px; width: 740px; display: grid; gap: 30px; justify-items: start; }
 .copy .title { font-size: 108px; }''', body=f'''
@@ -89,7 +89,7 @@ scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6,
   <div class="sub">Grabbing snacks. <b>Keep chat alive.</b></div>
   {gang(compact=True)}
 </div>
-{art_stage(860, 300, 440, 650)}{frame(1330, 70, 530, 870, 'Chat', 'kick', 'Botrix chat')}{ticker(skip=('discord',))}''')
+{art_stage(860, 300, 440, 650)}{frame(1330, 70, 530, 768, 'Chat', 'kick', 'Botrix chat')}{frame(1330, 858, 530, 134, 'Goal', 'kick', 'Botrix follower goal')}{ticker(skip=('discord',))}''')
 
 # ---- JUST CHATTING: chat + goal on the left, big PNGtuber stage on the right ---------------------------------------
 scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='radial-gradient(36% 56% at 64% 52%, var(--a20), transparent 70%)', css='''
@@ -144,5 +144,27 @@ for name, s in scenes.items():
     body, tick = s['body'].split('<div class="ticker">')
     body = f'<div class="content">\n{body}</div>\n<div class="ticker">{tick}'
     html = HEAD.format(name=name, html_attr=' data-cycle' if s.get('cycle') else '', **s) + BG.format(**s) + body + '\n' + FOOT
+    (OUT / f'{name}.html').write_text(html)
+    print('wrote', f'public/obs/{name}.html')
+
+# ---- the Botrix frames on their own, for when a widget is wanted as its own OBS browser source (e.g. on top of
+# the game, or in a scene of your own). Transparent page; the frame fills whatever size the source is given, so
+# set the size in OBS (suggested: chat 500x800, goal 500x134; the goal needs at least ~464 wide). Same URL
+# options as the scenes for the widget (key=, chat=/goal=, demo=1) and the colour (form=, veadotube, the dock).
+WIDGET_HEAD = HEAD.replace('1920x1080, 30 FPS', '{size} suggested (any size works), 30 FPS')
+widgets = {
+    'chat': dict(title='Chat box', size='500x800', tab='Chat', slot='Botrix chat'),
+    'goal': dict(title='Follower goal', size='500x134', tab='Goal', slot='Botrix follower goal'),
+}
+for name, w in widgets.items():
+    css = """
+html, body { width: 100%; height: 100%; }
+.frame { inset: 0; }"""
+    body = f'''<div class="frame">
+  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>{w['tab']}</div>
+  <div data-slot="{w['slot']}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
+</div>
+'''
+    html = WIDGET_HEAD.format(name=name, html_attr='', title=w['title'], size=w['size'], css=css, body_class='transparent') + body + FOOT
     (OUT / f'{name}.html').write_text(html)
     print('wrote', f'public/obs/{name}.html')

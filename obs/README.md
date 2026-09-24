@@ -15,6 +15,8 @@ the OBS dock still follow veadotube.
 | Just chatting | `chatting` | `chatting.html` |
 | Game | `game` | `game.html` |
 | Ending | `ending` | `ending.html` |
+| Chat box on its own (optional) | `chat` | `chat.html` |
+| Follower goal on its own (optional) | `goal` | `goal.html` |
 | Control dock (optional) | `control` | `control.html` |
 
 **Game** is a backdrop for the moments before your game appears: big "Loading the game" text centred to the
@@ -97,7 +99,8 @@ the bottom edge is kept clear of anything that matters.
 | Scene | Source | X | Y | W | H |
 |---|---|---|---|---|---|
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
-| Be right back | Botrix chat | 1348 | 186 | 494 | 800 |
+| Be right back | Botrix chat | 1348 | 186 | 494 | 698 |
+| | Botrix follower goal | 1348 | 974 | 494 | 64 |
 | Just chatting | Botrix chat | 58 | 160 | 554 | 724 |
 | | Botrix follower goal | 58 | 974 | 554 | 64 |
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
@@ -121,8 +124,8 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `cycle=0` | Starting soon, Be right back, Ending | stop cycling: show the veadotube form (static) and follow its colour |
 | `form=princess` | all | the colour to start on before veadotube connects |
 | `noveado=1` | all | don't connect to veadotube |
-| `chat=…`, `goal=…` | Be right back (chat), Just chatting, Game | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
-| `key=…` | Be right back (chat), Just chatting, Game | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
+| `chat=…`, `goal=…` | Be right back, Just chatting, Game, chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
+| `key=…` | Be right back, Just chatting, Game, chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
 | `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
 
 Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting?topic=Chilling&form=princess`.
@@ -159,7 +162,7 @@ changing a setting in Botrix, copy the link again, paste it on the index, and re
 Settings chosen for the frames (Botrix → Widgets → Chat): **Design ★ Neon Cards** (dark cards edged in each
 viewer's colour, closest to the scenes' panels); **Hide old messages off** (the frame never sits empty);
 background transparent; font size 21. The embedded widget fades out at the top of its frame instead of cutting a
-message in half. Frames that get a widget: Be right back (chat), Just chatting and Game (chat + goal).
+message in half. Frames that get a widget: Be right back, Just chatting and Game (chat + goal each).
 
 Follower goal (Botrix → Widgets → Follower goal), chosen from all 30 designs at the frame's size: **★ Stamina Surge**
 (one row, 63px tall, so it fits the 64px goal frame; most other designs are two rows or ignore the font size and
@@ -172,6 +175,15 @@ transparent, so the frame's glass shows through), `accentColor=#22e5ff`, `border
 on Botrix's page; accent, border, track and sub-text colours are link-only. Colours take an alpha
 (`#rrggbbaa`), which is how "transparent" works. Theme ids are kebab-case versions of the design names
 (`glass-panel`, `xp-surge`…), except ★ Rainbow, which is `arcoiris`.
+
+### A widget on its own (chat.html, goal.html)
+
+`/obs/chat` and `/obs/goal` are just the framed widget (the same frame and *Chat* / *Goal* tab as in the scenes)
+on a transparent page, for when one is wanted as its own OBS browser source: on top of the game, or in a scene
+of your own. The frame fills whatever size the source is given; suggested **chat 500 × 800**, **goal 500 × 134**
+(the goal design needs at least about 464 wide and the frame 134 tall). They take the same options as the scenes:
+`key=` or `chat=`/`goal=` for the widget, and the colour follows veadotube / the dock / `form=`. The index's
+*Widgets on their own* panel copies them with your links or key.
 
 ### Kept in Netlify (instead of pasting them)
 

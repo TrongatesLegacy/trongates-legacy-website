@@ -26,6 +26,9 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 /* at most three scenes per row (3 + 2 for the five), fewer as the window narrows */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, max(360px, (100% - 40px) / 3)), 1fr)); gap: 20px; }
 .side { position: sticky; top: 16px; width: clamp(330px, 22vw, 400px); display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; max-height: calc(100vh - 32px); overflow-y: auto; }
+/* at the top of the page it starts below the heading, so it's shorter there; it can scroll inside itself */
+@media (min-width: 1001px) { .side { max-height: calc(100vh - 144px); } }
+.main-col { min-width: 0; }
 @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } .side { position: static; width: auto; max-height: none; } }
 .links { display: grid; gap: 12px; font-size: 14px; }
 .links h2 { font: 900 15px/1 Orbitron; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
@@ -36,6 +39,12 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .links .share { justify-self: start; padding: 9px 14px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 12px/1 Orbitron; letter-spacing: .1em; cursor: pointer; }
 .links .share.done { background: var(--accent); color: var(--bg); }
 .links .warn { color: #ff8a96; }
+.solo { display: grid; gap: 10px; }
+.solo-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; }
+.solo-row b { display: block; font-size: 14px; } .solo-row span { color: var(--muted); font-size: 12.5px; }
+.solo-row code { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: #cfe3f5; }
+.solo-row button, .solo-row a { padding: 9px 12px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 12px/1 Orbitron; letter-spacing: .1em; text-decoration: none; cursor: pointer; }
+.solo-row button.done { background: var(--accent); color: var(--bg); }
 .links .acts { display: flex; flex-wrap: wrap; gap: 8px; }
 .links .share.clear { border-color: #ff8a96; color: #ff8a96; }
 .links .share.clear.done { background: #ff8a96; color: var(--bg); }
@@ -67,7 +76,7 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .viewer .stage { position: relative; width: var(--vw); aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--accent); background: #000; }
 .viewer .stage iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; transform: scale(var(--vs)); }
 .viewer .keys { color: var(--muted); font-size: 13px; }
-footer { margin-top: 36px; color: var(--muted); font-size: 14px; }
+footer { margin-top: 24px; color: var(--muted); font-size: 14px; }
 footer code { color: #cfe3f5; }
 </style></head>
 <body>
@@ -79,7 +88,12 @@ footer code { color: #cfe3f5; }
 </header>
 
 <div class="layout">
+  <div class="main-col">
   <main class="grid" id="grid"></main>
+  <footer>Setup guide: <code>obs/README.md</code> in the repo. Each card's address is what goes in the OBS browser
+  source (1920 × 1080). The control panel's colour buttons set the colour the previews are shown in; Starting
+  soon, Be right back and Ending open on the selected form, then cycle through the others.</footer>
+  </div>
   <aside class="side">
     <section class="panel links" aria-labelledby="links-h">
       <h2 id="links-h">Botrix widgets</h2>
@@ -106,6 +120,11 @@ footer code { color: #cfe3f5; }
         link in Netlify updates every OBS source. A link pasted above still wins for its frame. The key can also go in
         this page's address: <code>/obs/#key=…</code> (or <code>?key=…</code>).</p></details>
     </section>
+    <section class="panel links" aria-labelledby="solo-h">
+      <h2 id="solo-h">Widgets on their own</h2>
+      <p class="hint">Just the frame, as its own OBS browser source (e.g. on top of the game). Uses the links or key above.</p>
+      <div class="solo" id="solo"></div>
+    </section>
     <section class="panel dock" id="dock" aria-label="Control dock"></section>
   </aside>
 </div>
@@ -123,9 +142,6 @@ footer code { color: #cfe3f5; }
   <div class="keys">← → switch scenes · Esc closes</div>
 </div>
 
-<footer>Setup guide: <code>obs/README.md</code> in the repo. Each card's address is what goes in the OBS browser
-source (1920 × 1080). The control panel's colour buttons set the colour the previews are shown in; Starting
-soon, Be right back and Ending open on the selected form, then cycle through the others.</footer>
 
 <script>
 (() => {
@@ -133,7 +149,7 @@ soon, Be right back and Ending open on the selected form, then cycle through the
   // the colour the previews are shown in.
   const SCENES = [
     ['starting', 'Starting soon', 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code.'],
-    ['brb', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; framed Botrix chat on the right.', ['chat']],
+    ['brb', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; framed Botrix chat and follower goal on the right.', ['chat', 'goal']],
     ['chatting', 'Just chatting', 'Big PNGtuber space (veadotube), Botrix chat and follower goal. Colour follows veadotube.', ['chat', 'goal']],
     ['game', 'Game', 'Loading backdrop behind the full-screen game capture. Chat on the left; colour follows veadotube.', ['chat', 'goal']],
     ['ending', 'Ending', 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials.'],
@@ -237,7 +253,9 @@ soon, Be right back and Ending open on the selected form, then cycle through the
     setTimeout(() => { share.textContent = 'Copy bookmark link'; share.classList.remove('done'); }, 1400);
   });
   // pasted links go in whole (chat=/goal=); Netlify ones as the key; previews add demo=1 for sample messages
-  const sceneWidgets = (file) => (SCENES.find(([f]) => f === file)[3] || []).filter(source);
+  // the frames on their own (chat.html, goal.html): [file, title, suggested size, widget]
+  const SOLO = [['chat', 'Chat box', '500 × 800', ['chat']], ['goal', 'Follower goal', '500 × 134', ['goal']]];
+  const sceneWidgets = (file) => ([...SCENES, ...SOLO].find(([f]) => f === file)[3] || []).filter(source);
   const widgets = (file, preview) => {
     const ks = sceneWidgets(file);
     if (!ks.length) return '';
@@ -283,7 +301,28 @@ soon, Be right back and Ending open on the selected form, then cycle through the
       c.querySelector('code').textContent = new URL(c.dataset.file, location.href).href + (w ? ' + Botrix ' + sceneWidgets(c.dataset.file).join(' + ') : '');
     });
     if (viewer.classList.contains('open')) showScene();
+    drawSolo();
   };
+  const copyText = async (text, btn) => {
+    try { await navigator.clipboard.writeText(text); } catch { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+    const was = btn.textContent; btn.textContent = 'Copied'; btn.classList.add('done');
+    setTimeout(() => { btn.textContent = was; btn.classList.remove('done'); }, 1400);
+  };
+  const soloEl = document.getElementById('solo');
+  function drawSolo() {
+    soloEl.innerHTML = '';
+    for (const [file, title, size] of SOLO) {
+      const row = document.createElement('div'), url = obsUrl(file);
+      row.className = 'solo-row';
+      row.innerHTML = '<div><b></b><span></span><code></code></div><button type="button">Copy</button><a target="_blank" rel="noopener">Open</a>';
+      row.querySelector('b').textContent = title;
+      row.querySelector('span').textContent = size + ' suggested';
+      row.querySelector('code').textContent = new URL(file, location.href).href + (sceneWidgets(file).length ? ' + Botrix' : ' (add a link or key above)');
+      row.querySelector('a').href = url;
+      row.querySelector('button').onclick = (e) => copyText(url, e.target);
+      soloEl.appendChild(row);
+    }
+  }
 
   // the embedded control dock: same panel as the OBS dock (control), in the right-hand column
   const dock = document.getElementById('dock');
