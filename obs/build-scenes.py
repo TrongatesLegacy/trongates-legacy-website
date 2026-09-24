@@ -98,7 +98,7 @@ scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='
 .head .sep { width: 2px; height: 30px; background: var(--a40); }
 .head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }''', body=f'''
 <div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep" hidden></span><span class="topic" id="topic" hidden></span></div>
-{frame(40, 44, 590, 800, 'Chat', 'kick', 'Botrix chat')}{frame(40, 864, 590, 128, 'Goal', 'kick', 'Botrix follower goal')}{stage(760, 110, 980, 880)}{ticker()}
+{frame(40, 44, 590, 794, 'Chat', 'kick', 'Botrix chat')}{frame(40, 858, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{stage(760, 110, 980, 880)}{ticker()}
 <script>{{ const t = new URLSearchParams(location.search).get('topic'); if (t) {{ const el = document.getElementById('topic'); el.textContent = t; el.hidden = false; el.previousElementSibling.hidden = false; }} }}</script>''')
 
 # ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
@@ -122,7 +122,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
   <div class="bar"><i></i></div>
   <div class="sub">The game will pop up <b>any second now</b>.</div>
 </div>
-{frame(50, 140, 500, 700, 'Chat', 'kick', 'Botrix chat')}{frame(50, 862, 500, 128, 'Goal', 'kick', 'Botrix follower goal')}{ticker()}
+{frame(50, 140, 500, 694, 'Chat', 'kick', 'Botrix chat')}{frame(50, 856, 500, 134, 'Goal', 'kick', 'Botrix follower goal')}{ticker()}
 <script>document.getElementById('topic').textContent = new URLSearchParams(location.search).get('topic') || 'Game time';</script>''')
 
 # ---- ENDING: thanks, socials and the Discord, PNGtuber on the right -----------------------------------

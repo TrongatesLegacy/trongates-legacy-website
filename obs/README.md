@@ -95,13 +95,13 @@ the bottom edge is kept clear of anything that matters.
 |---|---|---|---|---|---|
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
 | Be right back | Botrix chat | 1348 | 186 | 494 | 800 |
-| Just chatting | Botrix chat | 58 | 160 | 554 | 730 |
-| | Botrix follower goal | 58 | 980 | 554 | 58 |
+| Just chatting | Botrix chat | 58 | 160 | 554 | 724 |
+| | Botrix follower goal | 58 | 974 | 554 | 64 |
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
-| | Botrix chat | 68 | 256 | 464 | 630 |
-| | Botrix follower goal | 68 | 978 | 464 | 58 |
+| | Botrix chat | 68 | 256 | 464 | 624 |
+| | Botrix follower goal | 68 | 972 | 464 | 64 |
 | Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
 The PNGtuber space on Just chatting is sized so the avatar's feet land on the glowing pad and the rings
@@ -153,6 +153,18 @@ Settings chosen for the frames (Botrix → Widgets → Chat): **Design ★ Neon 
 viewer's colour, closest to the scenes' panels); **Hide old messages off** (the frame never sits empty);
 background transparent; font size 21. The embedded widget fades out at the top of its frame instead of cutting a
 message in half. Frames that get a widget: Be right back (chat), Just chatting and Game (chat + goal).
+
+Follower goal (Botrix → Widgets → Follower goal), chosen from all 30 designs at the frame's size: **★ Stamina Surge**
+(one row, 63px tall, so it fits the 64px goal frame; most other designs are two rows or ignore the font size and
+overflow). The goal page doesn't keep changes (they're gone on reload), but the widget reads every setting from its
+link, so the settings live in the link itself:
+`theme=stamina-surge`, `fontFamily=Orbitron` (not in Botrix's font list, but typing it works), `fontSize=32`,
+`fillColor=#22e5ff`, `textColor=#ffffff`, `subTextColor=#ffffff`, `backgroundColor=#11161900` (container
+transparent, so the frame's glass shows through), `accentColor=#22e5ff`, `borderColor=#22e5ff66`,
+`trackColor=#22e5ff22`, `message=FOLLOWERS`. Only the design, container, fill, text, message and font can be set
+on Botrix's page; accent, border, track and sub-text colours are link-only. Colours take an alpha
+(`#rrggbbaa`), which is how "transparent" works. Theme ids are kebab-case versions of the design names
+(`glass-panel`, `xp-surge`…), except ★ Rainbow, which is `arcoiris`.
 
 ### As separate OBS sources
 

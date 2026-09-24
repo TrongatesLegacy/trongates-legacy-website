@@ -23,7 +23,7 @@
     const url = TGL.param(key), el = document.querySelector(`[data-slot="${slot}"]`);
     if (!url || !el || !/^https:\/\//.test(url)) continue;
     const f = document.createElement('iframe');
-    f.src = url; f.title = slot; f.className = 'widget';
+    f.src = url; f.title = slot; f.className = 'widget ' + key;
     el.appendChild(f);
   }
 
