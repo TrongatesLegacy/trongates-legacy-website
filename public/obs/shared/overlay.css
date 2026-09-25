@@ -186,5 +186,6 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .np-title, .np-artist { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .np-title { font: 700 20px/1.25 Orbitron; letter-spacing: .03em; color: var(--text); }
 .np-artist { font: 600 16px/1.25 "Chakra Petch", sans-serif; color: #a9bfd6; }
+.np.no-time .np-bar { visibility: hidden; }
 .np-bar { height: 4px; margin-top: 3px; background: rgba(255,255,255,.1); }
 .np-bar i { display: block; height: 100%; width: 0; background: var(--accent); box-shadow: 0 0 8px var(--accent); }

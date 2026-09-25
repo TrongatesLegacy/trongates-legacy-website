@@ -136,6 +136,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `music=…` | Starting soon, Be right back, Just chatting, Ending, music | now playing: `0` off, `1` also outside OBS, `always` stay up while paused, `demo` a sample track |
 | `musichost=…` | the same | SMTC Bridge's address if not `127.0.0.1:5000` |
 | `app=…` | the same | only follow this player (part of its Windows app id, e.g. `spotify`, `applemusic`); default: whichever Windows has in focus |
+| `musicdebug=1` | the same | show the bridge's raw timeline numbers (position, start, end, seek range, update time) in place of the time, to see what a player sends |
 
 Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting?topic=Chilling&form=princess`.
 

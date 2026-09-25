@@ -79,6 +79,7 @@
   // would ask for "Apps on device" and mark the page Not Secure) unless ?music=1. Options:
   //   music=0 off · music=1 poll outside OBS too · music=demo sample track · music=always stay up while paused
   //   musichost=127.0.0.1:5000 the bridge's address · app=Spotify only follow this app (part of its id)
+  //   musicdebug=1 show the bridge's raw timeline numbers in place of the time (for checking a player)
   const np = document.querySelector('[data-np]');
   if (np) {
     const mode = TGL.param('music', '');
@@ -98,10 +99,25 @@
       np.classList.add('on');
     };
     const tick = () => {                        // progress between polls, from the bridge's last position
-      if (!track || !track.end) { q('.np-bar i').style.width = '0'; q('.np-time').textContent = ''; return; }
-      const pos = Math.min(track.end, track.pos + (track.playing ? Date.now() - track.at : 0));
+      np.classList.toggle('no-time', !track || !track.end);
+      if (!track || !track.end) { q('.np-bar i').style.width = '0'; q('.np-time').textContent = track?.debug || ''; return; }
+      const pos = Math.max(0, Math.min(track.end, track.pos + (track.playing ? Date.now() - track.at : 0)));
       q('.np-bar i').style.width = (100 * pos / track.end).toFixed(2) + '%';
-      q('.np-time').textContent = `${mmss(pos)} / ${mmss(track.end)}`;
+      q('.np-time').textContent = track.debug || `${mmss(pos)} / ${mmss(track.end)}`;
+    };
+    // The bridge's timeline, made safe for every player: Windows gives the position as of LastUpdatedTime
+    // ("2026-09-25 10:15:30.123456+00:00"); some players leave that unset (year 1601) or odd, and some give the
+    // length only as the seek range. An unusable time falls back to when this position was first seen here.
+    let seen = { key: '', at: 0 };
+    const timeline = (m, tl) => {
+      const end = (tl.EndTime || 0) - (tl.StartTime || 0) > 0 ? tl.EndTime - (tl.StartTime || 0)
+        : (tl.MaxSeekTime || 0) - (tl.MinSeekTime || 0) > 0 ? tl.MaxSeekTime - (tl.MinSeekTime || 0) : 0;
+      const pos = (tl.Position || 0) - (tl.StartTime || 0);
+      const key = `${m.Title}|${m.Artist}|${tl.Position}`;
+      if (key !== seen.key) seen = { key, at: Date.now() };
+      const t = Date.parse(String(tl.LastUpdatedTime || '').replace(' ', 'T'));
+      const at = Number.isFinite(t) && t > Date.now() - 6 * 3600e3 && t < Date.now() + 5000 ? t : seen.at;
+      return { pos, end, at };
     };
     setInterval(tick, 250);
     if (mode === 'demo') {
@@ -120,8 +136,8 @@
           if (playing) lastPlaying = Date.now();
           // keep it up through track changes (status 2) for a few seconds; ?music=always keeps it up while paused
           if (!m || !m.Title || (!playing && mode !== 'always' && Date.now() - lastPlaying > 4000)) show(null);
-          else show({ title: m.Title, artist: m.Artist, art: m.Thumbnail, pos: (tl.Position || 0) - (tl.StartTime || 0),
-            end: (tl.EndTime || 0) - (tl.StartTime || 0), at: tl.LastUpdatedTime ? Date.parse(tl.LastUpdatedTime) : Date.now(), playing });
+          else show({ title: m.Title, artist: m.Artist, art: m.Thumbnail, playing, ...timeline(m, tl),
+            debug: TGL.param('musicdebug') === '1' ? `P${tl.Position} S${tl.StartTime} E${tl.EndTime} M${tl.MaxSeekTime} U${String(tl.LastUpdatedTime).slice(11, 23)}` : '' });
         } catch { show(null); }                  // bridge not running: stay hidden, keep asking
         setTimeout(poll, 1000);
       };
