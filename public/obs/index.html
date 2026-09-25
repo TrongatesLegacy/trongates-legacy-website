@@ -135,11 +135,11 @@ footer code { color: #cfe3f5; }
     { id: 'music', desc: 'Now playing from SMTC Bridge (Windows), on its own (e.g. over the game). 560 × 100 suggested.' },
   ].map((c) => ({ ...c, kind: c.id, title: M.WIDGETS[c.id].title, file: M.WIDGETS[c.id].file, w: M.WIDGETS[c.id].w, h: M.WIDGETS[c.id].h }));
   const grid = document.getElementById('grid'), wgrid = document.getElementById('wgrid'), guide = document.getElementById('guide');
-  let s = M.normalise(null), env = {}, form = TGL.form;
+  let s = M.normalise(null), env = {}, form = TGL.form, panel = null;
 
-  const obsUrl = (c) => M.withOptions(new URL(c.file, location.href).href, M.options(c.kind, s, { layout: c.layout, env }));
+  const obsUrl = (c) => M.withOptions(new URL(c.file, location.href).href, M.options(c.kind, s, { layout: c.layout, env, obs: panel && panel.obs }));
   const previewSrc = (c, g = guide.checked) => M.withOptions(c.file, M.options(c.kind, s, { layout: c.layout, env, preview: { form, guide: g, sample: s.sample } }));
-  const extras = (c) => { const n = M.options(c.kind, s, { layout: c.layout, env }).filter(([k]) => k !== 'layout' && k !== 'bare').length; return n ? ` + ${n} option${n === 1 ? '' : 's'}` : ''; };
+  const extras = (c) => { const n = M.options(c.kind, s, { layout: c.layout, env, obs: panel && panel.obs }).filter(([k]) => k !== 'layout' && k !== 'bare').length; return n ? ` + ${n} option${n === 1 ? '' : 's'}` : ''; };
 
   const card = (c, into) => {
     const a = document.createElement('a'), scene = into === grid, w = c.w || 1920, h = c.h || 1080;
@@ -185,7 +185,7 @@ footer code { color: #cfe3f5; }
   const load = () => {
     cancelAnimationFrame(pending);
     pending = requestAnimationFrame(() => {
-      document.querySelectorAll('.card').forEach((a) => {
+      document.querySelectorAll('#grid .card, #wgrid .card').forEach((a) => {
         const c = byId(a.dataset.id), src = previewSrc(c);
         const f = a.querySelector('iframe'); if (f.getAttribute('src') !== src) f.src = src;
         a.href = obsUrl(c);
@@ -196,7 +196,7 @@ footer code { color: #cfe3f5; }
   };
 
   // the settings panel: its changes redraw the previews and the addresses; its colour buttons set the previews' colour
-  const panel = TGLPanel.mount(document.getElementById('panel'), {
+  panel = TGLPanel.mount(document.getElementById('panel'), {
     mode: 'index',
     onChange: (settings, links) => { s = settings; env = links || {}; load(); },
     onForm: (f) => { if (f !== form) { form = f; load(); } },

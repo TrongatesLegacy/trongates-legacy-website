@@ -316,9 +316,13 @@ and the shared chat's crop following the music (live behaviour).
 
 **Setting it up**
 1. **Tools → WebSocket Server Settings**: tick **Enable WebSocket server**, note the port (4455) and the password.
-2. On the index, fill in the settings (Widgets: your Netlify key, music app…), then **Widgets → Copy dock address**.
-3. **Docks → Custom Browser Docks**: name it *Trongates*, paste that address, and add `&obspw=YOURPASSWORD` after
-   `obs=4455` (the password isn't in the copied address). Apply.
+2. On the index, fill in the settings (Widgets: the OBS WebSocket port and password, your Netlify key, music
+   app…), then **Widgets → Copy dock address** (it includes the port and password).
+3. **Docks → Custom Browser Docks**: name it *Trongates*, paste that address. Apply.
+
+The port and password can also be typed straight into the dock (**Widgets → OBS WebSocket**); changing them
+reconnects. They're kept for every scene collection. `obs=`/`obspw=` in the dock's address are read once, so an
+old address never overwrites a password you've since corrected in the dock.
 4. In the dock, check **Scenes** (it finds your Trongates overlays itself), then **Review & apply**.
 
 The settings in the dock's address are imported **once**; after that the dock keeps its own copy (per scene

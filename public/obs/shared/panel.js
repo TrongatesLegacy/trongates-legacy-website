@@ -76,7 +76,23 @@
   function mount(el, { mode = 'dock', onChange = () => {}, onForm = () => {} } = {}) {
     const dock = mode === 'dock';
     const params = new URLSearchParams(location.search);
-    const obsCfg = { port: params.get('obs') || (dock ? '4455' : ''), pw: params.get('obspw') || '' };
+    // The OBS WebSocket connection (port, password): its own save, shared by every scene collection (the dock needs
+    // it before OBS can say which collection is open). obs= / obspw= in the address are read once, like settings links.
+    const readConn = () => { try { return JSON.parse(localStorage.getItem('tgl-panel-obs') || 'null'); } catch { return null; } };
+    const conn = { port: '', pw: '', ...(readConn() || {}) };
+    const saveConn = () => { try { localStorage.setItem('tgl-panel-obs', JSON.stringify(conn)); } catch {} };
+    if (params.get('obs') || params.get('obspw')) {
+      const mark = `obs:${params.get('obs') || ''}:${params.get('obspw') || ''}`;
+      let seen = []; try { seen = JSON.parse(localStorage.getItem('tgl-panel-imported') || '[]'); } catch {}
+      if (!seen.includes(mark)) {
+        if (params.get('obs')) conn.port = params.get('obs');
+        if (params.get('obspw') !== null) conn.pw = params.get('obspw');
+        saveConn();
+        try { localStorage.setItem('tgl-panel-imported', JSON.stringify([...seen, mark].slice(-20))); } catch {}
+      }
+    }
+    // what the scenes get (obs= / obspw=): the dock always (it's what its buttons need); the index only if filled in
+    const obsCfg = () => (dock ? { port: conn.port || '4455', pw: conn.pw } : conn.port ? { port: conn.port, pw: conn.pw } : null);
     if (!document.getElementById('tgl-panel-css')) { const st = document.createElement('style'); st.id = 'tgl-panel-css'; st.textContent = CSS; document.head.appendChild(st); }
     el.classList.add('tgl-panel');
 
@@ -228,7 +244,7 @@
 
     // ---------------------------------------------------------------- OBS: connect and scan
     function connectObs() {
-      obs.client = TGLObs.connect({ port: +obsCfg.port || 4455, password: obsCfg.pw,
+      obs.client = TGLObs.connect({ port: +conn.port || 4455, password: conn.pw,
         onStatus: ({ state }) => { obs.state = state; if (state === 'connected') rescan(); refresh(); },
         onEvent: (type) => {
           if (/^(SceneItemCreated|SceneItemRemoved|SceneCreated|SceneRemoved|SceneNameChanged|InputCreated|InputRemoved|InputNameChanged|CurrentSceneCollectionChanged|SceneItemListReindexed|InputSettingsChanged)$/.test(type)) {
@@ -237,6 +253,7 @@
         } });
     }
     const call = (t, d) => obs.client.call(t, d);
+    const reconnectObs = () => { if (obs.client) obs.client.close(); obs.client = null; obs.scan = null; obs.state = 'connecting'; connectObs(); refresh(); };
     async function rescan() {
       if (!obs.client || !obs.client.ready || obs.busy) return;
       try {
@@ -301,7 +318,7 @@
     const managedRows = () => (obs.scan ? obs.scan.rows.filter((r) => (s.dock.map[r.container.uuid + ':' + r.item.sceneItemId] || 'manage') === 'manage') : []);
     const layoutOf = (r) => (r.kind === 'game' ? s.scenes.game.layout : 'full');
     const partOn = (r, p) => M.partsOf(r.kind, layoutOf(r)).includes(p) && !s.scenes[r.kind].off.includes(p);
-    const optsFor = (kind, layout) => M.options(kind, s, { layout, env: env.links, obs: { port: obsCfg.port, pw: obsCfg.pw } });
+    const optsFor = (kind, layout) => M.options(kind, s, { layout, env: env.links, obs: obsCfg() });
     const baseDir = () => { const r = managedRows()[0]; return r ? r.input.url.split('?')[0].replace(/[^/]*$/, '') : new URL('./', location.href).href; };
     const widgetUrl = (kind) => M.withOptions(baseDir() + M.WIDGETS[kind].file + (/\.html$/.test(managedRows()[0]?.input.url.split('?')[0] || '') ? '.html' : ''), optsFor(kind));
     const shared = () => obs.scan && obs.scan.widgets.find((w) => w.kind === 'shared');
@@ -517,12 +534,12 @@
         <div class="card">${t ? `<div class="np">${t.art ? `<img src="${esc(t.art)}" alt="">` : '<span class="art"></span>'}<div class="grow"><b>${esc(t.title)}</b><small>${esc(t.artist || '')} · ${esc((t.app || '').split(/[_!.]/)[0])}</small></div><small class="${t.playing ? 'ok' : 'muted'}">${t.playing ? 'playing' : 'paused'}</small></div>` : `<span class="muted">${music.state === 'ok' ? 'Nothing playing.' : 'SMTC Bridge not reachable (Windows only).'}</span>`}</div>
         <h3>Connections</h3>
         <div class="card" style="gap:4px">
-          <div class="row">${dot(obs.state)}<span class="grow">OBS WebSocket</span><span class="muted">${esc(obs.state === 'connected' ? '127.0.0.1:' + (obsCfg.port || 4455) : obs.state)}</span></div>
+          <div class="row">${dot(obs.state)}<span class="grow">OBS WebSocket</span><span class="muted">${esc(obs.state === 'connected' ? '127.0.0.1:' + (conn.port || 4455) : obs.state)}</span></div>
           <div class="row">${dot(veado.state)}<span class="grow">veadotube mini</span><span class="muted">${esc(s.veado.addr || M.VEADO_DEFAULT)}</span></div>
           <div class="row">${dot(music.state)}<span class="grow">SMTC Bridge</span><span class="muted">${esc(s.music.host || M.BRIDGE_DEFAULT)}</span></div>
           <div class="row">${dot(M.pasted(s, 'chat') ? 'ok' : env.state)}<span class="grow">Botrix links</span><span class="muted">${esc(M.pasted(s, 'chat') || M.pasted(s, 'goal') ? 'pasted' : env.text || 'no key')}</span></div>
         </div>
-        ${obs.state === 'wrong password' ? '<p class="hint bad">OBS rejected the password: add &amp;obspw=… to this dock\'s URL (Docks → Custom Browser Docks).</p>' : ''}`;
+        ${obs.state === 'wrong password' ? '<p class="hint bad">OBS rejected the password: check it on Widgets → OBS WebSocket.</p>' : ''}`;
     }
     function chips(kind, layout) {
       const sc = s.scenes[kind], parts = M.partsOf(kind, layout || (kind === 'game' ? (dock ? s.scenes.game.layout : 'window') : 'full'));
@@ -576,7 +593,13 @@
     function tabWidgets() {
       const pasted = (s.linksMode || (M.isLink(s.links.chat) || M.isLink(s.links.goal) ? 'paste' : 'key')) === 'paste';
       const sh = dock && shared();
-      return `<h3>Botrix</h3>
+      return `<h3>OBS WebSocket</h3>
+        <div class="row"><label class="field grow">Port<input type="number" min="1" max="65535" data-conn="port" value="${esc(conn.port)}" placeholder="4455"></label>
+          <label class="field grow">Password<input type="password" data-conn="pw" value="${esc(conn.pw)}" autocomplete="off" placeholder="${dock ? 'none' : 'optional'}"></label></div>
+        <span class="hint ${dock ? (obs.state === 'connected' ? 'ok' : obs.state === 'wrong password' ? 'bad' : '') : ''}">${dock
+          ? (obs.state === 'connected' ? 'Connected.' : obs.state === 'wrong password' ? 'Wrong password.' : 'OBS → Tools → WebSocket Server Settings: enable it; the port and password are there.') + ' Kept for every scene collection.'
+          : 'From OBS → Tools → WebSocket Server Settings. Goes into the dock address (and the scene addresses you copy).'}</span>
+        <h3>Botrix</h3>
         <div class="row"><span class="grow">Links from</span><select data-set="linksMode"><option value="key" ${pasted ? '' : 'selected'}>Netlify key</option><option value="paste" ${pasted ? 'selected' : ''}>Pasted links</option></select></div>
         ${pasted ? `<label class="field">Chat widget link<input type="password" data-set="links.chat" value="${esc(s.links.chat)}" placeholder="https://botrix.live/widgets/chat/?bid=…" autocomplete="off"></label>
           <label class="field">Follower goal link<input type="password" data-set="links.goal" value="${esc(s.links.goal)}" placeholder="https://botrix.live/widgets/…" autocomplete="off"></label>`
@@ -640,8 +663,8 @@
     let raf = 0;
     function refresh() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
     function render() {
-      const focus = document.activeElement && el.contains(document.activeElement) ? document.activeElement.dataset.set : null;
-      if (focus && ['text', 'password', 'number'].includes(document.activeElement.type)) return;   // don't redraw under someone typing
+      const a = document.activeElement;
+      if (a && el.contains(a) && ['text', 'password', 'number'].includes(a.type)) return;   // don't redraw under someone typing
       const bdScroll = el.querySelector('.bd')?.scrollTop || 0;
       const body = { live: tabLive, scenes: tabScenes, sources: tabSources, widgets: tabWidgets, layout: tabLayout }[tab]();
       el.innerHTML = head() + `<div class="bd">${body}</div>` + foot() + (reviewing ? reviewHtml() : '');
@@ -682,7 +705,10 @@
         case 'shared-remove': s.shared = false; save(); review('Remove the shared chat', plan()); break;
         case 'tidy': review('Tidy layout', checks().filter((c) => c.fix).map((c) => c.fix)); break;
         case 'copy-link': copy(link(dock ? 'control' : ''), b); break;
-        case 'copy-dock': copy(new URL('control?obs=4455', location.href).href + '#s=' + M.pack({ ...s, dock: undefined }), b); break;
+        case 'copy-dock': {
+          const q = `obs=${encodeURIComponent(conn.port || '4455')}${conn.pw ? '&obspw=' + encodeURIComponent(conn.pw) : ''}`;
+          copy(new URL('control?' + q, location.href).href + '#s=' + M.pack({ ...s, dock: undefined }), b); break;
+        }
         case 'import': {
           const text = prompt('Paste a settings link (or just the part after #s=):'); if (!text) break;
           try {
@@ -712,6 +738,11 @@
         if (d.set === 'veado.addr' && dock) reconnectVeado();
         return;
       }
+      if (d.conn) {
+        conn[d.conn] = t.value.trim(); saveConn();
+        if (dock) reconnectObs();
+        save(); return;
+      }
       if (d.map !== undefined) { if (t.value) s.veado.map[d.map] = t.value; else delete s.veado.map[d.map]; save(); return; }
       if (d.row) { s.dock.map[d.row] = t.value; save(); return; }
       if (d.pick) { const [what, uuid] = d.pick.split(':'); s.dock.pick[what][uuid] = t.value; save(); return; }
@@ -729,7 +760,7 @@
     }
     checkKey();
     render();
-    return { get settings() { return s; }, get env() { return env.links; }, refresh };
+    return { get settings() { return s; }, get env() { return env.links; }, get obs() { return obsCfg(); }, refresh };
   }
 
   window.TGLPanel = { mount };
