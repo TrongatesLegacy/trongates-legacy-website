@@ -1,21 +1,27 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Trongates control</title>
 <meta name="robots" content="noindex">
-<!-- OBS custom browser dock (Docks → Custom Browser Docks): https://www.trongateslegacy.com/obs/control?obs=4455
-     Shows whether the overlays can see veadotube, which state maps to which form, and has manual form buttons
-     that recolour every scene through the OBS WebSocket server. The panel itself is shared/control.js, which
-     the index page embeds too. See obs/README.md. -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- OBS custom browser dock (Docks → Custom Browser Docks): https://www.trongateslegacy.com/obs/control?obs=4455&obspw=…
+     The Trongates control panel (shared/panel.js): colour and veadotube, your scenes' Trongates overlays and what
+     each shows, the shared chat, widget sources, layout checks. Talks to OBS through its WebSocket server
+     (Tools → WebSocket Server Settings). The OBS index page shows the same panel for previews. See obs/README.md. -->
 <script>window.TGL_NO_AUTOCONNECT = true;</script>
 <script src="shared/theme.js"></script>
-<script src="shared/control.js"></script>
+<script src="shared/model.js"></script>
+<script src="shared/obsws.js"></script>
+<script src="shared/panel.js"></script>
 <style>
 @font-face { font-family: Orbitron; font-weight: 400 900; src: url(assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; font-weight: 400; src: url(assets/fonts/chakra-petch-400.woff2) format("woff2"); }
 @font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(assets/fonts/chakra-petch-600.woff2) format("woff2"); }
 :root { --accent: #22e5ff; }
 * { box-sizing: border-box; margin: 0; }
-body { padding: 14px; background: #070d18; }
+html, body { height: 100%; }
+body { padding: 10px 12px; background: #03060d; overflow: hidden; }
+#panel { height: 100%; }
 </style></head>
 <body>
 <div id="panel"></div>
-<script>TGLControl.mount(document.getElementById('panel'));</script>
+<script>TGLPanel.mount(document.getElementById('panel'), { mode: 'dock' });</script>
 </body></html>
