@@ -168,6 +168,13 @@ html, body { width: 100%; height: 100%; }
   <div data-slot="{w['slot']}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
 '''
+    if name == 'chat':
+        # ?bare=1: no frame of its own, the widget fills the page: the one shared chat source the scenes' frames show
+        css += """
+.bare .frame { background: none; backdrop-filter: none; clip-path: none; }
+.bare .frame::before, .bare .frame::after, .bare .frame .tab { display: none; }
+.bare [data-slot] { left: 0 !important; right: 0 !important; top: 0 !important; bottom: 0 !important; }"""
+        body += "<script>if (new URLSearchParams(location.search).get('bare') === '1') document.documentElement.classList.add('bare');</script>\n"
     html = WIDGET_HEAD.format(name=name, html_attr='', title=w['title'], size=w['size'], css=css, body_class='transparent') + body + FOOT
     (OUT / f'{name}.html').write_text(html)
     print('wrote', f'public/obs/{name}.html')

@@ -137,6 +137,8 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `chat=…`, `goal=…` | Be right back, Just chatting, Game (window), chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 | `key=…` | Be right back, Just chatting, Game (window), chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
 | `layout=window` | Game | the 720p window layout (game window, goal, now playing, chat, space for veadotube) instead of the full-screen backdrop |
+| `chat=0` | Be right back, Just chatting, Game (window) | don't load the chat (a shared chat source sits in the frame instead; see *One shared chat for every scene*) |
+| `bare=1` | chat | no frame: just the chat, filling the source (the shared chat source) |
 | `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
 | `goalcolor=0` | the same | keep the goal in the colours from its Botrix link instead of following the scene's form |
 | `motion=full` / `motion=reduce` | every scene and widget page | force animations on or off. By default a normal browser follows the system's reduce-motion setting, but OBS ignores it (Windows' *Animation effects* off would otherwise freeze the scenes on stream) |
@@ -197,6 +199,33 @@ The goal follows the scene's colour: `scene.js` sets `fillColor`, `accentColor`,
 `trackColor` (13%) in the link to the current form's accent. Changing the link reloads the widget, so each form
 gets its own copy, made the first time that form shows (the cycling scenes load their three up front) and kept;
 switching crossfades to it once it has drawn. `goalcolor=0` turns this off.
+
+### One shared chat for every scene (recommended once you're live)
+
+Each scene is its own browser in OBS, so each loads its own copy of the Botrix chat, and Botrix only shows
+messages that arrive after a copy loads: scenes loaded or refreshed at different times show different messages.
+One chat source added to every scene fixes that (same browser, same messages everywhere):
+
+1. **Index:** tick **Chat as one shared OBS source**, then re-copy the Be right back, Just chatting and Game
+   (720p window) addresses into their overlay sources. They now end in `chat=0`: the scenes stop loading their own
+   chat (the goal still loads).
+2. **Create the shared source once** (in any of those scenes): Sources → **+** → Browser → *Create new*, name it
+   *Shared chat*:
+   - URL: the **Shared chat** card's Copy on the index's **Widgets** tab (`…/obs/chat?bare=1&key=…`)
+   - Width `494`, Height `728`; tick **Use custom frame rate**, FPS `30`; leave *Shutdown source when not
+     visible* unticked
+3. **Add it to the other scenes:** Sources → **+** → Browser → **Add Existing** → *Shared chat*. Keep it above the
+   overlay in each scene's source list.
+4. **Place it** in each scene (right-click → Transform → Edit Transform; Ctrl+E):
+
+| Scene | Position | Crop | Why |
+|---|---|---|---|
+| Be right back | `1348, 156` | none | the frame is exactly 494 × 728 |
+| Just chatting | `88, 126` | none | the frame is 60 px wider (554): centred in it |
+| Game `?layout=window` | `1381, 132` | **Top** `278` | the frame is 450 tall: the top (oldest messages) is cropped off |
+
+The chat stacks from the bottom, so cropping the top only drops the oldest messages. In OBS, Position is where
+the cropped top-left corner lands. The Enlarge view on the index shows each frame's box to check against.
 
 ### A widget on its own (chat.html, goal.html)
 
