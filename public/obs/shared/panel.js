@@ -111,17 +111,22 @@
     }
     let s = M.normalise(read(storeKey) || legacy() || M.defaults());
     let importNote = '';
-    const addr = fromAddress();
-    const imported = read('tgl-panel-imported') || [];
-    if (addr && addr.bad) importNote = 'The settings link in the address is incomplete (cut off when copied?), so nothing was imported.';
-    else if (addr && !imported.includes(addr.mark)) {
+    // a settings link in the address, if it's new (returns true when something was imported)
+    function importAddress() {
+      const addr = fromAddress(), imported = read('tgl-panel-imported') || [];
+      if (addr && addr.bad) { importNote = 'The settings link in the address is incomplete (cut off when copied?), so nothing was imported.'; return false; }
+      if (!addr || imported.includes(addr.mark)) return false;
+      const keepDock = s.dock;
       if (addr.key) s.key = addr.key;
       else if (addr.partial) s = M.normalise({ ...s, key: addr.s.key || s.key, links: { ...s.links, ...Object.fromEntries(Object.entries(addr.s.links).filter(([, v]) => v)) }, music: { ...s.music, app: addr.s.music.app || s.music.app }, shared: addr.s.shared || s.shared });
-      else s = M.normalise({ ...addr.s, dock: s.dock });
+      else s = M.normalise(addr.s);
+      s.dock = keepDock;
       write('tgl-panel-imported', [...imported, addr.mark].slice(-20));
       importNote = 'Settings imported from the address. Changes you make now are kept; the address is only read once.';
       if (dock) write('tgl-panel-pending', s);   // applied to the scene collection when OBS tells us which one
+      return true;
     }
+    importAddress();
     s.dock = s.dock || { map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false };
     const save = () => { write(storeKey, s); onChange(s, env.links); refresh(); };
     const set = (path, value) => { const ks = path.split('.'); let o = s; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = value; save(); };
@@ -716,6 +721,8 @@
 
     // ---------------------------------------------------------------- start
     TGL.onChange(() => refresh());
+    // a settings link pasted into a tab that's already open (only the part after # changes, so no reload)
+    addEventListener('hashchange', () => { if (importAddress()) { if (dock) { try { localStorage.removeItem('tgl-panel-pending'); } catch {} } save(); checkKey(); } });
     if (dock) {
       connectObs(); connectVeado(); pollMusic();
       currentScene && setTimeout(async () => { try { obs.target = await currentScene(); refresh(); } catch {} }, 1500);
