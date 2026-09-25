@@ -40,6 +40,13 @@ def frame(x, y, w, h, tab, icon, slot, extra='', inner=''):
   <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px">{inner}</div>
 </div>
 '''
+def slot(x, y, w, h, label):
+    # an invisible box for a source placed in OBS (shown with ?guide=1)
+    return f'<div data-slot="{label}" style="position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
+# Be right back and Just chatting share this left column: now playing, chat, goal (same places, same sizes)
+def left_column():
+    return (np(40, 10, 590, 100) + frame(40, 130, 590, 678, 'Chat', 'kick', 'Botrix chat')
+            + frame(40, 828, 590, 134, 'Goal', 'kick', 'Botrix follower goal'))
 def np(x, y, w, h):
     # now playing (SMTC Bridge): built into the scene, not an OBS source; filled and shown by scene.js
     return f'<div class="np" data-np style="left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
@@ -83,9 +90,9 @@ scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', ride
 </div>
 {np(1220, 22, 560, 100)}{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
 
-# ---- BE RIGHT BACK: title left, PNGtuber centre, chat and goal framed on the right -----------------------
-scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 55% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 15% 30%, var(--a10), transparent 70%)', css='''
-.copy { position: absolute; left: 90px; top: 150px; width: 740px; display: grid; gap: 30px; justify-items: start; }
+# ---- BE RIGHT BACK: the left column (now playing, chat, goal), then title and Discord, character on the right ----
+scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 82% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 50% 35%, var(--a10), transparent 70%)', css='''
+.copy { position: absolute; left: 690px; top: 250px; width: 720px; display: grid; gap: 30px; justify-items: start; }
 .copy .title { font-size: 108px; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">Back in a moment</div>
@@ -93,11 +100,11 @@ scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6,
   <div class="sub">Grabbing snacks. <b>Keep chat alive.</b></div>
   {gang(compact=True)}
 </div>
-{np(800, 40, 500, 100)}{art_stage(860, 300, 440, 650)}{frame(1330, 40, 530, 798, 'Chat', 'kick', 'Botrix chat')}{frame(1330, 858, 530, 134, 'Goal', 'kick', 'Botrix follower goal')}{ticker(skip=('discord',))}''')
+{left_column()}{art_stage(1360, 200, 540, 800)}{ticker(skip=('discord',))}''')
 
-# ---- JUST CHATTING: chat + goal on the left, now playing top right (level with the chat), big PNGtuber stage ------
+# ---- JUST CHATTING: the left column (now playing, chat, goal), big PNGtuber stage on the right ------------------
 scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='radial-gradient(36% 56% at 64% 52%, var(--a20), transparent 70%)', css='', body=f'''
-{frame(40, 10, 590, 798, 'Chat', 'kick', 'Botrix chat')}{frame(40, 828, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{np(1300, 10, 560, 100)}{stage(760, 110, 980, 880)}{ticker()}''')
+{left_column()}{stage(760, 110, 980, 880)}{ticker()}''')
 
 # ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
 # appears: "Loading the game" in the middle, nothing else (chat and goal would sit under the game anyway).
@@ -123,7 +130,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 {LOADING}
 </div>
 <template id="game-window">
-{frame(27, 16, 1316, 790, 'Game', '', 'Game capture (720p)', inner=LOADING)}{frame(27, 826, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{np(637, 843, 560, 100)}{frame(1363, 16, 530, 520, 'Chat', 'kick', 'Botrix chat')}{stage(1363, 556, 530, 440)}</template>
+{frame(27, 16, 1316, 790, 'Game', '', 'Game capture (720p)', inner=LOADING)}{frame(27, 826, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{np(637, 826, 560, 134)}{frame(1363, 16, 530, 520, 'Chat', 'kick', 'Botrix chat')}{slot(1363, 556, 530, 440, 'PNGtuber: veadotube (Spout)')}</template>
 <script>if (new URLSearchParams(location.search).get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }}</script>
 {ticker()}''')
 

@@ -108,9 +108,9 @@ the bottom edge is kept clear of anything that matters.
 | Scene | Source | X | Y | W | H |
 |---|---|---|---|---|---|
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
-| Be right back | Botrix chat | 1348 | 156 | 494 | 728 |
-| | Botrix follower goal | 1348 | 974 | 494 | 64 |
-| Just chatting | Botrix chat | 58 | 126 | 554 | 728 |
+| Be right back | Botrix chat | 58 | 246 | 554 | 608 |
+| | Botrix follower goal | 58 | 944 | 554 | 64 |
+| Just chatting | Botrix chat | 58 | 246 | 554 | 608 |
 | | Botrix follower goal | 58 | 944 | 554 | 64 |
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
@@ -212,17 +212,17 @@ One chat source added to every scene fixes that (same browser, same messages eve
 2. **Create the shared source once** (in any of those scenes): Sources → **+** → Browser → *Create new*, name it
    *Shared chat*:
    - URL: the **Shared chat** card's Copy on the index's **Widgets** tab (`…/obs/chat?bare=1&key=…`)
-   - Width `494`, Height `728`; tick **Use custom frame rate**, FPS `30`; leave *Shutdown source when not
+   - Width `554`, Height `608`; tick **Use custom frame rate**, FPS `30`; leave *Shutdown source when not
      visible* unticked
 3. **Add it to the other scenes:** Sources → **+** → Browser → **Add Existing** → *Shared chat*. Keep it above the
    overlay in each scene's source list.
 4. **Place it** in each scene (right-click → Transform → Edit Transform; Ctrl+E):
 
-| Scene | Position | Crop | Why |
-|---|---|---|---|
-| Be right back | `1348, 156` | none | the frame is exactly 494 × 728 |
-| Just chatting | `88, 126` | none | the frame is 60 px wider (554): centred in it |
-| Game `?layout=window` | `1381, 132` | **Top** `278` | the frame is 450 tall: the top (oldest messages) is cropped off |
+| Scene | Position | Crop | Bounding box | Why |
+|---|---|---|---|---|
+| Be right back | `58, 246` | none | none | the frame is exactly 554 × 608 |
+| Just chatting | `58, 246` | none | none | the same left column as Be right back |
+| Game `?layout=window` | `1381, 132` | **Top** `103` | *Scale to inner bounds*, `494 × 450` | a smaller frame: the top (oldest messages) is cropped, then it's scaled to 89% |
 
 The chat stacks from the bottom, so cropping the top only drops the oldest messages. In OBS, Position is where
 the cropped top-left corner lands. The Enlarge view on the index shows each frame's box to check against.
@@ -251,8 +251,9 @@ to the scenes with Now playing and the music page, and the bookmark link carries
 
 It only asks the bridge from inside OBS: a normal browser would ask for *Apps on device* and label the page
 "Not Secure", so there it stays hidden unless the URL has `music=1`. The index previews use a sample track.
-Positions (for reference; it isn't an OBS source): Starting soon / Ending X 1220 Y 86 W 560 H 100, Be right back
-X 800 Y 104 W 500 H 100, Just chatting X 1300 Y 74 W 560 H 100 (top right, level with the chat). This replaces nutty's Universal Now Playing
+Positions (for reference; it isn't an OBS source): Starting soon / Ending X 1220 Y 86 W 560 H 100; Be right back
+and Just chatting X 40 Y 74 W 590 H 100 (top of the left column, above the chat and goal: the right side stays clear
+for the character / avatar); Game `layout=window` X 637 Y 890 W 560 H 134 (beside the goal, the same height). This replaces nutty's Universal Now Playing
 widget (same bridge), so that one isn't needed; it can still be layered on top as a browser source if preferred.
 
 ### Kept in Netlify (instead of pasting them)
