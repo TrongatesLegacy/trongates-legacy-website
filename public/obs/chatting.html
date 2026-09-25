@@ -5,11 +5,7 @@
      Paths are relative so the folder works both hosted and as local files. -->
 <link rel="stylesheet" href="shared/overlay.css">
 <script src="shared/theme.js"></script>
-<style>
-.head { position: absolute; right: 60px; top: 44px; display: flex; align-items: center; gap: 22px; font: 900 30px/1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
-.head .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); } .head .s { color: var(--text); }
-.head .sep { width: 2px; height: 30px; background: var(--a40); }
-.head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }</style>
+<style></style>
 </head>
 <body class="">
 <script src="shared/icons.js"></script>
@@ -19,16 +15,15 @@
 <canvas id="trails" data-riders="5"></canvas>
 <div class="content">
 
-<div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep" hidden></span><span class="topic" id="topic" hidden></span></div>
-<div class="frame " style="left:40px;top:44px;width:590px;height:794px">
+<div class="frame " style="left:40px;top:10px;width:590px;height:798px">
   <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Chat</div>
   <div data-slot="Botrix chat" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
-<div class="frame " style="left:40px;top:858px;width:590px;height:134px">
+<div class="frame " style="left:40px;top:828px;width:590px;height:134px">
   <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Goal</div>
   <div data-slot="Botrix follower goal" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
-<div class="np" data-np style="left:690px;top:4px;width:560px;height:100px"></div>
+<div class="np" data-np style="left:1300px;top:10px;width:560px;height:100px"></div>
 <div class="stage" data-slot="PNGtuber: veadotube (Spout)" style="left:760px;top:110px;width:980px;height:880px">
   <div class="halo"></div>
   <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg></div>
@@ -37,6 +32,5 @@
 </div>
 <div class="ticker"><div class="track"><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span></div></div>
 
-<script>{ const t = new URLSearchParams(location.search).get('topic'); if (t) { const el = document.getElementById('topic'); el.textContent = t; el.hidden = false; el.previousElementSibling.hidden = false; } }</script>
 <script src="shared/scene.js"></script>
 </body></html>

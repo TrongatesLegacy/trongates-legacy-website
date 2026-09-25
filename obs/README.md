@@ -72,7 +72,7 @@ doesn't, load those two overlays as local files instead: download the repo
 (<https://github.com/TrongatesLegacy/trongates-legacy-website> → **Code → Download ZIP**), keep the
 `public/obs` folder somewhere on the streaming PC, and point the browser source at it with a `file:///` URL
 (untick **Local file** so you can add options), e.g.
-`file:///C:/Users/YOU/obs/chatting.html?topic=Chilling`. The folder is self-contained (its own fonts and art).
+`file:///C:/Users/YOU/obs/chatting.html?form=princess`. The folder is self-contained (its own fonts and art).
 The cycling scenes and the Botrix CSS don't depend on veadotube, so the hosted URLs are fine for them.
 
 ## Adding a scene in OBS
@@ -105,8 +105,8 @@ the bottom edge is kept clear of anything that matters.
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
 | Be right back | Botrix chat | 1348 | 156 | 494 | 728 |
 | | Botrix follower goal | 1348 | 974 | 494 | 64 |
-| Just chatting | Botrix chat | 58 | 160 | 554 | 724 |
-| | Botrix follower goal | 58 | 974 | 554 | 64 |
+| Just chatting | Botrix chat | 58 | 126 | 554 | 728 |
+| | Botrix follower goal | 58 | 944 | 554 | 64 |
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
@@ -123,7 +123,6 @@ capture goes at the very top, so the overlay is only seen before the game appear
 
 | Option | Scenes | What it does |
 |---|---|---|
-| `topic=Rocket%20League` | Just chatting, Game | adds a label next to the name in the top bar (Game shows "Game time" by default; Just chatting shows none) |
 | `art=0` | Starting soon, Be right back, Ending | hides the character art |
 | `cycle=0` | Starting soon, Be right back, Ending | stop cycling: show the veadotube form (static) and follow its colour |
 | `form=princess` | all | the colour to start on before veadotube connects |
@@ -138,7 +137,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `app=…` | the same | only follow this player (part of its Windows app id, e.g. `spotify`, `applemusic`); default: whichever Windows has in focus |
 | `musicdebug=1` | the same | show the bridge's raw timeline numbers (position, start, end, seek range, update time) in place of the time, to see what a player sends |
 
-Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting?topic=Chilling&form=princess`.
+Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting?form=princess&app=cider`.
 
 ## Sharing the PNGtuber across scenes
 
@@ -216,7 +215,7 @@ to the scenes with Now playing and the music page, and the bookmark link carries
 It only asks the bridge from inside OBS: a normal browser would ask for *Apps on device* and label the page
 "Not Secure", so there it stays hidden unless the URL has `music=1`. The index previews use a sample track.
 Positions (for reference; it isn't an OBS source): Starting soon / Ending X 1220 Y 86 W 560 H 100, Be right back
-X 800 Y 104 W 500 H 100, Just chatting X 690 Y 68 W 560 H 100. This replaces nutty's Universal Now Playing
+X 800 Y 104 W 500 H 100, Just chatting X 1300 Y 74 W 560 H 100 (top right, level with the chat). This replaces nutty's Universal Now Playing
 widget (same bridge), so that one isn't needed; it can still be layered on top as a browser source if preferred.
 
 ### Kept in Netlify (instead of pasting them)
