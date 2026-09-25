@@ -4,7 +4,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>window.TGL_NO_AUTOCONNECT = true;</script>
 <script src="shared/theme.js"></script>
-<script src="shared/control.js"></script>
+<script src="shared/model.js"></script>
+<script src="shared/panel.js"></script>
 <!-- Index of the OBS overlays: live previews of every scene; click one to open it full size.
      https://www.trongateslegacy.com/obs/ (also works opened as a local file). -->
 <style>
@@ -35,22 +36,6 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 @media (min-width: 1001px) { .side { max-height: calc(100vh - 144px); } }
 .main-col { min-width: 0; }
 @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } .side { position: static; width: auto; max-height: none; } }
-.links { display: grid; gap: 12px; font-size: 14px; }
-.links h2 { font: 900 15px/1 Orbitron; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-.links .field { display: grid; gap: 6px; color: var(--muted); cursor: default; }
-.links input[type=text] { width: 100%; padding: 9px 10px; border: 1px solid var(--line); background: #0b1424; color: #cfe3f5; font: 13px/1.4 ui-monospace, monospace; }
-.links input[type=text]:focus { outline: 1px solid var(--accent); }
-.links input[type=password] { width: 100%; padding: 9px 10px; border: 1px solid var(--line); background: #0b1424; color: #cfe3f5; font: 13px/1.4 ui-monospace, monospace; }
-.links input[type=password]:focus { outline: 1px solid var(--accent); }
-.links .hint { margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
-.links .share { justify-self: start; padding: 9px 14px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 12px/1 Orbitron; letter-spacing: .1em; cursor: pointer; }
-.links .share.done { background: var(--accent); color: var(--bg); }
-.links .warn { color: #ff8a96; }
-.links .acts { display: flex; flex-wrap: wrap; gap: 8px; }
-.links .share.clear { border-color: #ff8a96; color: #ff8a96; }
-.links .share.clear.done { background: #ff8a96; color: var(--bg); }
-.links .share:disabled { opacity: .4; cursor: default; }
-.links summary { color: var(--muted); font-size: 13px; cursor: pointer; }
 .card { min-width: 0; display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); text-decoration: none; color: inherit; transition: border-color .2s, transform .2s;
   clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
 .card:hover, .card:focus-visible { border-color: var(--accent); transform: translateY(-3px); outline: none; }
@@ -67,9 +52,8 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .url code { flex: 1; min-width: 0; padding: 8px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 13px/1.4 ui-monospace, monospace; color: #cfe3f5; background: #0b1424; border: 1px solid var(--line); }
 .url button { flex: none; padding: 0 14px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 700 12px/1 Orbitron; letter-spacing: .1em; cursor: pointer; }
 .url button.done { background: var(--accent); color: var(--bg); }
-.panel { padding: 16px 18px 18px; background: var(--panel); border: 1px solid var(--accent);
+.panel { padding: 14px 16px 16px; background: var(--panel); border: 1px solid var(--accent);
   clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
-.dock .tgl-control h1 { font-size: 20px; }
 .side code { overflow-wrap: anywhere; }
 .url .big { border-color: #cfe3f5; color: #cfe3f5; }
 .viewer { position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; background: rgba(3,6,13,.94); backdrop-filter: blur(6px); }
@@ -90,7 +74,7 @@ footer code { color: #cfe3f5; }
     <h1><span class="o">Trongates</span> Legacy <span class="sr">OBS</span></h1>
     <nav class="tabs" aria-label="Show">
       <button type="button" data-view="scenes" aria-pressed="true">Scenes</button>
-      <button type="button" data-view="widgets" aria-pressed="false">Widgets</button>
+      <button type="button" data-view="sources" aria-pressed="false">Sources</button>
     </nav>
   </div>
   <div class="tools">
@@ -104,39 +88,12 @@ footer code { color: #cfe3f5; }
     <div class="grid" id="grid"></div>
     <div class="grid wgrid" id="wgrid" hidden></div>
   </main>
-  <footer>Setup guide: <code>obs/README.md</code> in the repo. Each card's address is what goes in the OBS browser
-  source (1920 × 1080). The control panel's colour buttons set the colour the previews are shown in; Starting
-  soon, Be right back and Ending open on the selected form, then cycle through the others.</footer>
+  <footer>Setup guide: <code>obs/README.md</code> in the repo. In OBS, add the control dock (Settings → Widgets →
+  Copy dock address) and it sets everything up; or copy a card's address into a 1920 × 1080 browser source by hand.
+  The previews use the settings on the right.</footer>
   </div>
   <aside class="side">
-    <section class="panel links" aria-labelledby="links-h">
-      <h2 id="links-h">Widgets</h2>
-      <label class="field">Chat widget link<input type="password" id="w-chat" autocomplete="off" spellcheck="false" placeholder="https://botrix.live/widgets/chat/?bid=…"></label>
-      <label class="field">Follower goal widget link<input type="password" id="w-goal" autocomplete="off" spellcheck="false" placeholder="https://botrix.live/widgets/…"></label>
-      <label class="field">Or the Netlify key (links kept in Netlify)<input type="password" id="w-key" autocomplete="off" spellcheck="false" placeholder="OBS_KEY"></label>
-      <p class="hint" id="w-key-status" role="status" hidden></p>
-      <label><input type="checkbox" id="w-shared"> Chat as one shared OBS source (scenes don't load their own)</label>
-      <label class="field">Now playing: music app (optional)<input type="text" id="w-app" autocomplete="off" spellcheck="false" placeholder="e.g. cider, applemusic, spotify"></label>
-      <label><input type="checkbox" id="w-sample" checked> Sample messages and music in the previews</label>
-      <div class="acts"><button type="button" class="share" id="w-share">Copy bookmark link</button>
-        <button type="button" class="share clear" id="w-clear">Clear saved data</button></div>
-      <p class="hint warn" id="w-bad" role="status" hidden>This bookmark link is incomplete, probably cut off when it was copied, so
-        nothing was filled in. Copy it again with Copy bookmark link (on a browser that has the links) and paste the whole thing.</p>
-      <details><summary>How this works</summary><p class="hint">Paste each link from Botrix's widget page. They're kept in this browser only, never on the website.
-        The scenes then show the widgets inside their frames, and each card's Copy includes them, so in OBS the scene
-        is the only source you need (no Botrix sources or Custom CSS). Botrix puts the settings in the link, so copy it
-        again after changing them.</p>
-        <p class="hint">Copy bookmark link gives this page's address with both links packed onto the end (after the #).
-        Bookmark it, or open it in another browser or on another computer, and the links fill themselves in. The
-        packed part (after the #, never a ?) never leaves your browser, but it's only scrambled, not locked: treat the bookmark as privately
-        as the Botrix links themselves.</p>
-        <p class="hint">Or keep the links in Netlify (env vars <code>BOTRIX_CHAT_URL</code>, <code>BOTRIX_GOAL_URL</code>,
-        plus a password of your choosing in <code>OBS_KEY</code>) and type that key here instead. Copy then gives each
-        scene with <code>?key=…</code>, and the scene fetches the current links from Netlify when it loads, so changing a
-        link in Netlify updates every OBS source. A link pasted above still wins for its frame. The key can also go in
-        this page's address: <code>/obs/#key=…</code> (or <code>?key=…</code>).</p></details>
-    </section>
-    <section class="panel dock" id="dock" aria-label="Control dock"></section>
+    <section class="panel" id="panel" aria-label="Settings"></section>
   </aside>
 </div>
 
@@ -156,224 +113,98 @@ footer code { color: #cfe3f5; }
 
 <script>
 (() => {
-  // The control dock (shared/control.js) sits in the right-hand column; its colour buttons also set
-  // the colour the previews are shown in.
-  const SCENES = [
-    ['starting', 'Starting soon', 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code; now playing.'],
-    ['brb', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; now playing; framed Botrix chat and follower goal on the right.', ['chat', 'goal']],
-    ['chatting', 'Just chatting', 'Big PNGtuber space (veadotube), Botrix chat and follower goal, now playing. Colour follows veadotube.', ['chat', 'goal']],
-    ['game', 'Game', 'Loading backdrop behind the full-screen game capture: "Loading the game" in the middle. Colour follows veadotube.'],
-    ['game?layout=window', 'Game (720p window)', 'Game capture in a 1280 × 720 window (loading text until it appears), goal and now playing below, chat top right, veadotube bottom right.', ['chat', 'goal']],
-    ['ending', 'Ending', 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials; now playing.'],
-  ];
-  const grid = document.getElementById('grid'), guide = document.getElementById('guide');
-  let form = TGL.form;
+  // Scene previews and addresses, built from the settings panel on the right (shared/panel.js, the same one as the
+  // OBS dock) through shared/model.js, so a copied address here is what the dock would set in OBS.
+  const M = TGLModel;
+  const DESC = {
+    starting: 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code; now playing.',
+    brb: 'Breaks. Now playing, chat and goal on the left; title, Discord and the cycling character to the right.',
+    chatting: 'Now playing, chat and goal on the left; big PNGtuber space (veadotube) on the right. Colour follows veadotube.',
+    game: 'Backdrop behind the full-screen game capture: "Loading the game" in the middle. Colour follows veadotube.',
+    window: 'Game capture in a 1280 × 720 window, goal and now playing below, chat top right, veadotube bottom right.',
+    ending: 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials; now playing.',
+  };
+  const CARDS = [
+    { id: 'starting', kind: 'starting' }, { id: 'brb', kind: 'brb' }, { id: 'chatting', kind: 'chatting' },
+    { id: 'game', kind: 'game', layout: 'full' }, { id: 'window', kind: 'game', layout: 'window', title: 'Game (720p window)' }, { id: 'ending', kind: 'ending' },
+  ].map((c) => ({ ...c, title: c.title || M.TYPES[c.kind].title, desc: DESC[c.id], file: M.TYPES[c.kind].file }));
+  const SOURCES = [
+    { id: 'chatbox', desc: 'Just the framed chat, as its own browser source (e.g. on top of the game). 500 × 800 suggested; any size works.' },
+    { id: 'goal', desc: 'Just the framed follower goal. 500 × 134 suggested (at least ~464 wide).' },
+    { id: 'bare', desc: 'The chat with no frame, to add to OBS once and reuse in every scene. The dock sets this up for you (with the raw Botrix link); by hand: 554 × 608, placement in obs/README.md.' },
+    { id: 'music', desc: 'Now playing from SMTC Bridge (Windows), on its own (e.g. over the game). 560 × 100 suggested.' },
+  ].map((c) => ({ ...c, kind: c.id, title: M.WIDGETS[c.id].title, file: M.WIDGETS[c.id].file, w: M.WIDGETS[c.id].w, h: M.WIDGETS[c.id].h }));
+  const grid = document.getElementById('grid'), wgrid = document.getElementById('wgrid'), guide = document.getElementById('guide');
+  let s = M.normalise(null), env = {}, form = TGL.form;
 
-  // Botrix widget links: stored in this browser only; added to the previews and to the copied addresses
-  const W = { chat: document.getElementById('w-chat'), goal: document.getElementById('w-goal') }, sample = document.getElementById('w-sample');
-  // a bookmark link carries them after the # (never sent to the server): #w=<base64url of {"chat":…,"goal":…}>
-  const b64 = { enc: (s) => btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''), dec: (s) => atob(s.replace(/-/g, '+').replace(/_/g, '/')) };
-  const bad = document.getElementById('w-bad');
-  const keyEl = document.getElementById('w-key'), keyStatus = document.getElementById('w-key-status');
-  let envLinks = {};                                   // what Netlify returned for the key
-  const linksNow = () => Object.fromEntries(Object.entries(W).filter(([, el]) => /^https:\/\//.test(el.value.trim())).map(([k, el]) => [k, el.value.trim()]));
-  // the music app (SMTC Bridge target, app=) for the scenes with Now playing; blank = whatever Windows has in focus
-  const appEl = document.getElementById('w-app');
-  // one shared chat source in OBS (chat?bare=1, added once and reused): the scenes' Copy then says chat=0
-  const sharedEl = document.getElementById('w-shared');
-  const MUSIC = new Set(['starting', 'brb', 'chatting', 'ending', 'music', 'game?layout=window']);
-  // a scene's address plus extra options (some scenes already carry one, e.g. game?layout=window)
-  const withQuery = (file, qs) => (qs ? file + (file.includes('?') ? '&' : '?') + qs.replace(/^&/, '') : file);
-  const packNow = () => ({ ...linksNow(), ...(keyEl.value.trim() ? { key: keyEl.value.trim() } : {}), ...(appEl.value.trim() ? { app: appEl.value.trim() } : {}), ...(sharedEl.checked ? { shared: 1 } : {}) });
-  const bookmark = () => location.origin + location.pathname + location.search + '#w=' + b64.enc(JSON.stringify(packNow()));
-  // where each widget comes from: a pasted link wins, else Netlify (through the key)
-  const source = (k) => (/^https:\/\//.test(W[k].value) ? 'link' : envLinks[k] ? 'env' : null);
-  const anyWidget = () => Object.keys(W).some(source);
-  // the # stays in the address bar, so bookmarking the page keeps the links
-  const importHash = () => {
-    const packed = new URLSearchParams(location.hash.slice(1)).get('w');
-    if (!packed) return false;
-    try {
-      const got = JSON.parse(b64.dec(packed));
-      for (const k of Object.keys(W)) if (typeof got[k] === 'string' && /^https:\/\//.test(got[k])) localStorage.setItem('tgl-botrix-' + k, got[k]);
-      if (typeof got.key === 'string' && got.key) localStorage.setItem('tgl-obs-key', got.key);
-      if (typeof got.app === 'string' && got.app) localStorage.setItem('tgl-obs-app', got.app);
-      if (got.shared) localStorage.setItem('tgl-obs-shared', '1');
-      bad.hidden = true;
-    } catch { bad.hidden = false; return false; }
-    for (const [k, el] of Object.entries(W)) el.value = localStorage.getItem('tgl-botrix-' + k) || '';
-    keyEl.value = localStorage.getItem('tgl-obs-key') || '';
-    appEl.value = localStorage.getItem('tgl-obs-app') || '';
-    sharedEl.checked = localStorage.getItem('tgl-obs-shared') === '1';
-    return true;
-  };
-  importHash();
-  for (const [k, el] of Object.entries(W)) {
-    el.value = localStorage.getItem('tgl-botrix-' + k) || '';
-    el.addEventListener('change', () => {
-      el.value = el.value.trim(); localStorage.setItem('tgl-botrix-' + k, el.value);
-      if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());   // keep the address a current bookmark
-      load();
-    });
-  }
-  // the Netlify key: ask /api/obs-widgets which links it has. It can also come in the address, like the scenes:
-  // ?key=… or #key=… (the # never reaches the server), and is then saved like a typed one.
-  const keyFromUrl = () => {
-    const k = (new URLSearchParams(location.hash.slice(1)).get('key') || new URLSearchParams(location.search).get('key') || '').trim();
-    if (k) localStorage.setItem('tgl-obs-key', k);
-    return !!k;
-  };
-  keyFromUrl();
-  keyEl.value = localStorage.getItem('tgl-obs-key') || '';
-  const say = (t, warn) => { keyStatus.hidden = !t; keyStatus.textContent = t; keyStatus.classList.toggle('warn', !!warn); };
-  async function checkKey() {
-    const key = keyEl.value.trim();
-    envLinks = {};
-    if (!key) say('');
-    else {
-      try {
-        const r = await fetch('/api/obs-widgets', { headers: { 'X-OBS-Key': key }, cache: 'no-store' });
-        if (r.status === 401) say('Netlify: wrong key.', true);
-        else if (r.status === 404) say('Netlify: not set up yet (add OBS_KEY, BOTRIX_CHAT_URL and BOTRIX_GOAL_URL, then redeploy).', true);
-        else if (!r.ok) throw 0;
-        else {
-          envLinks = await r.json();
-          say('Netlify: ' + Object.keys(W).map((k) => (k === 'chat' ? 'chat ' : 'goal ') + (envLinks[k] ? '✓' : '✗ (not set)')).join(', '), !Object.keys(envLinks).length);
-        }
-      } catch { say("Netlify: couldn't reach /api/obs-widgets.", true); }
-    }
-    shareState(); load();
-  }
-  sharedEl.checked = localStorage.getItem('tgl-obs-shared') === '1';
-  sharedEl.addEventListener('change', () => {
-    localStorage.setItem('tgl-obs-shared', sharedEl.checked ? '1' : '');
-    if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());
-    load();
-  });
-  appEl.value = localStorage.getItem('tgl-obs-app') || '';
-  appEl.addEventListener('change', () => {
-    appEl.value = appEl.value.trim(); localStorage.setItem('tgl-obs-app', appEl.value);
-    if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());
-    load();
-  });
-  keyEl.addEventListener('change', () => {
-    keyEl.value = keyEl.value.trim(); localStorage.setItem('tgl-obs-key', keyEl.value);
-    if (/[#&]w=/.test(location.hash)) history.replaceState(null, '', bookmark());
-    checkKey();
-  });
-  // forget everything this page saved in the browser: links, key, colour; and the #… that would bring them back
-  const clearBtn = document.getElementById('w-clear');
-  clearBtn.addEventListener('click', () => {
-    if (!confirm('Clear the Botrix links, Netlify key, music app and colour saved in this browser?')) return;
-    for (const k of Object.keys(localStorage)) if (k.startsWith('tgl-')) localStorage.removeItem(k);
-    Object.values(W).forEach((el) => { el.value = ''; }); keyEl.value = ''; appEl.value = ''; sharedEl.checked = false; bad.hidden = true;
-    const u = new URL(location.href); u.searchParams.delete('key'); u.hash = '';
-    history.replaceState(null, '', u.pathname + u.search);
-    clearBtn.textContent = 'Cleared'; clearBtn.classList.add('done');
-    setTimeout(() => { clearBtn.textContent = 'Clear saved data'; clearBtn.classList.remove('done'); }, 1400);
-    checkKey();
-  });
-  addEventListener('hashchange', () => {
-    const k = keyFromUrl(); if (k) keyEl.value = localStorage.getItem('tgl-obs-key');
-    if (importHash() || k) checkKey();
-  });   // a bookmark pasted into an open tab
-  sample.onchange = () => load();
-  const share = document.getElementById('w-share');
-  const shareState = () => { share.disabled = !Object.values(W).some((el) => /^https:\/\//.test(el.value)) && !keyEl.value.trim() && !appEl.value.trim(); };
-  [...Object.values(W), keyEl, appEl].forEach((el) => el.addEventListener('input', shareState)); shareState();
-  share.addEventListener('click', async () => {
-    const full = bookmark();
-    try { await navigator.clipboard.writeText(full); } catch { const t = document.createElement('textarea'); t.value = full; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-    share.textContent = 'Copied'; share.classList.add('done');
-    setTimeout(() => { share.textContent = 'Copy bookmark link'; share.classList.remove('done'); }, 1400);
-  });
-  // pasted links go in whole (chat=/goal=); Netlify ones as the key; previews add demo=1 for sample messages
-  // the frames on their own (chat.html, goal.html): [file, title, suggested size, widget]
-  // [file, title, description, widget, preview width, height]
-  const SOLO = [
-    ['chat', 'Chat box', 'Just the framed chat, as its own browser source (e.g. on top of the game). 500 × 800 suggested; any size works.', ['chat'], 500, 800],
-    ['goal', 'Follower goal', 'Just the framed follower goal, as its own browser source. 500 × 134 suggested (at least ~464 wide).', ['goal'], 500, 134],
-    ['chat?bare=1', 'Shared chat', 'The chat with no frame: add it to OBS once and reuse it in every scene, so they all show the same messages (tick "Chat as one shared OBS source"; placement in obs/README.md). 554 × 608.', ['chat'], 554, 608],
-    ['music', 'Now playing', 'Song from SMTC Bridge (Windows), shown while music plays. Built into Starting soon, Be right back, Just chatting and Ending; this is it on its own (e.g. over the game). 560 × 100 suggested.', [], 560, 100],
-  ];
-  const sceneWidgets = (file) => ([...SCENES, ...SOLO].find(([f]) => f === file)[3] || []).filter(source);
-  const sharing = (file, preview) => !preview && sharedEl.checked && SCENES.some(([f]) => f === file) && sceneWidgets(file).includes('chat');
-  const widgets = (file, preview) => {
-    const shared = sharing(file, preview), ks = sceneWidgets(file).filter((k) => !(shared && k === 'chat')), app = appEl.value.trim();
-    return ks.filter((k) => source(k) === 'link').map((k) => `&${k}=` + encodeURIComponent(W[k].value)).join('')
-      + (ks.some((k) => source(k) === 'env') ? '&key=' + encodeURIComponent(keyEl.value.trim()) : '')
-      + (!preview && app && MUSIC.has(file) ? '&app=' + encodeURIComponent(app) : '')
-      + (shared ? '&chat=0' : '')
-      + (preview && sample.checked && ks.length ? '&demo=1' : '');
-  };
-  const obsUrl = (file) => withQuery(new URL(file, location.href).href, widgets(file, false));
-  // previews never talk to local apps: no veadotube, and a sample track instead of SMTC Bridge (or none)
-  const previewSrc = (file, g = guide.checked) => withQuery(file, `noveado=1&form=${form}${g ? '&guide=1' : ''}&music=${sample.checked ? 'demo' : '0'}${widgets(file, true)}`);
-  const card = (file, title, desc, { w = 1920, h = 1080, into = grid } = {}) => {
-    const a = document.createElement('a'), scene = into === grid;
-    a.className = 'card'; a.href = file; a.target = '_blank'; a.rel = 'noopener';
-    const url = new URL(file, location.href).href;   // shown; the copied address adds the widget links
+  const obsUrl = (c) => M.withOptions(new URL(c.file, location.href).href, M.options(c.kind, s, { layout: c.layout, env }));
+  const previewSrc = (c, g = guide.checked) => M.withOptions(c.file, M.options(c.kind, s, { layout: c.layout, env, preview: { form, guide: g, sample: s.sample } }));
+  const extras = (c) => { const n = M.options(c.kind, s, { layout: c.layout, env }).filter(([k]) => k !== 'layout' && k !== 'bare').length; return n ? ` + ${n} option${n === 1 ? '' : 's'}` : ''; };
+
+  const card = (c, into) => {
+    const a = document.createElement('a'), scene = into === grid, w = c.w || 1920, h = c.h || 1080;
+    a.className = 'card'; a.target = '_blank'; a.rel = 'noopener';
     a.innerHTML = `<div class="shot"><iframe loading="lazy" tabindex="-1" title=""></iframe></div>
       <div class="info"><h2></h2><p></p><div class="url"><code></code><button type="button" data-copy>Copy</button>${scene ? '<button type="button" class="big" data-big>Enlarge</button>' : ''}</div></div>`;
     const shot = a.querySelector('.shot'), frame = a.querySelector('iframe');
     shot.style.aspectRatio = `${w} / ${h}`; shot.dataset.w = w;
     frame.style.width = w + 'px'; frame.style.height = h + 'px';
-    a.querySelector('h2').textContent = title;
-    a.querySelector('p').textContent = desc;
-    a.querySelector('code').textContent = url;
-    a.querySelector('iframe').title = title + ' preview';
-    if (scene) a.querySelector('[data-big]').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openViewer(file); });
+    a.querySelector('h2').textContent = c.title;
+    a.querySelector('p').textContent = c.desc;
+    frame.title = c.title + ' preview';
+    if (scene) a.querySelector('[data-big]').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openViewer(c.id); });
     a.querySelector('[data-copy]').addEventListener('click', async (e) => {
       e.preventDefault(); e.stopPropagation();
-      const full = obsUrl(file);
+      const full = obsUrl(c);
       try { await navigator.clipboard.writeText(full); } catch { const t = document.createElement('textarea'); t.value = full; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
       e.target.textContent = 'Copied'; e.target.classList.add('done');
       setTimeout(() => { e.target.textContent = 'Copy'; e.target.classList.remove('done'); }, 1400);
     });
-    a.dataset.file = file;
+    a.dataset.id = c.id;
     into.appendChild(a);
-    return a;
   };
-  SCENES.forEach(([f, t, d]) => card(f, t, d));
-  const wgrid = document.getElementById('wgrid');
-  SOLO.forEach(([f, t, d, , w, h]) => card(f, t, d, { w, h, into: wgrid }));
+  CARDS.forEach((c) => card(c, grid));
+  SOURCES.forEach((c) => card(c, wgrid));
+  const byId = (id) => CARDS.find((c) => c.id === id) || SOURCES.find((c) => c.id === id);
 
-  // Scenes | Widgets tabs (remembered in this browser)
+  // Scenes | Sources tabs (remembered in this browser)
   const tabs = [...document.querySelectorAll('.tabs button')];
   const showView = (v) => {
     tabs.forEach((b) => b.setAttribute('aria-pressed', b.dataset.view === v));
-    grid.hidden = v !== 'scenes'; wgrid.hidden = v !== 'widgets';
+    grid.hidden = v !== 'scenes'; wgrid.hidden = v !== 'sources';
     localStorage.setItem('tgl-obs-view', v);
   };
   tabs.forEach((b) => (b.onclick = () => showView(b.dataset.view)));
-  showView(localStorage.getItem('tgl-obs-view') === 'widgets' ? 'widgets' : 'scenes');
+  showView(localStorage.getItem('tgl-obs-view') === 'sources' || localStorage.getItem('tgl-obs-view') === 'widgets' ? 'sources' : 'scenes');
 
   // scale each preview (1920x1080, or the widget's size) to its card
   const ro = new ResizeObserver((entries) => entries.forEach((e) => e.target.style.setProperty('--s', e.contentRect.width / e.target.dataset.w)));
   document.querySelectorAll('.card .shot').forEach((el) => ro.observe(el));
 
+  let pending = 0;
   const load = () => {
-    document.querySelectorAll('.card').forEach((c) => {
-      c.querySelector('iframe').src = previewSrc(c.dataset.file);
-      c.href = obsUrl(c.dataset.file);
-      const w = widgets(c.dataset.file, false);
-      c.querySelector('code').textContent = new URL(c.dataset.file, location.href).href + (w ? ' + Botrix ' + sceneWidgets(c.dataset.file).map((k) => (k === 'chat' && sharing(c.dataset.file) ? 'shared chat' : k)).join(' + ') : '');
+    cancelAnimationFrame(pending);
+    pending = requestAnimationFrame(() => {
+      document.querySelectorAll('.card').forEach((a) => {
+        const c = byId(a.dataset.id), src = previewSrc(c);
+        const f = a.querySelector('iframe'); if (f.getAttribute('src') !== src) f.src = src;
+        a.href = obsUrl(c);
+        a.querySelector('code').textContent = new URL(c.file, location.href).href + (c.layout === 'window' ? '?layout=window' : c.id === 'bare' ? '?bare=1' : '') + extras(c);
+      });
+      if (viewer.classList.contains('open')) showScene();
     });
-    if (viewer.classList.contains('open')) showScene();
   };
 
-  // the embedded control dock: same panel as the OBS dock (control), in the right-hand column
-  const dock = document.getElementById('dock');
-  TGLControl.mount(dock, { veado: false, onForm: (f) => { if (f !== form) { form = f; load(); } } });
-  const dockNote = document.createElement('p');
-  dockNote.className = 'hint';
-  dockNote.innerHTML = 'Also available as an OBS dock: <code></code>';
-  dockNote.querySelector('code').textContent = new URL('control?obs=4455', location.href).href;
-  dock.appendChild(dockNote);
-
+  // the settings panel: its changes redraw the previews and the addresses; its colour buttons set the previews' colour
+  const panel = TGLPanel.mount(document.getElementById('panel'), {
+    mode: 'index',
+    onChange: (settings, links) => { s = settings; env = links || {}; load(); },
+    onForm: (f) => { if (f !== form) { form = f; load(); } },
+  });
+  s = panel.settings;
   guide.onchange = load;
 
-  // ---- large view: one scene filling the window, source positions on by default ----
+  // ---- large view: one scene filling the window, source positions on until widgets are set up ----
   const viewer = document.getElementById('viewer'), vFrame = document.getElementById('v-frame'), vGuide = document.getElementById('v-guide');
   let current = 0;
   const fit = () => {
@@ -381,18 +212,18 @@ footer code { color: #cfe3f5; }
     viewer.style.setProperty('--vw', w + 'px'); viewer.style.setProperty('--vs', w / 1920);
   };
   const showScene = () => {
-    const [file, title] = SCENES[current];
-    document.getElementById('v-title').textContent = title;
-    document.getElementById('v-open').href = obsUrl(file);   // with the key / links, like Copy
-    vFrame.src = previewSrc(file, vGuide.checked);
+    const c = CARDS[current];
+    document.getElementById('v-title').textContent = c.title;
+    document.getElementById('v-open').href = obsUrl(c);
+    const src = previewSrc(c, vGuide.checked); if (vFrame.getAttribute('src') !== src) vFrame.src = src;
   };
-  // positions start on until Botrix links are added (then the widgets are the point); a manual tick sticks
   let guideTouched = false;
-  function openViewer(file) {
-    if (!guideTouched) vGuide.checked = !anyWidget();
-    current = SCENES.findIndex(([f]) => f === file); fit(); showScene(); viewer.classList.add('open'); document.getElementById('v-close').focus(); }
-  const closeViewer = () => { viewer.classList.remove('open'); vFrame.src = 'about:blank'; };
-  const step = (d) => { current = (current + d + SCENES.length) % SCENES.length; showScene(); };
+  function openViewer(id) {
+    if (!guideTouched) vGuide.checked = !(s.key || M.pasted(s, 'chat') || M.pasted(s, 'goal'));
+    current = CARDS.findIndex((c) => c.id === id); fit(); showScene(); viewer.classList.add('open'); document.getElementById('v-close').focus();
+  }
+  const closeViewer = () => { viewer.classList.remove('open'); vFrame.removeAttribute('src'); };
+  const step = (d) => { current = (current + d + CARDS.length) % CARDS.length; showScene(); };
   document.getElementById('v-close').onclick = closeViewer;
   document.getElementById('v-prev').onclick = () => step(-1);
   document.getElementById('v-next').onclick = () => step(1);
@@ -403,7 +234,7 @@ footer code { color: #cfe3f5; }
     if (e.key === 'Escape') closeViewer(); else if (e.key === 'ArrowRight') step(1); else if (e.key === 'ArrowLeft') step(-1);
   });
   addEventListener('resize', () => viewer.classList.contains('open') && fit());
-  checkKey();   // loads the previews (after asking Netlify, if a key is saved)
+  load();
 })();
 </script>
 </body></html>

@@ -179,7 +179,12 @@
     if (!cv || TGL.reduced) return;
     const ctx = cv.getContext('2d'), W = cv.width = 1920, H = cv.height = 1080, CELL = 60;
     const count = +cv.dataset.riders || 6;
-    const accent = () => getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#22e5ff';
+    // --accent is a registered <color>, which newer Chromium reports as rgb(…): the trails need #rrggbb (they add alpha)
+    const accent = () => {
+      const v = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#22e5ff';
+      const m = /^rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/.exec(v);
+      return m ? '#' + m.slice(1, 4).map((n) => (+n).toString(16).padStart(2, '0')).join('') : v.slice(0, 7);
+    };
     const hex = (t) => Math.round(Math.max(0, Math.min(1, t)) * 255).toString(16).padStart(2, '0');
     const spawn = (r) => {
       const horiz = Math.random() < .6, fwd = Math.random() < .5;
