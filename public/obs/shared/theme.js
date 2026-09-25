@@ -10,7 +10,7 @@
 //
 // URL options understood by every overlay (all optional):
 //   form=princess        start on this form (still follows veadotube / the dock afterwards)
-//   veado=127.0.0.1:2424 veadotube's server address (veadotube mini shows it; default 127.0.0.1:2424)
+//   veado=127.0.0.1:54765 veadotube's server address (veadotube mini shows it; default 127.0.0.1:54765)
 //   noveado=1            don't connect to veadotube
 //   obs=4455             OBS WebSocket port to listen on for dock switches (default: don't connect)
 //   obspw=secret         OBS WebSocket password, if authentication is enabled
@@ -71,7 +71,7 @@
   // ---- 1. veadotube mini: follow the avatar state ----------------------------------------------------
   function connectVeado() {
     if (params.get('noveado') === '1') return;
-    const addr = params.get('veado') || '127.0.0.1:2424';
+    const addr = params.get('veado') || '127.0.0.1:54765';
     let ws;
     try { ws = new WebSocket(`ws://${addr}?n=${encodeURIComponent('Trongates overlay')}`); }
     catch { status.veado = 'error'; return setTimeout(connectVeado, 5000); }

@@ -8,7 +8,13 @@
 // "Not Secure"). The scenes and the OBS dock still follow veadotube.
 //
 // URL options on the page that mounts it: obs=4455 (+ obspw=…) to broadcast switches to the scenes through the
-// OBS WebSocket server; veado=127.0.0.1:2424 if veadotube uses another address.
+// OBS WebSocket server; veado=127.0.0.1:54765 if veadotube uses another address; tron=animated to have the
+// Tron (cyan) button pick that veadotube state instead of "cyan".
+//
+// With veadotube connected, a colour button switches veadotube's avatar state (the first state whose name maps
+// to that colour; see TGL.formForState), and the colour follows veadotube's report of the switch, so it doesn't
+// run ahead of the model. Once veadotube confirms, the switch is broadcast to every scene (the cycling ones
+// too). Without veadotube, or with no state for that colour, the button just recolours, as before.
 (() => {
   const CSS = `
 .tgl-control { color: #e8f4ff; font: 600 14px/1.4 "Chakra Petch", system-ui, sans-serif; }
@@ -31,8 +37,8 @@
 <h1>Trongates · scenes</h1>
 <h2>Colour theme</h2>
 <div class="forms" data-forms></div>
-<p class="hint">Buttons recolour every scene now. If veadotube is connected, the scenes follow it automatically and
-switching avatar state there changes them again.</p>
+<p class="hint">With veadotube connected, the buttons switch its avatar state and every scene follows once it has
+switched; without it they recolour every scene straight away. Switching state in veadotube itself works too.</p>
 <h2>Connections</h2>
 <div class="row"><i class="dot" data-dot="veado"></i><span>veadotube: <span data-status="veado">…</span></span></div>
 <div class="row"><i class="dot" data-dot="obs"></i><span>OBS WebSocket: <span data-status="obs">…</span></span></div>
@@ -53,12 +59,12 @@ switching avatar state there changes them again.</p>
     }
     const params = new URLSearchParams(location.search);
     const F = TGL.FORMS, q = (s) => el.querySelector(s), formsEl = q('[data-forms]');
-    let obsWs = null;
+    let obsWs = null, veadoWs = null, pending = null, pendingTimer;
 
     for (const [key, f] of Object.entries(F)) {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = f.label; b.style.setProperty('--c', f.accent); b.dataset.form = key;
-      b.onclick = () => broadcast(key);
+      b.onclick = () => choose(key);
       formsEl.appendChild(b);
     }
     const mark = () => formsEl.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.form === TGL.form));
@@ -66,6 +72,14 @@ switching avatar state there changes them again.</p>
       TGL.set(form); mark(); onForm && onForm(form);
       if (obsWs && obsWs.readyState === 1)
         obsWs.send(JSON.stringify({ op: 6, d: { requestType: 'BroadcastCustomEvent', requestId: 'tgl-' + Date.now(), requestData: { eventData: { tgl: 'form', form } } } }));
+    }
+    // a button: through veadotube when it's connected and has a state for the colour, else straight to the scenes
+    function choose(form) {
+      const state = veadoWs && veadoWs.readyState === 1 && stateFor(form);
+      if (!state) return broadcast(form);
+      pending = form; clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(() => { if (pending) { pending = null; broadcast(form); } }, 3000);   // no reply: recolour anyway
+      veadoWs.send('nodes:' + JSON.stringify({ event: 'payload', type: 'stateEvents', id: 'mini', payload: { event: 'set', state: state.id } }));
     }
     const setStatus = (id, ok, text) => {
       q(`[data-dot="${id}"]`).className = 'dot ' + (ok === true ? 'ok' : ok === false ? 'bad' : '');
@@ -81,12 +95,20 @@ switching avatar state there changes them again.</p>
     }
 
     // veadotube: connection, states and what each maps to
-    const addr = params.get('veado') || '127.0.0.1:2424', statesEl = q('[data-states]');
-    let states = [], current = null;
+    const addr = params.get('veado') || '127.0.0.1:54765', statesEl = q('[data-states]');
+    let states = [], current = null;              // states: [{ id, name }] from veadotube
+    const tronPick = (params.get('tron') || 'cyan').toLowerCase();
+    // the veadotube state for a colour: for Tron (cyan) the ?tron= one (default "cyan"), else one named after the
+    // colour, else the first whose name maps to it
+    const stateFor = (form) => {
+      const fits = states.filter((s) => TGL.formForState(s.name) === form);
+      const want = form === 'cyan' ? tronPick : form;
+      return fits.find((s) => s.name.toLowerCase() === want) || fits[0] || null;
+    };
     function drawStates() {
       if (!states.length) return;
       statesEl.innerHTML = '';
-      for (const name of states) {
+      for (const { name } of states) {
         const form = TGL.formForState(name), row = document.createElement('div');
         row.className = name === current ? 'on' : '';
         row.style.setProperty('--c', F[form].accent);
@@ -97,7 +119,7 @@ switching avatar state there changes them again.</p>
     }
     function connectVeado() {
       let ws;
-      try { ws = new WebSocket(`ws://${addr}?n=${encodeURIComponent('Trongates control')}`); }
+      try { ws = veadoWs = new WebSocket(`ws://${addr}?n=${encodeURIComponent('Trongates control')}`); }
       catch { setStatus('veado', false, `can't connect to ${addr}`); return; }
       const send = (payload) => ws.send('nodes:' + JSON.stringify({ event: 'payload', type: 'stateEvents', id: 'mini', payload }));
       ws.onopen = () => { setStatus('veado', true, `connected (${addr})`); send({ event: 'listen', token: 'tgl-control' }); send({ event: 'list' }); send({ event: 'peek' }); };
@@ -106,8 +128,14 @@ switching avatar state there changes them again.</p>
         if (t.slice(0, i).trim() !== 'nodes') return;
         let m; try { m = JSON.parse(t.slice(i + 1)); } catch { return; }
         if (m.type !== 'stateEvents' || !m.payload) return;
-        if (Array.isArray(m.payload.states)) states = m.payload.states.map((s) => s.name || s.id);
-        if (m.payload.state) { current = m.payload.state; const f = TGL.formForState(current); TGL.set(f); mark(); onForm && onForm(f); }
+        if (Array.isArray(m.payload.states)) states = m.payload.states.map((s) => ({ id: s.id || s.name, name: s.name || s.id }));
+        if (m.payload.state) {
+          current = (states.find((s) => s.id === m.payload.state) || { name: m.payload.state }).name;
+          const f = TGL.formForState(current);
+          // a switch asked for from the buttons: now that veadotube has it, tell every scene (the cycling ones too)
+          if (pending && f === pending) { pending = null; clearTimeout(pendingTimer); broadcast(f); }
+          else { TGL.set(f); mark(); onForm && onForm(f); }
+        }
         drawStates();
       };
       ws.onclose = () => {

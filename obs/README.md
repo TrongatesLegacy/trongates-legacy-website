@@ -60,7 +60,7 @@ Your avatar's states (read from `chibi-v1-animated-with-blobfish.veado`) are map
 A state added later is matched by name (princess/pink → pink, blob/fish → orange, red → red, yellow/gold →
 gold, anything else → cyan); the control dock lists every state and its colour, and `map=state name:form`
 on the URL overrides one (e.g. `map=cheering:yellow`; forms are `cyan`, `yellow`, `red`, `princess`,
-`blobfish`). veadotube must be open on the **same PC** as OBS; if its server isn't `127.0.0.1:2424`, add
+`blobfish`). veadotube must be open on the **same PC** as OBS; if its server isn't `127.0.0.1:54765` (veadotube → program settings → *serving at*; type that into *server address* so it never changes), add
 `veado=address:port`.
 
 ### If the colours don't follow on Game / Just chatting
@@ -266,7 +266,13 @@ usernames keep each viewer's colour. The CSS injected by OBS is fixed and can't 
 ## The control dock (optional)
 
 The same panel as on the index, as an OBS dock. It shows whether veadotube is connected, lists your avatar states and the colour each maps
-to, and has manual colour buttons for when veadotube isn't running.
+to, and has colour buttons. With veadotube connected, a button **switches veadotube's avatar state** (the state
+named after the colour, else the first that maps to it; the Tron button picks `cyan`, or `animated` with
+`&tron=animated` on the dock URL), and the colour follows once veadotube reports the switch, so it doesn't run
+ahead of the model; the switch is then broadcast to every scene, the cycling ones too. Without veadotube, or with
+no state for that colour, a button just recolours every scene. (If a state takes a moment to appear, turn on
+*keep all states loaded* in veadotube's program settings.) The index's copy of the panel doesn't talk to
+veadotube.
 
 1. **Tools → WebSocket Server Settings**: tick **Enable WebSocket server**, note the port (4455) and the password.
 2. **Docks → Custom Browser Docks**: name it *Trongates*, with URL
