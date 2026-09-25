@@ -62,7 +62,8 @@
     const off = scene ? partsOf(kind, layout).filter((p) => sc.off.includes(p)) : [];
     if (off.length) add('hide', off.join(','));
     // Botrix: pasted links go in whole, Netlify ones through the key; a shared chat means the scene loads none
-    const useShared = scene && s.shared && has('chat');
+    // (not in previews: there's no shared source there, so they show the scene's own sample chat)
+    const useShared = scene && s.shared && has('chat') && !ctx.preview;
     let needKey = false;
     for (const k of ['chat', 'goal']) {
       if (!has(k)) continue;
