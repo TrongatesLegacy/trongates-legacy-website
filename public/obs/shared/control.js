@@ -59,23 +59,36 @@ switched; without it they recolour every scene straight away. Switching state in
     }
     const params = new URLSearchParams(location.search);
     const F = TGL.FORMS, q = (s) => el.querySelector(s), formsEl = q('[data-forms]');
-    let obsWs = null, veadoWs = null, pending = null, pendingTimer;
+    let obsWs = null, veadoWs = null, pending = null, pendingTimer, animBtn = null, current = null;
 
     for (const [key, f] of Object.entries(F)) {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = f.label; b.style.setProperty('--c', f.accent); b.dataset.form = key;
       b.onclick = () => choose(key);
       formsEl.appendChild(b);
+      // Tron (animated): veadotube's "animated" state, same cyan; shown once veadotube lists that state
+      if (key === 'cyan' && veado) {
+        animBtn = document.createElement('button');
+        animBtn.type = 'button'; animBtn.textContent = f.label + ' (animated)'; animBtn.style.setProperty('--c', f.accent);
+        animBtn.dataset.form = key; animBtn.hidden = true;
+        animBtn.onclick = () => choose(key, 'animated');
+        formsEl.appendChild(animBtn);
+      }
     }
-    const mark = () => formsEl.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.form === TGL.form));
+    // which button is on: the colour, and for Tron whether veadotube is on its animated state
+    const mark = () => {
+      const onAnimated = !!animBtn && !animBtn.hidden && String(current || '').toLowerCase() === 'animated';
+      formsEl.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.form === TGL.form && (b === animBtn) === onAnimated));
+    };
     function broadcast(form) {
       TGL.set(form); mark(); onForm && onForm(form);
       if (obsWs && obsWs.readyState === 1)
         obsWs.send(JSON.stringify({ op: 6, d: { requestType: 'BroadcastCustomEvent', requestId: 'tgl-' + Date.now(), requestData: { eventData: { tgl: 'form', form } } } }));
     }
     // a button: through veadotube when it's connected and has a state for the colour, else straight to the scenes
-    function choose(form) {
-      const state = veadoWs && veadoWs.readyState === 1 && stateFor(form);
+    function choose(form, stateName) {
+      const state = veadoWs && veadoWs.readyState === 1
+        && (stateName ? states.find((s) => s.name.toLowerCase() === stateName) : stateFor(form));
       if (!state) return broadcast(form);
       pending = form; clearTimeout(pendingTimer);
       pendingTimer = setTimeout(() => { if (pending) { pending = null; broadcast(form); } }, 3000);   // no reply: recolour anyway
@@ -96,7 +109,7 @@ switched; without it they recolour every scene straight away. Switching state in
 
     // veadotube: connection, states and what each maps to
     const addr = params.get('veado') || '127.0.0.1:54765', statesEl = q('[data-states]');
-    let states = [], current = null;              // states: [{ id, name }] from veadotube
+    let states = [];                              // [{ id, name }] from veadotube; current: the state it's on
     const tronPick = (params.get('tron') || 'cyan').toLowerCase();
     // the veadotube state for a colour: for Tron (cyan) the ?tron= one (default "cyan"), else one named after the
     // colour, else the first whose name maps to it
@@ -137,6 +150,8 @@ switched; without it they recolour every scene straight away. Switching state in
           else { TGL.set(f); mark(); onForm && onForm(f); }
         }
         drawStates();
+        if (animBtn) animBtn.hidden = !states.some((s) => s.name.toLowerCase() === 'animated');
+        mark();
       };
       ws.onclose = () => {
         const hosted = location.protocol === 'https:';

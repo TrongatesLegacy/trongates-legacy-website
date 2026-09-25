@@ -267,8 +267,8 @@ usernames keep each viewer's colour. The CSS injected by OBS is fixed and can't 
 
 The same panel as on the index, as an OBS dock. It shows whether veadotube is connected, lists your avatar states and the colour each maps
 to, and has colour buttons. With veadotube connected, a button **switches veadotube's avatar state** (the state
-named after the colour, else the first that maps to it; the Tron button picks `cyan`, or `animated` with
-`&tron=animated` on the dock URL), and the colour follows once veadotube reports the switch, so it doesn't run
+named after the colour, else the first that maps to it; the Tron button picks `cyan`, and a **Tron (animated)**
+button, shown when veadotube has an `animated` state, picks that one with the same cyan), and the colour follows once veadotube reports the switch, so it doesn't run
 ahead of the model; the switch is then broadcast to every scene, the cycling ones too. Without veadotube, or with
 no state for that colour, a button just recolours every scene. (If a state takes a moment to appear, turn on
 *keep all states loaded* in veadotube's program settings.) The index's copy of the panel doesn't talk to
