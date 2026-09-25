@@ -6,13 +6,10 @@
 <link rel="stylesheet" href="shared/overlay.css">
 <script src="shared/theme.js"></script>
 <style>
-.head { position: absolute; left: 60px; top: 44px; display: flex; align-items: center; gap: 22px; font: 900 30px/1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
-.head .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); } .head .s { color: var(--text); }
-.head .sep { width: 2px; height: 30px; background: var(--a40); }
-.head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
-.copy { position: absolute; left: 550px; right: 0; top: 0; bottom: 0; align-content: center; display: grid; gap: 30px; justify-items: center; text-align: center; }
+.copy { position: absolute; inset: 0; align-content: center; display: grid; gap: 30px; justify-items: center; text-align: center; }
 .copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 .copy .title { font-size: 120px; }
+.layout-window .copy { gap: 24px; } .layout-window .copy .title { font-size: 96px; } .layout-window .copy .sub { font-size: 26px; }
 .bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
 @keyframes load { from { transform: translateX(-100%); } to { transform: translateX(290%); } }</style>
@@ -20,29 +17,47 @@
 <body class="">
 <script src="shared/icons.js"></script>
 <div class="grid"></div>
-<div class="glow" style="background:radial-gradient(34% 52% at 64% 46%, var(--a20), transparent 70%)"></div>
+<div class="glow" style="background:radial-gradient(34% 52% at 50% 46%, var(--a20), transparent 70%)"></div>
 <div class="floor"></div><div class="horizon"></div>
 <canvas id="trails" data-riders="6"></canvas>
 <div class="content">
 
-<div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep"></span><span class="topic" id="topic">Game time</span></div>
+<div id="game-default">
 <div class="copy" data-quiet>
   <div class="eyebrow">Hang tight</div>
   <div class="title glitch" data-t="Loading the game"><span class="o">Loading</span><span class="s">The game</span></div>
   <div class="bar"><i></i></div>
   <div class="sub">The game will pop up <b>any second now</b>.</div>
 </div>
-<div class="frame " style="left:50px;top:140px;width:500px;height:694px">
-  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Chat</div>
-  <div data-slot="Botrix chat" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
-<div class="frame " style="left:50px;top:856px;width:500px;height:134px">
+<template id="game-window">
+<div class="frame " style="left:27px;top:16px;width:1316px;height:790px">
+  <div class="tab">Game</div>
+  <div data-slot="Game capture (720p)" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"><div class="copy" data-quiet>
+  <div class="eyebrow">Hang tight</div>
+  <div class="title glitch" data-t="Loading the game"><span class="o">Loading</span><span class="s">The game</span></div>
+  <div class="bar"><i></i></div>
+  <div class="sub">The game will pop up <b>any second now</b>.</div>
+</div></div>
+</div>
+<div class="frame " style="left:27px;top:826px;width:590px;height:134px">
   <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Goal</div>
   <div data-slot="Botrix follower goal" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
+<div class="np" data-np style="left:637px;top:843px;width:560px;height:100px"></div>
+<div class="frame " style="left:1363px;top:16px;width:530px;height:520px">
+  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Chat</div>
+  <div data-slot="Botrix chat" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
+</div>
+<div class="stage" data-slot="PNGtuber: veadotube (Spout)" style="left:1363px;top:556px;width:530px;height:440px">
+  <div class="halo"></div>
+  <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg></div>
+  <div class="pad"></div>
+</div>
+</template>
+<script>if (new URLSearchParams(location.search).get('layout') === 'window') { document.documentElement.classList.add('layout-window'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }</script>
 </div>
 <div class="ticker"><div class="track"><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span></div></div>
 
-<script>document.getElementById('topic').textContent = new URLSearchParams(location.search).get('topic') || 'Game time';</script>
 <script src="shared/scene.js"></script>
 </body></html>

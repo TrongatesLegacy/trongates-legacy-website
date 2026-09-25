@@ -32,11 +32,12 @@ def stage(x, y, w, h, label='PNGtuber: veadotube (Spout)'):
 def art_stage(x, y, w, h):
     # the current form's character art (no veadotube on these scenes); follows the form, hidden with ?art=0
     return f'<div class="stage art-stage" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">\n  {ring()}\n  <div class="art"><img data-form-art alt=""></div>\n</div>\n'
-def frame(x, y, w, h, tab, icon, slot, extra=''):
+def frame(x, y, w, h, tab, icon, slot, extra='', inner=''):
     # the Botrix widget goes in the inner box (data-slot); the frame itself is drawn by the overlay
+    ic = f'<svg class="i"><use href="#i-{icon}"/></svg>' if icon else ''
     return f'''<div class="frame {extra}" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
-  <div class="tab"><svg class="i"><use href="#i-{icon}"/></svg>{tab}</div>
-  <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
+  <div class="tab">{ic}{tab}</div>
+  <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px">{inner}</div>
 </div>
 '''
 def np(x, y, w, h):
@@ -99,28 +100,32 @@ scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='
 {frame(40, 10, 590, 798, 'Chat', 'kick', 'Botrix chat')}{frame(40, 828, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{np(1300, 10, 560, 100)}{stage(760, 110, 980, 880)}{ticker()}''')
 
 # ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
-# appears. Chat on the left, big "loading" text centred in the rest; the PNGtuber sits over the far
-# bottom-right corner (no space reserved for it).
-scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradient(34% 52% at 64% 46%, var(--a20), transparent 70%)', css="""
-.head { position: absolute; left: 60px; top: 44px; display: flex; align-items: center; gap: 22px; font: 900 30px/1 Orbitron; letter-spacing: .06em; text-transform: uppercase; }
-.head .o { color: transparent; -webkit-text-stroke: 1.4px var(--accent); } .head .s { color: var(--text); }
-.head .sep { width: 2px; height: 30px; background: var(--a40); }
-.head .topic { font: 600 26px/1 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
-.copy { position: absolute; left: 550px; right: 0; top: 0; bottom: 0; align-content: center; display: grid; gap: 30px; justify-items: center; text-align: center; }
-.copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-.copy .title { font-size: 120px; }
-.bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
-.bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
-@keyframes load { from { transform: translateX(-100%); } to { transform: translateX(290%); } }""", body=f'''
-<div class="head" data-quiet><span><span class="o">Trongates</span> <span class="s">Legacy</span></span><span class="sep"></span><span class="topic" id="topic">Game time</span></div>
-<div class="copy" data-quiet>
+# appears: "Loading the game" in the middle, nothing else (chat and goal would sit under the game anyway).
+# ?layout=window instead: a 1280x720 frame for the game capture on the left (the loading text inside it until
+# the game covers it), follower goal bottom left with now playing beside it, chat top right, and the bottom-right
+# corner left for veadotube. The window layout lives in a <template> swapped in before scene.js runs, so its
+# widgets only load when it's used.
+LOADING = '''<div class="copy" data-quiet>
   <div class="eyebrow">Hang tight</div>
   <div class="title glitch" data-t="Loading the game"><span class="o">Loading</span><span class="s">The game</span></div>
   <div class="bar"><i></i></div>
   <div class="sub">The game will pop up <b>any second now</b>.</div>
+</div>'''
+scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradient(34% 52% at 50% 46%, var(--a20), transparent 70%)', css="""
+.copy { position: absolute; inset: 0; align-content: center; display: grid; gap: 30px; justify-items: center; text-align: center; }
+.copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.copy .title { font-size: 120px; }
+.layout-window .copy { gap: 24px; } .layout-window .copy .title { font-size: 96px; } .layout-window .copy .sub { font-size: 26px; }
+.bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+.bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
+@keyframes load { from { transform: translateX(-100%); } to { transform: translateX(290%); } }""", body=f'''
+<div id="game-default">
+{LOADING}
 </div>
-{frame(50, 140, 500, 694, 'Chat', 'kick', 'Botrix chat')}{frame(50, 856, 500, 134, 'Goal', 'kick', 'Botrix follower goal')}{ticker()}
-<script>document.getElementById('topic').textContent = new URLSearchParams(location.search).get('topic') || 'Game time';</script>''')
+<template id="game-window">
+{frame(27, 16, 1316, 790, 'Game', '', 'Game capture (720p)', inner=LOADING)}{frame(27, 826, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{np(637, 843, 560, 100)}{frame(1363, 16, 530, 520, 'Chat', 'kick', 'Botrix chat')}{stage(1363, 556, 530, 440)}</template>
+<script>if (new URLSearchParams(location.search).get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }}</script>
+{ticker()}''')
 
 # ---- ENDING: thanks, socials and the Discord, PNGtuber on the right -----------------------------------
 scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glow=GLOW_RIGHT, css='''

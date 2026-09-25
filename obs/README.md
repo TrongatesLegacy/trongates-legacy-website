@@ -20,9 +20,14 @@ the OBS dock still follow veadotube.
 | Now playing on its own (optional) | `music` | `music.html` |
 | Control dock (optional) | `control` | `control.html` |
 
-**Game** is a backdrop for the moments before your game appears: big "Loading the game" text centred to the
-right of the chat. Your full-screen game capture sits on top of it, so once the game is up none of the overlay
-shows. No space is reserved for the PNGtuber: put veadotube in the far bottom-right corner, over everything.
+**Game** is a backdrop for the moments before your game appears: "Loading the game" in the middle and nothing
+else. Your full-screen game capture sits on top of it, so once the game is up none of the overlay shows. No space
+is reserved for the PNGtuber: put veadotube in the far bottom-right corner, over everything.
+
+**Game with `?layout=window`** (the index's *Game (720p window)* card) keeps the overlay on show around the game:
+a 1280 × 720 window on the left for your game capture (with "Loading the game" inside until the game covers it),
+the follower goal bottom left with Now playing beside it, the chat top right, and the bottom-right corner left
+free for veadotube.
 
 **Just chatting** has the chat on the left and a big space for your PNGtuber (veadotube via Spout) on the right. **Starting soon**, **Be right
 back** and **Ending** have no veadotube: instead they open on the selected form (`form=`, else the last one
@@ -110,8 +115,10 @@ the bottom edge is kept clear of anything that matters.
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
-| | Botrix chat | 68 | 256 | 464 | 624 |
-| | Botrix follower goal | 68 | 972 | 464 | 64 |
+| Game `?layout=window` | your game capture, *above* the overlay | 45 | 132 | 1280 | 720 |
+| | Botrix chat | 1381 | 132 | 494 | 450 |
+| | Botrix follower goal | 45 | 942 | 554 | 64 |
+| | veadotube (Spout) | 1363 | 620 | 530 | 440 |
 | Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
 The PNGtuber space on Just chatting is sized so the avatar's feet land on the glowing pad and the rings
@@ -127,8 +134,9 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `cycle=0` | Starting soon, Be right back, Ending | stop cycling: show the veadotube form (static) and follow its colour |
 | `form=princess` | all | the colour to start on before veadotube connects |
 | `noveado=1` | all | don't connect to veadotube |
-| `chat=…`, `goal=…` | Be right back, Just chatting, Game, chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
-| `key=…` | Be right back, Just chatting, Game, chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
+| `chat=…`, `goal=…` | Be right back, Just chatting, Game (window), chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
+| `key=…` | Be right back, Just chatting, Game (window), chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
+| `layout=window` | Game | the 720p window layout (game window, goal, now playing, chat, space for veadotube) instead of the full-screen backdrop |
 | `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
 | `goalcolor=0` | the same | keep the goal in the colours from its Botrix link instead of following the scene's form |
 | `motion=full` / `motion=reduce` | every scene and widget page | force animations on or off. By default a normal browser follows the system's reduce-motion setting, but OBS ignores it (Windows' *Animation effects* off would otherwise freeze the scenes on stream) |
@@ -171,7 +179,7 @@ changing a setting in Botrix, copy the link again, paste it on the index, and re
 Settings chosen for the frames (Botrix → Widgets → Chat): **Design ★ Neon Cards** (dark cards edged in each
 viewer's colour, closest to the scenes' panels); **Hide old messages off** (the frame never sits empty);
 background transparent; font size 21. The embedded widget fades out at the top of its frame instead of cutting a
-message in half. Frames that get a widget: Be right back, Just chatting and Game (chat + goal each).
+message in half. Frames that get a widget: Be right back, Just chatting and Game with `layout=window` (chat + goal each).
 
 Follower goal (Botrix → Widgets → Follower goal), chosen from all 30 designs at the frame's size: **★ Stamina Surge**
 (one row, 63px tall, so it fits the 64px goal frame; most other designs are two rows or ignore the font size and
@@ -206,7 +214,7 @@ title, artist, progress, in the scene's colour), read from [SMTC Bridge](https:/
 a small Windows tray app that serves whatever Windows' media controls show (Spotify, Apple Music, YouTube Music,
 a browser tab…) as JSON at `http://127.0.0.1:5000/now-playing`. Nothing to add in OBS: install the bridge on the
 streaming PC, tick *Start with Windows* in its tray menu, and the panel appears while music plays and fades out
-when it stops (or when the bridge isn't running). The Game scene has none: put `/obs/music` on top of the game
+when it stops (or when the bridge isn't running). The full-screen Game scene has none (the window layout does): put `/obs/music` on top of the game
 instead (Widgets tab on the index; 560 × 100 suggested). To always follow one player (so a YouTube tab can't take
 over), type it in the index's *Now playing: music app* field (e.g. `cider`, `applemusic`, `spotify`; any part
 of the app's Windows id, listed at `http://127.0.0.1:5000/sessions` on the streaming PC): Copy then adds `app=…`

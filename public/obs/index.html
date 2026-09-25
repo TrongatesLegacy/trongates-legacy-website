@@ -161,7 +161,8 @@ footer code { color: #cfe3f5; }
     ['starting', 'Starting soon', 'Before the stream. Forms cycle with the glitch; Lulu Gang Discord block with QR code; now playing.'],
     ['brb', 'Be right back', 'Breaks. Forms cycle; Lulu Gang block; now playing; framed Botrix chat and follower goal on the right.', ['chat', 'goal']],
     ['chatting', 'Just chatting', 'Big PNGtuber space (veadotube), Botrix chat and follower goal, now playing. Colour follows veadotube.', ['chat', 'goal']],
-    ['game', 'Game', 'Loading backdrop behind the full-screen game capture. Chat on the left; colour follows veadotube.', ['chat', 'goal']],
+    ['game', 'Game', 'Loading backdrop behind the full-screen game capture: "Loading the game" in the middle. Colour follows veadotube.'],
+    ['game?layout=window', 'Game (720p window)', 'Game capture in a 1280 × 720 window (loading text until it appears), goal and now playing below, chat top right, veadotube bottom right.', ['chat', 'goal']],
     ['ending', 'Ending', 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials; now playing.'],
   ];
   const grid = document.getElementById('grid'), guide = document.getElementById('guide');
@@ -177,7 +178,9 @@ footer code { color: #cfe3f5; }
   const linksNow = () => Object.fromEntries(Object.entries(W).filter(([, el]) => /^https:\/\//.test(el.value.trim())).map(([k, el]) => [k, el.value.trim()]));
   // the music app (SMTC Bridge target, app=) for the scenes with Now playing; blank = whatever Windows has in focus
   const appEl = document.getElementById('w-app');
-  const MUSIC = new Set(['starting', 'brb', 'chatting', 'ending', 'music']);
+  const MUSIC = new Set(['starting', 'brb', 'chatting', 'ending', 'music', 'game?layout=window']);
+  // a scene's address plus extra options (some scenes already carry one, e.g. game?layout=window)
+  const withQuery = (file, qs) => (qs ? file + (file.includes('?') ? '&' : '?') + qs.replace(/^&/, '') : file);
   const packNow = () => ({ ...linksNow(), ...(keyEl.value.trim() ? { key: keyEl.value.trim() } : {}), ...(appEl.value.trim() ? { app: appEl.value.trim() } : {}) });
   const bookmark = () => location.origin + location.pathname + location.search + '#w=' + b64.enc(JSON.stringify(packNow()));
   // where each widget comes from: a pasted link wins, else Netlify (through the key)
@@ -289,9 +292,9 @@ footer code { color: #cfe3f5; }
       + (!preview && app && MUSIC.has(file) ? '&app=' + encodeURIComponent(app) : '')
       + (preview && sample.checked && ks.length ? '&demo=1' : '');
   };
-  const obsUrl = (file) => { const w = widgets(file, false); return new URL(file, location.href).href + (w ? '?' + w.slice(1) : ''); };
+  const obsUrl = (file) => withQuery(new URL(file, location.href).href, widgets(file, false));
   // previews never talk to local apps: no veadotube, and a sample track instead of SMTC Bridge (or none)
-  const previewSrc = (file, g = guide.checked) => `${file}?noveado=1&form=${form}${g ? '&guide=1' : ''}&music=${sample.checked ? 'demo' : '0'}${widgets(file, true)}`;
+  const previewSrc = (file, g = guide.checked) => withQuery(file, `noveado=1&form=${form}${g ? '&guide=1' : ''}&music=${sample.checked ? 'demo' : '0'}${widgets(file, true)}`);
   const card = (file, title, desc, { w = 1920, h = 1080, into = grid } = {}) => {
     const a = document.createElement('a'), scene = into === grid;
     a.className = 'card'; a.href = file; a.target = '_blank'; a.rel = 'noopener';
