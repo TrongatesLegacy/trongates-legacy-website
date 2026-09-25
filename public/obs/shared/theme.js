@@ -15,6 +15,8 @@
 //   obs=4455             OBS WebSocket port to listen on for dock switches (default: don't connect)
 //   obspw=secret         OBS WebSocket password, if authentication is enabled
 //   map=fishing:blobfish,tiara:princess   pin veadotube state names to forms (beats the automatic matching)
+//   veadodelay=300       wait this many ms after a veadotube switch before recolouring (if the model loads slowly)
+//   hide=chat,goal,music,discord,socials,ticker,art   turn parts of a scene off (art=0 and music=0 still work)
 //   guide=1              show labelled boxes with the exact position of every source to add in OBS
 (() => {
   const FORMS = {
@@ -40,6 +42,9 @@
   const root = document.documentElement;
   const listeners = new Set();
   const status = { veado: 'off', obs: 'off', state: null, states: [] };
+  const hidden = new Set((params.get('hide') || '').split(',').map((p) => p.trim()).filter(Boolean));
+  if (params.get('art') === '0') hidden.add('art');
+  if (params.get('music') === '0') hidden.add('music');
 
   const valid = (f) => Object.prototype.hasOwnProperty.call(FORMS, f);
   const stored = () => { try { return localStorage.getItem('tgl-obs-form'); } catch { return null; } };
@@ -89,7 +94,11 @@
       if (msg.type !== 'stateEvents' || !msg.payload) return;
       const p = msg.payload;
       if (Array.isArray(p.states)) { status.states = p.states.map((s) => s.name || s.id); notifyStatus(); }
-      if (p.state) { status.state = p.state; notifyStatus(); apply(formForState(p.state), 'veadotube'); }
+      if (p.state) {
+        status.state = p.state; notifyStatus();
+        const f = formForState(p.state), wait = +params.get('veadodelay') || 0;
+        if (wait > 0) setTimeout(() => apply(f, 'veadotube'), wait); else apply(f, 'veadotube');
+      }
     };
     ws.onclose = () => { status.veado = 'retrying'; notifyStatus(); setTimeout(connectVeado, 5000); };
     ws.onerror = () => { status.veado = 'unreachable'; notifyStatus(); };
@@ -141,6 +150,7 @@
     reduced: params.get('motion') === 'reduce' || (params.get('motion') !== 'full' && !window.obsstudio
       && matchMedia('(prefers-reduced-motion: reduce)').matches),
     param: (k, d) => params.get(k) ?? d,
+    hidden: (part) => hidden.has(part),
   };
 
   root.dataset.form = form;

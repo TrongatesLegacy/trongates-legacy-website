@@ -22,6 +22,23 @@
   // ?key=<OBS_KEY> instead fetches the links kept in Netlify env vars (netlify/functions/obs-widgets.mjs), so
   // changing them there updates every scene; a chat=/goal= on the URL still wins for its frame. demo=1 adds
   // Botrix's sample messages (the index previews).
+  // ---- parts turned off (hide=chat,goal,music,discord,socials,ticker,art): gone before anything loads ----
+  $$('[data-part]').forEach((el) => { if (TGL.hidden(el.dataset.part)) el.remove(); });
+  if (TGL.hidden('art')) document.documentElement.classList.add('no-art');
+
+  // ---- the left column (Be right back, Just chatting): the chat frame takes the room now playing and the goal
+  // leave: always when they're turned off, and while nothing's playing (it glides back before now playing
+  // returns). Same numbers as model.js chatBox(), which the dock uses to fit its shared chat.
+  const colChat = document.querySelector('.frame.col-chat');
+  const column = (musicRoom, animate = true) => {
+    if (!colChat) return;
+    const top = musicRoom ? 130 : 10, bottom = document.querySelector('.frame.col-goal') ? 808 : 962;
+    colChat.classList.toggle('still', !animate);
+    colChat.style.top = top + 'px'; colChat.style.height = bottom - top + 'px';
+    setTimeout(labelSlots, animate ? 600 : 0);
+  };
+  column(false, false);
+
   const SLOTS = { chat: 'Botrix chat', goal: 'Botrix follower goal' };
   const demo = (url) => url + (TGL.param('demo') === '1' ? '&isDemo=true&preview=1' : '');
   const embed = (key, url) => {
@@ -88,15 +105,23 @@
       <div class="np-title"></div><div class="np-artist"></div><div class="np-bar"><i></i></div></div>`;
     const img = np.querySelector('img'), q = (s) => np.querySelector(s);
     const mmss = (ms) => { const t = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
-    let track = null, lastPlaying = 0;
+    let track = null, lastPlaying = 0, wanted = false, timer;
+    // in the left column the chat makes room first, then now playing fades in (and the other way round)
+    const reveal = (on) => {
+      if (on === wanted) return;
+      wanted = on; clearTimeout(timer);
+      if (!colChat) { np.classList.toggle('on', on); return; }
+      if (on) { column(true); timer = setTimeout(() => np.classList.add('on'), TGL.reduced ? 0 : 500); }
+      else { np.classList.remove('on'); timer = setTimeout(() => column(false), TGL.reduced ? 0 : 650); }
+    };
     const show = (t) => {                       // t: {title, artist, art, pos, end, at, playing}
       track = t;
-      if (!t) { np.classList.remove('on'); return; }
+      if (!t) { reveal(false); return; }
       q('.np-title').textContent = t.title; q('.np-artist').textContent = t.artist || '';
       if (t.art && img.getAttribute('src') !== t.art) img.src = t.art;
       if (!t.art) img.removeAttribute('src');
       np.classList.toggle('paused', !t.playing);
-      np.classList.add('on');
+      reveal(true);
     };
     const tick = () => {                        // progress between polls, from the bridge's last position
       np.classList.toggle('no-time', !track || !track.end);
@@ -122,6 +147,7 @@
     setInterval(tick, 250);
     if (mode === 'demo') {
       const start = Date.now();
+      wanted = true; column(true, false); np.classList.add('on');   // the previews: already in place, no glide
       show({ title: 'Neon Grid Runner', artist: 'Lulu Gang Radio', art: '', pos: 72000, end: 214000, at: start, playing: true });
     } else if (mode !== '0' && (window.obsstudio || mode === '1' || mode === 'always')) {
       const host = TGL.param('musichost', '127.0.0.1:5000'), app = TGL.param('app', '').toLowerCase();
@@ -218,7 +244,6 @@
   const turnOf = (f) => (TRONS.includes(f) ? 'tron' : f);
   const artSrc = (f) => `assets/forms/${ART[f] || ART.cyan}.webp`;
   const artBox = document.querySelector('.art-stage .art');
-  if (TGL.param('art') === '0') document.documentElement.classList.add('no-art');
   if (artBox) {
     const img = artBox.querySelector('img[data-form-art]');
     const glitchEl = document.createElement('div'); glitchEl.className = 'art-glitch'; artBox.appendChild(glitchEl);

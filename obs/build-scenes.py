@@ -30,12 +30,14 @@ def stage(x, y, w, h, label='PNGtuber: veadotube (Spout)'):
     # a space for the veadotube (Spout) source: Game and Just chatting only
     return f'<div class="stage" data-slot="{label}" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">\n  {ring()}\n</div>\n'
 def art_stage(x, y, w, h):
-    # the current form's character art (no veadotube on these scenes); follows the form, hidden with ?art=0
-    return f'<div class="stage art-stage" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">\n  {ring()}\n  <div class="art"><img data-form-art alt=""></div>\n</div>\n'
-def frame(x, y, w, h, tab, icon, slot, extra='', inner=''):
-    # the Botrix widget goes in the inner box (data-slot); the frame itself is drawn by the overlay
+    # the current form's character art (no veadotube on these scenes); follows the form, hidden with hide=art
+    return f'<div class="stage art-stage" data-part="art" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">\n  {ring()}\n  <div class="art"><img data-form-art alt=""></div>\n</div>\n'
+def frame(x, y, w, h, tab, icon, slot, extra='', inner='', part=''):
+    # the Botrix widget goes in the inner box (data-slot); the frame itself is drawn by the overlay.
+    # part: which hide= name removes it (chat, goal)
     ic = f'<svg class="i"><use href="#i-{icon}"/></svg>' if icon else ''
-    return f'''<div class="frame {extra}" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
+    dp = f' data-part="{part}"' if part else ''
+    return f'''<div class="frame {extra}"{dp} style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
   <div class="tab">{ic}{tab}</div>
   <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px">{inner}</div>
 </div>
@@ -43,28 +45,30 @@ def frame(x, y, w, h, tab, icon, slot, extra='', inner=''):
 def slot(x, y, w, h, label):
     # an invisible box for a source placed in OBS (shown with ?guide=1)
     return f'<div data-slot="{label}" style="position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
-# Be right back and Just chatting share this left column: now playing, chat, goal (same places, same sizes)
+# Be right back and Just chatting share this left column: now playing, chat, goal (same places, same sizes).
+# The chat grows into the room when now playing or the goal is off, or while nothing's playing (scene.js);
+# model.js chatBox() has the same numbers for the dock's shared chat.
 def left_column():
-    return (np(40, 10, 590, 100) + frame(40, 130, 590, 678, 'Chat', 'kick', 'Botrix chat')
-            + frame(40, 828, 590, 134, 'Goal', 'kick', 'Botrix follower goal'))
+    return (np(40, 10, 590, 100) + frame(40, 130, 590, 678, 'Chat', 'kick', 'Botrix chat', extra='col-chat', part='chat')
+            + frame(40, 828, 590, 134, 'Goal', 'kick', 'Botrix follower goal', extra='col-goal', part='goal'))
 def np(x, y, w, h):
     # now playing (SMTC Bridge): built into the scene, not an OBS source; filled and shown by scene.js
-    return f'<div class="np" data-np style="left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
+    return f'<div class="np" data-np data-part="music" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
 ITEMS = [('kick','kick.com/trongateslegacy'),('discord','Lulu Gang Discord · type <b class="cmd">!discord</b>'),('web','trongateslegacy.com'),
          ('youtube','@trongateslegacy'),('tiktok','@trongateslegacy'),('instagram','@trongateslegacy'),('club','club.com/trongateslegacy')]
 def ticker(skip=()):
     # the scrolling strip of socials; skip=('discord',) where the scene already features the Discord
     items=''.join(f'<span class="item {k}"><svg class="i"><use href="#i-{k}"/></svg>{t}</span>' for k,t in ITEMS if k not in skip)
-    return f'<div class="ticker"><div class="track">{items}{items}</div></div>\n'
+    return f'<div class="ticker" data-part="ticker"><div class="track">{items}{items}</div></div>\n'
 def gang(compact=False):
     # the Lulu Gang Discord block: logos, 'Join the Discord', the !discord command and the QR code.
     # Same block on Starting soon, Be right back and Ending; compact=True fits BRB's narrower column.
-    return f'''<div class="gang{' compact' if compact else ''}"><span class="logos"><img class="lulu" src="assets/lulu.webp" alt=""><img class="gng" src="assets/gang.webp" alt=""></span>
+    return f'''<div class="gang{' compact' if compact else ''}" data-part="discord"><span class="logos"><img class="lulu" src="assets/lulu.webp" alt=""><img class="gng" src="assets/gang.webp" alt=""></span>
     <span><small>Hang out between streams</small><b><svg class="i"><use href="#i-discord"/></svg>Join the Discord</b><em>Scan the code or type <b>!discord</b> in chat</em></span>
     <span class="qr"><img src="assets/discord-qr.svg" alt="QR code for the Lulu Gang Discord"></span></div>'''
 GANG = gang()
 
-SOCIALS = '''<div class="socials">
+SOCIALS = '''<div class="socials" data-part="socials">
       <span class="kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span>
       <span class="youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span>
       <span class="tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span>
@@ -130,7 +134,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 {LOADING}
 </div>
 <template id="game-window">
-{frame(27, 16, 1316, 790, 'Game', '', 'Game capture (720p)', inner=LOADING)}{frame(27, 826, 590, 134, 'Goal', 'kick', 'Botrix follower goal')}{np(637, 826, 560, 134)}{frame(1363, 16, 530, 520, 'Chat', 'kick', 'Botrix chat')}{slot(1363, 556, 530, 440, 'PNGtuber: veadotube (Spout)')}</template>
+{frame(27, 16, 1316, 790, 'Game', '', 'Game capture (720p)', inner=LOADING)}{frame(27, 826, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(637, 826, 560, 134)}{frame(1363, 16, 530, 520, 'Chat', 'kick', 'Botrix chat', part='chat')}{slot(1363, 556, 530, 440, 'PNGtuber: veadotube (Spout)')}</template>
 <script>if (new URLSearchParams(location.search).get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }}</script>
 {ticker()}''')
 
@@ -150,8 +154,8 @@ scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glo
 for name, s in scenes.items():
     # the socials ticker runs along the top (the bottom gets covered by video players' controls); everything
     # else sits in .content, which starts below it, so positions in the scenes are measured from under the ticker
-    body, tick = s['body'].split('<div class="ticker">')
-    body = f'<div class="content">\n{body}</div>\n<div class="ticker">{tick}'
+    body, tick = s['body'].split('<div class="ticker" data-part="ticker">')
+    body = f'<div class="content">\n{body}</div>\n<div class="ticker" data-part="ticker">{tick}'
     html = HEAD.format(name=name, html_attr=' data-cycle' if s.get('cycle') else '', **s) + BG.format(**s) + body + '\n' + FOOT
     (OUT / f'{name}.html').write_text(html)
     print('wrote', f'public/obs/{name}.html')
