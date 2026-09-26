@@ -263,15 +263,16 @@
   // Picking a form while it runs glitches straight to it, and OBS showing the scene again starts over. The glitch is the hero's: four 60ms steps of horizontal slices mixing the old and new art, with a
   // red/cyan split. ?cycle=0 shows the veadotube form (static) instead, ?art=0 hides the art.
   const ART = { cyan: 'tron-cyan-mclosed-eopen', yellow: 'tron-yellow-mclosed-eopen', red: 'tron-red-mclosed-eopen', princess: 'princess-uwu', blobfish: 'blobfish-mclosed-eopen' };
-  const ART_T = { cyan: 'none', yellow: 'none', red: 'none', princess: 'translate(.75%, -1.9%) scale(.937)', blobfish: 'translate(-12.7%, -5.8%) scale(1.18)' };
   const CYCLE = ['tron', 'princess', 'blobfish'], TRONS = ['cyan', 'yellow', 'red'], HOLD = 6000;
   const turnOf = (f) => (TRONS.includes(f) ? 'tron' : f);
-  const artSrc = (f) => `assets/forms/${ART[f] || ART.cyan}.webp`;
+  // the website's own character art (one pre-sized canvas for every form: scripts/presize-art.mjs), so no per-form
+  // adjustment here; ../assets works hosted (/assets/img) and from a local copy of the whole public folder
+  const artSrc = (f) => `../assets/img/${ART[f] || ART.cyan}.webp`;
   const artBox = document.querySelector('.art-stage .art');
   if (artBox) {
     const img = artBox.querySelector('img[data-form-art]');
     const glitchEl = document.createElement('div'); glitchEl.className = 'art-glitch'; artBox.appendChild(glitchEl);
-    const show = (f) => { img.src = artSrc(f); img.style.transform = ART_T[f]; };
+    const show = (f) => { img.src = artSrc(f); };
     Object.keys(ART).forEach((f) => { const i = new Image(); i.src = artSrc(f); });   // warm all five
     if (!TGL.cycling) { show(TGL.form); TGL.onChange(show); }
     else {
@@ -290,7 +291,7 @@
         let html = '', y = 0;
         while (y < 100) {
           const h = 10 + Math.random() * 16, f = Math.random() < p ? to : from, dx = (Math.random() - .5) * 30;
-          html += `<i style="clip-path:inset(${y.toFixed(1)}% 0 ${Math.max(0, 100 - y - h).toFixed(1)}% 0);transform:translateX(${dx.toFixed(1)}px)"><b style="background-image:url('${artSrc(f)}');transform:${ART_T[f]}"></b></i>`;
+          html += `<i style="clip-path:inset(${y.toFixed(1)}% 0 ${Math.max(0, 100 - y - h).toFixed(1)}% 0);transform:translateX(${dx.toFixed(1)}px)"><b style="background-image:url('${artSrc(f)}')"></b></i>`;
           y += h;
         }
         glitchEl.innerHTML = html;
