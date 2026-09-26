@@ -147,7 +147,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 {LOADING}
 </div>
 <template id="game-window">
-{thin_frame(27, 10, 1444, 828, 'Game', 'Game capture (1408 × 792)', inner=LOADING)}{frame(27, 854, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(637, 854, 560, 134)}{frame(1487, 10, 406, 520, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1487, 546, 406, 454)}{slot(1487, 546, 406, 454, 'PNGtuber: veadotube (Spout)')}</template>
+{thin_frame(27, 10, 1444, 828, 'Game', 'Game capture (1408 × 792)', inner=LOADING)}{frame(27, 854, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(637, 854, 560, 134)}{frame(1487, 10, 406, 440, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1487, 466, 406, 534)}{slot(1487, 466, 406, 534, 'PNGtuber: veadotube (Spout)')}</template>
 <script>{{ const q = new URLSearchParams(location.search); if (q.get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); if (q.get('rings') === '1') document.documentElement.classList.add('show-rings'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }} }}</script>
 {ticker()}''')
 

@@ -25,7 +25,7 @@ else. Your full-screen game capture sits on top of it, so once the game is up no
 is reserved for the PNGtuber: put veadotube in the far bottom-right corner, over everything.
 
 **Game with `?layout=window`** (the index's *Game (window)* card) keeps the overlay on show around the game:
-a 1408 × 792 window on the left, with a small *Game* tag in its corner for your game capture (with "Loading the game" inside until the game covers it),
+a 1408 × 792 window on the left for your game capture, with a small *Game* tag in its corner ("Loading the game" shows inside until the game covers it),
 the follower goal bottom left with Now playing beside it, the chat top right, and the bottom-right corner left
 free for veadotube (`rings=1`, the dock's *Rings* chip, puts the stage's animated rings behind it).
 
@@ -118,9 +118,9 @@ the bottom edge is kept clear of anything that matters.
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
 | Game `?layout=window` | your game capture, *above* the overlay | 45 | 92 | 1408 | 792 |
-| | Botrix chat | 1505 | 126 | 370 | 450 |
+| | Botrix chat | 1505 | 126 | 370 | 370 |
 | | Botrix follower goal | 45 | 970 | 554 | 64 |
-| | veadotube (Spout) | 1487 | 610 | 406 | 454 |
+| | veadotube (Spout) | 1487 | 530 | 406 | 534 |
 | Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
 The PNGtuber space on Just chatting is sized so the avatar's feet land on the glowing pad and the rings
@@ -231,7 +231,7 @@ One chat source added to every scene fixes that (same browser, same messages eve
 |---|---|---|---|---|
 | Be right back | `58, 242` | none | none | the frame is exactly 554 × 654 |
 | Just chatting | `58, 242` | none | none | the same left column as Be right back |
-| Game `?layout=window` | `1505, 126` | none | *Scale to inner bounds*, `370 × 450` | a narrower frame: the whole chat scaled to 67% (370 × 437, a few px spare above and below) |
+| Game `?layout=window` | `1505, 126` | **Top** `100` | *Scale to inner bounds*, `370 × 370` | a smaller, square frame: the top (oldest messages) is cropped, then it's scaled to 67% |
 
 The chat stacks from the bottom, so cropping the top only drops the oldest messages. In OBS, Position is where
 the cropped top-left corner lands. The Enlarge view on the index shows each frame's box to check against.
@@ -376,9 +376,10 @@ veadotube space leaves the avatar small. **Measure avatar** (before going live; 
 veadotube through every state for about a second each, takes five small screenshots of the Spout source per
 state (OBS's `GetSourceScreenshot`), and keeps each state's resting outline: the median of the frames, so a
 talking, blinking or bouncing frame doesn't count. The avatar's outline is all the states together, and veadotube
-goes back to the state it was on. Tidy then crops the empty canvas away, scales the avatar to the height you set
-(Just chatting 820, Game (window) 454 by default: the corner's full height) and stands it on the veadotube space's
-bottom line, centred; set it taller and it rises over the chat frame. Nothing is measured
+goes back to the state it was on. Tidy then scales the avatar to the height you set (Just chatting 880, Game (window)
+534 by default: each space's full height) and stands it on the veadotube space's bottom line, centred; set it taller
+and it rises over the chat frame. Nothing is cropped: veadotube's canvas is transparent round the avatar, so anything
+that moves past the resting outline (Blobfish's swinging princess, a bounce) stays visible. Nothing is measured
 during a stream: after this, switching states (Stream Deck, hotkeys, the dock) never moves or resizes it; talking
 or bouncing extends it upwards. If veadotube reports a state that isn't measured (a new one), the dock says so on
 Live and Layout (**!** on the Layout tab); if the veadotube window size changes, Layout says *measure again*.
@@ -389,7 +390,7 @@ at the top of a scene, or delete anything it didn't create. Its own sources carr
 
 **The shared chat (dock):** one browser source, *Trongates · Shared chat*, with your raw Botrix chat link at
 554 × 920 (the tallest the left column's chat frame gets), added to every scene with a chat frame, just above that scene's overlay, and fitted to the frame: the
-top is cropped to the frame's height (on Game (window) it's scaled to 370 × 450 instead). The scenes get `chat=0`.
+top is cropped to the frame's height (on Game (window) it's also scaled to 370 × 370). The scenes get `chat=0`.
 When nothing's playing, Be right back and Just chatting give the chat the room now playing leaves; the dock reads
 SMTC Bridge too and changes the shared chat's crop at the same moment. The dock keeps its link current from Netlify
 and only reloads it when the link changes. **Remove** takes it out of every scene and undoes `chat=0`. On

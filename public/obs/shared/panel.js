@@ -144,8 +144,8 @@
     }
     importAddress();
     // the dock's own settings (per scene collection): scene choices, pickers, lock, the measured avatar
-    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 820, game: 454 } });
-    const fixDock = (d) => { d = d || newDock(); d.avatar = { chatting: 820, game: 454, ...(d.avatar || {}) }; return d; };
+    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 880, game: 534 } });
+    const fixDock = (d) => { d = d || newDock(); d.avatar = { chatting: 880, game: 534, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if (d.avatar.game === 454) d.avatar.game = 534; return d; };   // 820 and 454: earlier defaults
     s.dock = fixDock(s.dock);
     const save = () => { write(storeKey, s); onChange(s, env.links); refresh(); };
     const set = (path, value) => { const ks = path.split('.'); let o = s; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = value; save(); };
@@ -444,20 +444,22 @@
 
     // ---------------------------------------------------------------- layout (tidy)
     const CAPTURE = { positionX: 45, positionY: 92, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: 1408, boundsHeight: 792, boundsAlignment: 0, alignment: 5, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0, rotation: 0 };
-    const VEADO_BOX = { chatting: [760, 174, 980, 880], game: [1487, 610, 406, 454] };
+    const VEADO_BOX = { chatting: [760, 174, 980, 880], game: [1487, 530, 406, 534] };
     const veadoTransform = (kind) => { const [x, y, w, h] = VEADO_BOX[kind]; return { positionX: x, positionY: y, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: w, boundsHeight: h, boundsAlignment: 0, alignment: 5, rotation: 0 }; };
-    // Measured (Layout → Measure avatar): crop veadotube's canvas to the avatar's resting outline, scale it to the
-    // chosen height and stand it on the veadotube space's bottom line, centred; above that it may overlap the chat.
+    // Measured (Layout → Measure avatar): scale veadotube's canvas so the avatar's resting outline is the chosen
+    // height and stand that outline on the veadotube space's bottom line, centred; above that it may overlap the chat.
+    // Nothing is cropped: the canvas is transparent round the avatar, and anything that moves beyond the resting
+    // outline (a swinging rod, a bounce) has to stay visible.
     // Not measured: the whole canvas fitted into the box (small, as veadotube's canvas is mostly empty).
     function avatarFit(kind, it) {
       const av = s.dock.avatar || {}; const [bx, by, bw, bh] = VEADO_BOX[kind];
       if (!av.bounds) return veadoTransform(kind);
       const t = it.sceneItemTransform, sw = t.sourceWidth || av.canvas.w, sh = t.sourceHeight || av.canvas.h;
-      const [l, top, r, b] = av.bounds, H = +av[kind] || (kind === 'game' ? 454 : 820);
+      const [l, top, r, b] = av.bounds, H = +av[kind] || (kind === 'game' ? 534 : 880);
       const vw = (r - l) * sw, vh = (b - top) * sh, k = H / vh;
       return { boundsType: 'OBS_BOUNDS_NONE', alignment: 5, rotation: 0, scaleX: +k.toFixed(4), scaleY: +k.toFixed(4),
-        cropLeft: Math.round(l * sw), cropTop: Math.round(top * sh), cropRight: Math.round((1 - r) * sw), cropBottom: Math.round((1 - b) * sh),
-        positionX: Math.round(bx + bw / 2 - (vw * k) / 2), positionY: Math.round(by + bh - H) };
+        cropLeft: 0, cropTop: 0, cropRight: 0, cropBottom: 0,
+        positionX: Math.round(bx + bw / 2 - (l * sw + vw / 2) * k), positionY: Math.round(by + bh - b * sh * k) };
     }
     const measure = { running: false, note: '' };
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
