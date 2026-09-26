@@ -32,7 +32,7 @@
     music: { app: '', always: false, host: '', ciderToken: '' },
     veado: { addr: '', switch: true, tron: 'cyan', map: {}, delay: 0 },
     motion: 'auto', sample: true,
-    scenes: Object.fromEntries(Object.keys(TYPES).map((t) => [t, { off: [], cycle: true, follow: true, layout: 'full' }])),
+    scenes: Object.fromEntries(Object.keys(TYPES).map((t) => [t, { off: [], cycle: true, follow: true, layout: 'full', rings: false }])),
   });
   // fill in anything missing (older saves, partial imports)
   const normalise = (s) => {
@@ -57,7 +57,7 @@
     const sc = scene ? s.scenes[kind] : null;
     const layout = scene && kind === 'game' ? (ctx.layout || sc.layout) : 'full';
     const has = (p) => (scene ? partsOf(kind, layout).includes(p) && !sc.off.includes(p) : widget.uses.includes(p));
-    if (scene && kind === 'game' && layout === 'window') add('layout', 'window');
+    if (scene && kind === 'game' && layout === 'window') { add('layout', 'window'); if (sc.rings) add('rings', 1); }
     if (widget && widget.extra) for (const [k, v] of Object.entries(widget.extra)) add(k, v);
     const off = scene ? partsOf(kind, layout).filter((p) => sc.off.includes(p)) : [];
     if (off.length) add('hide', off.join(','));
@@ -105,7 +105,7 @@
     return o;
   }
   // Every option the panel owns: when it rewrites a URL these are replaced, anything else is kept as it was.
-  const OWNED = ['layout', 'bare', 'hide', 'chat', 'goal', 'key', 'goalcolor', 'music', 'app', 'musichost', 'cidertoken', 'cycle', 'noveado',
+  const OWNED = ['layout', 'rings', 'bare', 'hide', 'chat', 'goal', 'key', 'goalcolor', 'music', 'app', 'musichost', 'cidertoken', 'cycle', 'noveado',
     'veado', 'map', 'veadodelay', 'motion', 'obs', 'obspw', 'art', 'demo', 'guide', 'form'];
   const query = (pairs) => pairs.map(([k, v]) => `${k}=${encodeURIComponent(v).replace(/%2C/g, ',').replace(/%3A/g, ':')}`).join('&');
   // A URL with the panel's options in place of its own (base: an existing address, hosted or file://)
@@ -150,7 +150,7 @@
       if (get('motion')) s.motion = get('motion');
       if (TYPES[r.kind]) {
         const sc = s.scenes[r.kind];
-        if (r.kind === 'game') sc.layout = r.layout;
+        if (r.kind === 'game') { sc.layout = r.layout; sc.rings = get('rings') === '1'; }
         sc.off = (get('hide') || '').split(',').filter((p) => PARTS[p]);
         if (get('music') === '0' && !sc.off.includes('music')) sc.off.push('music');
         if (get('art') === '0' && !sc.off.includes('art')) sc.off.push('art');
@@ -174,7 +174,7 @@
   const SHARED_W = 554, SHARED_H = 920;          // the tallest chat frame: now playing and the goal both off
   function chatBox(kind, s, musicShown) {
     const sc = s.scenes[kind];
-    if (kind === 'game') return { x: 1381, y: 132, w: 494, h: 450 };
+    if (kind === 'game') return { x: 1505, y: 126, w: 370, h: 450 };   // Game (window)'s chat
     const music = !sc.off.includes('music') && musicShown, goal = !sc.off.includes('goal');
     const top = music ? 126 : 10, bottom = goal ? 850 : 1000;   // the chat frame, in .content coordinates
     return { x: 58, y: 64 + top + 52, w: 554, h: bottom - top - 70 };

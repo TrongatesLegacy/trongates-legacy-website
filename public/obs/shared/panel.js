@@ -144,8 +144,8 @@
     }
     importAddress();
     // the dock's own settings (per scene collection): scene choices, pickers, lock, the measured avatar
-    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 820, game: 540 } });
-    const fixDock = (d) => { d = d || newDock(); d.avatar = { chatting: 820, game: 540, ...(d.avatar || {}) }; return d; };
+    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 820, game: 454 } });
+    const fixDock = (d) => { d = d || newDock(); d.avatar = { chatting: 820, game: 454, ...(d.avatar || {}) }; return d; };
     s.dock = fixDock(s.dock);
     const save = () => { write(storeKey, s); onChange(s, env.links); refresh(); };
     const set = (path, value) => { const ks = path.split('.'); let o = s; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = value; save(); };
@@ -336,7 +336,7 @@
     const shared = () => obs.scan && obs.scan.widgets.find((w) => w.kind === 'shared');
     // scenes with a chat frame (plain scenes before groups, so the shared chat is created in a scene)
     const chatRows = () => managedRows().filter((r) => partOn(r, 'chat') && (r.kind !== 'game' || layoutOf(r) === 'window')).sort((a, b) => a.container.group - b.container.group);
-    // where the shared chat goes in a row's scene: the frame's inner box, the top cropped (and scaled on the 720p Game)
+    // where the shared chat goes in a row's scene: the frame's inner box, the top cropped (or scaled, on Game (window))
     function sharedTransform(r) {
       const b = M.chatBox(r.kind, s, music.visible !== false);
       if (b.w === M.SHARED_W) return { positionX: b.x, positionY: b.y, scaleX: 1, scaleY: 1, cropTop: M.SHARED_H - b.h, cropBottom: 0, cropLeft: 0, cropRight: 0, boundsType: 'OBS_BOUNDS_NONE', alignment: 5, rotation: 0 };
@@ -443,8 +443,8 @@
     }
 
     // ---------------------------------------------------------------- layout (tidy)
-    const CAPTURE = { positionX: 45, positionY: 132, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: 1280, boundsHeight: 720, boundsAlignment: 0, alignment: 5, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0, rotation: 0 };
-    const VEADO_BOX = { chatting: [760, 174, 980, 880], game: [1363, 620, 530, 440] };
+    const CAPTURE = { positionX: 45, positionY: 92, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: 1408, boundsHeight: 792, boundsAlignment: 0, alignment: 5, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0, rotation: 0 };
+    const VEADO_BOX = { chatting: [760, 174, 980, 880], game: [1487, 610, 406, 454] };
     const veadoTransform = (kind) => { const [x, y, w, h] = VEADO_BOX[kind]; return { positionX: x, positionY: y, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: w, boundsHeight: h, boundsAlignment: 0, alignment: 5, rotation: 0 }; };
     // Measured (Layout → Measure avatar): crop veadotube's canvas to the avatar's resting outline, scale it to the
     // chosen height and stand it on the veadotube space's bottom line, centred; above that it may overlap the chat.
@@ -453,7 +453,7 @@
       const av = s.dock.avatar || {}; const [bx, by, bw, bh] = VEADO_BOX[kind];
       if (!av.bounds) return veadoTransform(kind);
       const t = it.sceneItemTransform, sw = t.sourceWidth || av.canvas.w, sh = t.sourceHeight || av.canvas.h;
-      const [l, top, r, b] = av.bounds, H = +av[kind] || (kind === 'game' ? 540 : 820);
+      const [l, top, r, b] = av.bounds, H = +av[kind] || (kind === 'game' ? 454 : 820);
       const vw = (r - l) * sw, vh = (b - top) * sh, k = H / vh;
       return { boundsType: 'OBS_BOUNDS_NONE', alignment: 5, rotation: 0, scaleX: +k.toFixed(4), scaleY: +k.toFixed(4),
         cropLeft: Math.round(l * sw), cropTop: Math.round(top * sh), cropRight: Math.round((1 - r) * sw), cropBottom: Math.round((1 - b) * sh),
@@ -526,7 +526,7 @@
         if (r.kind === 'game' && layoutOf(r) === 'window' && pickC) {
           const it = r.container.items.find((i) => i.sourceName === pickC);
           if (!it) out.push({ where, what: pickC, state: 'not found (renamed or removed?): pick again', bad: true });
-          else if (!sameTransform(it.sceneItemTransform, CAPTURE)) out.push({ where, what: pickC, state: 'not in the 720p window', fix: { k: 'place', label: `${pickC} in ${where}: the 1280 × 720 window (X 45, Y 132)`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: CAPTURE }) } });
+          else if (!sameTransform(it.sceneItemTransform, CAPTURE)) out.push({ where, what: pickC, state: 'not in the game window', fix: { k: 'place', label: `${pickC} in ${where}: the 1408 × 792 window (X 45, Y 92)`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: CAPTURE }) } });
           else out.push({ where, what: pickC, state: 'in place', good: true });
         }
         if ((r.kind === 'chatting' || (r.kind === 'game' && layoutOf(r) === 'window')) && pickV) {
@@ -639,6 +639,7 @@
       const out = parts.map((p) => `<button type="button" class="chip ${p === 'chat' && s.shared ? 'shared' : ''}" data-part="${kind}:${p}" aria-pressed="${!sc.off.includes(p)}">${M.PARTS[p]}${p === 'chat' && s.shared ? ' (shared)' : ''}</button>`);
       if (M.TYPES[kind].cycling) out.push(`<button type="button" class="chip" data-flag="${kind}:cycle" aria-pressed="${sc.cycle}">Cycles forms</button>`);
       if (M.TYPES[kind].follows) out.push(`<button type="button" class="chip" data-flag="${kind}:follow" aria-pressed="${sc.follow}">Follows veadotube</button>`);
+      if (kind === 'game' && (layout || (dock ? s.scenes.game.layout : 'window')) === 'window') out.push(`<button type="button" class="chip" data-flag="game:rings" aria-pressed="${!!sc.rings}" title="The stage's animated rings behind veadotube">Rings</button>`);
       return `<div class="chips">${out.join('')}</div>`;
     }
     const grows = (kind) => {
@@ -647,7 +648,7 @@
       return g.length ? `<p class="hint warn">${g.join(' and ')} off: the chat grows into the room.</p>` : '';
     };
     function tabScenes() {
-      if (!dock) return `<p class="hint">Tap a part to turn it off in the previews and the copied addresses.</p>${Object.keys(M.TYPES).map((k) => `<div class="scene"><div class="t"><b>${M.TYPES[k].title}</b>${k === 'game' ? '<span class="muted">(chat, goal and now playing: the 720p window)</span>' : ''}</div>${chips(k)}${grows(k)}</div>`).join('')}`;
+      if (!dock) return `<p class="hint">Tap a part to turn it off in the previews and the copied addresses.</p>${Object.keys(M.TYPES).map((k) => `<div class="scene"><div class="t"><b>${M.TYPES[k].title}</b>${k === 'game' ? '<span class="muted">(chat, goal, now playing and rings: the window layout)</span>' : ''}</div>${chips(k)}${grows(k)}</div>`).join('')}`;
       if (obs.state !== 'connected') return `<p class="hint">Not connected to OBS (${esc(obs.state)}). Turn on Tools → WebSocket Server Settings, and give this dock's URL <code>?obs=4455&amp;obspw=…</code>.</p>`;
       if (!obs.scan) return '<p class="hint">Looking through your scenes…</p>';
       const rows = obs.scan.rows, ignored = obs.scan.scenes.filter((x) => !rows.some((r) => r.sceneName === x.name) && !obs.scan.containers.some((c) => c.group && c.name === x.name));
@@ -656,7 +657,7 @@
           const key = r.container.uuid + ':' + r.item.sceneItemId, managed = (s.dock.map[key] || 'manage') === 'manage';
           return `<div class="scene"><div class="t"><b>${esc(r.sceneName)}</b><span class="muted">→</span>
             <select data-row="${key}"><option value="manage" ${managed ? 'selected' : ''}>${M.TYPES[r.kind].title}</option><option value="none" ${managed ? '' : 'selected'}>Don't manage</option></select>
-            ${r.kind === 'game' && managed ? `<select data-set="scenes.game.layout"><option value="full" ${layoutOf(r) === 'full' ? 'selected' : ''}>full screen</option><option value="window" ${layoutOf(r) === 'window' ? 'selected' : ''}>720p window</option></select>` : ''}
+            ${r.kind === 'game' && managed ? `<select data-set="scenes.game.layout"><option value="full" ${layoutOf(r) === 'full' ? 'selected' : ''}>full screen</option><option value="window" ${layoutOf(r) === 'window' ? 'selected' : ''}>window</option></select>` : ''}
             <button type="button" class="btn small" data-refresh="${r.input.uuid}" title="Reload this overlay">↻</button></div>
             ${r.via || r.shown.length ? `<span class="hint">${esc([r.via && 'in ' + r.via, r.shown.length && 'shown in ' + r.shown.join(', ')].filter(Boolean).join(' · '))}</span>` : ''}
             ${managed ? chips(r.kind, layoutOf(r)) + grows(r.kind) : ''}</div>`;
@@ -736,11 +737,11 @@
       const cs = checks(), av = s.dock.avatar || {}, pickedV = rows.some((r) => s.dock.pick.veado[r.container.uuid]);
       const kinds = [...new Set(rows.filter((r) => s.dock.pick.veado[r.container.uuid]).map((r) => (r.kind === 'game' ? 'game' : 'chatting')))];
       const avatar = pickedV ? `<h3>Avatar size (veadotube)</h3>
-        ${kinds.map((k) => `<div class="row"><span class="grow">Height on ${k === 'game' ? 'the 720p Game' : 'Just chatting'} (px)</span><input type="number" min="100" max="1080" step="10" data-set="dock.avatar.${k}" value="${+av[k] || (k === 'game' ? 540 : 820)}" style="width:80px"></div>`).join('')}
+        ${kinds.map((k) => `<div class="row"><span class="grow">Height on ${k === 'game' ? 'Game (window)' : 'Just chatting'} (px)</span><input type="number" min="100" max="1080" step="10" data-set="dock.avatar.${k}" value="${+av[k] || (k === 'game' ? 540 : 820)}" style="width:80px"></div>`).join('')}
         <span class="hint ${measure.running ? 'warn' : ''}">${esc(measure.note || (av.bounds ? `Measured ${av.states?.length || '?'} states on ${new Date(av.at).toLocaleDateString()} (${av.canvas.w} × ${av.canvas.h} canvas).` : 'Not measured yet: Tidy fits the whole veadotube canvas into the box, which leaves the avatar small.'))}</span>
         <button type="button" class="btn" data-act="measure" ${measure.running || veado.state !== 'ok' || obs.busy ? 'disabled' : ''}>${measure.running ? 'Measuring…' : av.bounds ? 'Measure again' : 'Measure avatar'}</button>
         <p class="hint">Before going live: veadotube steps through every state for a few seconds (viewers would see it), so stay quiet while it runs. Nothing is measured during a stream; after this, switching states never moves or resizes the avatar.</p>` : '';
-      return `${measurePrompt()}<h3>Your sources (placed only if picked)</h3>${pickers.join('') || '<p class="hint">Nothing to place: no Just chatting or 720p Game scene found.</p>'}${avatar}
+      return `${measurePrompt()}<h3>Your sources (placed only if picked)</h3>${pickers.join('') || '<p class="hint">Nothing to place: no Just chatting or Game (window) scene found.</p>'}${avatar}
         <h3>Checks</h3>
         ${cs.length ? `<table><tr><th>Scene</th><th>Item</th><th>State</th></tr>${cs.map((c) => `<tr><td>${esc(c.where)}</td><td>${esc(c.what)}</td><td class="${c.good ? 'ok' : c.bad ? 'bad' : 'warn'}">${esc(c.state)}</td></tr>`).join('')}</table>` : '<p class="hint ok">Everything checked is in place.</p>'}
         <div class="row"><span class="grow">Lock the dock's own items</span>${tog('dock.lock', s.dock.lock)}</div>

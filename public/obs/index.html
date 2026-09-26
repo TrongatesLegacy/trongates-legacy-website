@@ -121,12 +121,12 @@ footer code { color: #cfe3f5; }
     brb: 'Breaks. Now playing, chat and goal on the left; title, Discord and the cycling character to the right.',
     chatting: 'Now playing, chat and goal on the left; big PNGtuber space (veadotube) on the right. Colour follows veadotube.',
     game: 'Backdrop behind the full-screen game capture: "Loading the game" in the middle. Colour follows veadotube.',
-    window: 'Game capture in a 1280 × 720 window, goal and now playing below, chat top right, veadotube bottom right.',
+    window: 'Game capture in a 1408 × 792 window, goal and now playing below, chat top right, veadotube bottom right (rings behind it optional).',
     ending: 'Thanks for watching. Forms cycle; Lulu Gang Discord block with QR code; socials; now playing.',
   };
   const CARDS = [
     { id: 'starting', kind: 'starting' }, { id: 'brb', kind: 'brb' }, { id: 'chatting', kind: 'chatting' },
-    { id: 'game', kind: 'game', layout: 'full' }, { id: 'window', kind: 'game', layout: 'window', title: 'Game (720p window)' }, { id: 'ending', kind: 'ending' },
+    { id: 'game', kind: 'game', layout: 'full' }, { id: 'window', kind: 'game', layout: 'window', title: 'Game (window)' }, { id: 'ending', kind: 'ending' },
   ].map((c) => ({ ...c, title: c.title || M.TYPES[c.kind].title, desc: DESC[c.id], file: M.TYPES[c.kind].file }));
   const SOURCES = [
     { id: 'chatbox', desc: 'Just the framed chat, as its own browser source (e.g. on top of the game). 500 × 800 suggested; any size works.' },

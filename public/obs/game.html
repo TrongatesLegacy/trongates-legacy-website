@@ -10,6 +10,8 @@
 .copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 .copy .title { font-size: 120px; }
 .layout-window .copy { gap: 24px; } .layout-window .copy .title { font-size: 96px; } .layout-window .copy .sub { font-size: 26px; }
+.frame.thin .tag { position: absolute; left: 30px; top: 18px; z-index: 2; padding: 5px 12px 4px; font: 700 13px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase; color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 8px 100%); }
+.rings-opt { display: none; } .show-rings .rings-opt { display: block; }
 .bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
 @keyframes load { from { transform: translateX(-100%); } to { transform: translateX(290%); } }</style>
@@ -31,27 +33,32 @@
 </div>
 </div>
 <template id="game-window">
-<div class="frame " style="left:27px;top:16px;width:1316px;height:790px">
-  <div class="tab">Game</div>
-  <div data-slot="Game capture (720p)" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"><div class="copy" data-quiet>
+<div class="frame thin" style="left:27px;top:10px;width:1444px;height:828px">
+  <div data-slot="Game capture (1408 × 792)" style="position:absolute;left:18px;right:18px;top:18px;bottom:18px"><div class="copy" data-quiet>
   <div class="eyebrow">Hang tight</div>
   <div class="title glitch" data-t="Loading the game"><span class="o">Loading</span><span class="s">The game</span></div>
   <div class="bar"><i></i></div>
   <div class="sub">The game will pop up <b>any second now</b>.</div>
 </div></div>
+  <div class="tag">Game</div>
 </div>
-<div class="frame " data-part="goal" style="left:27px;top:826px;width:590px;height:134px">
+<div class="frame " data-part="goal" style="left:27px;top:854px;width:590px;height:134px">
   <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Goal</div>
   <div data-slot="Botrix follower goal" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
-<div class="np" data-np data-part="music" style="left:637px;top:826px;width:560px;height:134px"></div>
-<div class="frame " data-part="chat" style="left:1363px;top:16px;width:530px;height:520px">
+<div class="np" data-np data-part="music" style="left:637px;top:854px;width:560px;height:134px"></div>
+<div class="frame " data-part="chat" style="left:1487px;top:10px;width:406px;height:520px">
   <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Chat</div>
   <div data-slot="Botrix chat" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
-<div data-slot="PNGtuber: veadotube (Spout)" style="position:absolute;left:1363px;top:556px;width:530px;height:440px"></div>
+<div class="stage rings-opt" style="left:1487px;top:546px;width:406px;height:454px">
+  <div class="halo"></div>
+  <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg></div>
+  <div class="pad"></div>
+</div>
+<div data-slot="PNGtuber: veadotube (Spout)" style="position:absolute;left:1487px;top:546px;width:406px;height:454px"></div>
 </template>
-<script>if (new URLSearchParams(location.search).get('layout') === 'window') { document.documentElement.classList.add('layout-window'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }</script>
+<script>{ const q = new URLSearchParams(location.search); if (q.get('layout') === 'window') { document.documentElement.classList.add('layout-window'); if (q.get('rings') === '1') document.documentElement.classList.add('show-rings'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); } }</script>
 </div>
 <div class="ticker" data-part="ticker"><div class="track"><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span></div></div>
 

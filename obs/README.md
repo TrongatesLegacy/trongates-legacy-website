@@ -24,10 +24,10 @@ Bridge (a website talking to local apps makes Chrome label the page "Not Secure"
 else. Your full-screen game capture sits on top of it, so once the game is up none of the overlay shows. No space
 is reserved for the PNGtuber: put veadotube in the far bottom-right corner, over everything.
 
-**Game with `?layout=window`** (the index's *Game (720p window)* card) keeps the overlay on show around the game:
-a 1280 × 720 window on the left for your game capture (with "Loading the game" inside until the game covers it),
+**Game with `?layout=window`** (the index's *Game (window)* card) keeps the overlay on show around the game:
+a 1408 × 792 window on the left, with a small *Game* tag in its corner for your game capture (with "Loading the game" inside until the game covers it),
 the follower goal bottom left with Now playing beside it, the chat top right, and the bottom-right corner left
-free for veadotube.
+free for veadotube (`rings=1`, the dock's *Rings* chip, puts the stage's animated rings behind it).
 
 **Just chatting** has the chat on the left and a big space for your PNGtuber (veadotube via Spout) on the right. **Starting soon**, **Be right
 back** and **Ending** have no veadotube: instead they open on the selected form (`form=`, else the last one
@@ -117,10 +117,10 @@ the bottom edge is kept clear of anything that matters.
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
-| Game `?layout=window` | your game capture, *above* the overlay | 45 | 132 | 1280 | 720 |
-| | Botrix chat | 1381 | 132 | 494 | 450 |
-| | Botrix follower goal | 45 | 942 | 554 | 64 |
-| | veadotube (Spout) | 1363 | 620 | 530 | 440 |
+| Game `?layout=window` | your game capture, *above* the overlay | 45 | 92 | 1408 | 792 |
+| | Botrix chat | 1505 | 126 | 370 | 450 |
+| | Botrix follower goal | 45 | 970 | 554 | 64 |
+| | veadotube (Spout) | 1487 | 610 | 406 | 454 |
 | Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
 The PNGtuber space on Just chatting is sized so the avatar's feet land on the glowing pad and the rings
@@ -142,7 +142,8 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `obs=4455`, `obspw=…` | all | listen to the dock's colour buttons through the OBS WebSocket (the dock adds these) |
 | `chat=…`, `goal=…` | Be right back, Just chatting, Game (window), chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 | `key=…` | Be right back, Just chatting, Game (window), chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
-| `layout=window` | Game | the 720p window layout (game window, goal, now playing, chat, space for veadotube) instead of the full-screen backdrop |
+| `layout=window` | Game | the windowed layout (a 1408 × 792 game window, goal, now playing, chat, space for veadotube) instead of the full-screen backdrop |
+| `rings=1` | Game (`layout=window`) | the stage's animated rings behind veadotube (off by default; the dock's *Rings* chip) |
 | `chat=0` | Be right back, Just chatting, Game (window) | don't load the chat (a shared chat source sits in the frame instead; see *One shared chat for every scene*) |
 | `bare=1` | chat | no frame: just the chat, filling the source (the shared chat source) |
 | `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
@@ -215,7 +216,7 @@ messages that arrive after a copy loads: scenes loaded or refreshed at different
 One chat source added to every scene fixes that (same browser, same messages everywhere):
 
 1. **Index:** Settings → Widgets → turn **Shared chat** on, then re-copy the Be right back, Just chatting and Game
-   (720p window) addresses into their overlay sources. They now end in `chat=0`: the scenes stop loading their own
+   (window) addresses into their overlay sources. They now end in `chat=0`: the scenes stop loading their own
    chat (the goal still loads).
 2. **Create the shared source once** (in any of those scenes): Sources → **+** → Browser → *Create new*, name it
    *Shared chat*:
@@ -230,7 +231,7 @@ One chat source added to every scene fixes that (same browser, same messages eve
 |---|---|---|---|---|
 | Be right back | `58, 242` | none | none | the frame is exactly 554 × 654 |
 | Just chatting | `58, 242` | none | none | the same left column as Be right back |
-| Game `?layout=window` | `1381, 132` | **Top** `103` | *Scale to inner bounds*, `494 × 450` | a smaller frame: the top (oldest messages) is cropped, then it's scaled to 89% |
+| Game `?layout=window` | `1505, 126` | none | *Scale to inner bounds*, `370 × 450` | a narrower frame: the whole chat scaled to 67% (370 × 437, a few px spare above and below) |
 
 The chat stacks from the bottom, so cropping the top only drops the oldest messages. In OBS, Position is where
 the cropped top-left corner lands. The Enlarge view on the index shows each frame's box to check against.
@@ -350,8 +351,8 @@ sees, and the connections.
 
 **Scenes:** every OBS scene holding a Trongates overlay, found by the overlay's URL (hosted or a local file), so
 your own scene names don't matter (*Intermission → Just chatting*), including overlays inside groups and nested
-scenes. Per scene: *Don't manage* to leave it alone, Game's layout (full screen or 720p window), ↻ to reload the
-overlay, and chips to turn parts off (Chat, Goal, Now playing, Discord, Social links, Socials strip, Character)
+scenes. Per scene: *Don't manage* to leave it alone, Game's layout (full screen or window), ↻ to reload the
+overlay, and chips to turn parts off (Chat, Goal, Now playing, Discord, Social links, Socials strip, Character, and Rings on Game (window))
 and *Cycles forms* / *Follows veadotube*. Scenes without a Trongates overlay are listed and left alone.
 
 **Sources:** add our widgets as their own OBS sources to the current scene (or any): the chat box, follower goal,
@@ -367,7 +368,7 @@ SMTC timeline), and backup (copy settings link, import, read back from OBS).
 
 **Layout** (optional): pick your own game capture source (e.g. your *Game Captures* scene) and veadotube source per
 scene; they're never touched unless picked. **Checks** lists what's off: overlays without custom frame rate 30 or
-not filling the canvas, a picked game capture not in the 720p window, the shared chat out of its frame.
+not filling the canvas, a picked game capture not in the game window, the shared chat out of its frame.
 **Tidy layout…** fixes those (after showing the plan). *Lock the dock's own items* locks what the dock placed.
 
 **Avatar size (veadotube):** veadotube's Spout picture is its whole window, mostly empty, so fitting it into the
@@ -376,8 +377,8 @@ veadotube through every state for about a second each, takes five small screensh
 state (OBS's `GetSourceScreenshot`), and keeps each state's resting outline: the median of the frames, so a
 talking, blinking or bouncing frame doesn't count. The avatar's outline is all the states together, and veadotube
 goes back to the state it was on. Tidy then crops the empty canvas away, scales the avatar to the height you set
-(Just chatting 820, 720p Game 540 by default) and stands it on the veadotube space's bottom line, centred; above
-that it may overlap the chat (on the 720p Game, 540 overlaps the chat frame by about 80 px). Nothing is measured
+(Just chatting 820, Game (window) 454 by default: the corner's full height) and stands it on the veadotube space's
+bottom line, centred; set it taller and it rises over the chat frame. Nothing is measured
 during a stream: after this, switching states (Stream Deck, hotkeys, the dock) never moves or resizes it; talking
 or bouncing extends it upwards. If veadotube reports a state that isn't measured (a new one), the dock says so on
 Live and Layout (**!** on the Layout tab); if the veadotube window size changes, Layout says *measure again*.
@@ -388,11 +389,11 @@ at the top of a scene, or delete anything it didn't create. Its own sources carr
 
 **The shared chat (dock):** one browser source, *Trongates · Shared chat*, with your raw Botrix chat link at
 554 × 920 (the tallest the left column's chat frame gets), added to every scene with a chat frame, just above that scene's overlay, and fitted to the frame: the
-top is cropped to the frame's height (on the 720p Game it's also scaled to 494 × 450). The scenes get `chat=0`.
+top is cropped to the frame's height (on Game (window) it's scaled to 370 × 450 instead). The scenes get `chat=0`.
 When nothing's playing, Be right back and Just chatting give the chat the room now playing leaves; the dock reads
 SMTC Bridge too and changes the shared chat's crop at the same moment. The dock keeps its link current from Netlify
-and only reloads it when the link changes. **Remove** takes it out of every scene and undoes `chat=0`. On the
-720p Game the chat sits just above the overlay: if your game capture is above the overlay, place it in the window
+and only reloads it when the link changes. **Remove** takes it out of every scene and undoes `chat=0`. On
+Game (window) the chat sits just above the overlay: if your game capture is above the overlay, place it in the window
 (Layout) so it doesn't cover the chat.
 
 ## Changing the scenes

@@ -42,6 +42,16 @@ def frame(x, y, w, h, tab, icon, slot, extra='', inner='', part=''):
   <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px">{inner}</div>
 </div>
 '''
+def thin_frame(x, y, w, h, tag, slot, inner=''):
+    # a frame with a small tag inside its top-left corner instead of a tab above it (Game (window)'s game window)
+    return f'''<div class="frame thin" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
+  <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:18px;bottom:18px">{inner}</div>
+  <div class="tag">{tag}</div>
+</div>
+'''
+def rings(x, y, w, h):
+    # the stage's animated rings, shown behind veadotube only with ?rings=1 (the dock's Rings chip)
+    return f'<div class="stage rings-opt" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">\n  {ring()}\n</div>\n'
 def slot(x, y, w, h, label):
     # an invisible box for a source placed in OBS (shown with ?guide=1)
     return f'<div data-slot="{label}" style="position:absolute;left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
@@ -112,9 +122,9 @@ scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='
 
 # ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
 # appears: "Loading the game" in the middle, nothing else (chat and goal would sit under the game anyway).
-# ?layout=window instead: a 1280x720 frame for the game capture on the left (the loading text inside it until
-# the game covers it), follower goal bottom left with now playing beside it, chat top right, and the bottom-right
-# corner left for veadotube. The window layout lives in a <template> swapped in before scene.js runs, so its
+# ?layout=window instead: a 1408x792 window for the game capture on the left (73% of 1080p, the loading text inside
+# it until the game covers it), follower goal bottom left with now playing beside it (the same height), chat top
+# right, and the bottom-right corner left for veadotube (?rings=1 puts the stage rings behind it). The window layout lives in a <template> swapped in before scene.js runs, so its
 # widgets only load when it's used.
 LOADING = '''<div class="copy" data-quiet>
   <div class="eyebrow">Hang tight</div>
@@ -127,6 +137,8 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 .copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 .copy .title { font-size: 120px; }
 .layout-window .copy { gap: 24px; } .layout-window .copy .title { font-size: 96px; } .layout-window .copy .sub { font-size: 26px; }
+.frame.thin .tag { position: absolute; left: 30px; top: 18px; z-index: 2; padding: 5px 12px 4px; font: 700 13px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase; color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 8px 100%); }
+.rings-opt { display: none; } .show-rings .rings-opt { display: block; }
 .bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
 @keyframes load { from { transform: translateX(-100%); } to { transform: translateX(290%); } }""", body=f'''
@@ -134,8 +146,8 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 {LOADING}
 </div>
 <template id="game-window">
-{frame(27, 16, 1316, 790, 'Game', '', 'Game capture (720p)', inner=LOADING)}{frame(27, 826, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(637, 826, 560, 134)}{frame(1363, 16, 530, 520, 'Chat', 'kick', 'Botrix chat', part='chat')}{slot(1363, 556, 530, 440, 'PNGtuber: veadotube (Spout)')}</template>
-<script>if (new URLSearchParams(location.search).get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }}</script>
+{thin_frame(27, 10, 1444, 828, 'Game', 'Game capture (1408 × 792)', inner=LOADING)}{frame(27, 854, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(637, 854, 560, 134)}{frame(1487, 10, 406, 520, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1487, 546, 406, 454)}{slot(1487, 546, 406, 454, 'PNGtuber: veadotube (Spout)')}</template>
+<script>{{ const q = new URLSearchParams(location.search); if (q.get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); if (q.get('rings') === '1') document.documentElement.classList.add('show-rings'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }} }}</script>
 {ticker()}''')
 
 # ---- ENDING: thanks, socials and the Discord, PNGtuber on the right -----------------------------------
