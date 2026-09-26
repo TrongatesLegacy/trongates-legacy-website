@@ -1,0 +1,30 @@
+{
+  "about": "Character art sources and how each form is pre-sized onto the shared 640x960 canvas. Tron is the reference (his files are used as they are). Each other form's transform is measured against Tron's head (node scripts/presize-art.mjs --measure) and baked into public/assets/img/ by node --experimental-websocket scripts/presize-art.mjs. See docs/design-system.md, Character sizing. A form can set its own WebP quality (default 82).",
+  "canvas": [
+    640,
+    960
+  ],
+  "origin": "50% 80%",
+  "reference": "tron-cyan-mclosed-eopen",
+  "forms": {
+    "princess": {
+      "transform": "translate(.75%, -1.9%) scale(.937)",
+      "why": "her art fills more of its canvas",
+      "files": [
+        "princess-uwu",
+        "princess-peace"
+      ]
+    },
+    "blobfish": {
+      "transform": "translate(-3.95%, -4.43%) scale(1.1)",
+      "why": "drawn smaller, and sits right in its image because the rod and catch fill the left. Balanced on the whole silhouette (catch included) rather than the head: scale 1.1 is the largest that fits all four variants inside the 640x960 canvas with an 8px margin (x 10-629), centred, with its lowest point kept at y 896 as before. (It used to be 1.18, which spilled 66px past the left edge and 28px over the top.)",
+      "files": [
+        "blobfish-mclosed-eclosed",
+        "blobfish-mclosed-eopen",
+        "blobfish-mopen-eclosed",
+        "blobfish-mopen-eopen"
+      ],
+      "quality": 76
+    }
+  }
+}

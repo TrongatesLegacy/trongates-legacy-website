@@ -37,8 +37,8 @@
   var file = form === 'princess' ? 'princess-uwu' : form === 'blobfish' ? 'blobfish-mclosed-eopen' : 'tron-' + form + '-mclosed-eopen';
   window.__form = form;
   window.__formSrc = '/assets/img/' + file + '.webp';
-  // character art ships at 400w and 640w (the blobfish only has its native size)
-  window.__srcset = function (src) { return /blobfish/.test(src) ? '' : src.replace('.webp', '-400.webp') + ' 400w, ' + src + ' 640w'; };
+  // character art ships at 400w and 640w, every form pre-sized onto the same canvas (scripts/presize-art.mjs)
+  window.__srcset = function (src) { return src.replace('.webp', '-400.webp') + ' 400w, ' + src + ' 640w'; };
   window.__sizes = '(max-width: 860px) 50vw, 420px';
   var root = document.documentElement, link = document.createElement('link');
   root.classList.add('js');
@@ -233,12 +233,8 @@ h1 .l2::after  { color: #22e5ff; animation: glitch-b 7s infinite steps(1); }
 /* form switch: ~240ms of horizontal slices mixing the old and new character, with a red/cyan split */
 .glitch { position: absolute; inset: 0; display: none; pointer-events: none; }
 .tuber.glitching img { opacity: 0 !important; }
-/* The artwork files aren't drawn at the same scale, so each is nudged to match Tron: Trina fills more of her
-   canvas (scaled down); the blobfish is drawn smaller and sits low and right because its rod and catch take the
-   left of the image. Matched on head width, head top and head centre (measured ignoring the thin rod). */
-.tuber img, .glitch b { transform-origin: 50% 80%; }
-.tuber[data-art="princess"] img { transform: translate(.75%, -1.9%) scale(.937); }
-.tuber[data-art="blobfish"] img { transform: translate(-12.7%, -5.8%) scale(1.18); }
+/* No per-form sizing here: every form's art is pre-sized onto the same 640x960 canvas, matched to Tron's head
+   (scripts/presize-art.mjs, docs/design-system.md "Character sizing"), so any form drops straight in. */
 .tuber.glitching .glitch { display: block; }
 .glitch i { position: absolute; inset: 0; filter: drop-shadow(-3px 0 rgba(255,45,120,.75)) drop-shadow(3px 0 rgba(34,229,255,.75)); }
 .glitch b { position: absolute; inset: 0; background: no-repeat 50% 80% / contain; }
@@ -545,7 +541,7 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
         <div class="pad" aria-hidden="true"></div>
         <button class="tuber s-co" id="tuber" aria-label="Poke Tron">
           <img data-s="co" id="hero-img" width="640" height="960" alt="Trongates Legacy chibi avatar" fetchpriority="high">
-          <script>(function (i) { i.sizes = window.__sizes; i.srcset = window.__srcset(window.__formSrc); i.src = window.__formSrc; i.parentNode.dataset.art = window.__form === 'princess' || window.__form === 'blobfish' ? window.__form : 'tron'; })(document.getElementById('hero-img'));</script>
+          <script>(function (i) { i.sizes = window.__sizes; i.srcset = window.__srcset(window.__formSrc); i.src = window.__formSrc; })(document.getElementById('hero-img'));</script>
           <noscript><img src="/assets/img/tron-cyan-mclosed-eopen.webp" width="640" height="960" alt="" style="opacity:1"></noscript>
           <img data-s="cc" alt="" width="640" height="960" decoding="sync">
           <img data-s="oo" alt="" width="640" height="960" decoding="sync">
@@ -660,8 +656,8 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
       <article class="card reveal" style="--c:#ffb36b;--d:2" data-card="blobfish" tabindex="0">
         <span class="card-no" aria-hidden="true">03</span>
         <div class="card-art">
-          <img class="base" src="/assets/img/blobfish-mclosed-eopen.webp" width="456" height="567" loading="lazy" decoding="async" alt="A blobfish in a fishing hat and vest, holding a rod with Princess Trina dangling from the hook">
-          <img class="alt" data-src="/assets/img/blobfish-mopen-eopen.webp" width="456" height="567" decoding="async" alt="">
+          <img class="base" src="/assets/img/blobfish-mclosed-eopen.webp" srcset="/assets/img/blobfish-mclosed-eopen-400.webp 400w, /assets/img/blobfish-mclosed-eopen.webp 640w" sizes="(max-width: 900px) 45vw, 250px" width="640" height="960" loading="lazy" decoding="async" alt="A blobfish in a fishing hat and vest, holding a rod with Princess Trina dangling from the hook">
+          <img class="alt" data-src="/assets/img/blobfish-mopen-eopen.webp" width="640" height="960" decoding="async" alt="">
         </div>
         <div class="card-body">
           <span class="tag">Gone fishing</span>
@@ -825,16 +821,14 @@ const boot = () => {
   let switchId = 0;
   // Four quick steps of slices, each showing more of the new form, then the clean swap.
   const glitchEl = $('#glitch');
-  const artOf = (form) => (form === 'princess' || form === 'blobfish' ? form : 'tron');
-  const ART_T = { tron: 'none', princess: 'translate(.75%, -1.9%) scale(.937)', blobfish: 'translate(-12.7%, -5.8%) scale(1.18)' };
   async function glitchSwap(from, to, id) {
     glitchOn = true; tuber.classList.add('glitching');
     for (const p of [.25, .5, .75, .92]) {
       let html = '', y = 0;
       while (y < 100) {
         const h = 10 + Math.random() * 16, dx = (Math.random() - .5) * 26;
-        const [src, art] = Math.random() < p ? to : from;
-        html += `<i style="clip-path:inset(${y.toFixed(1)}% 0 ${Math.max(0, 100 - y - h).toFixed(1)}% 0);transform:translateX(${dx.toFixed(1)}px)"><b style="background-image:url('${src}');transform:${ART_T[art]}"></b></i>`;
+        const src = Math.random() < p ? to : from;
+        html += `<i style="clip-path:inset(${y.toFixed(1)}% 0 ${Math.max(0, 100 - y - h).toFixed(1)}% 0);transform:translateX(${dx.toFixed(1)}px)"><b style="background-image:url('${src}')"></b></i>`;
         y += h;
       }
       glitchEl.innerHTML = html;
@@ -847,7 +841,7 @@ const boot = () => {
   async function setTheme(next) {
     if (next === theme) return;
     const id = ++switchId;
-    const from = [tuberImgs[tuber.className.match(/s-(..)/)[1]].currentSrc || tuberImgs.co.currentSrc, tuber.dataset.art];
+    const from = tuberImgs[tuber.className.match(/s-(..)/)[1]].currentSrc || tuberImgs.co.currentSrc;
     theme = next;
     root.dataset.theme = next;
     root.classList.remove('no-pick');
@@ -860,14 +854,13 @@ const boot = () => {
     await next0.decode().catch(() => {});
     if (id !== switchId) return;                  // a newer pick overtook this one
     if (!reduced) {
-      await glitchSwap(from, [next0.currentSrc || next0.src, artOf(next)], id);
+      await glitchSwap(from, next0.currentSrc || next0.src, id);
       if (id !== switchId) return;
     }
     const idle = Object.keys(STATES).map((s, i) => setFrame(s, srcs[i]))[0];
     // keep the last glitch frame up until the new idle pose is ready, or the old one flashes back
     await Promise.race([idle, new Promise((r) => setTimeout(r, 1500))]);
     if (id !== switchId) return;
-    tuber.dataset.art = artOf(next);              // the size adjustment moves with the artwork, not the theme
     mouth = 'c'; render();
     endGlitch();
     speak();
