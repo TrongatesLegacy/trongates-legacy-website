@@ -22,7 +22,7 @@
   // ?key=<OBS_KEY> instead fetches the links kept in Netlify env vars (netlify/functions/obs-widgets.mjs), so
   // changing them there updates every scene; a chat=/goal= on the URL still wins for its frame. demo=1 adds
   // Botrix's sample messages (the index previews).
-  // ---- parts turned off (hide=chat,goal,music,discord,socials,ticker,art): gone before anything loads ----
+  // ---- parts turned off (hide=chat,goal,music,discord,socials,ticker,art,rings): gone before anything loads ----
   $$('[data-part]').forEach((el) => { if (TGL.hidden(el.dataset.part)) el.remove(); });
   if (TGL.hidden('art')) document.documentElement.classList.add('no-art');
 

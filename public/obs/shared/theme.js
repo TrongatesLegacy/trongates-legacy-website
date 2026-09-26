@@ -16,7 +16,7 @@
 //   obspw=secret         OBS WebSocket password, if authentication is enabled
 //   map=fishing:blobfish,tiara:princess   pin veadotube state names to forms (beats the automatic matching)
 //   veadodelay=300       wait this many ms after a veadotube switch before recolouring (if the model loads slowly)
-//   hide=chat,goal,music,discord,socials,ticker,art   turn parts of a scene off (art=0 and music=0 still work)
+//   hide=chat,goal,music,discord,socials,ticker,art,rings   turn parts of a scene off (art=0 and music=0 still work)
 //   guide=1              show labelled boxes with the exact position of every source to add in OBS
 (() => {
   const FORMS = {

@@ -7,14 +7,14 @@
   // Scene types: the file, which parts can be turned off, and how the colour works (cycling scenes run their own
   // form cycle; "follows" scenes take the colour from veadotube).
   const PARTS = {
-    chat: 'Chat', goal: 'Goal', music: 'Now playing', discord: 'Discord', socials: 'Social links', ticker: 'Socials strip', art: 'Character',
+    chat: 'Chat', goal: 'Goal', music: 'Now playing', discord: 'Discord', socials: 'Social links', ticker: 'Socials strip', art: 'Character', rings: 'Rings',
   };
   const TYPES = {
-    starting: { title: 'Starting soon', file: 'starting', parts: ['music', 'discord', 'socials', 'ticker', 'art'], cycling: true },
-    brb: { title: 'Be right back', file: 'brb', parts: ['chat', 'goal', 'music', 'discord', 'ticker', 'art'], cycling: true, column: true },
-    chatting: { title: 'Just chatting', file: 'chatting', parts: ['chat', 'goal', 'music', 'ticker'], follows: true, column: true },
+    starting: { title: 'Starting soon', file: 'starting', parts: ['music', 'discord', 'socials', 'ticker', 'art', 'rings'], cycling: true },
+    brb: { title: 'Be right back', file: 'brb', parts: ['chat', 'goal', 'music', 'discord', 'ticker', 'art', 'rings'], cycling: true, column: true },
+    chatting: { title: 'Just chatting', file: 'chatting', parts: ['chat', 'goal', 'music', 'ticker', 'rings'], follows: true, column: true },
     game: { title: 'Game', file: 'game', parts: ['ticker'], windowParts: ['chat', 'goal', 'music', 'ticker'], follows: true },
-    ending: { title: 'Ending', file: 'ending', parts: ['music', 'discord', 'socials', 'ticker', 'art'], cycling: true },
+    ending: { title: 'Ending', file: 'ending', parts: ['music', 'discord', 'socials', 'ticker', 'art', 'rings'], cycling: true },
   };
   // The frames on their own, for separate OBS sources
   const WIDGETS = {

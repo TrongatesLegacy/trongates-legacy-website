@@ -132,7 +132,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 
 | Option | Scenes | What it does |
 |---|---|---|
-| `hide=goal,discord` | every scene | turn parts off: `chat`, `goal`, `music`, `discord`, `socials` (the social links), `ticker` (the socials strip), `art` (the character). On Be right back and Just chatting the chat grows into the room a missing goal or now playing leaves |
+| `hide=goal,discord` | every scene | turn parts off: `chat`, `goal`, `music`, `discord`, `socials` (the social links), `ticker` (the socials strip), `art` (the character), `rings` (the stage's animated rings, halo and pad behind the character or veadotube). On Be right back and Just chatting the chat grows into the room a missing goal or now playing leaves |
 | `art=0` | Starting soon, Be right back, Ending | hides the character art (same as `hide=art`) |
 | `cycle=0` | Starting soon, Be right back, Ending | stop cycling: show the veadotube form (static) and follow its colour |
 | `form=princess` | all | the colour to start on before veadotube connects |
@@ -143,7 +143,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `chat=…`, `goal=…` | Be right back, Just chatting, Game (window), chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 | `key=…` | Be right back, Just chatting, Game (window), chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
 | `layout=window` | Game | the windowed layout (a 1408 × 792 game window, goal, now playing, chat, space for veadotube) instead of the full-screen backdrop |
-| `rings=1` | Game (`layout=window`) | the stage's animated rings behind veadotube (off by default; the dock's *Rings* chip) |
+| `rings=1` | Game (`layout=window`) | the stage's animated rings behind veadotube (off by default here; the dock's *Rings* chip). The other scenes have them on: `hide=rings` turns them off |
 | `chat=0` | Be right back, Just chatting, Game (window) | don't load the chat (a shared chat source sits in the frame instead; see *One shared chat for every scene*) |
 | `bare=1` | chat | no frame: just the chat, filling the source (the shared chat source) |
 | `demo=1` | the same | Botrix's sample messages in the widgets (the index previews use it) |
@@ -352,7 +352,7 @@ sees, and the connections.
 **Scenes:** every OBS scene holding a Trongates overlay, found by the overlay's URL (hosted or a local file), so
 your own scene names don't matter (*Intermission → Just chatting*), including overlays inside groups and nested
 scenes. Per scene: *Don't manage* to leave it alone, Game's layout (full screen or window), ↻ to reload the
-overlay, and chips to turn parts off (Chat, Goal, Now playing, Discord, Social links, Socials strip, Character, and Rings on Game (window))
+overlay, and chips to turn parts off (Chat, Goal, Now playing, Discord, Social links, Socials strip, Character, Rings)
 and *Cycles forms* / *Follows veadotube*. Scenes without a Trongates overlay are listed and left alone.
 
 **Sources:** add our widgets as their own OBS sources to the current scene (or any): the chat box, follower goal,

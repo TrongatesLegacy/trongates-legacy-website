@@ -23,9 +23,10 @@ BG = '''<div class="grid"></div>
 <div class="floor"></div><div class="horizon"></div>
 <canvas id="trails" data-riders="{riders}"></canvas>
 '''
-def ring(): return '''<div class="halo"></div>
+# the stage's rings, halo and pad: hide=rings turns them off (the dock's Rings chip)
+def ring(): return '''<div class="rings" data-part="rings"><div class="halo"></div>
   <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg></div>
-  <div class="pad"></div>'''
+  <div class="pad"></div></div>'''
 def stage(x, y, w, h, label='PNGtuber: veadotube (Spout)'):
     # a space for the veadotube (Spout) source: Game and Just chatting only
     return f'<div class="stage" data-slot="{label}" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">\n  {ring()}\n</div>\n'
