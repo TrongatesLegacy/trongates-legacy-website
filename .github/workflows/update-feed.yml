@@ -23,6 +23,8 @@ jobs:
       - run: node scripts/update-feed.mjs
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }} # optional; without it the RSS feeds are used
+      - name: Test before committing (the feed's shape and the fast tests)
+        run: node scripts/test.mjs --fast
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"

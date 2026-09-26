@@ -45,8 +45,8 @@ image and look at the result before handing it over.
 
 ## Before pushing
 
-- Syntax-check the inline scripts:
-  `node -e "const s=require('fs').readFileSync('public/index.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m,i)=>new Function(m[1]))"`
+- `node scripts/test.mjs` passes ([testing.md](testing.md)); the pre-push hook runs it anyway and blocks a failure.
+  It also syntax-checks every inline script. A fix comes with a test that failed before it.
 - Desktop + phone screenshots of what changed; reduced motion if it animates.
 
 - After deploy, check `/api/feed` on the live site: `source` should be `playlists` and `errors` empty.

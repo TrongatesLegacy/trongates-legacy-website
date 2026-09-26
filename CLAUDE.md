@@ -10,6 +10,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [docs/website.md](docs/website.md) | changing a section, the live state, video feed, SEO or performance |
 | [docs/content-and-voice.md](docs/content-and-voice.md) | writing any copy, speech lines or names |
 | [docs/verification.md](docs/verification.md) | finishing any change: how to check it actually works and looks right |
+| [docs/testing.md](docs/testing.md) | any code change: the automated tests, how loops get caught, adding a test |
 | [artwork/README.md](artwork/README.md) | making or changing any artwork: how every piece is built |
 | [artwork/kick/README.md](artwork/kick/README.md) | Kick about panels, channel banner, offline banner |
 | [artwork/discord/README.md](artwork/discord/README.md) | Discord profile banner |
@@ -42,6 +43,10 @@ website edit) and **channel-art** (Kick/Discord/other platform artwork).
   or changed form, pose or mouth/eye variant goes through `scripts/presize-art.mjs` (sources and placements in
   `artwork/forms/`) before it's used anywhere. Never give a form its own CSS transform. See docs/design-system.md,
   "Character sizing".
+- **Tests pass before every push, and grow with every change.** `node scripts/test.mjs` (docs/testing.md); the
+  pre-push hook runs them and blocks a failing push (enable it once per clone: `git config core.hooksPath .githooks`).
+  Every bug fix starts with a test that fails, then the fix; every new feature adds its tests. Never push with
+  `--no-verify` unless the owner asks.
 - **Verify visually before saying done.** Screenshot desktop and phone with `scripts/shot.mjs` and look at the
   images. Check reduced motion for anything animated.
 - **Run Lighthouse twice for every website change** (anything under `public/` or `netlify/`):
@@ -63,8 +68,11 @@ public/robots.txt, sitemap.xml
 public/obs/                  OBS scene overlays, index page, control dock, Botrix CSS (hosted at /obs/, noindex); see obs/README.md
 netlify/functions/feed.mjs   GET /api/feed: live YouTube list + Kick live status
 netlify.toml                 publish dir, functions dir, headers, build-skip rule
+tests/                       unit, loop (simulated OBS browser) and browser tests; see docs/testing.md
+.githooks/pre-push           runs the tests before every push
 scripts/update-feed.mjs      refreshes public/feed.json (run by .github/workflows/update-feed.yml)
 scripts/shot.mjs             headless-Chrome screenshots for checking changes
+scripts/test.mjs             runs the tests (--fast, --browser, --changed=<range>)
 dev.mjs                      local server: public/ + /api/feed on http://localhost:8888
 obs/                         OBS setup guide + build-scenes.py (generates public/obs/*.html)
 artwork/forms/               the character art's untouched sources and placements (forms.json), for presize-art.mjs
@@ -82,6 +90,7 @@ artwork/                     images made for other places, all built the same wa
 
 ```
 node dev.mjs                                                  # local preview on :8888
+node scripts/test.mjs                                         # all tests (--fast: no browser, ~2 s)
 node --experimental-websocket scripts/shot.mjs                # screenshot; options in the file's header
 node --experimental-websocket scripts/presize-art.mjs          # pre-size the character art (--measure, --bounds)
 node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image

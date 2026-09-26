@@ -1,0 +1,16 @@
+#!/bin/sh
+# Runs the tests before every push (docs/testing.md); a failure blocks the push. Enabled per clone with
+#   git config core.hooksPath .githooks
+# Fast tests (unit + loops) always; the browser tests too when the push touches public/, netlify/ or netlify.toml.
+# In an emergency, `git push --no-verify` skips this.
+zero=0000000000000000000000000000000000000000
+range=""
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue                      # deleting a branch: nothing to test
+  if [ "$remote_sha" = "$zero" ]; then r="origin/main..$local_sha"; else r="$remote_sha..$local_sha"; fi
+  range="$r"
+done
+[ -z "$range" ] && exit 0
+cd "$(git rev-parse --show-toplevel)" || exit 1
+echo "pre-push: running the tests ($range)…"
+node scripts/test.mjs --changed="$range" || { echo; echo "pre-push: tests failed, push blocked. Fix them (or: git push --no-verify, emergencies only)."; exit 1; }

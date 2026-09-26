@@ -6,8 +6,9 @@ description: Check a change to the Trongates Legacy website before calling it do
 # Verify a website change
 
 1. Start the dev server if it isn't running: `node dev.mjs` (http://localhost:8888).
-2. Syntax-check the inline scripts:
-   `node -e "const s=require('fs').readFileSync('public/index.html','utf8');[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((m)=>new Function(m[1]))"`
+2. Run the tests: `node scripts/test.mjs` (docs/testing.md; `--fast` while iterating). They syntax-check every
+   inline script too. Fixing a bug? Write the test that shows it first, see it fail, then fix. Adding a feature?
+   Add its tests.
 3. Screenshot what changed with `node --experimental-websocket scripts/shot.mjs` (options are in the file's
    header). At minimum: desktop 1280×800, phone `--width=390 --height=844 --mobile`, and
    `--width=375 --height=667 --mobile` if layout near the edges changed. Add `--form=…`, `--live`, `--fresh`,

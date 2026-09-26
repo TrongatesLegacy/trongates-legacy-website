@@ -413,13 +413,24 @@ right edges and below the socials strip, 16px from the bottom edge, and 16px bet
 column (now playing, chat, goal) and the goal's spot are the same on all three, so switching scenes doesn't move
 them. The geometry lives in four places that must agree: `build-scenes.py` (the frames), `model.js` `chatBox()`
 (where the dock fits the shared chat), `panel.js` `CAPTURE` and `VEADO_BOX` (where Tidy puts the game capture and
-veadotube), and the position tables above. Change one, change all, and measure the rendered slots.
+veadotube), and the position tables above. Change one, change all, and measure the rendered slots (the browser
+tests compare `chatBox()` with the drawn chat slot on every layout, docs/testing.md).
 
 The control panel is `shared/panel.js` (dock and index), on top of `shared/model.js` (the settings, the scene
 types and parts, and the one function that turns settings into each scene's URL; the dock's shared chat geometry
-is `chatBox()` there, matching the left column in `build-scenes.py`) and `shared/obsws.js` (a small OBS WebSocket
-v5 client). Test the dock against a stand-in OBS WebSocket server before pushing: nothing in OBS can be checked
-from the hosted site otherwise.
+is `chatBox()` there, matching the left column in `build-scenes.py`), `shared/dock-colour.js` (the dock's colour
+buttons and its veadotube connection) and `shared/obsws.js` (a small OBS WebSocket v5 client). The tests
+(docs/testing.md) run the dock against a fake OBS with scenes and a fake veadotube, and run the colour sync between
+the dock and every scene on a simulated OBS browser: `node scripts/test.mjs` before pushing (the pre-push hook
+does it anyway).
+
+**How the colour stays in step:** every scene and the dock share one browser profile in OBS. A scene that follows
+veadotube recolours the moment veadotube (or the dock, over the OBS WebSocket) says so, and saves the form with the
+time it was picked (`tgl-obs-form` = `princess@1790000000000`) for the pages that don't follow veadotube (the
+cycling scenes). A form heard from another page is never saved again (every page echoing it let two quick
+switches bounce for ever), waits until the pages have been quiet for 150ms (they pass the same switch on at
+slightly different moments), and is ignored if something newer has arrived since. The dock's buttons switch
+veadotube and tell the scenes once, when veadotube confirms the last press.
 
 
 The scene pages are generated from one template:
@@ -429,7 +440,7 @@ python3 obs/build-scenes.py        # writes public/obs/{starting,brb,chatting,ga
 ```
 
 Paths inside `public/obs` are relative and it carries its own fonts and logos (`public/obs/assets/`), so the
-folder works anywhere. Shared pieces: `public/obs/shared/overlay.css` (look), `theme.js` (form colours, veadotube + OBS WebSocket),
+folder works anywhere. Shared pieces: `public/obs/shared/overlay.css` (look), `theme.js` (form colours, veadotube + OBS WebSocket, keeping the pages in step),
 `scene.js` (light trails, form-cycling art, guide labels), `icons.js` (platform icons). The control dock is
 `public/obs/control.html`; the Botrix CSS is `public/obs/botrix/`. Everything under `public/` deploys with
 the site, so check it the same way as any site change (docs/verification.md). `?guide=1` plus
