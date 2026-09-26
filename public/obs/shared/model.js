@@ -29,7 +29,7 @@
   const defaults = () => ({
     v: 1,
     key: '', links: { chat: '', goal: '' }, shared: false, goalColor: true,
-    music: { app: '', always: false, host: '' },
+    music: { app: '', always: false, host: '', ciderToken: '' },
     veado: { addr: '', switch: true, tron: 'cyan', map: {}, delay: 0 },
     motion: 'auto', sample: true,
     scenes: Object.fromEntries(Object.keys(TYPES).map((t) => [t, { off: [], cycle: true, follow: true, layout: 'full' }])),
@@ -79,6 +79,7 @@
         if (s.music.app) add('app', s.music.app);
         if (s.music.always) add('music', 'always');
         if (s.music.host && s.music.host !== BRIDGE_DEFAULT) add('musichost', s.music.host);
+        if (s.music.ciderToken) add('cidertoken', s.music.ciderToken);
       }
     }
     // colour: cycling scenes cycle unless told not to; the rest follow veadotube unless told not to
@@ -104,7 +105,7 @@
     return o;
   }
   // Every option the panel owns: when it rewrites a URL these are replaced, anything else is kept as it was.
-  const OWNED = ['layout', 'bare', 'hide', 'chat', 'goal', 'key', 'goalcolor', 'music', 'app', 'musichost', 'cycle', 'noveado',
+  const OWNED = ['layout', 'bare', 'hide', 'chat', 'goal', 'key', 'goalcolor', 'music', 'app', 'musichost', 'cidertoken', 'cycle', 'noveado',
     'veado', 'map', 'veadodelay', 'motion', 'obs', 'obspw', 'art', 'demo', 'guide', 'form'];
   const query = (pairs) => pairs.map(([k, v]) => `${k}=${encodeURIComponent(v).replace(/%2C/g, ',').replace(/%3A/g, ':')}`).join('&');
   // A URL with the panel's options in place of its own (base: an existing address, hosted or file://)
@@ -142,6 +143,7 @@
       if (get('app')) s.music.app = get('app');
       if (get('music') === 'always') s.music.always = true;
       if (get('musichost')) s.music.host = get('musichost');
+      if (get('cidertoken')) s.music.ciderToken = get('cidertoken');
       if (get('veado')) s.veado.addr = get('veado');
       if (get('veadodelay')) s.veado.delay = +get('veadodelay') || 0;
       if (get('map')) for (const p of get('map').split(',')) { const [a, b] = p.split(':'); if (a && b) s.veado.map[a.trim().toLowerCase()] = b.trim(); }

@@ -143,7 +143,10 @@
       return true;
     }
     importAddress();
-    s.dock = s.dock || { map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false };
+    // the dock's own settings (per scene collection): scene choices, pickers, lock, the measured avatar
+    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 820, game: 540 } });
+    const fixDock = (d) => { d = d || newDock(); d.avatar = { chatting: 820, game: 540, ...(d.avatar || {}) }; return d; };
+    s.dock = fixDock(s.dock);
     const save = () => { write(storeKey, s); onChange(s, env.links); refresh(); };
     const set = (path, value) => { const ks = path.split('.'); let o = s; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = value; save(); };
 
@@ -228,6 +231,15 @@
         music.state = 'ok';
         music.track = m && m.Title ? { title: m.Title, artist: m.Artist, art: m.Thumbnail, app: x.source_app_id, playing } : null;
         music.raw = x ? `P${tl.Position} S${tl.StartTime} E${tl.EndTime} M${tl.MaxSeekTime} U${tl.LastUpdatedTime}` : 'no session';
+        // no timeline from Windows: see whether Cider's own API answers (for the troubleshooting line; the scenes do the same)
+        if (x && !tl.EndTime && !tl.MaxSeekTime && Date.now() > (music.ciderNext || 0)) {
+          music.ciderNext = Date.now() + 5000;
+          try {
+            const r = await fetch('http://localhost:10767/api/v1/playback/now-playing', { headers: s.music.ciderToken ? { apptoken: s.music.ciderToken } : {}, cache: 'no-store' });
+            music.cider = r.ok ? 'ok' : r.status === 401 || r.status === 403 ? (s.music.ciderToken ? 'wrong token' : 'needs a token') : 'error ' + r.status;
+            if (r.ok) { const j = await r.json(); music.cider += j.info ? ` (${Math.round(j.info.currentPlaybackTime || 0)}s of ${Math.round((j.info.durationInMillis || 0) / 1000)}s)` : ''; }
+          } catch { music.cider = 'not reachable (Cider closed, API off, or it won\'t let web pages read it)'; }
+        } else if (x && (tl.EndTime || tl.MaxSeekTime)) music.cider = '';
         setVisible(!!music.track && (playing || s.music.always || Date.now() - lastPlaying <= 4000));
       } catch { music.state = 'bad'; music.track = null; music.raw = ''; setVisible(false); }
       if (tab === 'live' || tab === 'widgets') refresh();
@@ -295,7 +307,7 @@
         if (!read(storeKey)) {
           const pending = read('tgl-panel-pending');
           s = M.normalise(pending || M.fromUrls(rows.map((r) => r.input.url)));
-          s.dock = { map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false };
+          s.dock = newDock();
           try { localStorage.removeItem('tgl-panel-pending'); } catch {}
           write(storeKey, s); checkKey();
         }
@@ -308,10 +320,10 @@
       obs.collection = col; storeKey = 'tgl-panel:' + col;
       const saved = read(storeKey), pending = read('tgl-panel-pending');
       if (saved && pending) {                     // a new settings link in the dock's address: it wins, once
-        s = M.normalise(pending); s.dock = saved.dock || { map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false };
+        s = M.normalise(pending); s.dock = fixDock(saved.dock);
         try { localStorage.removeItem('tgl-panel-pending'); } catch {}
         write(storeKey, s); checkKey();
-      } else if (saved) { s = M.normalise(saved); s.dock = saved.dock || { map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false }; checkKey(); }
+      } else if (saved) { s = M.normalise(saved); s.dock = fixDock(saved.dock); checkKey(); }
     }
 
     // ---------------------------------------------------------------- what Apply would change
@@ -331,7 +343,7 @@
       const visH = Math.round(b.h * M.SHARED_W / b.w);
       return { positionX: b.x, positionY: b.y, cropTop: M.SHARED_H - visH, cropBottom: 0, cropLeft: 0, cropRight: 0, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: b.w, boundsHeight: b.h, boundsAlignment: 5, alignment: 5, rotation: 0 };
     }
-    const sameTransform = (t, want) => Object.entries(want).every(([k, v]) => (typeof v === 'number' ? Math.abs((t[k] ?? 0) - v) < 0.6 : t[k] === v));
+    const sameTransform = (t, want) => Object.entries(want).every(([k, v]) => (typeof v === 'number' ? Math.abs((t[k] ?? 0) - v) < (/^scale/.test(k) ? 0.005 : 0.6) : t[k] === v));
     const changes = (from, to) => {
       const q = (u) => new URLSearchParams((u.split('?')[1] || '').split('#')[0]);
       const a = q(from), b = q(to), out = [];
@@ -434,6 +446,71 @@
     const CAPTURE = { positionX: 45, positionY: 132, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: 1280, boundsHeight: 720, boundsAlignment: 0, alignment: 5, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0, rotation: 0 };
     const VEADO_BOX = { chatting: [760, 174, 980, 880], game: [1363, 620, 530, 440] };
     const veadoTransform = (kind) => { const [x, y, w, h] = VEADO_BOX[kind]; return { positionX: x, positionY: y, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: w, boundsHeight: h, boundsAlignment: 0, alignment: 5, rotation: 0 }; };
+    // Measured (Layout → Measure avatar): crop veadotube's canvas to the avatar's resting outline, scale it to the
+    // chosen height and stand it on the veadotube space's bottom line, centred; above that it may overlap the chat.
+    // Not measured: the whole canvas fitted into the box (small, as veadotube's canvas is mostly empty).
+    function avatarFit(kind, it) {
+      const av = s.dock.avatar || {}; const [bx, by, bw, bh] = VEADO_BOX[kind];
+      if (!av.bounds) return veadoTransform(kind);
+      const t = it.sceneItemTransform, sw = t.sourceWidth || av.canvas.w, sh = t.sourceHeight || av.canvas.h;
+      const [l, top, r, b] = av.bounds, H = +av[kind] || (kind === 'game' ? 540 : 820);
+      const vw = (r - l) * sw, vh = (b - top) * sh, k = H / vh;
+      return { boundsType: 'OBS_BOUNDS_NONE', alignment: 5, rotation: 0, scaleX: +k.toFixed(4), scaleY: +k.toFixed(4),
+        cropLeft: Math.round(l * sw), cropTop: Math.round(top * sh), cropRight: Math.round((1 - r) * sw), cropBottom: Math.round((1 - b) * sh),
+        positionX: Math.round(bx + bw / 2 - (vw * k) / 2), positionY: Math.round(by + bh - H) };
+    }
+    const measure = { running: false, note: '' };
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    // the visible (non-transparent) box of a screenshot, as fractions of it: [left, top, right, bottom]
+    const alphaBox = (dataUrl) => new Promise((ok) => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+        const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+        const d = g.getImageData(0, 0, c.width, c.height).data;
+        let l = c.width, t = c.height, r = -1, b = -1;
+        for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) if (d[(y * c.width + x) * 4 + 3] > 40) { if (x < l) l = x; if (x > r) r = x; if (y < t) t = y; if (y > b) b = y; }
+        ok(r < 0 ? null : [l / c.width, t / c.height, (r + 1) / c.width, (b + 1) / c.height]);
+      };
+      img.onerror = () => ok(null); img.src = dataUrl;
+    });
+    const median = (xs) => { const a = [...xs].sort((p, q) => p - q); return a[Math.floor(a.length / 2)]; };
+    // Step veadotube through every state, a few small screenshots each, and keep each state's resting outline
+    // (the median of the frames, so talking / blinking / bounce frames don't count); the avatar's outline is all of
+    // those together. Only runs when asked: nothing is sampled during a stream.
+    async function measureAvatar() {
+      const row = managedRows().find((r) => s.dock.pick.veado[r.container.uuid]);
+      const src = row && s.dock.pick.veado[row.container.uuid], item = row && row.container.items.find((i) => i.sourceName === src);
+      if (!item) throw new Error('Pick your veadotube source first (above).');
+      if (!veado.ws || veado.ws.readyState !== 1 || !veado.states.length) throw new Error('veadotube isn\'t connected.');
+      const sw = item.sceneItemTransform.sourceWidth, sh = item.sceneItemTransform.sourceHeight;
+      if (!sw || !sh) throw new Error(`${src} has no picture (is veadotube sending to Spout?)`);
+      const W = 240, H = Math.max(1, Math.round((W * sh) / sw)), back = veado.states.find((x) => x.name === veado.current);
+      const setState = (st) => veado.ws.send('nodes:' + JSON.stringify({ event: 'payload', type: 'stateEvents', id: 'mini', payload: { event: 'set', state: st.id } }));
+      const per = [];
+      measure.running = true;
+      try {
+        for (const [i, st] of veado.states.entries()) {
+          measure.note = `Measuring ${st.name} (${i + 1} of ${veado.states.length})…`; refresh();
+          setState(st); await sleep(1100);
+          const boxes = [];
+          for (let n = 0; n < 5; n++) {
+            const { imageData } = await call('GetSourceScreenshot', { sourceName: src, imageFormat: 'png', imageWidth: W, imageHeight: H });
+            const bx = await alphaBox(imageData); if (bx) boxes.push(bx);
+            await sleep(180);
+          }
+          if (boxes.length) per.push({ name: st.name, box: [0, 1, 2, 3].map((k) => median(boxes.map((x) => x[k]))) });
+        }
+      } finally {
+        if (back) setState(back);
+        measure.running = false;
+      }
+      if (!per.length) throw new Error(`${src} looked empty in every state (is veadotube sending to Spout?)`);
+      const u = [Math.min(...per.map((p) => p.box[0])), Math.min(...per.map((p) => p.box[1])), Math.max(...per.map((p) => p.box[2])), Math.max(...per.map((p) => p.box[3]))];
+      s.dock.avatar = { ...s.dock.avatar, bounds: u.map((v) => +v.toFixed(4)), canvas: { w: sw, h: sh }, at: new Date().toISOString(), states: per.map((p) => p.name) };
+      measure.note = `Measured ${per.length} state${per.length === 1 ? '' : 's'}: the avatar takes ${Math.round((u[2] - u[0]) * 100)}% × ${Math.round((u[3] - u[1]) * 100)}% of the ${sw} × ${sh} canvas.`;
+      save();
+    }
     const FULL = { positionX: 0, positionY: 0, scaleX: 1, scaleY: 1, rotation: 0, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0, alignment: 5 };
     function checks() {
       const out = [];
@@ -453,10 +530,16 @@
           else out.push({ where, what: pickC, state: 'in place', good: true });
         }
         if ((r.kind === 'chatting' || (r.kind === 'game' && layoutOf(r) === 'window')) && pickV) {
-          const it = r.container.items.find((i) => i.sourceName === pickV), want = veadoTransform(r.kind);
+          const it = r.container.items.find((i) => i.sourceName === pickV);
+          const av = s.dock.avatar || {}, t = it && it.sceneItemTransform;
           if (!it) out.push({ where, what: pickV, state: 'not found: pick again', bad: true });
-          else if (!sameTransform(it.sceneItemTransform, want)) out.push({ where, what: pickV, state: 'not in the veadotube space', fix: { k: 'place', label: `${pickV} in ${where}: the veadotube space (${VEADO_BOX[r.kind].join(', ')})`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: want }) } });
-          else out.push({ where, what: pickV, state: 'in place', good: true });
+          else if (av.bounds && av.canvas && (t.sourceWidth !== av.canvas.w || t.sourceHeight !== av.canvas.h))
+            out.push({ where, what: pickV, state: `veadotube's window size changed (${t.sourceWidth} × ${t.sourceHeight}): measure again`, bad: true });
+          else {
+            const want = avatarFit(r.kind, it), size = av.bounds ? `${av[r.kind === 'game' ? 'game' : 'chatting']}px tall, feet on the bottom line` : 'the whole canvas in the box (measure the avatar for a better fit)';
+            if (!sameTransform(t, want)) out.push({ where, what: pickV, state: av.bounds ? 'not at the measured size' : 'not in the veadotube space', fix: { k: 'place', label: `${pickV} in ${where}: ${size}`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: want }) } });
+            else out.push({ where, what: pickV, state: 'in place', good: true });
+          }
         }
       }
       const sh = shared();
@@ -513,7 +596,7 @@
     function head() {
       const pc = dock ? pendingCount() : 0;
       return `<div class="hd"><b>${dock ? 'Trongates' : 'Settings'}</b>${dock ? `<div class="pills"><span class="pill">${dot(obs.state)}OBS</span><span class="pill">${dot(veado.state)}veado</span><span class="pill">${dot(music.state)}music</span></div>` : ''}</div>
-        <div class="tabs" role="tablist">${TABS.map((t) => `<button type="button" role="tab" data-tab="${t}" aria-selected="${t === tab}">${t}${t === 'scenes' && pc ? `<i>${pc}</i>` : ''}</button>`).join('')}</div>`;
+        <div class="tabs" role="tablist">${TABS.map((t) => `<button type="button" role="tab" data-tab="${t}" aria-selected="${t === tab}">${t}${t === 'scenes' && pc ? `<i>${pc}</i>` : ''}${t === 'layout' && dock && unmeasured().length ? '<i>!</i>' : ''}</button>`).join('')}</div>`;
     }
     function formButtons() {
       const form = TGL.form, onAnim = String(veado.current || '').toLowerCase() === 'animated';
@@ -521,10 +604,20 @@
       const b = (f, label, state) => `<button type="button" style="--c:${TGL.FORMS[f].accent}" data-form="${f}" ${state ? `data-state="${state}"` : ''} aria-pressed="${form === f && (!showAnim || f !== 'cyan' || (state === 'animated') === onAnim)}">${label}</button>`;
       return `<div class="forms">${b('cyan', 'Tron')}${showAnim ? b('cyan', 'Tron<br>animated', 'animated') : ''}${FORM_KEYS.slice(1).map((f) => b(f, SHORT[f])).join('')}</div>`;
     }
+    // veadotube states the avatar measurement doesn't know yet (only matters once it's measured and in use)
+    const unmeasured = () => {
+      const av = s.dock.avatar || {};
+      if (!dock || !av.bounds || !veado.states.length || !managedRows().some((r) => s.dock.pick.veado[r.container.uuid])) return [];
+      return veado.states.map((x) => x.name).filter((n) => !(av.states || []).includes(n));
+    };
+    const measurePrompt = () => {
+      const u = unmeasured();
+      return u.length ? `<div class="card" style="border-color:var(--warn)"><span class="warn">${u.length === 1 ? 'A veadotube state isn\'t' : `${u.length} veadotube states aren't`} measured yet: ${esc(u.join(', '))}.</span><span class="hint">Measure the avatar again (before going live) so switching to ${u.length === 1 ? 'it' : 'them'} can't make it the wrong size.</span><button type="button" class="btn" data-act="measure" ${measure.running || veado.state !== 'ok' ? 'disabled' : ''}>${measure.running ? 'Measuring…' : 'Measure avatar'}</button></div>` : '';
+    };
     function tabLive() {
       if (!dock) return `<h3>Colour</h3>${formButtons()}<p class="hint">Sets the colour the previews are shown in. In OBS, the dock's buttons switch veadotube too.</p>`;
       const t = music.track;
-      return `<h3>Avatar &amp; colour</h3>${formButtons()}
+      return `${measurePrompt()}<h3>Avatar &amp; colour</h3>${formButtons()}
         <p class="hint">${s.veado.switch && veado.state === 'ok' ? 'Switches veadotube; every scene follows once it has switched.' : 'Recolours every scene.'}</p>
         ${veado.states.length ? `<h3>veadotube states</h3><div class="states">${veado.states.map((x) => {
           const f = formFor(x.name), pinned = s.veado.map[x.name.toLowerCase()] || '';
@@ -613,6 +706,7 @@
         <label class="field">Music app (blank: whatever Windows has in focus)<input type="text" data-set="music.app" value="${esc(s.music.app)}" placeholder="e.g. cider, applemusic, spotify"></label>
         <div class="row"><span class="grow">Stay up while paused</span>${tog('music.always', s.music.always)}</div>
         <label class="field">SMTC Bridge address<input type="text" data-set="music.host" value="${esc(s.music.host)}" placeholder="${M.BRIDGE_DEFAULT}"></label>
+        <label class="field">Cider API token (only if Cider asks for one)<input type="password" data-set="music.ciderToken" value="${esc(s.music.ciderToken)}" autocomplete="off" placeholder="Cider → Settings → Connectivity"></label>
         <h3>veadotube</h3>
         <label class="field">Address (veadotube → program settings → serving at)<input type="text" data-set="veado.addr" value="${esc(s.veado.addr)}" placeholder="${M.VEADO_DEFAULT}"></label>
         <div class="row"><span class="grow">Colour buttons switch the avatar</span>${tog('veado.switch', s.veado.switch)}</div>
@@ -622,7 +716,7 @@
         <h3>Animations</h3>
         <div class="row"><span class="grow">Motion</span><select data-set="motion"><option value="auto" ${s.motion === 'auto' ? 'selected' : ''}>automatic</option><option value="full" ${s.motion === 'full' ? 'selected' : ''}>always animate</option><option value="reduce" ${s.motion === 'reduce' ? 'selected' : ''}>reduced</option></select></div>
         ${!dock ? `<div class="row"><span class="grow">Sample messages and music in the previews</span>${tog('sample', s.sample)}</div>` : ''}
-        ${dock ? `<details><summary>Troubleshooting</summary><p class="hint">SMTC Bridge's raw timeline for the followed player (position, start, end, seek range, last update):</p><code>${esc(music.raw || '(not reachable)')}</code>
+        ${dock ? `<details><summary>Troubleshooting</summary><p class="hint">SMTC Bridge's raw timeline for the followed player (position, start, end, seek range, last update):</p><code>${esc(music.raw || '(not reachable)')}</code>${music.cider ? `<p class="hint">Windows gives no timeline for this player. Cider's own API: <b class="${/^ok/.test(music.cider) ? 'ok' : 'bad'}">${esc(music.cider)}</b></p>` : ''}
           <p class="hint">Scene collection: ${esc(obs.collection || '?')} · settings saved per collection.</p></details>` : ''}
         <h3>Backup</h3>
         <div class="row"><button type="button" class="btn grow" data-act="copy-link">Copy settings link</button><button type="button" class="btn" data-act="import">Import</button></div>
@@ -639,8 +733,14 @@
         if (r.kind === 'game' && layoutOf(r) === 'window') pickers.push(`<div class="row"><span class="grow">Game capture <span class="muted">(${esc(r.sceneName)})</span></span><select data-pick="capture:${r.container.uuid}">${opt(s.dock.pick.capture[r.container.uuid])}</select></div>`);
         if (r.kind === 'chatting' || (r.kind === 'game' && layoutOf(r) === 'window')) pickers.push(`<div class="row"><span class="grow">veadotube <span class="muted">(${esc(r.sceneName)})</span></span><select data-pick="veado:${r.container.uuid}">${opt(s.dock.pick.veado[r.container.uuid])}</select></div>`);
       }
-      const cs = checks();
-      return `<h3>Your sources (placed only if picked)</h3>${pickers.join('') || '<p class="hint">Nothing to place: no Just chatting or 720p Game scene found.</p>'}
+      const cs = checks(), av = s.dock.avatar || {}, pickedV = rows.some((r) => s.dock.pick.veado[r.container.uuid]);
+      const kinds = [...new Set(rows.filter((r) => s.dock.pick.veado[r.container.uuid]).map((r) => (r.kind === 'game' ? 'game' : 'chatting')))];
+      const avatar = pickedV ? `<h3>Avatar size (veadotube)</h3>
+        ${kinds.map((k) => `<div class="row"><span class="grow">Height on ${k === 'game' ? 'the 720p Game' : 'Just chatting'} (px)</span><input type="number" min="100" max="1080" step="10" data-set="dock.avatar.${k}" value="${+av[k] || (k === 'game' ? 540 : 820)}" style="width:80px"></div>`).join('')}
+        <span class="hint ${measure.running ? 'warn' : ''}">${esc(measure.note || (av.bounds ? `Measured ${av.states?.length || '?'} states on ${new Date(av.at).toLocaleDateString()} (${av.canvas.w} × ${av.canvas.h} canvas).` : 'Not measured yet: Tidy fits the whole veadotube canvas into the box, which leaves the avatar small.'))}</span>
+        <button type="button" class="btn" data-act="measure" ${measure.running || veado.state !== 'ok' || obs.busy ? 'disabled' : ''}>${measure.running ? 'Measuring…' : av.bounds ? 'Measure again' : 'Measure avatar'}</button>
+        <p class="hint">Before going live: veadotube steps through every state for a few seconds (viewers would see it), so stay quiet while it runs. Nothing is measured during a stream; after this, switching states never moves or resizes the avatar.</p>` : '';
+      return `${measurePrompt()}<h3>Your sources (placed only if picked)</h3>${pickers.join('') || '<p class="hint">Nothing to place: no Just chatting or 720p Game scene found.</p>'}${avatar}
         <h3>Checks</h3>
         ${cs.length ? `<table><tr><th>Scene</th><th>Item</th><th>State</th></tr>${cs.map((c) => `<tr><td>${esc(c.where)}</td><td>${esc(c.what)}</td><td class="${c.good ? 'ok' : c.bad ? 'bad' : 'warn'}">${esc(c.state)}</td></tr>`).join('')}</table>` : '<p class="hint ok">Everything checked is in place.</p>'}
         <div class="row"><span class="grow">Lock the dock's own items</span>${tog('dock.lock', s.dock.lock)}</div>
@@ -707,6 +807,10 @@
         case 'shared-now': if (!s.shared) { s.shared = true; save(); } review('Shared chat', plan().filter((a) => /Shared chat|shared|overlay/i.test(a.label))); break;
         case 'shared-remove': s.shared = false; save(); review('Remove the shared chat', plan()); break;
         case 'tidy': review('Tidy layout', checks().filter((c) => c.fix).map((c) => c.fix)); break;
+        case 'measure':
+          if (!confirm('Measure the avatar now? veadotube will step through all your states for a few seconds (viewers would see it if you\'re live). Stay quiet while it runs.')) break;
+          measureAvatar().then(() => refresh()).catch((err) => { measure.note = err.message; refresh(); });
+          break;
         case 'copy-link': copy(link(dock ? 'control' : ''), b); break;
         case 'copy-dock': {
           const q = `obs=${encodeURIComponent(conn.port || '4455')}${conn.pw ? '&obspw=' + encodeURIComponent(conn.pw) : ''}`;
@@ -726,7 +830,7 @@
         case 'clear':
           if (!confirm('Clear the settings saved in this browser (key, links, music app, scene choices)?')) break;
           for (const k of Object.keys(localStorage)) if (k.startsWith('tgl-')) localStorage.removeItem(k);
-          s = M.normalise(M.defaults()); s.dock = { map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false };
+          s = M.normalise(M.defaults()); s.dock = newDock();
           history.replaceState(null, '', location.pathname + location.search.replace(/([?&])key=[^&]*&?/, '$1').replace(/[?&]$/, ''));
           importNote = ''; save(); checkKey(); break;
       }

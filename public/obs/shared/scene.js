@@ -97,6 +97,9 @@
   //   music=0 off · music=1 poll outside OBS too · music=demo sample track · music=always stay up while paused
   //   musichost=127.0.0.1:5000 the bridge's address · app=Spotify only follow this app (part of its id)
   //   musicdebug=1 show the bridge's raw timeline numbers in place of the time (for checking a player)
+  //   cidertoken=…  Cider's API token (Cider → Settings → Connectivity → Manage External Application Access)
+  // Some players (Cider) give Windows no timeline at all (position 0, length 0). Then the position and length come
+  // from Cider's own API (http://localhost:10767/api/v1/playback/now-playing) if it answers.
   const np = document.querySelector('[data-np]');
   if (np) {
     const mode = TGL.param('music', '');
@@ -134,6 +137,17 @@
     // ("2026-09-25 10:15:30.123456+00:00"); some players leave that unset (year 1601) or odd, and some give the
     // length only as the seek range. An unusable time falls back to when this position was first seen here.
     let seen = { key: '', at: 0 };
+    // Cider's API: asked only while the bridge has no timeline; if it doesn't answer, it's asked again every 30s
+    let ciderNext = 0;
+    const cider = async () => {
+      if (Date.now() < ciderNext) return null;
+      try {
+        const tok = TGL.param('cidertoken', '');
+        const r = await fetch('http://localhost:10767/api/v1/playback/now-playing', { headers: tok ? { apptoken: tok } : {}, cache: 'no-store' });
+        if (!r.ok) throw 0;
+        const j = await r.json(); return j && j.info;
+      } catch { ciderNext = Date.now() + 30000; return null; }
+    };
     const timeline = (m, tl) => {
       const end = (tl.EndTime || 0) - (tl.StartTime || 0) > 0 ? tl.EndTime - (tl.StartTime || 0)
         : (tl.MaxSeekTime || 0) - (tl.MinSeekTime || 0) > 0 ? tl.MaxSeekTime - (tl.MinSeekTime || 0) : 0;
@@ -160,9 +174,14 @@
           const m = s?.media_properties, tl = s?.timeline_properties || {};
           const playing = s?.playback_info?.PlaybackStatus === 4;
           if (playing) lastPlaying = Date.now();
+          let tlx = m ? timeline(m, tl) : null;
+          if (tlx && !tlx.end) {                         // no timeline from Windows: ask Cider itself
+            const c = await cider();
+            if (c && c.durationInMillis && (!c.name || c.name === m.Title)) tlx = { pos: Math.round((c.currentPlaybackTime || 0) * 1000), end: c.durationInMillis, at: Date.now() };
+          }
           // keep it up through track changes (status 2) for a few seconds; ?music=always keeps it up while paused
           if (!m || !m.Title || (!playing && mode !== 'always' && Date.now() - lastPlaying > 4000)) show(null);
-          else show({ title: m.Title, artist: m.Artist, art: m.Thumbnail, playing, ...timeline(m, tl),
+          else show({ title: m.Title, artist: m.Artist, art: m.Thumbnail, playing, ...tlx,
             debug: TGL.param('musicdebug') === '1' ? `P${tl.Position} S${tl.StartTime} E${tl.EndTime} M${tl.MaxSeekTime} U${String(tl.LastUpdatedTime).slice(11, 23)}` : '' });
         } catch { show(null); }                  // bridge not running: stay hidden, keep asking
         setTimeout(poll, 1000);

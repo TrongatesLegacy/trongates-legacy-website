@@ -150,6 +150,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `music=…` | Starting soon, Be right back, Just chatting, Ending, music | now playing: `0` off (same as `hide=music`), `1` also outside OBS, `always` stay up while paused, `demo` a sample track |
 | `musichost=…` | the same | SMTC Bridge's address if not `127.0.0.1:5000` |
 | `app=…` | the same | only follow this player (part of its Windows app id, e.g. `spotify`, `applemusic`); default: whichever Windows has in focus |
+| `cidertoken=…` | the same | Cider's API token (Cider → Settings → Connectivity → Manage External Application Access), used when Windows gives no timeline (see *Now playing*) |
 | `musicdebug=1` | the same | show the bridge's raw timeline numbers (position, start, end, seek range, update time) in place of the time, to see what a player sends |
 
 Combine options with `&`, e.g. `https://www.trongateslegacy.com/obs/chatting?form=princess&app=cider`.
@@ -263,6 +264,15 @@ and Just chatting X 40 Y 74 W 590 H 100 (top of the left column, above the chat 
 for the character / avatar); Game `layout=window` X 637 Y 890 W 560 H 134 (beside the goal, the same height). This replaces nutty's Universal Now Playing
 widget (same bridge), so that one isn't needed; it can still be layered on top as a browser source if preferred.
 
+**Players that give Windows no timeline (Cider):** some players report the song but no position or length
+(`musicdebug=1` shows `P0 S0 E0 M0`), so there's nothing to draw a progress bar from. For those, the scenes and
+the dock ask **Cider's own API** instead (`http://localhost:10767/api/v1/playback/now-playing`, which gives the
+position and the length). It usually wants an app token: Cider → Settings → Connectivity → Manage External
+Application Access; paste it in Settings → Widgets → *Cider API token*. The dock's Widgets → Troubleshooting says
+whether Cider's API answers (ok, needs a token, wrong token, not reachable). Built from Cider 2's documented API;
+Cider 3 (the .NET version) may differ: if Troubleshooting says *not reachable* with Cider open, open
+`http://localhost:10767/api/v1/playback/active` in a browser on that PC to see whether it's there at all.
+
 ### Kept in Netlify (instead of pasting them)
 
 The links can live in the site's Netlify environment variables instead of in each browser. Then the OBS sources
@@ -358,6 +368,18 @@ SMTC timeline), and backup (copy settings link, import, read back from OBS).
 scene; they're never touched unless picked. **Checks** lists what's off: overlays without custom frame rate 30 or
 not filling the canvas, a picked game capture not in the 720p window, the shared chat out of its frame.
 **Tidy layout…** fixes those (after showing the plan). *Lock the dock's own items* locks what the dock placed.
+
+**Avatar size (veadotube):** veadotube's Spout picture is its whole window, mostly empty, so fitting it into the
+veadotube space leaves the avatar small. **Measure avatar** (before going live; viewers would see it) steps
+veadotube through every state for about a second each, takes five small screenshots of the Spout source per
+state (OBS's `GetSourceScreenshot`), and keeps each state's resting outline: the median of the frames, so a
+talking, blinking or bouncing frame doesn't count. The avatar's outline is all the states together, and veadotube
+goes back to the state it was on. Tidy then crops the empty canvas away, scales the avatar to the height you set
+(Just chatting 820, 720p Game 540 by default) and stands it on the veadotube space's bottom line, centred; above
+that it may overlap the chat (on the 720p Game, 540 overlaps the chat frame by about 80 px). Nothing is measured
+during a stream: after this, switching states (Stream Deck, hotkeys, the dock) never moves or resizes it; talking
+or bouncing extends it upwards. If veadotube reports a state that isn't measured (a new one), the dock says so on
+Live and Layout (**!** on the Layout tab); if the veadotube window size changes, Layout says *measure again*.
 
 **What the dock never does:** reorder, move or change your own sources (unless picked on Layout), put anything
 at the top of a scene, or delete anything it didn't create. Its own sources carry a hidden tag
