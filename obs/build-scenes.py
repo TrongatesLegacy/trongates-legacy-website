@@ -44,7 +44,8 @@ def frame(x, y, w, h, tab, icon, slot, extra='', inner='', part=''):
 </div>
 '''
 def thin_frame(x, y, w, h, tag, slot, inner=''):
-    # a frame with a small tag inside its top-left corner instead of a tab above it (Game (window)'s game window)
+    # a frame with a small tag hanging from its top edge, inside the 18px band above the slot, so the game capture
+    # never covers it (Game (window)'s game window)
     return f'''<div class="frame thin" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
   <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:18px;bottom:18px">{inner}</div>
   <div class="tag">{tag}</div>
@@ -138,7 +139,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 .copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 .copy .title { font-size: 120px; }
 .layout-window .copy { gap: 24px; } .layout-window .copy .title { font-size: 96px; } .layout-window .copy .sub { font-size: 26px; }
-.frame.thin .tag { position: absolute; left: 30px; top: 18px; z-index: 2; padding: 5px 12px 4px; font: 700 13px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase; color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 8px 100%); }
+.frame.thin .tag { position: absolute; left: 22px; top: -1px; z-index: 2; padding: 4px 12px 3px; font: 700 12px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase; color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 8px 100%); }
 .rings-opt { display: none; } .show-rings .rings-opt { display: block; }
 .bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
