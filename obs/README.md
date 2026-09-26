@@ -376,9 +376,9 @@ veadotube space leaves the avatar small. **Measure avatar** (before going live; 
 veadotube through every state for about a second each, takes five small screenshots of the Spout source per
 state (OBS's `GetSourceScreenshot`), and keeps each state's resting outline: the median of the frames, so a
 talking, blinking or bouncing frame doesn't count. The avatar's outline is all the states together, and veadotube
-goes back to the state it was on. Tidy then scales the avatar to the height you set (Just chatting 880, Game (window)
-534 by default: each space's full height) and stands it on the veadotube space's bottom line, centred; set it taller
-and it rises over the chat frame. Nothing is cropped: veadotube's canvas is transparent round the avatar, so anything
+goes back to the state it was on. Tidy then scales the avatar to the height you set (by default Just chatting 880, the space's full height, and Game
+(window) 580, rising about 30 px over the chat frame's bottom edge) and stands it on the veadotube space's bottom line,
+centred; set it taller and it rises further. Nothing is cropped: veadotube's canvas is transparent round the avatar, so anything
 that moves past the resting outline (Blobfish's swinging princess, a bounce) stays visible. Nothing is measured
 during a stream: after this, switching states (Stream Deck, hotkeys, the dock) never moves or resizes it; talking
 or bouncing extends it upwards. If veadotube reports a state that isn't measured (a new one), the dock says so on

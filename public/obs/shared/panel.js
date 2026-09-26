@@ -144,8 +144,8 @@
     }
     importAddress();
     // the dock's own settings (per scene collection): scene choices, pickers, lock, the measured avatar
-    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 880, game: 534 } });
-    const fixDock = (d) => { d = d || newDock(); d.avatar = { chatting: 880, game: 534, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if (d.avatar.game === 454) d.avatar.game = 534; return d; };   // 820 and 454: earlier defaults
+    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 880, game: 580 } });
+    const fixDock = (d) => { d = d || newDock(); d.avatar = { chatting: 880, game: 580, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if ([454, 534].includes(d.avatar.game)) d.avatar.game = 580; return d; };   // 820, 454 and 534: earlier defaults
     s.dock = fixDock(s.dock);
     const save = () => { write(storeKey, s); onChange(s, env.links); refresh(); };
     const set = (path, value) => { const ks = path.split('.'); let o = s; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = value; save(); };
@@ -455,7 +455,7 @@
       const av = s.dock.avatar || {}; const [bx, by, bw, bh] = VEADO_BOX[kind];
       if (!av.bounds) return veadoTransform(kind);
       const t = it.sceneItemTransform, sw = t.sourceWidth || av.canvas.w, sh = t.sourceHeight || av.canvas.h;
-      const [l, top, r, b] = av.bounds, H = +av[kind] || (kind === 'game' ? 534 : 880);
+      const [l, top, r, b] = av.bounds, H = +av[kind] || (kind === 'game' ? 580 : 880);
       const vw = (r - l) * sw, vh = (b - top) * sh, k = H / vh;
       return { boundsType: 'OBS_BOUNDS_NONE', alignment: 5, rotation: 0, scaleX: +k.toFixed(4), scaleY: +k.toFixed(4),
         cropLeft: 0, cropTop: 0, cropRight: 0, cropBottom: 0,
