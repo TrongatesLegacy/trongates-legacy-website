@@ -666,8 +666,11 @@
       const a = document.activeElement;
       if (a && el.contains(a) && ['text', 'password', 'number'].includes(a.type)) return;   // don't redraw under someone typing
       const bdScroll = el.querySelector('.bd')?.scrollTop || 0;
+      // <details> sections stay open across redraws (the Widgets tab redraws every second for the song)
+      const open = new Set([...el.querySelectorAll('details[open] summary')].map((x) => x.textContent));
       const body = { live: tabLive, scenes: tabScenes, sources: tabSources, widgets: tabWidgets, layout: tabLayout }[tab]();
       el.innerHTML = head() + `<div class="bd">${body}</div>` + foot() + (reviewing ? reviewHtml() : '');
+      el.querySelectorAll('details').forEach((x) => { if (open.has(x.querySelector('summary')?.textContent)) x.open = true; });
       el.querySelector('.bd').scrollTop = bdScroll;
     }
 
