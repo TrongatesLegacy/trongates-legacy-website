@@ -33,7 +33,9 @@ free for veadotube (`rings=1`, the dock's *Rings* chip, puts the stage's animate
 back** and **Ending** have no veadotube: instead they open on the selected form (`form=`, else the last one
 picked with the control buttons or veadotube), then cycle through Tron, Princess Trina and the Blobfish every
 6 seconds (Tron's turn is cyan the first time, then a random one of cyan, gold and red) with the website's glitch swap, and the whole scene recolours with the form on show. Picking a form while
-one is up glitches straight to it, and switching to the scene in OBS starts it on the selected form again. All three carry the Lulu Gang Discord block (logos, *type !discord in chat*
+one is up glitches straight to it, and switching to the scene in OBS starts it on the selected form again. While
+OBS isn't showing the scene the cycle pauses and colour changes swap the art without animating, so nothing piles
+up and plays all at once when the scene comes back. All three carry the Lulu Gang Discord block (logos, *type !discord in chat*
 and the QR code). The Botrix chat and goal load inside the frames the overlays draw for them (or the chat is one
 shared source the dock places in every frame).
 
@@ -379,7 +381,8 @@ talking, blinking or bouncing frame doesn't count. The avatar's outline is all t
 goes back to the state it was on. Tidy then scales the avatar to the height you set (by default Just chatting 880, the space's full height, and Game
 (window) 580, rising about 30 px over the chat frame's bottom edge) and stands it on the veadotube space's bottom line,
 centred; set it taller and it rises further. Nothing is cropped: veadotube's canvas is transparent round the avatar, so anything
-that moves past the resting outline (Blobfish's swinging princess, a bounce) stays visible. Nothing is measured
+that moves past the resting outline (Blobfish's swinging princess, a bounce) stays visible. Keep veadotube's
+background transparent: with a background colour the whole uncropped canvas would show as a box. Nothing is measured
 during a stream: after this, switching states (Stream Deck, hotkeys, the dock) never moves or resizes it; talking
 or bouncing extends it upwards. If veadotube reports a state that isn't measured (a new one), the dock says so on
 Live and Layout (**!** on the Layout tab); if the veadotube window size changes, Layout says *measure again*.
@@ -404,6 +407,13 @@ build an SVG from `QR.create(url, { errorCorrectionLevel: 'H' })` with dark modu
 4-module quiet zone, then confirm it decodes (e.g. with `jsqr`) before using it.
 
 After any change, commit and push: that updates the hosted overlays and the Botrix CSS.
+
+**Spacing:** the scenes with frames (Be right back, Just chatting, Game (window)) keep 10px from the canvas's left and
+right edges and below the socials strip, 16px from the bottom edge, and 16px between stacked frames. The left
+column (now playing, chat, goal) and the goal's spot are the same on all three, so switching scenes doesn't move
+them. The geometry lives in four places that must agree: `build-scenes.py` (the frames), `model.js` `chatBox()`
+(where the dock fits the shared chat), `panel.js` `CAPTURE` and `VEADO_BOX` (where Tidy puts the game capture and
+veadotube), and the position tables above. Change one, change all, and measure the rendered slots.
 
 The control panel is `shared/panel.js` (dock and index), on top of `shared/model.js` (the settings, the scene
 types and parts, and the one function that turns settings into each scene's URL; the dock's shared chat geometry
