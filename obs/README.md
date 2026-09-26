@@ -110,17 +110,17 @@ the bottom edge is kept clear of anything that matters.
 | Scene | Source | X | Y | W | H |
 |---|---|---|---|---|---|
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
-| Be right back | Botrix chat | 58 | 242 | 554 | 654 |
-| | Botrix follower goal | 58 | 982 | 554 | 64 |
-| Just chatting | Botrix chat | 58 | 242 | 554 | 654 |
-| | Botrix follower goal | 58 | 982 | 554 | 64 |
+| Be right back | Botrix chat | 28 | 242 | 554 | 654 |
+| | Botrix follower goal | 28 | 982 | 554 | 64 |
+| Just chatting | Botrix chat | 28 | 242 | 554 | 654 |
+| | Botrix follower goal | 28 | 982 | 554 | 64 |
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
-| Game `?layout=window` | your game capture, *above* the overlay | 45 | 92 | 1408 | 792 |
-| | Botrix chat | 1505 | 126 | 370 | 370 |
-| | Botrix follower goal | 45 | 970 | 554 | 64 |
-| | veadotube (Spout) | 1487 | 530 | 406 | 534 |
+| Game `?layout=window` | your game capture, *above* the overlay | 28 | 92 | 1408 | 792 |
+| | Botrix chat | 1488 | 126 | 404 | 370 |
+| | Botrix follower goal | 28 | 982 | 554 | 64 |
+| | veadotube (Spout) | 1470 | 530 | 440 | 534 |
 | Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
 The PNGtuber space on Just chatting is sized so the avatar's feet land on the glowing pad and the rings
@@ -229,9 +229,9 @@ One chat source added to every scene fixes that (same browser, same messages eve
 
 | Scene | Position | Crop | Bounding box | Why |
 |---|---|---|---|---|
-| Be right back | `58, 242` | none | none | the frame is exactly 554 × 654 |
-| Just chatting | `58, 242` | none | none | the same left column as Be right back |
-| Game `?layout=window` | `1505, 126` | **Top** `100` | *Scale to inner bounds*, `370 × 370` | a smaller, square frame: the top (oldest messages) is cropped, then it's scaled to 67% |
+| Be right back | `28, 242` | none | none | the frame is exactly 554 × 654 |
+| Just chatting | `28, 242` | none | none | the same left column as Be right back |
+| Game `?layout=window` | `1488, 126` | **Top** `147` | *Scale to inner bounds*, `404 × 370` | a smaller frame: the top (oldest messages) is cropped, then it's scaled to 73% |
 
 The chat stacks from the bottom, so cropping the top only drops the oldest messages. In OBS, Position is where
 the cropped top-left corner lands. The Enlarge view on the index shows each frame's box to check against.
@@ -390,7 +390,7 @@ at the top of a scene, or delete anything it didn't create. Its own sources carr
 
 **The shared chat (dock):** one browser source, *Trongates · Shared chat*, with your raw Botrix chat link at
 554 × 920 (the tallest the left column's chat frame gets), added to every scene with a chat frame, just above that scene's overlay, and fitted to the frame: the
-top is cropped to the frame's height (on Game (window) it's also scaled to 370 × 370). The scenes get `chat=0`.
+top is cropped to the frame's height (on Game (window) it's also scaled to 404 × 370). The scenes get `chat=0`.
 When nothing's playing, Be right back and Just chatting give the chat the room now playing leaves; the dock reads
 SMTC Bridge too and changes the shared chat's crop at the same moment. The dock keeps its link current from Netlify
 and only reloads it when the link changes. **Remove** takes it out of every scene and undoes `chat=0`. On

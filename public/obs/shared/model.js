@@ -174,10 +174,10 @@
   const SHARED_W = 554, SHARED_H = 920;          // the tallest chat frame: now playing and the goal both off
   function chatBox(kind, s, musicShown) {
     const sc = s.scenes[kind];
-    if (kind === 'game') return { x: 1505, y: 126, w: 370, h: 370 };   // Game (window)'s chat
+    if (kind === 'game') return { x: 1488, y: 126, w: 404, h: 370 };   // Game (window)'s chat
     const music = !sc.off.includes('music') && musicShown, goal = !sc.off.includes('goal');
     const top = music ? 126 : 10, bottom = goal ? 850 : 1000;   // the chat frame, in .content coordinates
-    return { x: 58, y: 64 + top + 52, w: 554, h: bottom - top - 70 };
+    return { x: 28, y: 64 + top + 52, w: 554, h: bottom - top - 70 };
   }
 
   window.TGLModel = { PARTS, TYPES, WIDGETS, partsOf, defaults, normalise, options, withOptions, sameUrl, recognise, fromUrls,

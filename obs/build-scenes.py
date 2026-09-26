@@ -61,8 +61,8 @@ def slot(x, y, w, h, label):
 # The chat grows into the room when now playing or the goal is off, or while nothing's playing (scene.js);
 # model.js chatBox() has the same numbers for the dock's shared chat.
 def left_column():
-    return (np(40, 10, 590, 100) + frame(40, 126, 590, 724, 'Chat', 'kick', 'Botrix chat', extra='col-chat', part='chat')
-            + frame(40, 866, 590, 134, 'Goal', 'kick', 'Botrix follower goal', extra='col-goal', part='goal'))
+    return (np(10, 10, 590, 100) + frame(10, 126, 590, 724, 'Chat', 'kick', 'Botrix chat', extra='col-chat', part='chat')
+            + frame(10, 866, 590, 134, 'Goal', 'kick', 'Botrix follower goal', extra='col-goal', part='goal'))
 def np(x, y, w, h):
     # now playing (SMTC Bridge): built into the scene, not an OBS source; filled and shown by scene.js
     return f'<div class="np" data-np data-part="music" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
@@ -108,7 +108,7 @@ scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', ride
 
 # ---- BE RIGHT BACK: the left column (now playing, chat, goal), then title and Discord, character on the right ----
 scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 82% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 50% 35%, var(--a10), transparent 70%)', css='''
-.copy { position: absolute; left: 690px; top: 250px; width: 720px; display: grid; gap: 30px; justify-items: start; }
+.copy { position: absolute; left: 660px; top: 250px; width: 720px; display: grid; gap: 30px; justify-items: start; }
 .copy .title { font-size: 108px; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">Back in a moment</div>
@@ -148,7 +148,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 {LOADING}
 </div>
 <template id="game-window">
-{thin_frame(27, 10, 1444, 828, 'Game', 'Game capture (1408 × 792)', inner=LOADING)}{frame(27, 854, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(637, 854, 560, 134)}{frame(1487, 10, 406, 440, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1487, 466, 406, 534)}{slot(1487, 466, 406, 534, 'PNGtuber: veadotube (Spout)')}</template>
+{thin_frame(10, 10, 1444, 828, 'Game', 'Game capture (1408 × 792)', inner=LOADING)}{frame(10, 866, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(620, 866, 560, 134)}{frame(1470, 10, 440, 440, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1470, 466, 440, 534)}{slot(1470, 466, 440, 534, 'PNGtuber: veadotube (Spout)')}</template>
 <script>{{ const q = new URLSearchParams(location.search); if (q.get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); if (q.get('rings') === '1') document.documentElement.classList.add('show-rings'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }} }}</script>
 {ticker()}''')
 
