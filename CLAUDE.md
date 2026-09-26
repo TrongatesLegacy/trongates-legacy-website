@@ -37,6 +37,11 @@ website edit) and **channel-art** (Kick/Discord/other platform artwork).
   plus static assets. Keep it that way unless the owner asks otherwise. See docs/website.md for why.
 - **Measure, don't eyeball.** Artwork has transparent margins, so image boxes lie about where a character
   actually is. Alignment and sizing decisions are made from measured visible pixels (docs/verification.md).
+- **Character art is pre-sized, never adjusted in place.** Every form is drawn at the same size and position on one
+  640×960 canvas (matched to Tron's head), so the website, the OBS scenes and the artwork use any form as is. A new
+  or changed form, pose or mouth/eye variant goes through `scripts/presize-art.mjs` (sources and placements in
+  `artwork/forms/`) before it's used anywhere. Never give a form its own CSS transform. See docs/design-system.md,
+  "Character sizing".
 - **Verify visually before saying done.** Screenshot desktop and phone with `scripts/shot.mjs` and look at the
   images. Check reduced motion for anything animated.
 - **Run Lighthouse twice for every website change** (anything under `public/` or `netlify/`):
@@ -51,7 +56,7 @@ website edit) and **channel-art** (Kick/Discord/other platform artwork).
 
 ```
 public/index.html            the whole site
-public/assets/img/           character art (WebP, 400w + 640w), logos, OG image, icons
+public/assets/img/           character art (WebP, 400w + 640w, pre-sized), logos, OG image, icons
 public/assets/fonts/         self-hosted Orbitron + Chakra Petch (latin woff2)
 public/feed.json             static fallback list of YouTube videos/shorts (refreshed daily by CI)
 public/robots.txt, sitemap.xml
@@ -62,6 +67,7 @@ scripts/update-feed.mjs      refreshes public/feed.json (run by .github/workflow
 scripts/shot.mjs             headless-Chrome screenshots for checking changes
 dev.mjs                      local server: public/ + /api/feed on http://localhost:8888
 obs/                         OBS setup guide + build-scenes.py (generates public/obs/*.html)
+artwork/forms/               the character art's untouched sources and placements (forms.json), for presize-art.mjs
 artwork/                     images made for other places, all built the same way (see artwork/README.md):
   kick/                        Kick about panels, channel banner, offline banner
   discord/                     Discord profile banner (animated GIF)
@@ -77,6 +83,7 @@ artwork/                     images made for other places, all built the same wa
 ```
 node dev.mjs                                                  # local preview on :8888
 node --experimental-websocket scripts/shot.mjs                # screenshot; options in the file's header
+node --experimental-websocket scripts/presize-art.mjs          # pre-size the character art (--measure, --bounds)
 node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image
 python3 obs/build-scenes.py                                    # regenerate the OBS scene overlays
 scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running)

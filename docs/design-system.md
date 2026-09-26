@@ -88,20 +88,34 @@ last pick (`switchId`). Skipped for reduced motion.
 
 ## Character sizing
 
-The artwork files are not drawn at the same scale or position, so each form gets a measured CSS transform to
-match **Tron's head**: same head width, same head top, and the same centre line where the figure allows it
-(a figure with a lot off to one side, like the blobfish, is balanced on its whole silhouette instead). Measured from visible pixels,
-using the longest solid run of pixels per row so thin details (the blobfish's fishing rod) don't count.
+The artwork files aren't drawn at the same scale or position, so every form is **pre-sized**: drawn onto one shared
+640×960 canvas at the size and place that matches **Tron's head** (same head width, same head top, the same centre
+line where the figure allows it; a figure with a lot off to one side, like the blobfish, is balanced on its whole
+silhouette instead). The website, the OBS scenes and the artwork then use every form **as is**: no per-form CSS
+transform anywhere.
 
-| Art | Transform (hero, origin 50% 80%) | Why |
+- **Sources:** `artwork/forms/` holds the untouched art and `forms.json` (each form's files, its placement as a
+  CSS transform on the 640×960 box with `object-fit: contain` and origin 50% 80%, why, and optional WebP quality).
+  Tron is the reference; his files in `public/assets/img/` are used as they are.
+- **Output:** `node --experimental-websocket scripts/presize-art.mjs` draws each source with its placement in
+  headless Chrome, checks nothing falls outside the canvas (it stops rather than clip), and writes
+  `public/assets/img/<file>.webp` (640×960) and `<file>-400.webp` (400×600).
+
+| Form | Placement (baked in) | Why |
 |---|---|---|
 | Tron (all armours) | none | the reference |
 | Princess Trina | `translate(.75%, -1.9%) scale(.937)` | her art fills more of its canvas |
-| Blobfish | `translate(-12.7%, -5.8%) scale(1.18)` | drawn smaller, and sits right in its image because the rod and catch fill the left. Horizontally it's a compromise: centring its head like Tron's pushed the whole figure 61px left and the hanging catch off the stage, so the head sits ~40px right of Tron's and the whole figure (catch included) stays inside the stage |
+| Blobfish | `translate(-3.95%, -4.43%) scale(1.1)` | drawn smaller, and sits right in its image because the rod and catch fill the left. Scale 1.1 is the largest that keeps all four variants (rod tip and hanging catch included) inside the canvas with an 8px margin; centred, lowest point at y 896 as before. (It was 1.18, which spilled past the left edge and the top.) |
 
-The same transforms are applied inside the glitch slices (`ART_T`), and the class that applies them
-(`data-art` on `.tuber`) moves with the artwork, not the theme. If character art is replaced, re-measure
-(docs/verification.md) and update both places. The Discord banner uses the same method (matched head widths and tops).
+**Adding or changing a form** (a new form, pose or mouth/eye variant) always goes through this; never position it
+with its own transform:
+1. Put the untouched art in `artwork/forms/` and add it to `forms.json` (a new form gets a placement; a new
+   variant of an existing form joins its `files`, so it moves exactly with the others).
+2. `node --experimental-websocket scripts/presize-art.mjs --measure` reports its head against Tron's (suggested
+   scale, top and centre offsets); `--bounds` shows the whole outline on the canvas. Set the placement so the head
+   matches and the outline stays inside the canvas.
+3. Run the script (without options) to write the files, then check the website hero and cards, and the OBS
+   cycling scenes, with that form (docs/verification.md).
 
 ## Accessibility
 

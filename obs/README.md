@@ -77,7 +77,8 @@ doesn't, load those two overlays as local files instead: download the repo
 (<https://github.com/TrongatesLegacy/trongates-legacy-website> → **Code → Download ZIP**), keep the
 `public/obs` folder somewhere on the streaming PC, and point the browser source at it with a `file:///` URL
 (untick **Local file** so you can add options), e.g.
-`file:///C:/Users/YOU/obs/chatting.html?form=princess`. The folder is self-contained (its own fonts and art).
+`file:///C:/Users/YOU/public/obs/chatting.html?form=princess`. Keep the whole `public` folder: the scenes use the
+website's character art (`public/assets/img/`, pre-sized by `scripts/presize-art.mjs`).
 The cycling scenes and the Botrix CSS don't depend on veadotube, so the hosted URLs are fine for them.
 
 ## Adding a scene in OBS

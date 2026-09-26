@@ -1,4 +1,5 @@
 <!doctype html><html><head><meta charset="utf-8"><title>Facebook cover</title><style>
+/* character art is pre-sized (scripts/presize-art.mjs): no per-form transforms */
 /* 1640x924 = 16:9, which is what facebook.com/help/125379114252045 says a Page cover is on a computer
    (left aligned, full bleed). On phones the same cover is shown at 2.4:1, so the top and bottom are cropped:
      mobile keeps y 120-804 of 924  ->  all text and every character's head stays inside that band.
@@ -31,9 +32,7 @@ html, body { background: #03060d; }
 .who img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
 .who.tron { left: 1128px; z-index: 3; filter: drop-shadow(0 14px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(34,229,255,.4)); }
 .who.trina { left: 975px; z-index: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(255,99,184,.35)); }
-.who.trina img { transform: translate(.75%, -1.9%) scale(.937); }
 .who.blob { left: 1283px; z-index: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(255,179,107,.3)); }
-.who.blob img { transform: translate(-12.7%, -5.8%) scale(1.18); }
 .pad { position: absolute; left: 1210px; top: 628px; width: 520px; height: 62px; margin-left: -260px; border-radius: 50%;
   background: radial-gradient(ellipse, rgba(34,229,255,.45), rgba(34,229,255,.1) 50%, transparent 72%); z-index: 1; }
 .copy { position: absolute; left: 402px; top: 0; bottom: 0; width: 540px; display: grid; align-content: center; gap: 18px; z-index: 5; }

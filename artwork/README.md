@@ -22,4 +22,10 @@ Images made for places other than the website itself. Every piece is built the s
 | `og/` | link-preview image (`public/assets/img/og.jpg`) | `node --experimental-websocket artwork/og/render.mjs` |
 
 Needs Google Chrome and ffmpeg. Changes here don't trigger a website deploy, except the OG render, which writes
-into `public/`. The `channel-art` project skill has the step-by-step process for new or changed artwork.
+into `public/`.
+
+**Character art is pre-sized** (`public/assets/img/`, by `scripts/presize-art.mjs`; see docs/design-system.md,
+"Character sizing"): use it as is, with no per-form transform. A new form goes through the pre-sizing script
+first. X, Facebook, YouTube, Club and the OG image use the pre-sized files. The Kick panels and banners and the
+Discord banner still use the untouched originals in `artwork/forms/`, because their placements were measured on
+those; switching them to the pre-sized files means re-measuring those placements. The `channel-art` project skill has the step-by-step process for new or changed artwork.

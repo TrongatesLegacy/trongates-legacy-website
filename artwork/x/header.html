@@ -1,4 +1,5 @@
 <!doctype html><html><head><meta charset="utf-8"><title>X header</title><style>
+/* character art is pre-sized (scripts/presize-art.mjs): no per-form transforms */
 /* 1500x500 (3:1) X/Twitter profile header, rendered at 2x.
    X shows the whole image (it doesn't crop the 3:1), but the profile picture overlaps the bottom-left and the
    display name sits just under the header, so:
@@ -32,9 +33,7 @@ html, body { background: #03060d; }
 .who img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
 .who.tron { left: 1105px; z-index: 3; filter: drop-shadow(0 14px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(34,229,255,.4)); }
 .who.trina { left: 970px; z-index: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(255,99,184,.35)); }
-.who.trina img { transform: translate(.75%, -1.9%) scale(.937); }
 .who.blob { left: 1240px; z-index: 2; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)) drop-shadow(0 0 18px rgba(255,179,107,.3)); }
-.who.blob img { transform: translate(-12.7%, -5.8%) scale(1.18); }
 .pad { position: absolute; left: 1175px; top: 372px; width: 470px; height: 56px; margin-left: -235px; border-radius: 50%;
   background: radial-gradient(ellipse, rgba(34,229,255,.45), rgba(34,229,255,.1) 50%, transparent 72%); z-index: 1; }
 .copy { position: absolute; left: 430px; top: 0; bottom: 0; width: 520px; display: grid; align-content: center; gap: 16px; z-index: 5; }

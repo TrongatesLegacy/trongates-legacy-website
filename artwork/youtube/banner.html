@@ -1,4 +1,5 @@
 <!doctype html><html><head><meta charset="utf-8"><title>YouTube banner</title><style>
+/* character art is pre-sized (scripts/presize-art.mjs): no per-form transforms */
 /* 2560x1440 (16:9) YouTube channel banner. YouTube's upload dialog asks for at least 2048x1152 and 6MB or
    less; the same image is shown at very different crops:
      TV        the whole 16:9 image
@@ -32,9 +33,7 @@ html, body { background: #03060d; }
 .who img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
 .who.tron { left: 1635px; z-index: 3; filter: drop-shadow(0 16px 22px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(34,229,255,.4)); }
 .who.trina { left: 1470px; z-index: 2; filter: drop-shadow(0 14px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,99,184,.35)); }
-.who.trina img { transform: translate(.75%, -1.9%) scale(.937); }
 .who.blob { left: 1802px; z-index: 2; filter: drop-shadow(0 14px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,179,107,.3)); }
-.who.blob img { transform: translate(-12.7%, -5.8%) scale(1.18); }
 .pad { position: absolute; left: 1725px; top: 878px; width: 580px; height: 66px; margin-left: -290px; border-radius: 50%;
   background: radial-gradient(ellipse, rgba(34,229,255,.45), rgba(34,229,255,.1) 50%, transparent 72%); z-index: 1; }
 .copy { position: absolute; left: 560px; top: 508px; height: 423px; width: 760px; display: grid; align-content: center; gap: 20px; z-index: 5; }

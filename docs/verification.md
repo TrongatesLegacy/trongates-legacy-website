@@ -26,7 +26,13 @@ Never align or size characters by their `<img>` box. Draw the image to a canvas,
 find the visible bounds. For heads, use the widest **solid run** of pixels per row within the top ~22% of the
 figure (starting from the first row whose run is ≥30% of the widest), so a fishing rod or stray hair strand
 doesn't count as the top of the head. Then map through the element's `object-fit`, `object-position` and CSS
-transform to screen coordinates. The character sizing table in design-system.md was produced this way.
+transform to screen coordinates. The character sizing table in design-system.md was produced this way, and
+`scripts/presize-art.mjs --measure` / `--bounds` do it for the character art.
+
+**New or changed character art:** run it through `scripts/presize-art.mjs` (design-system.md, "Character
+sizing"), check the script's report (head matches Tron's, nothing outside the canvas), then screenshot the website
+hero (desktop and phone, reduced motion), the form cards, and the OBS cycling scenes (Starting soon, Be right
+back, Ending with `?form=<form>&cycle=0`) with that form.
 
 ## Platform crops (Kick, Discord, X, Facebook, YouTube, Club)
 

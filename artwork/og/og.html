@@ -1,4 +1,5 @@
 <!doctype html><html><head><meta charset="utf-8"><title>OG image</title><style>
+/* character art is pre-sized (scripts/presize-art.mjs): no per-form transforms */
 /* 1200x630 link-preview image (Open Graph / X large card). Platforms show it at anything from ~500px wide
    (Discord, iMessage) down to thumbnails, and X crops to 2:1, trimming ~15px top and bottom; so text is large,
    and everything important stays 48px inside the edges. Characters use the hero's box + per-art transforms,
@@ -30,9 +31,7 @@ html, body { background: #03060d; }
 .who img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
 .who.tron { left: 778px; z-index: 3; filter: drop-shadow(0 18px 24px rgba(0,0,0,.6)) drop-shadow(0 0 26px rgba(34,229,255,.4)); }
 .who.trina { left: 628px; z-index: 2; filter: drop-shadow(0 16px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,99,184,.35)); }
-.who.trina img { transform: translate(.75%, -1.9%) scale(.937); }
 .who.blob { left: 934px; z-index: 2; filter: drop-shadow(0 16px 20px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(255,179,107,.3)); }
-.who.blob img { transform: translate(-12.7%, -5.8%) scale(1.18); }
 .pad { position: absolute; left: 895px; top: 452px; width: 560px; height: 70px; margin-left: -230px; border-radius: 50%;
   background: radial-gradient(ellipse, rgba(34,229,255,.5), rgba(34,229,255,.12) 50%, transparent 72%); z-index: 1; }
 .copy { position: absolute; left: 64px; top: 0; bottom: 0; width: 560px; display: grid; align-content: center; gap: 22px; z-index: 5; }
