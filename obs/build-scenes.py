@@ -82,7 +82,7 @@ scenes = {}
 
 # ---- STARTING SOON: title and countdown on the left, the PNGtuber on the right -------------------------
 scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', riders=7, glow=GLOW_RIGHT, css='''
-.copy { position: absolute; left: 120px; top: 96px; width: 1010px; display: grid; gap: 26px; justify-items: start; }
+.copy { position: absolute; left: 120px; top: 132px; width: 1010px; display: grid; gap: 26px; justify-items: start; }
 .copy .title { font-size: 116px; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">CEO of the Lulu Gang</div>
@@ -92,7 +92,7 @@ scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', ride
   {GANG}
   {SOCIALS}
 </div>
-{np(1220, 22, 560, 100)}{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
+{np(1220, 22, 560, 100)}{art_stage(1180, 83, 620, 820)}{ticker(skip=('discord',))}''')
 
 # ---- BE RIGHT BACK: the left column (now playing, chat, goal), then title and Discord, character on the right ----
 scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 82% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 50% 35%, var(--a10), transparent 70%)', css='''
@@ -140,7 +140,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 
 # ---- ENDING: thanks, socials and the Discord, PNGtuber on the right -----------------------------------
 scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glow=GLOW_RIGHT, css='''
-.copy { position: absolute; left: 120px; top: 130px; width: 1000px; display: grid; gap: 28px; justify-items: start; }
+.copy { position: absolute; left: 120px; top: 176px; width: 1000px; display: grid; gap: 28px; justify-items: start; }
 .copy .title { font-size: 116px; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">That's a wrap</div>
@@ -149,7 +149,7 @@ scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glo
   {GANG}
   {SOCIALS}
 </div>
-{np(1220, 22, 560, 100)}{art_stage(1180, 130, 620, 820)}{ticker(skip=('discord',))}''')
+{np(1220, 22, 560, 100)}{art_stage(1180, 83, 620, 820)}{ticker(skip=('discord',))}''')
 
 for name, s in scenes.items():
     # the socials ticker runs along the top (the bottom gets covered by video players' controls); everything
