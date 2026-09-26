@@ -110,10 +110,10 @@ the bottom edge is kept clear of anything that matters.
 | Scene | Source | X | Y | W | H |
 |---|---|---|---|---|---|
 | Starting soon | *(nothing else: the overlay is the whole scene)* | | | | |
-| Be right back | Botrix chat | 58 | 246 | 554 | 608 |
-| | Botrix follower goal | 58 | 944 | 554 | 64 |
-| Just chatting | Botrix chat | 58 | 246 | 554 | 608 |
-| | Botrix follower goal | 58 | 944 | 554 | 64 |
+| Be right back | Botrix chat | 58 | 242 | 554 | 654 |
+| | Botrix follower goal | 58 | 982 | 554 | 64 |
+| Just chatting | Botrix chat | 58 | 242 | 554 | 654 |
+| | Botrix follower goal | 58 | 982 | 554 | 64 |
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
@@ -220,7 +220,7 @@ One chat source added to every scene fixes that (same browser, same messages eve
 2. **Create the shared source once** (in any of those scenes): Sources → **+** → Browser → *Create new*, name it
    *Shared chat*:
    - URL: the **Shared chat** card's Copy on the index's **Sources** tab (`…/obs/chat?bare=1&key=…`)
-   - Width `554`, Height `608`; tick **Use custom frame rate**, FPS `30`; leave *Shutdown source when not
+   - Width `554`, Height `654`; tick **Use custom frame rate**, FPS `30`; leave *Shutdown source when not
      visible* unticked
 3. **Add it to the other scenes:** Sources → **+** → Browser → **Add Existing** → *Shared chat*. Keep it above the
    overlay in each scene's source list.
@@ -228,8 +228,8 @@ One chat source added to every scene fixes that (same browser, same messages eve
 
 | Scene | Position | Crop | Bounding box | Why |
 |---|---|---|---|---|
-| Be right back | `58, 246` | none | none | the frame is exactly 554 × 608 |
-| Just chatting | `58, 246` | none | none | the same left column as Be right back |
+| Be right back | `58, 242` | none | none | the frame is exactly 554 × 654 |
+| Just chatting | `58, 242` | none | none | the same left column as Be right back |
 | Game `?layout=window` | `1381, 132` | **Top** `103` | *Scale to inner bounds*, `494 × 450` | a smaller frame: the top (oldest messages) is cropped, then it's scaled to 89% |
 
 The chat stacks from the bottom, so cropping the top only drops the oldest messages. In OBS, Position is where
@@ -387,7 +387,7 @@ at the top of a scene, or delete anything it didn't create. Its own sources carr
 (`tgl_managed` in their settings), so it recognises them even if renamed and never makes duplicates.
 
 **The shared chat (dock):** one browser source, *Trongates · Shared chat*, with your raw Botrix chat link at
-554 × 882, added to every scene with a chat frame, just above that scene's overlay, and fitted to the frame: the
+554 × 920 (the tallest the left column's chat frame gets), added to every scene with a chat frame, just above that scene's overlay, and fitted to the frame: the
 top is cropped to the frame's height (on the 720p Game it's also scaled to 494 × 450). The scenes get `chat=0`.
 When nothing's playing, Be right back and Just chatting give the chat the room now playing leaves; the dock reads
 SMTC Bridge too and changes the shared chat's crop at the same moment. The dock keeps its link current from Netlify

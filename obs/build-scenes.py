@@ -49,8 +49,8 @@ def slot(x, y, w, h, label):
 # The chat grows into the room when now playing or the goal is off, or while nothing's playing (scene.js);
 # model.js chatBox() has the same numbers for the dock's shared chat.
 def left_column():
-    return (np(40, 10, 590, 100) + frame(40, 130, 590, 678, 'Chat', 'kick', 'Botrix chat', extra='col-chat', part='chat')
-            + frame(40, 828, 590, 134, 'Goal', 'kick', 'Botrix follower goal', extra='col-goal', part='goal'))
+    return (np(40, 10, 590, 100) + frame(40, 126, 590, 724, 'Chat', 'kick', 'Botrix chat', extra='col-chat', part='chat')
+            + frame(40, 866, 590, 134, 'Goal', 'kick', 'Botrix follower goal', extra='col-goal', part='goal'))
 def np(x, y, w, h):
     # now playing (SMTC Bridge): built into the scene, not an OBS source; filled and shown by scene.js
     return f'<div class="np" data-np data-part="music" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'

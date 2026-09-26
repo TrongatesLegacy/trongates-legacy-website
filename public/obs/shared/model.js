@@ -21,7 +21,7 @@
     chatbox: { title: 'Chat box', file: 'chat', w: 500, h: 800, uses: ['chat'] },
     goal: { title: 'Follower goal', file: 'goal', w: 500, h: 134, uses: ['goal'] },
     music: { title: 'Now playing', file: 'music', w: 560, h: 100, uses: ['music'] },
-    bare: { title: 'Shared chat', file: 'chat', w: 554, h: 608, uses: ['chat'], extra: { bare: '1' } },
+    bare: { title: 'Shared chat', file: 'chat', w: 554, h: 654, uses: ['chat'], extra: { bare: '1' } },
   };
   const partsOf = (type, layout) => (type === 'game' && layout === 'window' ? TYPES.game.windowParts : TYPES[type].parts);
   const VEADO_DEFAULT = '127.0.0.1:54765', BRIDGE_DEFAULT = '127.0.0.1:5000';
@@ -171,12 +171,12 @@
 
   // The shared chat's geometry (on a 1920x1080 canvas): the chat frame's inner box in each scene. On Be right back
   // and Just chatting it depends on whether now playing and the goal take up room in the left column.
-  const SHARED_W = 554, SHARED_H = 882;
+  const SHARED_W = 554, SHARED_H = 920;          // the tallest chat frame: now playing and the goal both off
   function chatBox(kind, s, musicShown) {
     const sc = s.scenes[kind];
     if (kind === 'game') return { x: 1381, y: 132, w: 494, h: 450 };
     const music = !sc.off.includes('music') && musicShown, goal = !sc.off.includes('goal');
-    const top = music ? 130 : 10, bottom = goal ? 808 : 962;   // the chat frame, in .content coordinates
+    const top = music ? 126 : 10, bottom = goal ? 850 : 1000;   // the chat frame, in .content coordinates
     return { x: 58, y: 64 + top + 52, w: 554, h: bottom - top - 70 };
   }
 

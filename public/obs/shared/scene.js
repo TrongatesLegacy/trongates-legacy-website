@@ -32,7 +32,7 @@
   const colChat = document.querySelector('.frame.col-chat');
   const column = (musicRoom, animate = true) => {
     if (!colChat) return;
-    const top = musicRoom ? 130 : 10, bottom = document.querySelector('.frame.col-goal') ? 808 : 962;
+    const top = musicRoom ? 126 : 10, bottom = document.querySelector('.frame.col-goal') ? 850 : 1000;
     colChat.classList.toggle('still', !animate);
     colChat.style.top = top + 'px'; colChat.style.height = bottom - top + 'px';
     setTimeout(labelSlots, animate ? 600 : 0);

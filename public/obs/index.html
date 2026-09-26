@@ -131,7 +131,7 @@ footer code { color: #cfe3f5; }
   const SOURCES = [
     { id: 'chatbox', desc: 'Just the framed chat, as its own browser source (e.g. on top of the game). 500 × 800 suggested; any size works.' },
     { id: 'goal', desc: 'Just the framed follower goal. 500 × 134 suggested (at least ~464 wide).' },
-    { id: 'bare', desc: 'The chat with no frame, to add to OBS once and reuse in every scene. The dock sets this up for you (with the raw Botrix link); by hand: 554 × 608, placement in obs/README.md.' },
+    { id: 'bare', desc: 'The chat with no frame, to add to OBS once and reuse in every scene. The dock sets this up for you (with the raw Botrix link); by hand: 554 × 654, placement in obs/README.md.' },
     { id: 'music', desc: 'Now playing from SMTC Bridge (Windows), on its own (e.g. over the game). 560 × 100 suggested.' },
   ].map((c) => ({ ...c, kind: c.id, title: M.WIDGETS[c.id].title, file: M.WIDGETS[c.id].file, w: M.WIDGETS[c.id].w, h: M.WIDGETS[c.id].h }));
   const grid = document.getElementById('grid'), wgrid = document.getElementById('wgrid'), guide = document.getElementById('guide');
