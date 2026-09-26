@@ -38,7 +38,7 @@ export async function launch({ allow = ['http://127.0.0.1'] } = {}) {
   // nothing here waits unbounded: every request to Chrome has a time limit too
   const http = (path, method = 'GET') => fetch(`http://127.0.0.1:${port}${path}`, { method, signal: AbortSignal.timeout(5000) }).then((r) => r.json());
   let version;
-  for (let i = 0; i < 50 && !version; i++) { await sleep(100); version = await http('/json/version').catch(() => null); }
+  for (let i = 0; i < 100 && !version; i++) { await sleep(200); version = await http('/json/version').catch(() => null); }   // a cold start on CI can take 10 s
   if (!version) { kill(); throw new Error('Chrome did not start'); }
   const tabs = new Set();
 

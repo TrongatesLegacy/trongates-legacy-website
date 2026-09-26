@@ -75,16 +75,18 @@ test('a cycling scene picked while hidden in OBS shows up on the current form, w
   await tab.close();
 });
 
-test('a cycling scene picked 10 times in a row: at most the playing glitch and one after it, ending on the last pick', async () => {
+test('a cycling scene picked 10 times in a row: nothing piles up (at most one glitch after the last pick), ending on it', async () => {
   const tab = await chrome.open(`${site.origin}/obs/brb?demo=1&motion=full`, HD);
   await settled(tab);
   await tab.eval(WATCH);
   const picks = ['princess', 'blobfish', 'red', 'princess', 'yellow', 'blobfish', 'cyan', 'red', 'princess', 'blobfish'];
-  await tab.eval(`(async () => { for (const f of ${JSON.stringify(picks)}) { TGL.set(f); await new Promise((r) => setTimeout(r, 10)); } })()`);
+  await tab.eval(`(async () => { for (const f of ${JSON.stringify(picks)}) { TGL.set(f); await new Promise((r) => setTimeout(r, 10)); } window.__lastPick = performance.now(); })()`);
   await tab.until(`!document.querySelector('.art-stage .art').classList.contains('glitching')`, 4000, 'the glitches to finish');
   await sleep(300);                                // a glitch still queued would have started by now
-  const glitches = await tab.eval('__glitches.length');
-  assert.ok(glitches >= 1 && glitches <= 2, `${glitches} glitches for 10 quick picks (the one playing, then straight to the last)`);
+  // while the picks arrive a glitch may finish and the next start (a slow machine); after the last pick, at most one
+  // more: the one waiting, straight to the last pick. A pile-up would replay the picks one by one.
+  const [total, after] = await tab.eval('[__glitches.length, __glitches.filter((t) => t > __lastPick).length]');
+  assert.ok(total >= 1 && after <= 1, `${total} glitches, ${after} of them after the last pick`);
   assert.equal(await tab.eval('document.documentElement.dataset.form'), 'blobfish');
   assert.match(await tab.eval(artNow), /blobfish/);
   assert.equal(await tab.eval(`document.querySelector('.art-stage .art').classList.contains('glitching')`), false, 'the glitch finished');
