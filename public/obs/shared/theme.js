@@ -69,7 +69,9 @@
     form = next;
     root.dataset.form = form;
     root.style.setProperty('--accent', FORMS[form].accent);
-    try { localStorage.setItem('tgl-obs-form', form); } catch {}
+    // A form heard from another page (storage / channel) isn't saved again: every page echoing it back let two
+    // quick switches bounce between the pages for ever (OBS: sources and the dock share one browser profile).
+    if (source !== 'storage' && source !== 'channel') try { localStorage.setItem('tgl-obs-form', form); } catch {}
     if (changed) listeners.forEach((fn) => fn(form, source));
   }
 
