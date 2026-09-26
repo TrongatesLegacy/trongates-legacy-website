@@ -1,6 +1,11 @@
 {
   "videos": [
     {
+      "id": "potzhpKbM74",
+      "title": "Scenes 2.0 | Stream Trailer",
+      "published": "2026-09-26T03:59:22Z"
+    },
+    {
       "id": "CHQVcIlOcEk",
       "title": "Dead By Daylight | Stream VOD | 2026-03-13",
       "published": "2026-09-20T03:35:33Z"
@@ -24,11 +29,6 @@
       "id": "zWDtFQ6zO14",
       "title": "River City Girls 2 & Slay the Spire II | Stream VOD | 2026-07-19",
       "published": "2026-07-20T23:58:22Z"
-    },
-    {
-      "id": "CC4hsDssY90",
-      "title": "Palworld | Stream VOD | 2026-07-12",
-      "published": "2026-07-13T02:55:40Z"
     }
   ],
   "shorts": [
