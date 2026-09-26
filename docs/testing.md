@@ -14,6 +14,7 @@ node scripts/test.mjs --fast       # unit + loops, no browser (~2 s)
 node scripts/test.mjs --browser    # browser tests only
 node scripts/test.mjs tests/loops/colour-sync.test.mjs    # one file
 TGL_SEEDS=400 node scripts/test.mjs tests/loops/colour-sync.test.mjs   # the randomised loop tests, 10× longer
+scripts/typecheck.sh               # type-check the OBS scripts from their JSDoc (TypeScript via npx, nothing installed)
 ```
 
 They run by themselves before every push: `.githooks/pre-push` runs the fast tests, plus the browser tests when
@@ -22,13 +23,18 @@ on per clone with `git config core.hooksPath .githooks` (a repo-local setting). 
 for emergencies only. GitHub Actions (`.github/workflows/test.yml`) runs everything again on every push, and the
 daily feed update runs the fast tests before it commits `feed.json`.
 
+**Types:** the OBS scripts are plain JavaScript with JSDoc comments, checked by TypeScript without a build:
+`jsconfig.json` (what's checked; VS Code reads it and underlines mistakes as you type) and `types/obs-globals.d.ts`
+(what each script puts on `window`). `scripts/typecheck.sh` runs the full check; GitHub Actions runs it on every push.
+It isn't in the pre-push hook because TypeScript comes through `npx` (the network, the first time).
+
 ## The three tiers
 
 | Tier | Where | What it covers |
 |---|---|---|
-| Unit | `tests/unit/` | `model.js` (settings → scene addresses, settings links, `chatBox` geometry), `theme.js` (veadotube state → form, `hide=`, where a scene starts), `/api/feed` and `/api/obs-widgets` with YouTube, Kick and Netlify faked, `update-feed.mjs`, `feed.json`'s shape, the character art's sizes (every form 640 × 960 and 400 × 600, read from the files), every script parsing |
+| Unit | `tests/unit/` | `model.js` (settings → scene addresses, settings links, `chatBox` geometry), `theme.js` (veadotube state → form, `hide=`, where a scene starts), `/api/feed` and `/api/obs-widgets` with YouTube, Kick and Netlify faked, `update-feed.mjs`, `feed.json`'s shape, the character art's sizes (every form 640 × 960 and 400 × 600, read from the files), every script parsing, the generated OBS pages matching `obs/build-scenes.py` |
 | Loops | `tests/loops/` | Anything that could loop, pile up or flicker, on a simulated OBS browser (below): the colour sync between the dock, veadotube and every scene; the dock's veadotube switching; reconnecting to veadotube and OBS |
-| Browser | `tests/browser/` | One headless Chrome against a local test server: the website (loads clean on desktop and phone, form picking, fast switching settles with no runaway timers, live state, the video fallback, reduced motion); every OBS page loads clean, `hide=`, the cycling scenes' glitch queue and hidden-scene behaviour, the goal widget's copies, the shared chat's geometry measured against the drawn frame; the dock against a fake OBS (rescans on an event flood, Review & apply and Tidy leaving nothing behind, the colour buttons) |
+| Browser | `tests/browser/` | One headless Chrome against a local test server: the website (loads clean on desktop and phone, form picking, fast switching settles with no runaway timers, live state, the video fallback, reduced motion); every OBS page loads clean, `hide=`, the cycling scenes' glitch queue and hidden-scene behaviour, the goal widget's copies, the shared chat's geometry measured against the drawn frame; the dock against a fake OBS (rescans on an event flood, Review & apply and Tidy leaving nothing behind, the colour buttons, every tab drawing, adding a widget from Sources) |
 
 ## How a loop gets caught
 
@@ -77,6 +83,6 @@ real OBS on 4455.
 
 How things look (screenshots and measuring, [verification.md](verification.md)); loading performance (Lighthouse);
 the real OBS, veadotube, SMTC Bridge, Botrix and Kick (the fakes follow their documented behaviour, and OBS's
-built-in Chromium is older than desktop Chrome); the dock's Sources tab, Measure avatar (needs veadotube's Spout
-picture) and settings import/export buttons; the YouTube player. When something breaks in one of those, the fix
+built-in Chromium is older than desktop Chrome); the dock's adopt/ignore buttons, Measure avatar (needs veadotube's
+Spout picture) and settings import/export buttons; the YouTube player. When something breaks in one of those, the fix
 comes with a test that reproduces it.

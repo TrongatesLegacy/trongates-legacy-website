@@ -42,10 +42,10 @@ test('connects to OBS and veadotube, and finds the three Trongates overlays', as
 
 test('a flood of OBS events (60 in a second) causes a couple of rescans, not 60', async () => {
   const tab = await openDock();
-  await sleep(1500);
+  await tab.until(`/matches|waiting/.test(document.querySelector('.tgl-panel .ft span')?.textContent || '')`, 5000, 'the first scan');
   const before = obs.count('GetSceneList');
   for (let i = 0; i < 60; i++) { obs.broadcast('SceneItemCreated', {}); await sleep(16); }
-  await sleep(2500);
+  await sleep(1200);                               // the dock waits 800 ms after the last event, then scans
   const rescans = obs.count('GetSceneList') - before;
   assert.ok(rescans >= 1 && rescans <= 3, `${rescans} rescans`);
   await tab.close();
@@ -60,7 +60,7 @@ test('Review & apply: the overlays get their options once, then OBS matches and 
   await tab.until(`/OBS matches/.test(document.querySelector('.tgl-panel .ft span')?.textContent || '')`, 8000, 'OBS matches these settings');
   const sets = obs.count('SetInputSettings');
   for (const inp of obs.inputs.values()) if (inp.kind === 'browser_source') assert.match(inp.settings.url, new RegExp(`obs=${obsAddr.split(':')[1]}`), inp.name);
-  await sleep(2500);                               // its own InputSettingsChanged events must not set off more changes
+  await sleep(1200);                               // its own InputSettingsChanged events must not set off more changes
   assert.equal(obs.count('SetInputSettings'), sets, 'the dock kept changing OBS after applying');
   assert.match(await footer(tab), /OBS matches/);
   await tab.close();
@@ -86,13 +86,55 @@ test('colour buttons: one veadotube switch per press; the scenes are told once, 
   const sets = veado.sets.length, events = obs.count('BroadcastCustomEvent');
   for (const f of ['princess', 'blobfish', 'yellow', 'blobfish']) { await tab.click(`.tgl-panel button[data-form="${f}"]`); await sleep(20); }
   await tab.until(`document.querySelector('.tgl-panel button[data-form="blobfish"]').getAttribute('aria-pressed') === 'true'`, 5000, 'Blobfish pressed');
-  await sleep(600);
+  await sleep(300);
   assert.equal(veado.sets.length - sets, 4, 'veadotube switches');
   assert.equal(veado.current, 'blobfish');
   const told = obs.calls.filter((c) => c[1] === 'BroadcastCustomEvent').slice(events);
   assert.equal(told.length, 1, `the scenes were told ${told.length} times`);
   assert.equal(told[0][2].eventData.form, 'blobfish');
   assert.equal(typeof told[0][2].eventData.at, 'number');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+test('every tab of the dock and the OBS index draws without errors', async () => {
+  const tab = await openDock();
+  for (const name of ['live', 'scenes', 'sources', 'widgets', 'layout', 'live']) {
+    await tab.click(`[data-tab="${name}"]`);
+    await tab.until(`document.querySelector('[data-tab="${name}"]').getAttribute('aria-selected') === 'true' && document.querySelector('.tgl-panel .bd').children.length > 0`, 3000, `the ${name} tab`);
+  }
+  // a part chip, a flag chip and a setting: the settings change and the footer counts what's waiting
+  await tab.click('[data-tab="scenes"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-part]')`);
+  await tab.click('.tgl-panel [data-part]');
+  await tab.until(`/waiting/.test(document.querySelector('.tgl-panel .ft span').textContent)`, 3000, 'a change waiting');
+  await tab.click('.tgl-panel [data-part]');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+  const index = await chrome.open(`${site.origin}/obs/`, { width: 1400, height: 900 });
+  for (const name of ['live', 'scenes', 'widgets']) {
+    await index.click(`.tgl-panel [data-tab="${name}"]`);
+    await index.until(`document.querySelector('.tgl-panel [data-tab="${name}"]').getAttribute('aria-selected') === 'true'`, 3000, `index ${name} tab`);
+  }
+  await index.click('.tgl-panel [data-tab="live"]');
+  await index.until(`document.querySelector('.tgl-panel button[data-form="princess"]')`);
+  await index.click('.tgl-panel button[data-form="princess"]');
+  await index.until(`[...document.querySelectorAll('#grid iframe')].some((f) => /form=princess/.test(f.getAttribute('src') || ''))`, 3000, 'the previews recoloured');
+  assert.deepEqual(index.errors, []);
+  await index.close();
+});
+
+test('Sources: "Add to scene" creates the widget once, in the chosen scene, tagged as the dock\'s', async () => {
+  const tab = await openDock();
+  await tab.click('[data-tab="sources"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-add="goal"]')`);
+  await tab.eval(`(() => { const s = document.querySelector('.tgl-panel select[data-target]'); s.value = 'Be right back'; s.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  await tab.click('.tgl-panel [data-add="goal"]');
+  await tab.until(`/In Be right back/.test(document.querySelector('.tgl-panel').textContent)`, 5000, 'the goal listed in Be right back');
+  const made = [...obs.inputs.values()].filter((i) => i.settings.tgl_managed === 'widget:goal');
+  assert.equal(made.length, 1);
+  assert.match(made[0].settings.url, /\/obs\/goal/);
+  assert.ok(obs.scenes.find((s) => s.name === 'Be right back').items.some((i) => i.input === made[0]));
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });

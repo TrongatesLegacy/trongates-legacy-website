@@ -28,13 +28,15 @@ export async function launch({ allow = ['http://127.0.0.1'] } = {}) {
     '--disable-extensions', '--disable-background-networking', '--disable-component-update', '--disable-sync', '--mute-audio', '--hide-scrollbars',
     ...(process.env.CI ? ['--no-sandbox'] : []), 'about:blank'];
   const proc = spawn(bin, flags, { stdio: 'ignore' });
+  proc.unref();                        // a test that fails before closing Chrome mustn't keep Node alive (exit kills it)
   let dead = false;
   const kill = () => { if (dead) return; dead = true; try { proc.kill('SIGKILL'); } catch {} try { rmSync(profile, { recursive: true, force: true }); } catch {} };
   process.once('exit', kill);
   const onSignal = () => { kill(); process.exit(130); };
   process.once('SIGINT', onSignal); process.once('SIGTERM', onSignal);
 
-  const http = (path, method = 'GET') => fetch(`http://127.0.0.1:${port}${path}`, { method }).then((r) => r.json());
+  // nothing here waits unbounded: every request to Chrome has a time limit too
+  const http = (path, method = 'GET') => fetch(`http://127.0.0.1:${port}${path}`, { method, signal: AbortSignal.timeout(5000) }).then((r) => r.json());
   let version;
   for (let i = 0; i < 50 && !version; i++) { await sleep(100); version = await http('/json/version').catch(() => null); }
   if (!version) { kill(); throw new Error('Chrome did not start'); }
@@ -44,7 +46,10 @@ export async function launch({ allow = ['http://127.0.0.1'] } = {}) {
     if (tabs.size >= MAX_TABS) throw new Error(`more than ${MAX_TABS} tabs open: close some first`);
     const target = await http('/json/new?about:blank', 'PUT');
     const ws = new WebSocket(target.webSocketDebuggerUrl);
-    await new Promise((ok, fail) => { ws.onopen = ok; ws.onerror = () => fail(new Error('DevTools connection failed')); });
+    await new Promise((ok, fail) => {
+      const t = setTimeout(() => fail(new Error('DevTools connection did not open in 5 s')), 5000);
+      ws.onopen = () => { clearTimeout(t); ok(); }; ws.onerror = () => { clearTimeout(t); fail(new Error('DevTools connection failed')); };
+    });
     let id = 0; const waiting = new Map(), listeners = new Map();
     ws.onmessage = (m) => {
       const d = JSON.parse(m.data);

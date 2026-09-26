@@ -24,3 +24,5 @@ jobs:
         with:
           node-version: 24
       - run: node scripts/test.mjs
+      - name: Types (JSDoc, no build)
+        run: scripts/typecheck.sh

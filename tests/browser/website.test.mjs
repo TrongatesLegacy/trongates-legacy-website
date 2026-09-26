@@ -36,26 +36,25 @@ test('picking a form switches the site and is remembered', async () => {
   await tab.until(`document.documentElement.dataset.theme === 'princess'`);
   await tab.until(`[...document.querySelectorAll('#tuber img')].some((i) => i.currentSrc.includes('princess'))`, 5000, 'the princess art');
   assert.equal(await tab.eval(`localStorage.getItem('tgl-form')`), 'princess');
-  await tab.eval('location.reload()').catch(() => {});
-  await sleep(500);
-  await tab.until(`document.readyState === 'complete' && document.documentElement.dataset.theme === 'princess'`, 5000, 'still princess after a reload');
+  await tab.eval('window.__before = 1; setTimeout(() => location.reload()); 1');
+  await tab.until(`!window.__before && document.readyState === 'complete' && document.documentElement.dataset.theme === 'princess'`, 5000, 'still princess after a reload');
   noErrors(tab, 'switching');
   await tab.close();
 });
 
 test('clicking through the forms fast settles on the last one, with no timers left piling up', async () => {
   const tab = await chrome.open(site.origin + '/', { init: TIMERS });
-  await sleep(3000);                                   // boot: first blink, first line, warming the other forms
+  await booted(tab);
   const order = ['princess', 'blobfish', 'red', 'yellow', 'cyan', 'blobfish', 'princess', 'red', 'blobfish', 'cyan', 'princess', 'yellow', 'blobfish', 'red', 'princess'];
   await tab.eval(`(async () => { for (const f of ${JSON.stringify(order)}) { document.querySelector('[data-theme-btn="' + f + '"]').click(); await new Promise((r) => setTimeout(r, 25)); } })()`);
-  await sleep(3000);
+  await tab.until(`!document.getElementById('tuber').classList.contains('glitching') && document.getElementById('glitch').innerHTML === ''`, 5000, 'the last switch to finish');
   assert.equal(await tab.eval('document.documentElement.dataset.theme'), order.at(-1));
   assert.equal(await tab.eval(`document.getElementById('tuber').classList.contains('glitching') || document.getElementById('glitch').innerHTML !== ''`), false, 'the glitch finished');
   // settled: only the blink cycle (and a speech bubble's two) should still be scheduling; a runaway makes hundreds
   const made = await tab.eval('window.__timers.made');
-  await sleep(2000);
+  await sleep(1500);
   const [live, more] = await tab.eval('[window.__timers.live.size, window.__timers.made - ' + made + ']');
-  assert.ok(more <= 6, `${more} timers created in 2 s after settling: something keeps scheduling itself`);
+  assert.ok(more <= 6, `${more} timers created in 1.5 s after settling: something keeps scheduling itself`);
   assert.ok(live <= 6, `${live} timers pending after settling`);
   noErrors(tab, 'fast switching');
   await tab.close();
@@ -79,7 +78,9 @@ test('videos: the static feed.json when /api/feed fails, the live list when it w
   // the API answers first and feed.json late: the static list must not overwrite the live one
   site.api['/api/feed'] = { body: API() }; site.delays['/feed.json'] = 800;
   tab = await chrome.open(site.origin + '/');
-  await sleep(1500);
+  // wait for the late feed.json to have arrived (its resource entry appears once it has), then check it lost
+  await tab.until(`performance.getEntriesByType('resource').some((e) => e.name.endsWith('/feed.json'))`, 5000, 'feed.json to arrive');
+  await sleep(50);
   assert.equal(await tab.eval(`document.querySelector('#feat [data-yt]').dataset.yt`), 'apiVideo001');
   assert.equal(await tab.eval(`document.querySelector('[data-followers]').textContent`), '123');
   delete site.delays['/feed.json'];

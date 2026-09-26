@@ -16,6 +16,8 @@ let chrome, site;
 test.before(async () => { chrome = await launch(); site = await siteServer(); });
 test.after(async () => { await chrome?.close(); await site?.close(); });
 const noErrors = (tab, what) => assert.deepEqual(tab.errors, [], `${what}: errors in the page`);
+// the scene has drawn: fonts loaded (scene.js starts its trails and labels then), the art decoded, two frames painted
+const settled = (tab) => tab.eval(`document.fonts.ready.then(() => { const i = document.querySelector('.art-stage img[data-form-art]'); return i && !i.complete ? i.decode().catch(() => {}) : null; }).then(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))).then(() => true)`);
 // the character art's glitch runs (each time .art starts glitching) and art swaps, with when they happened. (The scene's
 // colour itself changes the moment a pick arrives, by design; it's the art's glitches that must not pile up.)
 const WATCH = `window.__glitches = []; window.__arts = [];
@@ -27,12 +29,15 @@ const artNow = `document.querySelector('.art-stage img[data-form-art]').getAttri
 
 test('every OBS page loads without errors', async () => {
   const pages = ['starting', 'brb?demo=1', 'chatting?demo=1', 'game', 'game?layout=window&demo=1', 'ending', 'chat?demo=1', 'goal?demo=1', 'music?music=demo', 'chat?bare=1&demo=1', '', 'control?obs=1&veado=127.0.0.1:1'];
-  for (const p of pages) {
-    const sep = p.includes('?') ? '&' : '?';
-    const tab = await chrome.open(`${site.origin}/obs/${p}${p && !p.startsWith('control') ? sep + 'noveado=1' : ''}`, HD);
-    await sleep(700);
-    noErrors(tab, `/obs/${p}`);
-    await tab.close();
+  // four at a time (one Chrome, four tabs)
+  for (let i = 0; i < pages.length; i += 4) {
+    await Promise.all(pages.slice(i, i + 4).map(async (p) => {
+      const sep = p.includes('?') ? '&' : '?';
+      const tab = await chrome.open(`${site.origin}/obs/${p}${p && !p.startsWith('control') ? sep + 'noveado=1' : ''}`, HD);
+      await settled(tab); await sleep(150);
+      noErrors(tab, `/obs/${p}`);
+      await tab.close();
+    }));
   }
 });
 
@@ -51,12 +56,12 @@ test('hide= removes every part it names, and only those', async () => {
 
 // picks made while OBS isn't showing the scene, then the scene shown: returns how many glitches played afterwards
 async function hiddenPicks(tab) {
-  await sleep(800);
+  await settled(tab);
   await tab.eval(`dispatchEvent(new CustomEvent('obsSourceVisibleChanged', { detail: { visible: false } })); 1`);
   await tab.eval(`(async () => { for (const f of ['princess', 'blobfish', 'red', 'yellow', 'princess', 'blobfish', 'cyan', 'princess']) { TGL.set(f); await new Promise((r) => setTimeout(r, 40)); } })()`);
   await tab.eval(WATCH);
   await tab.eval(`dispatchEvent(new CustomEvent('obsSourceVisibleChanged', { detail: { visible: true } })); 1`);
-  await sleep(2500);
+  await sleep(1200);                               // replayed picks start glitching at once (the old code: within ~100 ms)
   return tab.eval('__glitches.length');
 }
 
@@ -72,11 +77,12 @@ test('a cycling scene picked while hidden in OBS shows up on the current form, w
 
 test('a cycling scene picked 10 times in a row: at most the playing glitch and one after it, ending on the last pick', async () => {
   const tab = await chrome.open(`${site.origin}/obs/brb?demo=1&motion=full`, HD);
-  await sleep(800);
+  await settled(tab);
   await tab.eval(WATCH);
   const picks = ['princess', 'blobfish', 'red', 'princess', 'yellow', 'blobfish', 'cyan', 'red', 'princess', 'blobfish'];
   await tab.eval(`(async () => { for (const f of ${JSON.stringify(picks)}) { TGL.set(f); await new Promise((r) => setTimeout(r, 10)); } })()`);
-  await sleep(2500);
+  await tab.until(`!document.querySelector('.art-stage .art').classList.contains('glitching')`, 4000, 'the glitches to finish');
+  await sleep(300);                                // a glitch still queued would have started by now
   const glitches = await tab.eval('__glitches.length');
   assert.ok(glitches >= 1 && glitches <= 2, `${glitches} glitches for 10 quick picks (the one playing, then straight to the last)`);
   assert.equal(await tab.eval('document.documentElement.dataset.form'), 'blobfish');
@@ -90,7 +96,7 @@ test('the goal widget follows the colour with one copy per form, however often t
   const goal = encodeURIComponent('https://botrix.live/widgets/goal/?bid=test');
   const tab = await chrome.open(`${site.origin}/obs/chatting?noveado=1&goal=${goal}`, HD);
   await tab.eval(`(async () => { for (let i = 0; i < 30; i++) { TGL.set(['princess', 'blobfish', 'red', 'yellow', 'cyan'][i % 5]); await new Promise((r) => setTimeout(r, 15)); } })()`);
-  await sleep(500);
+  await sleep(100);
   const n = await tab.eval(`document.querySelectorAll('.widget.goal').length`);
   assert.ok(n >= 1 && n <= 5, `${n} goal widgets`);
   const tab2 = await chrome.open(`${site.origin}/obs/brb?goal=${goal}`, HD);
@@ -106,8 +112,11 @@ test('the dock\'s shared chat fits the chat frame the scenes draw (model.js chat
   ];
   for (const [kind, q, sc, music] of cases) {
     const tab = await chrome.open(`${site.origin}/obs/${kind}?noveado=1&${q}`, HD);
-    await sleep(900);                                    // the column glides into place
-    const got = await tab.eval(`(() => { const b = document.querySelector('[data-slot="Botrix chat"]').getBoundingClientRect(); return { x: Math.round(b.left), y: Math.round(b.top), w: Math.round(b.width), h: Math.round(b.height) }; })()`);
+    // the column may glide into place: wait until the slot stops moving
+    const rect = `(() => { const b = document.querySelector('[data-slot="Botrix chat"]').getBoundingClientRect(); return { x: Math.round(b.left), y: Math.round(b.top), w: Math.round(b.width), h: Math.round(b.height) }; })()`;
+    await settled(tab);
+    let got = await tab.eval(rect), prev;
+    for (let i = 0; i < 20 && JSON.stringify(got) !== JSON.stringify(prev); i++) { prev = got; await sleep(100); got = await tab.eval(rect); }
     const s = M.defaults(); Object.assign(s.scenes[kind], sc); if (kind === 'game') s.scenes.game.layout = 'window';
     const want = JSON.parse(JSON.stringify(M.chatBox(kind, s, music)));
     assert.deepEqual(got, want, `${kind}?${q}: the drawn chat slot vs chatBox()`);

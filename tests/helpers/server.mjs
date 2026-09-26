@@ -23,7 +23,7 @@ export async function siteServer({ api = {}, delays = {}, files = {} } = {}) {
       return res.end(JSON.stringify(f.body ?? {}));
     }
     if (state.files[path] !== undefined) {
-      res.writeHead(200, { 'Content-Type': TYPES[extname(path)] || 'text/plain', 'Cache-Control': 'no-store' });
+      res.writeHead(200, { 'Content-Type': TYPES[extname(path)] || (extname(path) ? 'text/plain' : TYPES['.html']), 'Cache-Control': 'no-store' });
       return res.end(state.files[path]);
     }
     try {

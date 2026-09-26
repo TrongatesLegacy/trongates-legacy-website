@@ -91,6 +91,7 @@ artwork/                     images made for other places, all built the same wa
 ```
 node dev.mjs                                                  # local preview on :8888
 node scripts/test.mjs                                         # all tests (--fast: no browser, ~2 s)
+scripts/typecheck.sh                                          # type-check the OBS scripts (JSDoc; TypeScript via npx)
 node --experimental-websocket scripts/shot.mjs                # screenshot; options in the file's header
 node --experimental-websocket scripts/presize-art.mjs          # pre-size the character art (--measure, --bounds)
 node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image
