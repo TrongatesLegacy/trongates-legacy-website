@@ -1,7 +1,8 @@
 # Generates public/obs/*.html (served at https://www.trongateslegacy.com/obs/) from one shared template. Edit this file, then run:  python3 obs/build-scenes.py
 # (The scenes are plain HTML; generating them just keeps the shared head/background identical.)
-import pathlib
-OUT = pathlib.Path(__file__).parent.parent / 'public' / 'obs'
+import os, pathlib
+# TGL_OBS_OUT: write somewhere else (the tests compare a fresh build with the committed pages)
+OUT = pathlib.Path(os.environ.get('TGL_OBS_OUT') or pathlib.Path(__file__).parent.parent / 'public' / 'obs')
 
 HEAD = '''<!doctype html>
 <html lang="en"{html_attr}><head><meta charset="utf-8"><title>{title} · Trongates Legacy OBS</title>

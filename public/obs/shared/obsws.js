@@ -8,6 +8,11 @@
   const EVENTS = 1 | 2 | 4 | 8 | 128;
   const sha = async (s) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))));
 
+  /**
+   * @param {{ host?: string, port?: number, password?: string, onStatus?: (s: { state: string, detail?: any }) => void,
+   *   onEvent?: (type: string, data: any) => void }} opts
+   * @returns {TGLObsClient}
+   */
   function connect({ host = '127.0.0.1', port = 4455, password = '', onStatus = () => {}, onEvent = () => {} }) {
     let ws = null, ready = false, id = 0, retry;
     const waiting = new Map();

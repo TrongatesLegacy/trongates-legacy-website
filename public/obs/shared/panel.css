@@ -1,0 +1,57 @@
+/* The Trongates control panel (panel.js): the OBS dock (control.html) and the OBS index page. */
+.tgl-panel { --line: #13263b; --muted: #8ba3bd; --ok: #53fc18; --warn: #ffd23f; --bad: #ff8a96; position: relative; display: flex; flex-direction: column; min-height: 0;
+  color: #e8f4ff; font: 600 13px/1.35 "Chakra Petch", system-ui, sans-serif; }
+.tgl-panel * { box-sizing: border-box; }
+.tgl-panel .hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 0 8px; }
+.tgl-panel .hd b { font: 900 13px/1 Orbitron, sans-serif; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; }
+.tgl-panel .pills { display: flex; gap: 5px; }
+.tgl-panel .pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px; border: 1px solid var(--line); border-radius: 99px; font-size: 11px; color: var(--muted); }
+.tgl-panel .dot { width: 7px; height: 7px; border-radius: 50%; background: #4a5b70; flex: none; }
+.tgl-panel .dot.ok { background: var(--ok); box-shadow: 0 0 6px var(--ok); } .tgl-panel .dot.warn { background: var(--warn); } .tgl-panel .dot.bad { background: #ff4155; }
+.tgl-panel .tabs { display: flex; border-bottom: 1px solid var(--line); }
+.tgl-panel .tabs button { flex: 1 1 auto; padding: 8px 2px 7px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); font: 700 9.5px/1 Orbitron, sans-serif; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; cursor: pointer; }
+.tgl-panel .tabs button[aria-selected="true"] { color: var(--accent); border-color: var(--accent); }
+.tgl-panel .tabs i { font-style: normal; display: inline-block; min-width: 14px; padding: 1px 3px; margin-left: 3px; border-radius: 7px; background: var(--warn); color: #000; font: 700 9px/1.2 system-ui; }
+.tgl-panel .bd { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 9px; padding: 10px 0; overflow-y: auto; min-height: 0; flex: 1; }
+.tgl-panel h3 { margin: 4px 0 0; font: 700 10px/1 Orbitron, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.tgl-panel .forms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tgl-panel .forms button { padding: 9px 4px; border: 2px solid var(--c); border-radius: 7px; background: color-mix(in srgb, var(--c) 12%, #070d18); color: #e8f4ff; font: 700 10.5px/1.15 Orbitron, sans-serif; letter-spacing: .04em; cursor: pointer; }
+.tgl-panel .forms button[aria-pressed="true"] { background: var(--c); color: #03060d; box-shadow: 0 0 12px var(--c); }
+.tgl-panel .row { display: flex; align-items: center; gap: 8px; min-width: 0; } .tgl-panel .row > .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .tgl-panel .grow { flex: 1; min-width: 0; }
+.tgl-panel .muted, .tgl-panel .hint { color: var(--muted); font-weight: 400; font-size: 12px; }
+.tgl-panel .ok { color: var(--ok); } .tgl-panel .warn { color: var(--warn); } .tgl-panel .bad { color: var(--bad); }
+.tgl-panel .card, .tgl-panel .scene { grid-template-columns: minmax(0, 1fr); }
+.tgl-panel .card { border: 1px solid var(--line); background: rgba(7,13,24,.9); padding: 8px 9px; border-radius: 6px; display: grid; gap: 6px; }
+.tgl-panel input[type=text], .tgl-panel input[type=password], .tgl-panel input[type=number], .tgl-panel select {
+  min-width: 0; padding: 6px 8px; border: 1px solid var(--line); background: #0b1424; color: #cfe3f5; border-radius: 4px; font: 12px ui-monospace, monospace; }
+.tgl-panel select { font: 600 12px "Chakra Petch", sans-serif; }
+.tgl-panel input:focus, .tgl-panel select:focus { outline: 1px solid var(--accent); }
+.tgl-panel .field { display: grid; gap: 4px; color: var(--muted); font-size: 12px; }
+.tgl-panel .tog { appearance: none; width: 30px; height: 16px; border-radius: 9px; background: #1b2b3d; position: relative; flex: none; cursor: pointer; margin: 0; }
+.tgl-panel .tog::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #6b7d92; transition: left .15s; }
+.tgl-panel .tog:checked { background: color-mix(in srgb, var(--accent) 60%, #000); } .tgl-panel .tog:checked::after { left: 16px; background: #fff; }
+.tgl-panel .btn { padding: 7px 10px; border: 1px solid var(--accent); color: var(--accent); background: transparent; font: 700 10.5px/1 Orbitron, sans-serif; letter-spacing: .08em; border-radius: 4px; cursor: pointer; text-align: center; }
+.tgl-panel .btn.solid { background: var(--accent); color: #03060d; } .tgl-panel .btn.red { border-color: var(--bad); color: var(--bad); }
+.tgl-panel .btn:disabled { opacity: .4; cursor: default; } .tgl-panel .btn.small { padding: 5px 7px; font-size: 9.5px; }
+.tgl-panel .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.tgl-panel .chip { padding: 3px 7px; border-radius: 4px; font: 600 11px "Chakra Petch", sans-serif; border: 1px solid var(--accent); color: var(--accent); background: none; cursor: pointer; }
+.tgl-panel .chip[aria-pressed="false"] { border-color: var(--line); color: #56687d; text-decoration: line-through; } .tgl-panel .chip.shared { border-style: dashed; }
+.tgl-panel .scene { border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; display: grid; gap: 6px; background: rgba(7,13,24,.9); }
+.tgl-panel .scene .t { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; } .tgl-panel .scene .t b { font-size: 12.5px; }
+.tgl-panel .states { display: grid; gap: 4px; }
+.tgl-panel .states .st { display: flex; align-items: center; gap: 6px; padding: 3px 3px 3px 7px; border-radius: 5px; background: #0b1424; border-left: 3px solid var(--c); }
+.tgl-panel .states .st.on { outline: 1px solid var(--accent); } .tgl-panel .states .st span { flex: 1; font-size: 12px; } .tgl-panel .states select { padding: 3px 5px; font-size: 11px; }
+.tgl-panel .np { display: flex; gap: 8px; align-items: center; } .tgl-panel .np img, .tgl-panel .np .art { width: 36px; height: 36px; object-fit: cover; border-radius: 3px; background: #13263b; flex: none; }
+.tgl-panel .np b { display: block; font-size: 12.5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; } .tgl-panel .np small { color: var(--muted); font-weight: 400; }
+.tgl-panel table { width: 100%; border-collapse: collapse; font-size: 11.5px; } .tgl-panel td, .tgl-panel th { padding: 4px 3px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.tgl-panel th { font: 700 9px/1 Orbitron, sans-serif; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+.tgl-panel .ft { border-top: 1px solid var(--line); padding: 8px 0 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tgl-panel .ft span { font-size: 12px; }
+.tgl-panel .review { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; gap: 8px; padding: 4px 0; background: #03060d; }
+.tgl-panel .review ul { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.tgl-panel .review li { display: flex; gap: 7px; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 12px; }
+.tgl-panel .review li b { flex: none; width: 62px; font: 700 9.5px/1.7 Orbitron, sans-serif; letter-spacing: .05em; }
+.tgl-panel .review li.done { opacity: .5; } .tgl-panel .review li.err { color: var(--bad); }
+.tgl-panel .k-create, .tgl-panel .k-add { color: var(--ok); } .tgl-panel .k-update, .tgl-panel .k-place, .tgl-panel .k-lock { color: var(--accent); } .tgl-panel .k-remove { color: var(--bad); } .tgl-panel .k-skip { color: var(--muted); }
+.tgl-panel details summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+.tgl-panel code { font: 11.5px ui-monospace, monospace; color: #cfe3f5; overflow-wrap: anywhere; }

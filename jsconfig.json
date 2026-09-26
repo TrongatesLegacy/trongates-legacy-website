@@ -1,0 +1,14 @@
+{
+  // Type checking for the OBS scripts in the editor (VS Code reads this), with no build step: the files stay plain
+  // JavaScript, and JSDoc comments carry the types. Run it in full with scripts/typecheck.sh. See docs/testing.md.
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["public/obs/shared/*.js", "types/*.d.ts"]
+}

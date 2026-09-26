@@ -31,6 +31,7 @@
   const KNOWN_STATES = { cyan: 'cyan', red: 'red', yellow: 'yellow', pink: 'princess', animated: 'cyan', princess: 'princess', blobfish: 'blobfish' };
   // Any other state name: first matching rule wins, anything unmatched is cyan Tron.
   // Exact names can be pinned with ?map=stateName:form,other:form on the URL, which takes precedence.
+  /** @type {[RegExp, string][]} */
   const FORM_RULES = [
     [/princess|trina|tiara|dress|pink/i, 'princess'],
     [/blob|fish/i, 'blobfish'],

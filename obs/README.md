@@ -416,7 +416,9 @@ them. The geometry lives in four places that must agree: `build-scenes.py` (the 
 veadotube), and the position tables above. Change one, change all, and measure the rendered slots (the browser
 tests compare `chatBox()` with the drawn chat slot on every layout, docs/testing.md).
 
-The control panel is `shared/panel.js` (dock and index), on top of `shared/model.js` (the settings, the scene
+The control panel is `shared/panel.js` (dock and index: settings, connections, events; its drawing in
+`panel-tabs.js`, the OBS side in `panel-obs.js`, Tidy and Measure avatar in `panel-layout.js`, the look in
+`panel.css`), on top of `shared/model.js` (the settings, the scene
 types and parts, and the one function that turns settings into each scene's URL; the dock's shared chat geometry
 is `chatBox()` there, matching the left column in `build-scenes.py`), `shared/dock-colour.js` (the dock's colour
 buttons and its veadotube connection) and `shared/obsws.js` (a small OBS WebSocket v5 client). The tests
@@ -436,11 +438,11 @@ veadotube and tell the scenes once, when veadotube confirms the last press.
 The scene pages are generated from one template:
 
 ```
-python3 obs/build-scenes.py        # writes public/obs/{starting,brb,chatting,game,ending}.html
+python3 obs/build-scenes.py        # writes public/obs/{starting,brb,chatting,game,ending,chat,goal,music}.html
 ```
 
 Paths inside `public/obs` are relative and it carries its own fonts and logos (`public/obs/assets/`), so the
-folder works anywhere. Shared pieces: `public/obs/shared/overlay.css` (look), `theme.js` (form colours, veadotube + OBS WebSocket, keeping the pages in step),
+folder works anywhere (every script is a plain `<script>`, no modules, so `file://` works too). Shared pieces: `public/obs/shared/overlay.css` (look), `theme.js` (form colours, veadotube + OBS WebSocket, keeping the pages in step),
 `scene.js` (light trails, form-cycling art, guide labels), `icons.js` (platform icons). The control dock is
 `public/obs/control.html`; the Botrix CSS is `public/obs/botrix/`. Everything under `public/` deploys with
 the site, so check it the same way as any site change (docs/verification.md). `?guide=1` plus

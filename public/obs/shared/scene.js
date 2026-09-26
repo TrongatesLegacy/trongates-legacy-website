@@ -29,7 +29,7 @@
   // ---- the left column (Be right back, Just chatting): the chat frame takes the room now playing and the goal
   // leave: always when they're turned off, and while nothing's playing (it glides back before now playing
   // returns). Same numbers as model.js chatBox(), which the dock uses to fit its shared chat.
-  const colChat = document.querySelector('.frame.col-chat');
+  const colChat = /** @type {HTMLElement} */ (document.querySelector('.frame.col-chat'));
   const column = (musicRoom, animate = true) => {
     if (!colChat) return;
     const top = musicRoom ? 126 : 10, bottom = document.querySelector('.frame.col-goal') ? 850 : 1000;
@@ -194,7 +194,7 @@
   // Same idea as the website's background; they fade out under [data-quiet] zones (text) so they never
   // cut through copy. Canvas is capped at 30fps, which is plenty for OBS.
   function trails() {
-    const cv = document.getElementById('trails');
+    const cv = /** @type {HTMLCanvasElement} */ (document.getElementById('trails'));
     if (!cv || TGL.reduced) return;
     const ctx = cv.getContext('2d'), W = cv.width = 1920, H = cv.height = 1080, CELL = 60;
     const count = +cv.dataset.riders || 6;
@@ -270,7 +270,7 @@
   const artSrc = (f) => `../assets/img/${ART[f] || ART.cyan}.webp`;
   const artBox = document.querySelector('.art-stage .art');
   if (artBox) {
-    const img = artBox.querySelector('img[data-form-art]');
+    const img = /** @type {HTMLImageElement} */ (artBox.querySelector('img[data-form-art]'));
     const glitchEl = document.createElement('div'); glitchEl.className = 'art-glitch'; artBox.appendChild(glitchEl);
     const show = (f) => { img.src = artSrc(f); };
     Object.keys(ART).forEach((f) => { const i = new Image(); i.src = artSrc(f); });   // warm all five
@@ -337,8 +337,9 @@
       };
       const pause = () => { if (!hidden) { hidden = true; reset(); } };
       const resume = () => { hidden = false; reset(); next(); };
-      addEventListener('obsSourceVisibleChanged', (e) => (e.detail && e.detail.visible ? resume() : pause()));
-      addEventListener('obsSourceActiveChanged', (e) => { if (e.detail && e.detail.active) resume(); });
+      // (OBS's browser source events: CustomEvent with detail.visible / detail.active)
+      addEventListener('obsSourceVisibleChanged', (/** @type {any} */ e) => (e.detail && e.detail.visible ? resume() : pause()));
+      addEventListener('obsSourceActiveChanged', (/** @type {any} */ e) => { if (e.detail && e.detail.active) resume(); });
       document.addEventListener('visibilitychange', () => (document.hidden ? pause() : resume()));
     }
   }

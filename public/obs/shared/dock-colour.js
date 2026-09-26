@@ -9,6 +9,10 @@
 // follows once veadotube confirms (or after 3s if it never does). Without veadotube a button just recolours. Every
 // recolour reaches the scenes through theme.js (same browser profile) and the OBS WebSocket (CustomEvent).
 (() => {
+  /**
+   * @param {{ TGL: TGLTheme, dock: boolean, settings: () => any, addr: () => string, obs?: () => TGLObsClient | null,
+   *   onForm?: (form: string) => void, refresh?: () => void }} opts
+   */
   function create({ TGL, dock, settings, addr, obs = () => null, onForm = () => {}, refresh = () => {} }) {
     // pending: the form the last press asked for; waiting: presses veadotube hasn't confirmed yet (it confirms in order)
     const v = { state: 'off', ws: null, states: [], current: null, pending: null, waiting: 0, pendingTimer: 0 };

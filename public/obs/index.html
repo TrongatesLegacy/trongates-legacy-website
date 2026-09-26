@@ -6,6 +6,9 @@
 <script src="shared/theme.js"></script>
 <script src="shared/model.js"></script>
 <script src="shared/dock-colour.js"></script>
+<script src="shared/panel-obs.js"></script>
+<script src="shared/panel-layout.js"></script>
+<script src="shared/panel-tabs.js"></script>
 <script src="shared/panel.js"></script>
 <!-- Index of the OBS overlays: live previews of every scene; click one to open it full size.
      https://www.trongateslegacy.com/obs/ (also works opened as a local file). -->
@@ -68,7 +71,9 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .viewer .keys { color: var(--muted); font-size: 13px; }
 footer { margin-top: 24px; color: var(--muted); font-size: 14px; }
 footer code { color: #cfe3f5; }
-</style></head>
+</style>
+<link rel="stylesheet" href="shared/panel.css">
+</head>
 <body>
 <header>
   <div class="title">
