@@ -1,0 +1,128 @@
+// The OBS scenes (public/obs/) in headless Chrome at 1920 × 1080. Nothing here reaches a real OBS, veadotube or
+// Botrix: the scenes run with noveado=1, the dock is pointed at closed ports, and outside requests are blocked.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import { launch } from '../helpers/chrome.mjs';
+import { siteServer } from '../helpers/server.mjs';
+import { read, readAt } from '../helpers/sim.mjs';
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const HD = { width: 1920, height: 1080 };
+const ctx = vm.createContext({ URLSearchParams, URL, btoa, atob, escape, unescape, encodeURIComponent, decodeURIComponent }); ctx.window = ctx;
+vm.runInContext(read('public/obs/shared/model.js'), ctx);
+const M = ctx.TGLModel;
+let chrome, site;
+test.before(async () => { chrome = await launch(); site = await siteServer(); });
+test.after(async () => { await chrome?.close(); await site?.close(); });
+const noErrors = (tab, what) => assert.deepEqual(tab.errors, [], `${what}: errors in the page`);
+// the character art's glitch runs (each time .art starts glitching) and art swaps, with when they happened. (The scene's
+// colour itself changes the moment a pick arrives, by design; it's the art's glitches that must not pile up.)
+const WATCH = `window.__glitches = []; window.__arts = [];
+  const art = document.querySelector('.art-stage .art'), img = art.querySelector('img[data-form-art]');
+  let was = art.classList.contains('glitching');
+  new MutationObserver(() => { const on = art.classList.contains('glitching'); if (on && !was) __glitches.push(performance.now()); was = on; }).observe(art, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(() => __arts.push(img.getAttribute('src'))).observe(img, { attributes: true, attributeFilter: ['src'] }); 1`;
+const artNow = `document.querySelector('.art-stage img[data-form-art]').getAttribute('src')`;
+
+test('every OBS page loads without errors', async () => {
+  const pages = ['starting', 'brb?demo=1', 'chatting?demo=1', 'game', 'game?layout=window&demo=1', 'ending', 'chat?demo=1', 'goal?demo=1', 'music?music=demo', 'chat?bare=1&demo=1', '', 'control?obs=1&veado=127.0.0.1:1'];
+  for (const p of pages) {
+    const sep = p.includes('?') ? '&' : '?';
+    const tab = await chrome.open(`${site.origin}/obs/${p}${p && !p.startsWith('control') ? sep + 'noveado=1' : ''}`, HD);
+    await sleep(700);
+    noErrors(tab, `/obs/${p}`);
+    await tab.close();
+  }
+});
+
+test('hide= removes every part it names, and only those', async () => {
+  for (const kind of ['brb', 'chatting', 'starting', 'ending']) {
+    const parts = M.TYPES[kind].parts;
+    const tab = await chrome.open(`${site.origin}/obs/${kind}?noveado=1&hide=${parts.join(',')}`, HD);
+    assert.deepEqual(await tab.eval(`[...document.querySelectorAll('[data-part]')].map((e) => e.dataset.part)`), [], `${kind}: parts left`);
+    await tab.close();
+    const one = parts[0], t2 = await chrome.open(`${site.origin}/obs/${kind}?noveado=1&hide=${one}`, HD);
+    const left = await t2.eval(`[...document.querySelectorAll('[data-part]')].map((e) => e.dataset.part)`);
+    assert.ok(!left.includes(one) && left.length === parts.length - 1, `${kind} hide=${one}: left ${left}`);
+    await t2.close();
+  }
+});
+
+// picks made while OBS isn't showing the scene, then the scene shown: returns how many glitches played afterwards
+async function hiddenPicks(tab) {
+  await sleep(800);
+  await tab.eval(`dispatchEvent(new CustomEvent('obsSourceVisibleChanged', { detail: { visible: false } })); 1`);
+  await tab.eval(`(async () => { for (const f of ['princess', 'blobfish', 'red', 'yellow', 'princess', 'blobfish', 'cyan', 'princess']) { TGL.set(f); await new Promise((r) => setTimeout(r, 40)); } })()`);
+  await tab.eval(WATCH);
+  await tab.eval(`dispatchEvent(new CustomEvent('obsSourceVisibleChanged', { detail: { visible: true } })); 1`);
+  await sleep(2500);
+  return tab.eval('__glitches.length');
+}
+
+test('a cycling scene picked while hidden in OBS shows up on the current form, with no fast run through the forms', async () => {
+  const tab = await chrome.open(`${site.origin}/obs/brb?demo=1`, HD);
+  const glitches = await hiddenPicks(tab);
+  assert.equal(glitches, 0, `${glitches} glitches played in the 2.5 s after showing (the picks made while hidden, replayed)`);
+  assert.equal(await tab.eval('document.documentElement.dataset.form'), 'princess');
+  assert.match(await tab.eval(artNow), /princess/);
+  noErrors(tab, 'hidden picks');
+  await tab.close();
+});
+
+test('a cycling scene picked 10 times in a row: at most the playing glitch and one after it, ending on the last pick', async () => {
+  const tab = await chrome.open(`${site.origin}/obs/brb?demo=1&motion=full`, HD);
+  await sleep(800);
+  await tab.eval(WATCH);
+  const picks = ['princess', 'blobfish', 'red', 'princess', 'yellow', 'blobfish', 'cyan', 'red', 'princess', 'blobfish'];
+  await tab.eval(`(async () => { for (const f of ${JSON.stringify(picks)}) { TGL.set(f); await new Promise((r) => setTimeout(r, 10)); } })()`);
+  await sleep(2500);
+  const glitches = await tab.eval('__glitches.length');
+  assert.ok(glitches >= 1 && glitches <= 2, `${glitches} glitches for 10 quick picks (the one playing, then straight to the last)`);
+  assert.equal(await tab.eval('document.documentElement.dataset.form'), 'blobfish');
+  assert.match(await tab.eval(artNow), /blobfish/);
+  assert.equal(await tab.eval(`document.querySelector('.art-stage .art').classList.contains('glitching')`), false, 'the glitch finished');
+  noErrors(tab, 'quick picks');
+  await tab.close();
+});
+
+test('the goal widget follows the colour with one copy per form, however often the colour changes', async () => {
+  const goal = encodeURIComponent('https://botrix.live/widgets/goal/?bid=test');
+  const tab = await chrome.open(`${site.origin}/obs/chatting?noveado=1&goal=${goal}`, HD);
+  await tab.eval(`(async () => { for (let i = 0; i < 30; i++) { TGL.set(['princess', 'blobfish', 'red', 'yellow', 'cyan'][i % 5]); await new Promise((r) => setTimeout(r, 15)); } })()`);
+  await sleep(500);
+  const n = await tab.eval(`document.querySelectorAll('.widget.goal').length`);
+  assert.ok(n >= 1 && n <= 5, `${n} goal widgets`);
+  const tab2 = await chrome.open(`${site.origin}/obs/brb?goal=${goal}`, HD);
+  assert.equal(await tab2.eval(`document.querySelectorAll('.widget.goal').length`), 5, 'a cycling scene loads all five up front');
+  await tab.close(); await tab2.close();
+});
+
+test('the dock\'s shared chat fits the chat frame the scenes draw (model.js chatBox = the measured slot)', async () => {
+  const cases = [
+    ['brb', 'music=demo', {}, true], ['brb', '', {}, false], ['brb', 'music=demo&hide=goal', { off: ['goal'] }, true],
+    ['chatting', 'music=demo', {}, true], ['chatting', 'hide=goal,music', { off: ['goal', 'music'] }, false],
+    ['game', 'layout=window&music=demo', {}, true],
+  ];
+  for (const [kind, q, sc, music] of cases) {
+    const tab = await chrome.open(`${site.origin}/obs/${kind}?noveado=1&${q}`, HD);
+    await sleep(900);                                    // the column glides into place
+    const got = await tab.eval(`(() => { const b = document.querySelector('[data-slot="Botrix chat"]').getBoundingClientRect(); return { x: Math.round(b.left), y: Math.round(b.top), w: Math.round(b.width), h: Math.round(b.height) }; })()`);
+    const s = M.defaults(); Object.assign(s.scenes[kind], sc); if (kind === 'game') s.scenes.game.layout = 'window';
+    const want = JSON.parse(JSON.stringify(M.chatBox(kind, s, music)));
+    assert.deepEqual(got, want, `${kind}?${q}: the drawn chat slot vs chatBox()`);
+    await tab.close();
+  }
+});
+
+test('proof: the cycling from before the fix (7f5f65e~1) replays hidden picks, so the test above catches it', async (t) => {
+  const old = readAt('7f5f65e~1', 'public/obs/shared/scene.js');
+  if (!old) return t.skip('git history not available');
+  site.files['/obs/shared/scene.js'] = old;
+  try {
+    const tab = await chrome.open(`${site.origin}/obs/brb?demo=1`, HD);
+    const glitches = await hiddenPicks(tab);
+    assert.ok(glitches > 0, 'the old code played no glitches after showing: the test above would not have caught the bug');
+    await tab.close();
+  } finally { delete site.files['/obs/shared/scene.js']; }
+});

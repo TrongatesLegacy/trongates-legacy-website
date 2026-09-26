@@ -47,8 +47,13 @@
   if (params.get('music') === '0') hidden.add('music');
 
   const valid = (f) => Object.prototype.hasOwnProperty.call(FORMS, f);
-  const stored = () => { try { return localStorage.getItem('tgl-obs-form'); } catch { return null; } };
+  // The form shared between pages is saved as "form@time picked" (ms), so a page can tell a pick that has since
+  // been overtaken from a new one (older saves are just the form).
+  const KEY = 'tgl-obs-form';
+  const parse = (v) => { const [f, at] = String(v || '').split('@'); return { f, at: +at || 0 }; };
+  const stored = () => { try { return parse(localStorage.getItem(KEY)).f; } catch { return null; } };
   let form = [params.get('form'), stored(), 'cyan'].find(valid);
+  let pickedAt = 0;                                  // when the form on show was picked
 
   function formForState(name) {
     if (!name) return null;
@@ -63,15 +68,18 @@
   const cycling = root.hasAttribute('data-cycle') && params.get('cycle') !== '0';
   function paint(f) { if (!valid(f)) return; root.dataset.form = f; root.style.setProperty('--accent', FORMS[f].accent); }
 
-  function apply(next, source) {
-    if (!valid(next)) return;
+  // at: when the form was picked. Pages hear a pick at slightly different times and pass it on to each other, so a
+  // page can hear an older pick after a newer one: that's ignored (it would flash back to the old colour).
+  function apply(next, source, at = Date.now()) {
+    if (!valid(next) || at < pickedAt) return;
+    pickedAt = at;
     const changed = next !== form;
     form = next;
     root.dataset.form = form;
     root.style.setProperty('--accent', FORMS[form].accent);
     // A form heard from another page (storage / channel) isn't saved again: every page echoing it back let two
     // quick switches bounce between the pages for ever (OBS: sources and the dock share one browser profile).
-    if (source !== 'storage' && source !== 'channel') try { localStorage.setItem('tgl-obs-form', form); } catch {}
+    if (source !== 'storage' && source !== 'channel') try { localStorage.setItem(KEY, `${form}@${at}`); } catch {}
     if (changed) listeners.forEach((fn) => fn(form, source));
   }
 
@@ -125,7 +133,7 @@
       } else if (msg.op === 2) {                            // Identified
         status.obs = 'connected'; notifyStatus(); onReady && onReady(ws);
       } else if (msg.op === 5 && msg.d.eventType === 'CustomEvent' && msg.d.eventData && msg.d.eventData.tgl === 'form') {
-        apply(msg.d.eventData.form, 'dock');
+        apply(msg.d.eventData.form, 'dock', +msg.d.eventData.at || Date.now());
       }
     };
     ws.onclose = (e) => { status.obs = e.code === 4009 ? 'wrong password' : 'retrying'; notifyStatus(); setTimeout(() => connectObs(onReady), 5000); };
@@ -133,8 +141,18 @@
   }
 
   // ---- same-profile fallback (dock and sources sharing storage) --------------------------------------
-  addEventListener('storage', (e) => { if (e.key === 'tgl-obs-form' && valid(e.newValue)) apply(e.newValue, 'storage'); });
-  let channel; try { channel = new BroadcastChannel('tgl-obs'); channel.onmessage = (e) => apply(e.data, 'channel'); } catch {}
+  // Every page that follows veadotube passes each switch on, each at a slightly different moment, so during a quick
+  // run of switches the pages' messages arrive out of step. A form heard from another page therefore waits until
+  // they've been quiet for a moment, then the latest one applies once (and not at all if something newer came
+  // straight from veadotube, the dock or this page meanwhile).
+  let heard = null, heardTimer;
+  const hear = (f, source, at) => {
+    if (!valid(f)) return;
+    heard = { f, source, at }; clearTimeout(heardTimer);
+    heardTimer = setTimeout(() => { const h = heard; heard = null; apply(h.f, h.source, h.at); }, 150);
+  };
+  addEventListener('storage', (e) => { if (e.key === KEY) { const { f, at } = parse(e.newValue); hear(f, 'storage', at); } });
+  let channel; try { channel = new BroadcastChannel('tgl-obs'); channel.onmessage = (e) => e.data && hear(e.data.form, 'channel', e.data.at); } catch {}
 
   const statusListeners = new Set();
   function notifyStatus() { statusListeners.forEach((fn) => fn({ ...status, form })); }
@@ -142,7 +160,8 @@
   window.TGL = {
     FORMS, formForState,
     get form() { return form; },
-    set(next) { apply(next, 'local'); try { channel && channel.postMessage(next); } catch {} },
+    // returns when it was picked, for passing on (the dock's OBS broadcast)
+    set(next) { const at = Date.now(); apply(next, 'local', at); try { channel && channel.postMessage({ form: next, at }); } catch {} return at; },
     onChange(fn) { listeners.add(fn); },
     onStatus(fn) { statusListeners.add(fn); fn({ ...status, form }); },
     connectObs, paint, cycling,

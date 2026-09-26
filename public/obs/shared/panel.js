@@ -7,7 +7,7 @@
 // OBS changes before Review & apply (except the Sources tab's add buttons, and the shared chat's crop following
 // the music). Index: the same settings, driving the previews and the copied addresses. Settings are saved in the
 // browser (the dock: per scene collection) and move between the two with a settings link (#s=…).
-// Needs theme.js (TGL) and model.js (TGLModel) first, and obsws.js for the dock. See obs/README.md.
+// Needs theme.js (TGL), model.js (TGLModel) and dock-colour.js (TGLDockColour) first, and obsws.js for the dock. See obs/README.md.
 (() => {
   const M = TGLModel;
   const FORM_KEYS = ['cyan', 'yellow', 'red', 'princess', 'blobfish'];
@@ -154,7 +154,6 @@
     let tab = read('tgl-panel-tab') || 'live';
     const env = { state: 'off', links: {}, text: '' };                 // Netlify: what the key unlocks
     const obs = { state: dock ? 'connecting' : 'off', client: null, collection: '', scan: null, busy: false, error: '' };
-    const veado = { state: 'off', ws: null, states: [], current: null, pending: null, pendingTimer: 0 };
     const music = { state: 'off', track: null, visible: null, raw: '' };
     let reviewing = null;                                             // { title, acts }
 
@@ -174,47 +173,10 @@
       onChange(s, env.links); refresh();
     }
 
-    // ---------------------------------------------------------------- colour and veadotube
-    const formFor = (name) => { const m = s.veado.map[String(name || '').toLowerCase()]; return TGL.FORMS[m] ? m : TGL.formForState(name); };
-    const broadcast = (form) => {
-      TGL.set(form); onForm(form); refresh();
-      if (obs.client && obs.client.ready) obs.client.call('BroadcastCustomEvent', { eventData: { tgl: 'form', form } }).catch(() => {});
-    };
-    const stateFor = (form, name) => {
-      if (name) return veado.states.find((x) => x.name.toLowerCase() === name) || null;
-      const fits = veado.states.filter((x) => formFor(x.name) === form), want = form === 'cyan' ? (s.veado.tron || 'cyan') : form;
-      return fits.find((x) => x.name.toLowerCase() === want) || fits[0] || null;
-    };
-    function choose(form, stateName) {
-      const st = dock && s.veado.switch && veado.ws && veado.ws.readyState === 1 && stateFor(form, stateName);
-      if (!st) return broadcast(form);
-      veado.pending = form; clearTimeout(veado.pendingTimer);
-      veado.pendingTimer = setTimeout(() => { if (veado.pending) { veado.pending = null; broadcast(form); } }, 3000);
-      veado.ws.send('nodes:' + JSON.stringify({ event: 'payload', type: 'stateEvents', id: 'mini', payload: { event: 'set', state: st.id } }));
-    }
-    function connectVeado() {
-      const addr = s.veado.addr || params.get('veado') || M.VEADO_DEFAULT;
-      let ws;
-      try { ws = veado.ws = new WebSocket(`ws://${addr}?n=${encodeURIComponent('Trongates dock')}`); } catch { veado.state = 'bad'; refresh(); return; }
-      const send = (payload) => ws.send('nodes:' + JSON.stringify({ event: 'payload', type: 'stateEvents', id: 'mini', payload }));
-      ws.onopen = () => { veado.state = 'ok'; send({ event: 'listen', token: 'tgl-dock' }); send({ event: 'list' }); send({ event: 'peek' }); refresh(); };
-      ws.onmessage = (e) => {
-        const t = String(e.data), i = t.indexOf(':');
-        if (t.slice(0, i).trim() !== 'nodes') return;
-        let m; try { m = JSON.parse(t.slice(i + 1)); } catch { return; }
-        if (m.type !== 'stateEvents' || !m.payload) return;
-        if (Array.isArray(m.payload.states)) veado.states = m.payload.states.map((x) => ({ id: x.id || x.name, name: x.name || x.id }));
-        if (m.payload.state) {
-          veado.current = (veado.states.find((x) => x.id === m.payload.state) || { name: m.payload.state }).name;
-          const f = formFor(veado.current);
-          if (veado.pending && f === veado.pending) { veado.pending = null; clearTimeout(veado.pendingTimer); broadcast(f); }
-          else { TGL.set(f); onForm(f); }
-        }
-        refresh();
-      };
-      ws.onclose = () => { veado.state = 'bad'; refresh(); setTimeout(() => { if (veado.ws === ws) connectVeado(); }, 5000); };
-    }
-    const reconnectVeado = () => { const old = veado.ws; veado.ws = null; if (old) try { old.close(); } catch {} connectVeado(); };
+    // ---------------------------------------------------------------- colour and veadotube (dock-colour.js)
+    const veado = TGLDockColour.create({ TGL, dock, settings: () => s, addr: () => s.veado.addr || params.get('veado') || M.VEADO_DEFAULT,
+      obs: () => obs.client, onForm, refresh: () => refresh() });
+    const formFor = veado.formFor, choose = veado.choose, connectVeado = veado.connect, reconnectVeado = veado.reconnect;
 
     // ---------------------------------------------------------------- now playing (the dock reads SMTC Bridge too,
     // to show the song and to crop the shared chat exactly when the scenes make room for the panel)
@@ -484,11 +446,11 @@
       const row = managedRows().find((r) => s.dock.pick.veado[r.container.uuid]);
       const src = row && s.dock.pick.veado[row.container.uuid], item = row && row.container.items.find((i) => i.sourceName === src);
       if (!item) throw new Error('Pick your veadotube source first (above).');
-      if (!veado.ws || veado.ws.readyState !== 1 || !veado.states.length) throw new Error('veadotube isn\'t connected.');
+      if (!veado.ready || !veado.states.length) throw new Error('veadotube isn\'t connected.');
       const sw = item.sceneItemTransform.sourceWidth, sh = item.sceneItemTransform.sourceHeight;
       if (!sw || !sh) throw new Error(`${src} has no picture (is veadotube sending to Spout?)`);
       const W = 240, H = Math.max(1, Math.round((W * sh) / sw)), back = veado.states.find((x) => x.name === veado.current);
-      const setState = (st) => veado.ws.send('nodes:' + JSON.stringify({ event: 'payload', type: 'stateEvents', id: 'mini', payload: { event: 'set', state: st.id } }));
+      const setState = (st) => veado.setState(st.id);
       const per = [];
       measure.running = true;
       try {

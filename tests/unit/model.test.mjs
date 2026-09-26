@@ -1,0 +1,175 @@
+// model.js: the OBS settings and how they become each scene's address (shared by the dock and the OBS index).
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import { read } from '../helpers/sim.mjs';
+
+const ctx = vm.createContext({ URLSearchParams, URL, btoa, atob, escape, unescape, encodeURIComponent, decodeURIComponent });
+ctx.window = ctx;
+vm.runInContext(read('public/obs/shared/model.js'), ctx, { filename: 'model.js' });
+const M = ctx.TGLModel;
+const HOST = 'https://www.trongateslegacy.com/obs/';
+const opts = (pairs) => Object.fromEntries(pairs);
+const url = (kind, s, ctx2 = {}, base = HOST + (M.TYPES[kind]?.file || M.WIDGETS[kind].file)) => M.withOptions(base, M.options(kind, s, ctx2));
+// vm objects come from another realm: compare as plain data
+const plain = (x) => JSON.parse(JSON.stringify(x));
+
+test('defaults: every scene has its settings, and normalise fills in whatever an old save is missing', () => {
+  const d = M.defaults();
+  assert.deepEqual(Object.keys(d.scenes).sort(), ['brb', 'chatting', 'ending', 'game', 'starting']);
+  const old = M.normalise({ key: 'k', scenes: { brb: { off: ['goal'] } }, veado: { addr: 'x:1' } });
+  assert.equal(old.key, 'k');
+  assert.deepEqual(plain(old.scenes.brb.off), ['goal']);
+  assert.equal(old.scenes.brb.cycle, true);
+  assert.equal(old.veado.addr, 'x:1');
+  assert.deepEqual(plain(old.veado.map), {});
+  assert.deepEqual(plain(M.normalise(null)), plain(M.defaults()));
+});
+
+test('a default scene address carries nothing it does not need', () => {
+  const s = M.defaults();
+  assert.equal(url('brb', s), HOST + 'brb');
+  assert.equal(url('chatting', s), HOST + 'chatting');
+  assert.equal(url('game', s), HOST + 'game');
+});
+
+test('Game (window): layout=window, rings=1 only when on, and hide= lists only the window layout parts', () => {
+  const s = M.defaults();
+  s.scenes.game.layout = 'window';
+  assert.equal(url('game', s), HOST + 'game?layout=window');
+  s.scenes.game.rings = true;
+  assert.equal(url('game', s), HOST + 'game?layout=window&rings=1');
+  s.scenes.game.off = ['goal', 'art'];                  // art isn't a window part: never in the address
+  assert.equal(opts(M.options('game', s)).hide, 'goal');
+  s.scenes.game.layout = 'full';
+  assert.equal(opts(M.options('game', s, { layout: 'full' })).rings, undefined);
+});
+
+test('hide= keeps the parts in the scene\'s own order', () => {
+  const s = M.defaults();
+  s.scenes.brb.off = ['ticker', 'chat', 'rings'];
+  assert.equal(opts(M.options('brb', s)).hide, 'chat,ticker,rings');
+});
+
+test('colour: cycling scenes can stop cycling (cycle=0), following scenes can stop following (noveado=1)', () => {
+  const s = M.defaults();
+  s.scenes.starting.cycle = false; s.scenes.chatting.follow = false;
+  assert.equal(opts(M.options('starting', s)).cycle, '0');
+  assert.equal(opts(M.options('chatting', s)).noveado, '1');
+  // a cycling scene that still cycles never gets veadotube options
+  s.veado.addr = '192.168.1.5:54765'; s.veado.map = { fishing: 'blobfish' }; s.veado.delay = 300;
+  const brb = opts(M.options('brb', s));
+  assert.equal(brb.veado, undefined); assert.equal(brb.map, undefined);
+});
+
+test('veadotube options reach the scenes that follow it: address (unless default), pinned states, delay', () => {
+  const s = M.defaults();
+  s.veado.addr = M.VEADO_DEFAULT;
+  assert.equal(opts(M.options('chatting', s)).veado, undefined);
+  s.veado.addr = '192.168.1.5:54765'; s.veado.map = { fishing: 'blobfish', tiara: 'princess', blank: '' }; s.veado.delay = 300;
+  const o = opts(M.options('chatting', s));
+  assert.equal(o.veado, '192.168.1.5:54765');
+  assert.equal(o.map, 'fishing:blobfish,tiara:princess');
+  assert.equal(o.veadodelay, '300');
+  assert.match(url('chatting', s), /map=fishing:blobfish,tiara:princess/);   // readable in OBS: , and : unescaped
+});
+
+test('Botrix: pasted links go in whole, the Netlify key otherwise; a shared chat means the scene loads no chat', () => {
+  const s = M.defaults();
+  s.key = 'secret-key';
+  assert.equal(opts(M.options('brb', s)).key, 'secret-key');
+  s.links = { chat: 'https://botrix.live/widgets/chat/?bid=abc', goal: '' }; s.linksMode = 'paste';
+  const o = opts(M.options('brb', s));
+  assert.equal(o.chat, 'https://botrix.live/widgets/chat/?bid=abc');
+  assert.equal(o.key, 'secret-key');                   // the goal still comes through the key
+  s.shared = true;
+  assert.equal(opts(M.options('brb', s)).chat, '0');
+  // Starting soon has no chat or goal: no Botrix options at all
+  assert.equal(M.options('starting', s).filter(([k]) => ['chat', 'goal', 'key'].includes(k)).length, 0);
+});
+
+test('previews never connect to veadotube or OBS and show the sample chat, not the shared one', () => {
+  const s = M.defaults();
+  s.shared = true; s.key = 'k';
+  const o = opts(M.options('brb', s, { preview: { form: 'princess', guide: true, sample: true }, obs: { port: '4455', pw: 'pw' } }));
+  assert.equal(o.noveado, '1'); assert.equal(o.obs, undefined); assert.equal(o.obspw, undefined);
+  assert.equal(o.chat, undefined); assert.equal(o.form, 'princess'); assert.equal(o.guide, '1'); assert.equal(o.demo, '1');
+  assert.equal(o.music, 'demo');
+});
+
+test('the OBS WebSocket reaches real scene addresses (the dock\'s colour buttons need it)', () => {
+  const o = opts(M.options('chatting', M.defaults(), { obs: { port: '4455', pw: 'p w' } }));
+  assert.equal(o.obs, '4455'); assert.equal(o.obspw, 'p w');
+});
+
+test('withOptions replaces the options the panel owns and keeps everything else', () => {
+  const base = HOST + 'brb?hide=goal&custom=1&motion=full#frag';
+  const out = M.withOptions(base, [['hide', 'chat']]);
+  assert.equal(out, HOST + 'brb?custom=1&hide=chat');
+  assert.equal(M.withOptions(HOST + 'brb?obs=1', []), HOST + 'brb');
+});
+
+test('sameUrl ignores option order and encoding', () => {
+  assert.ok(M.sameUrl(HOST + 'brb?a=1&b=x%2Cy', HOST + 'brb?b=x,y&a=1'));
+  assert.ok(!M.sameUrl(HOST + 'brb?a=1', HOST + 'brb?a=2'));
+  assert.ok(!M.sameUrl(HOST + 'brb?a=1', HOST + 'ending?a=1'));
+});
+
+test('recognise: every Trongates page, hosted or local, and raw Botrix widgets', () => {
+  const k = (u) => M.recognise(u)?.kind ?? null;
+  assert.equal(k(HOST + 'brb'), 'brb');
+  assert.equal(k('file:///C:/Users/x/public/obs/chatting.html?form=princess'), 'chatting');
+  assert.equal(k(HOST + 'chat?bare=1'), 'bare');
+  assert.equal(k(HOST + 'chat'), 'chatbox');
+  assert.equal(M.recognise(HOST + 'game?layout=window').layout, 'window');
+  assert.equal(M.recognise(HOST + 'game').layout, 'full');
+  assert.equal(k('https://botrix.live/widgets/chat/?bid=1'), 'botrix-chat');
+  assert.equal(k('https://botrix.live/widgets/goal/?bid=1'), 'botrix-goal');
+  assert.equal(k('https://example.com/obs/brbx'), null);
+  assert.equal(k(''), null);
+});
+
+test('fromUrls reads the settings back out of the scenes\' addresses (a wiped dock rebuilds from OBS)', () => {
+  const s = M.defaults();
+  s.key = 'k'; s.goalColor = false; s.music = { app: 'cider', always: true, host: '10.0.0.2:5000', ciderToken: 'tok' };
+  s.veado = { addr: '10.0.0.3:54765', switch: true, tron: 'cyan', map: { fishing: 'blobfish' }, delay: 250 };
+  s.scenes.brb.off = ['goal', 'rings']; s.scenes.ending.cycle = false; s.scenes.chatting.follow = false;
+  s.scenes.game.layout = 'window'; s.scenes.game.rings = true; s.scenes.game.off = ['music'];
+  s.motion = 'full';
+  const urls = Object.keys(M.TYPES).map((k) => url(k, s));
+  const back = M.fromUrls(urls);
+  for (const k of ['key', 'goalColor', 'motion']) assert.deepEqual(back[k], s[k], k);
+  assert.deepEqual(plain(back.music), plain(s.music));
+  assert.equal(back.veado.addr, s.veado.addr); assert.equal(back.veado.delay, 250); assert.deepEqual(plain(back.veado.map), { fishing: 'blobfish' });
+  assert.deepEqual(plain(back.scenes.brb.off), ['goal', 'rings']);
+  assert.equal(back.scenes.ending.cycle, false);
+  assert.equal(back.scenes.game.layout, 'window'); assert.equal(back.scenes.game.rings, true); assert.deepEqual(plain(back.scenes.game.off), ['music']);
+  // chatting stops following veadotube: its address says noveado=1, so the rebuilt settings say so too
+  assert.equal(back.scenes.chatting.follow, false);
+});
+
+test('settings links survive the round trip, including non-ASCII text', () => {
+  const s = M.defaults();
+  s.music.app = 'Música · 音楽'; s.key = 'k/+=';
+  assert.deepEqual(plain(M.unpack(M.pack(s))), plain(M.normalise(s)));
+  assert.doesNotMatch(M.pack(s), /[+/=]/);                   // safe in a URL
+  assert.throws(() => M.unpack('not-a-link'));
+});
+
+test('chatBox: the shared chat always fits the chat frame, and the frame grows when now playing or the goal is off', () => {
+  const s = M.defaults();
+  for (const kind of ['brb', 'chatting']) {
+    const both = M.chatBox(kind, s, true), noMusic = M.chatBox(kind, s, false);
+    s.scenes[kind].off = ['goal'];
+    const noGoal = M.chatBox(kind, s, true);
+    s.scenes[kind].off = [];
+    for (const b of [both, noMusic, noGoal]) {
+      assert.equal(b.w, M.SHARED_W, `${kind}: width`);
+      assert.ok(b.h > 0 && b.h <= M.SHARED_H, `${kind}: height ${b.h} fits the ${M.SHARED_H} source`);
+    }
+    assert.ok(noMusic.h > both.h && noMusic.y < both.y, `${kind}: grows up into now playing's room`);
+    assert.ok(noGoal.h > both.h && noGoal.y === both.y, `${kind}: grows down into the goal's room`);
+  }
+  const g = M.chatBox('game', s, true);
+  assert.ok(g.w < M.SHARED_W && g.h > 0);
+});
