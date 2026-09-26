@@ -260,7 +260,7 @@
   // Three turns: Tron, Princess Trina, the Blobfish, holding each for HOLD ms; the scene colour follows the form
   // on show. Tron's turn is cyan the first time and then a random one of cyan / gold / red. Starts on the selected
   // form (?form=, else the last one picked by the dock or veadotube; a Tron colour counts as Tron's first turn).
-  // Picking a form while it runs glitches straight to it, and OBS showing the scene again starts over. The glitch is the hero's: four 60ms steps of horizontal slices mixing the old and new art, with a
+  // Picking a form while it runs glitches straight to it, and OBS showing the scene again starts over (paused while hidden). The glitch is the hero's: four 60ms steps of horizontal slices mixing the old and new art, with a
   // red/cyan split. ?cycle=0 shows the veadotube form (static) instead, ?art=0 hides the art.
   const ART = { cyan: 'tron-cyan-mclosed-eopen', yellow: 'tron-yellow-mclosed-eopen', red: 'tron-red-mclosed-eopen', princess: 'princess-uwu', blobfish: 'blobfish-mclosed-eopen' };
   const CYCLE = ['tron', 'princess', 'blobfish'], TRONS = ['cyan', 'yellow', 'red'], HOLD = 6000;
@@ -277,7 +277,11 @@
     if (!TGL.cycling) { show(TGL.form); TGL.onChange(show); }
     else {
       const reduced = TGL.reduced;
-      let n = 0, tronSeen = false, timer, busy = Promise.resolve();
+      // While OBS isn't showing the scene, Chrome slows its timers and draws nothing, so glitches would stall and pile
+      // up, then all play at once when the scene comes back (a fast run through the forms). So: hidden = no timer and
+      // no animation (a pick just swaps the art), at most one glitch waits behind the one playing, and showing the
+      // scene again drops whatever's left and starts clean on the current form.
+      let n = 0, tronSeen = false, timer, hidden = false, gen = 0, pending = null, busy = null;
       // fresh = the scene (re)starting: Tron's next turn is cyan again unless it's on now; a pick mid-cycle keeps the count
       const startOn = (f, fresh = true) => { n = Math.max(0, CYCLE.indexOf(turnOf(f))); tronSeen = (fresh ? false : tronSeen) || turnOf(f) === 'tron'; };
       const formFor = (turn) => {
@@ -297,23 +301,45 @@
         glitchEl.innerHTML = html;
       };
       let shown = TGL.form;
-      const glitchTo = (to) => (busy = busy.then(async () => {
+      const swap = (to) => { shown = to; TGL.paint(to); show(to); };
+      const play = async (to, g) => {
         const from = shown; shown = to;
         if (from === to) return;
-        if (reduced) { TGL.paint(to); show(to); return; }
+        if (reduced) { swap(to); return; }
         artBox.classList.add('glitching');
-        for (const [i, p] of [.25, .5, .75, .92].entries()) { if (i === 2) TGL.paint(to); slices(from, to, p); await step(60); }
+        for (const [i, p] of [.25, .5, .75, .92].entries()) { if (g !== gen) return; if (i === 2) TGL.paint(to); slices(from, to, p); await step(60); }
+        if (g !== gen) return;
         show(to);
-        await img.decode().catch(() => {});
+        await Promise.race([img.decode().catch(() => {}), step(400)]);
+        if (g !== gen) return;
         artBox.classList.remove('glitching'); glitchEl.innerHTML = '';
-      }));
-      const next = () => { clearTimeout(timer); timer = setTimeout(async () => { await glitchTo(formFor(CYCLE[n = (n + 1) % CYCLE.length])); next(); }, HOLD); };
+      };
+      const glitchTo = (to) => {
+        if (hidden) { swap(to); return Promise.resolve(); }
+        pending = to;
+        if (busy) return busy;
+        const run = (async () => {
+          await null;   // let run be assigned before the loop can finish
+          const g = gen;
+          while (pending !== null && g === gen) { const t = pending; pending = null; await play(t, g); }
+          if (busy === run) busy = null;
+        })();
+        return (busy = run);
+      };
+      const next = () => { clearTimeout(timer); if (hidden) return; timer = setTimeout(async () => { await glitchTo(formFor(CYCLE[n = (n + 1) % CYCLE.length])); next(); }, HOLD); };
       next();
       TGL.onChange((f) => { startOn(f, false); glitchTo(f); next(); });
-      addEventListener('obsSourceActiveChanged', (e) => {   // OBS browser sources: the scene became visible again
-        if (!e.detail || !e.detail.active) return;
-        startOn(TGL.form); shown = TGL.form; TGL.paint(shown); show(shown); next();
-      });
+      // OBS browser sources: visible = on show anywhere (a transition's start, the preview), active = on program
+      const reset = () => {
+        gen++; pending = null; busy = null; clearTimeout(timer);
+        artBox.classList.remove('glitching'); glitchEl.innerHTML = '';
+        startOn(TGL.form); swap(TGL.form);
+      };
+      const pause = () => { if (!hidden) { hidden = true; reset(); } };
+      const resume = () => { hidden = false; reset(); next(); };
+      addEventListener('obsSourceVisibleChanged', (e) => (e.detail && e.detail.visible ? resume() : pause()));
+      addEventListener('obsSourceActiveChanged', (e) => { if (e.detail && e.detail.active) resume(); });
+      document.addEventListener('visibilitychange', () => (document.hidden ? pause() : resume()));
     }
   }
 
