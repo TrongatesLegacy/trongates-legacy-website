@@ -51,6 +51,16 @@ test('the page shows its form: data-form and the accent colour', () => {
   assert.equal(p.root.style.props['--accent'], '#ffb36b');
 });
 
+test('the look: Princess Trina\'s and the Blobfish\'s own, Tron\'s for the rest; looks= changes any of them', () => {
+  assert.equal(page('form=blobfish').root.dataset.look, 'blobfish', 'set before anything is drawn');
+  const T = page().TGL;
+  assert.deepEqual(['cyan', 'yellow', 'red', 'princess', 'blobfish'].map(T.lookOf), ['tron', 'tron', 'tron', 'princess', 'blobfish']);
+  const M = page('looks=princess:tron,red:blobfish,yellow:disco,nobody:princess').TGL;
+  assert.deepEqual(['cyan', 'yellow', 'red', 'princess', 'blobfish'].map(M.lookOf), ['tron', 'tron', 'blobfish', 'tron', 'blobfish']);
+  assert.deepEqual(['princess', 'blobfish'].map(page('looks=0').TGL.lookOf), ['tron', 'tron']);
+  assert.equal(page('form=princess&looks=princess:tron').root.dataset.look, 'tron');
+});
+
 test('a pick is saved with its time, for the other pages', () => {
   const p = page();
   p.clock.now = 1234;

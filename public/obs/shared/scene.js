@@ -103,7 +103,7 @@
   const np = document.querySelector('[data-np]');
   if (np) {
     const mode = TGL.param('music', '');
-    np.innerHTML = `<div class="np-art"><img alt=""></div><div class="np-info">
+    np.innerHTML = `<i class="sk sk-tron lk-t"></i><i class="sk sk-royal lk-p"></i><i class="sk sk-chunky lk-b"></i><div class="np-art"><img alt=""></div><div class="np-info">
       <div class="np-top"><span class="np-eq"><i></i><i></i><i></i></span>Now playing<span class="np-time"></span></div>
       <div class="np-title"></div><div class="np-artist"></div><div class="np-bar"><i></i></div></div>`;
     const img = np.querySelector('img'), q = (s) => np.querySelector(s);
@@ -192,12 +192,16 @@
 
   // ---- light cycles: riders on the grid that turn at intersections --------------------------------
   // Same idea as the website's background; they fade out under [data-quiet] zones (text) so they never
-  // cut through copy. Canvas is capped at 30fps, which is plenty for OBS.
+  // cut through copy. Canvas is capped at 30fps, which is plenty for OBS. Princess Trina's look turns the riders into
+  // glitter comets with a few gold twinkles; the Blobfish's has bubbles instead. A look change never removes what's on
+  // screen: old riders and bubbles fade out where they are while the new kind arrives a few at a time.
   function trails() {
     const cv = /** @type {HTMLCanvasElement} */ (document.getElementById('trails'));
     if (!cv || TGL.reduced) return;
     const ctx = cv.getContext('2d'), W = cv.width = 1920, H = cv.height = 1080, CELL = 60;
-    const count = +cv.dataset.riders || 6;
+    const count = +cv.dataset.riders || 6, GOLD = '#ffd98a', LILAC = '#b48cff', TEAL = '#45d6c8';
+    const MODES = { princess: 'glitter', blobfish: 'bubble' };
+    const mode = () => MODES[document.documentElement.dataset.look] || 'cycle';
     // --accent is a registered <color>, which newer Chromium reports as rgb(…): the trails need #rrggbb (they add alpha)
     const accent = () => {
       const v = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#22e5ff';
@@ -206,6 +210,8 @@
     };
     const hex = (t) => Math.round(Math.max(0, Math.min(1, t)) * 255).toString(16).padStart(2, '0');
     const spawn = (r) => {
+      r.kind = mode(); r.alpha = 1; r.retire = false;
+      if (r.kind === 'bubble') { r.kind = 'cycle'; r.retire = true; r.alpha = 0; }   // no riders with the bubbles: they wait, unseen
       const horiz = Math.random() < .6, fwd = Math.random() < .5;
       r.x = horiz ? (fwd ? -CELL : W + CELL) : Math.floor(Math.random() * W / CELL) * CELL;
       r.y = horiz ? Math.floor(Math.random() * (H - 440) / CELL) * CELL : (fwd ? -CELL : H - 440);
@@ -214,17 +220,94 @@
       return r;
     };
     const riders = Array.from({ length: count }, (_, i) => spawn({ rival: i === count - 1 }));
+    let bubbles = [], twinkles = [], nextBubble = 0, nextTwinkle = 0, since = 0;
     const quiet = () => $$('[data-quiet]').map((el) => el.getBoundingClientRect());
     let zones = quiet(); setInterval(() => (zones = quiet()), 2000);
+    const star = (x, y, sz, a, turn, fill, glow) => {
+      ctx.globalAlpha = a; ctx.fillStyle = fill; ctx.shadowColor = glow; ctx.shadowBlur = 12;
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) { const rr = i % 2 ? sz * .25 : sz, an = i * Math.PI / 4 + turn; ctx.lineTo(x + Math.cos(an) * rr, y + Math.sin(an) * rr); }
+      ctx.fill(); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    };
+    const drawCycle = (r, pts, len, c, a) => {
+      const col = r.rival ? '#ff8a3d' : c;
+      let run = 0; const tot = Math.max(len, 1);
+      for (let i = 1; i < pts.length; i++) {
+        const p = pts[i - 1], q = pts[i], seg = Math.abs(q[0] - p[0]) + Math.abs(q[1] - p[1]);
+        const g = ctx.createLinearGradient(p[0], p[1], q[0], q[1]);
+        g.addColorStop(0, col + hex(run / tot)); g.addColorStop(1, col + hex((run + seg) / tot)); run += seg;
+        ctx.strokeStyle = g; ctx.lineCap = 'round';
+        ctx.globalAlpha = .22 * a; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+        ctx.globalAlpha = .95 * a; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+      }
+      ctx.globalAlpha = a; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(r.x, r.y, 2.8, 0, 6.3); ctx.fill(); ctx.globalAlpha = 1;
+    };
+    // Princess's riders: sparkles along the trail, brighter towards a bright star at the head
+    const drawGlitter = (r, pts, len, c, a, t) => {
+      let run = 0; const tot = Math.max(len, 1);
+      for (let i = 1; i < pts.length; i++) {
+        const [ax, ay] = pts[i - 1], [bx, by] = pts[i], seg = Math.abs(bx - ax) + Math.abs(by - ay);
+        for (let d = (16 - (run % 16)) % 16; d < seg; d += 16) {
+          const at = run + d, k = at / tot, tw = .55 + .45 * Math.sin(t / 90 + at * .7);
+          ctx.globalAlpha = a * k * tw * .9; ctx.fillStyle = Math.round(at / 16) % 3 ? LILAC : GOLD;
+          ctx.beginPath(); ctx.arc(ax + (bx - ax) * d / seg + Math.sin(at) * 3, ay + (by - ay) * d / seg + Math.cos(at) * 3, 1 + k * 2, 0, 6.3); ctx.fill();
+        }
+        run += seg;
+      }
+      star(r.x, r.y, 8, a, t / 400, '#fff', c);
+    };
+    // the Blobfish's bubbles rise and wobble, and pop near the top; the first few appear anywhere, the rest from below
+    const bubbling = (m, dt, t, c) => {
+      const want = m === 'bubble' ? count * 3 : 0;
+      if (bubbles.filter((b) => !b.gone).length < want && t > nextBubble) {
+        bubbles.push({ x: Math.random() * W, y: since < 2 ? H * (.3 + Math.random() * .6) : H - 60, r: 3 + Math.random() * 6, vy: 30 + Math.random() * 36, ph: Math.random() * 6, age: 0, life: 1, gone: false });
+        nextBubble = t + 150;
+      }
+      bubbles = bubbles.filter((b) => {
+        if (m !== 'bubble' || b.y < H * .1) b.gone = true;
+        if (b.gone) b.life -= dt / (b.y < H * .1 ? .25 : .9);
+        if (b.life <= 0) return false;
+        b.y -= b.vy * dt; b.ph += dt * 2; b.age += dt;
+        const x = b.x + Math.sin(b.ph) * 1.5 * b.r, a = b.life * Math.min(1, b.age / .6);
+        ctx.globalAlpha = a * .75; ctx.strokeStyle = b.r > 6 ? c : TEAL; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(x, b.y, b.r, 0, 6.3); ctx.stroke();
+        ctx.globalAlpha = a * .5; ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(x - b.r * .35, b.y - b.r * .35, b.r * .22, 0, 6.3); ctx.fill();
+        return true;
+      });
+      ctx.globalAlpha = 1;
+    };
+    // Princess's twinkles: never more than three, each fading in and out somewhere over about two seconds
+    const twinkling = (m, dt, t) => {
+      if (m === 'glitter' && twinkles.length < 3 && t > nextTwinkle) {
+        twinkles.push({ x: Math.random() * W, y: Math.random() * H * .6, t: 0, d: 1.6 + Math.random() });
+        nextTwinkle = t + 500 + Math.random() * 900;
+      }
+      twinkles = twinkles.filter((q) => {
+        q.t += dt * (m === 'glitter' ? 1 : 3);
+        if (q.t >= q.d) return false;
+        const a = Math.sin(q.t / q.d * Math.PI);
+        star(q.x, q.y, 4 + a * 4, a * .8, q.t * .6, '#ffe3a6', GOLD);
+        return true;
+      });
+    };
     let last = performance.now(), acc = 0;
     const frame = (t) => {
       requestAnimationFrame(frame);
       acc += t - last; last = t;
       if (acc < 33) return;                                  // ~30fps
-      const dt = Math.min(acc / 1000, .08); acc = 0;
+      const dt = Math.min(acc / 1000, .08); acc = 0; since += dt;
       ctx.clearRect(0, 0, W, H);
-      const c = accent();
+      const c = accent(), m = mode();
       for (const r of riders) {
+        if (r.kind !== m) r.retire = true;
+        if (r.retire) {                                       // an old kind: fades out where it is, then comes back as the new kind
+          r.alpha -= dt / .9;
+          if (r.alpha <= 0) {
+            if (m === 'bubble') { r.alpha = 0; continue; }
+            spawn(r); r.alpha = -Math.random() * 1.5;         // a staggered return, so they don't all arrive at once
+          }
+        } else if (r.alpha < 1) r.alpha = Math.min(1, r.alpha + dt / .6);
         let move = r.speed * dt;
         while (move > 0) {
           const d = Math.min(move, r.left);
@@ -234,19 +317,11 @@
         const pts = [...r.pts, [r.x, r.y]];
         let len = 0; for (let i = 1; i < pts.length; i++) len += Math.abs(pts[i][0] - pts[i - 1][0]) + Math.abs(pts[i][1] - pts[i - 1][1]);
         while (len > r.max && r.pts.length > 1) { const a = r.pts[0], b = r.pts[1]; len -= Math.abs(b[0] - a[0]) + Math.abs(b[1] - a[1]); r.pts.shift(); }
-        if (r.x < -CELL * 12 || r.x > W + CELL * 12 || r.y < -CELL * 12 || r.y > H) spawn(r);
-        const col = r.rival ? '#ff8a3d' : c;
-        let run = 0, tot = Math.max(len, 1);
-        for (let i = 1; i < pts.length; i++) {
-          const a = pts[i - 1], b = pts[i], seg = Math.abs(b[0] - a[0]) + Math.abs(b[1] - a[1]);
-          const g = ctx.createLinearGradient(a[0], a[1], b[0], b[1]);
-          g.addColorStop(0, col + hex(run / tot)); g.addColorStop(1, col + hex((run + seg) / tot)); run += seg;
-          ctx.strokeStyle = g; ctx.lineCap = 'round';
-          ctx.globalAlpha = .22; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
-          ctx.globalAlpha = .95; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
-        }
-        ctx.globalAlpha = 1; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(r.x, r.y, 2.8, 0, 6.3); ctx.fill();
+        if (r.x < -CELL * 12 || r.x > W + CELL * 12 || r.y < -CELL * 12 || r.y > H) { const keep = r.alpha; spawn(r); if (r.kind === m) r.alpha = Math.min(keep, 1); }
+        if (r.alpha > 0) (r.kind === 'glitter' ? drawGlitter : drawCycle)(r, [...r.pts, [r.x, r.y]], len, c, r.alpha, t);
       }
+      bubbling(m, dt, t, c);
+      twinkling(m, dt, t);
       ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = '#000';
       for (const z of zones) for (const [p, a] of [[50, .4], [26, .5], [6, .7]]) {
         ctx.globalAlpha = a; ctx.beginPath(); ctx.roundRect(z.left - p, z.top - p, z.width + p * 2, z.height + p * 2, 30); ctx.fill();
@@ -260,8 +335,10 @@
   // Three turns: Tron, Princess Trina, the Blobfish, holding each for HOLD ms; the scene colour follows the form
   // on show. Tron's turn is cyan the first time and then a random one of cyan / gold / red. Starts on the selected
   // form (?form=, else the last one picked by the dock or veadotube; a Tron colour counts as Tron's first turn).
-  // Picking a form while it runs glitches straight to it, and OBS showing the scene again starts over (paused while hidden). The glitch is the hero's: four 60ms steps of horizontal slices mixing the old and new art, with a
-  // red/cyan split. ?cycle=0 shows the veadotube form (static) instead, ?art=0 hides the art.
+  // Picking a form while it runs glitches straight to it, and OBS showing the scene again starts over (paused while hidden).
+  // The switch-in is the website's, in the new form's look: Tron glitches in (four 60ms steps of horizontal slices mixing
+  // the old and new art, with a red/cyan split); Princess Trina sparkles in (a dissolve with glitter); the Blobfish ripples
+  // in (bands swaying as through water). ?cycle=0 shows the veadotube form (static) instead, ?art=0 hides the art.
   const ART = { cyan: 'tron-cyan-mclosed-eopen', yellow: 'tron-yellow-mclosed-eopen', red: 'tron-red-mclosed-eopen', princess: 'princess-uwu', blobfish: 'blobfish-mclosed-eopen' };
   const CYCLE = ['tron', 'princess', 'blobfish'], TRONS = ['cyan', 'yellow', 'red'], HOLD = 6000;
   const turnOf = (f) => (TRONS.includes(f) ? 'tron' : f);
@@ -291,14 +368,28 @@
       };
       startOn(TGL.form); TGL.paint(TGL.form); show(TGL.form);
       const step = (ms) => new Promise((r) => setTimeout(r, ms));
-      const slices = (from, to, p) => {
-        let html = '', y = 0;
-        while (y < 100) {
-          const h = 10 + Math.random() * 16, f = Math.random() < p ? to : from, dx = (Math.random() - .5) * 30;
-          html += `<i style="clip-path:inset(${y.toFixed(1)}% 0 ${Math.max(0, 100 - y - h).toFixed(1)}% 0);transform:translateX(${dx.toFixed(1)}px)"><b style="background-image:url('${artSrc(f)}')"></b></i>`;
-          y += h;
-        }
-        glitchEl.innerHTML = html;
+      const band = (y, h, dx, f, alpha = 1) => `<i style="clip-path:inset(${y.toFixed(1)}% 0 ${Math.max(0, 100 - y - h).toFixed(1)}% 0);transform:translateX(${dx.toFixed(1)}px);opacity:${alpha.toFixed(2)}"><b style="background-image:url('${artSrc(f)}')"></b></i>`;
+      // each style: its steps (how far the new form shows at each), the step the scene recolours on, one frame's HTML
+      const SWITCH_IN = {
+        glitch: { steps: [.25, .5, .75, .92], paintAt: 2, frame(p, from, to) {
+          let html = '', y = 0;
+          while (y < 100) { const h = 10 + Math.random() * 16; html += band(y, h, (Math.random() - .5) * 30, Math.random() < p ? to : from); y += h; }
+          return html;
+        } },
+        princess: { steps: [.15, .32, .5, .68, .84, .95], paintAt: 3, frame(p, from, to) {
+          let html = band(0, 100, 0, from, 1 - p) + band(0, 100, 0, to, p);
+          for (let i = 0; i < 9; i++) {
+            const k = Math.sin(p * Math.PI) * (.6 + Math.random() * .6);
+            html += `<s style="left:${(18 + Math.random() * 64).toFixed(1)}%;top:${(12 + Math.random() * 70).toFixed(1)}%;transform:scale(${k.toFixed(2)}) rotate(${Math.round(Math.random() * 90)}deg)"></s>`;
+          }
+          return html;
+        } },
+        blobfish: { steps: [.15, .32, .5, .68, .84, .95], paintAt: 3, frame(p, from, to) {
+          let html = '';
+          const amp = Math.sin(p * Math.PI) * 18;
+          for (let y = 0; y < 100; y += 100 / 14) { const dx = Math.sin(y / 9 + p * 9) * amp; html += band(y, 100 / 14, dx, from, 1 - p) + band(y, 100 / 14, -dx, to, p); }
+          return html;
+        } },
       };
       let shown = TGL.form;
       const swap = (to) => { shown = to; TGL.paint(to); show(to); };
@@ -306,8 +397,9 @@
         const from = shown; shown = to;
         if (from === to) return;
         if (reduced) { swap(to); return; }
-        artBox.classList.add('glitching');
-        for (const [i, p] of [.25, .5, .75, .92].entries()) { if (g !== gen) return; if (i === 2) TGL.paint(to); slices(from, to, p); await step(60); }
+        const style = SWITCH_IN[TGL.lookOf(to)] || SWITCH_IN.glitch;
+        artBox.classList.add('glitching'); glitchEl.classList.toggle('soft', style !== SWITCH_IN.glitch);
+        for (const [i, p] of style.steps.entries()) { if (g !== gen) return; if (i === style.paintAt) TGL.paint(to); glitchEl.innerHTML = style.frame(p, from, to); await step(60); }
         if (g !== gen) return;
         show(to);
         await Promise.race([img.decode().catch(() => {}), step(400)]);
@@ -343,6 +435,37 @@
       document.addEventListener('visibilitychange', () => (document.hidden ? pause() : resume()));
     }
   }
+
+  // ---- the look (Princess Trina's, the Blobfish's, Tron's) follows the form -------------------------------------
+  // theme.js sets <html data-look> for the first frame; afterwards every recolour (the dock, veadotube, a cycling scene's
+  // paint) comes through data-form, and the look follows it here. The titles and the socials strip would visibly jump
+  // between fonts and marks, so they blur out for a moment, the look (and its font, fetched now if needed: at most
+  // 1.2 s) swaps while they're blurred, and they blur back in, all while the colours blend and the frames morph.
+  // Hidden (OBS not showing the scene) or reduced motion: it just swaps. The cycling scenes load both fonts up front.
+  const root = document.documentElement;
+  const LOOK_FONTS = { princess: '900 1em "Cinzel Decorative"', blobfish: '400 1em "Lilita One"' };
+  const loadLook = (look) => (LOOK_FONTS[look] ? Promise.race([document.fonts.load(LOOK_FONTS[look]).catch(() => {}), new Promise((r) => setTimeout(r, 1200))]) : null);
+  if (TGL.cycling) Object.keys(LOOK_FONTS).forEach(loadLook);
+  const BLUR = [{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(6px)' }];
+  let lookWant = root.dataset.look, lookBusy = false;
+  async function setLook(look) {
+    lookWant = look;
+    if (lookBusy || root.dataset.look === lookWant) return;
+    lookBusy = true;
+    const quick = TGL.reduced || document.hidden;
+    const els = quick ? [] : $$('.title, .ticker');
+    const out = els.map((el) => el.animate(BLUR, { duration: 160, easing: 'ease-in', fill: 'forwards' }));
+    if (!quick) await new Promise((r) => setTimeout(r, 160));
+    while (root.dataset.look !== lookWant) {      // another pick may arrive while its font loads: follow it
+      const want = lookWant;
+      await loadLook(want);
+      if (want === lookWant) root.dataset.look = want;
+    }
+    els.forEach((el) => el.animate([...BLUR].reverse(), { duration: 240, easing: 'ease-out' }));
+    out.forEach((a) => a.cancel());
+    lookBusy = false;
+  }
+  new MutationObserver(() => setLook(TGL.lookOf(root.dataset.form))).observe(root, { attributes: true, attributeFilter: ['data-form'] });
 
   // ---- glitch the title whenever the form changes --------------------------------------------------
   TGL.onChange(() => $$('.glitch').forEach((el) => { el.classList.remove('now'); void el.offsetWidth; el.classList.add('now'); }));

@@ -39,6 +39,26 @@ up and plays all at once when the scene comes back. All three carry the Lulu Gan
 and the QR code). The Botrix chat and goal load inside the frames the overlays draw for them (or the chat is one
 shared source the dock places in every frame).
 
+## Form looks: Princess Trina and the Blobfish
+
+Like the website, Princess Trina and the Blobfish each re-light the scenes in their own look, not just their colour
+(docs/design-system.md, "Form themes"). **Royal** (Princess Trina): titles in Cinzel Decorative with a tiara on the first
+letter, a shine and a twinkling star; frames with notched corners and a gold hairline; ribbon tabs; a quilted lattice
+background under a lilac glow and a ballroom floor; a pearl string and an orbiting gold star round the stage; glitter
+comets and a few gold twinkles in place of the light cycles; hearts along the socials strip; she sparkles in.
+**The Deep** (the Blobfish): titles in Lilita One with floating letters and an escaping bubble; heavy rounded frames on a
+ledge; the grid sinks into deep water with drifting light and a seabed floor; sonar rings; bubbles instead of riders;
+bubbles along the strip; it ripples in. Tron's forms keep the grid look and change colour only. The transitions follow
+the look too (see *Transitions*).
+
+Nothing moves between looks: every frame, slot and window lands on the same pixels, so sources placed in OBS never
+need touching. The colours blend over 0.8 s and every look's layers cross-fade; the titles and socials strip blur out
+for a moment while their font swaps. On the cycling scenes the whole look changes with the form on show.
+
+**Choosing:** the dock's **Widgets → More → Form looks** gives each form a look: its own, another form's, or Tron's
+(colour only, the way the scenes were before). It reaches the scenes through Review & apply as `looks=` on every
+address (below). Only a changed form is written, so a default setup has no `looks=` at all.
+
 ## The Discord
 
 The Discord link itself is never printed on stream (nobody can click it). Each scene mentions it **once**, as
@@ -138,6 +158,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `art=0` | Starting soon, Be right back, Ending | hides the character art (same as `hide=art`) |
 | `cycle=0` | Starting soon, Be right back, Ending | stop cycling: show the veadotube form (static) and follow its colour |
 | `form=princess` | all | the colour to start on before veadotube connects |
+| `looks=princess:tron` | every scene, widget page and the transition | give a form another look: `tron`, `princess` or `blobfish` (comma-separated, e.g. `looks=princess:tron,red:blobfish`); `looks=0` keeps every form on Tron's look. The dock's *Form looks* writes it |
 | `noveado=1` | all | don't connect to veadotube |
 | `veadodelay=300` | all that follow veadotube | wait this many ms after a veadotube switch before recolouring (if the model loads slowly) |
 | `map=pink:red` | all that follow veadotube | pin a veadotube state to a colour (the dock's Live tab sets this) |
@@ -362,7 +383,7 @@ Trongates overlay after its scene type, like the dock's own sources: *Trongates 
 (window)*, numbered if there are two of a type, never a name OBS already uses, a name that's already right kept. A
 Stream Deck button that finds a source by its old name needs updating after a rename; turn it off to keep your names.
 **Transitions** is the transitions section (below); its per-scene choices list only scenes with a Trongates overlay.
-The Widgets tab has sub-tabs too: OBS, Botrix, Music, veado, More (motion, backup, the rescue dock).
+The Widgets tab has sub-tabs too: OBS, Botrix, Music, veado, More (form looks, motion, backup, the rescue dock).
 
 **Sources:** add our widgets as their own OBS sources to the current scene (or any): the chat box, follower goal,
 now playing, and the shared chat. *Add existing* reuses the same source (one browser in several scenes); *New copy*
@@ -409,8 +430,11 @@ Game (window) the chat sits just above the overlay: if your game capture is abov
 
 ## Transitions
 
-Two scene transitions in your form's colour: **Derez grid** (dark grid tiles flip in from the centre, then flip
+Two scene transitions in your form's colour and look: **Derez grid** (dark grid tiles flip in from the centre, then flip
 away onto the new scene) and **Logo shutters** (two grid panels slam shut on a chevron, the logo hits, they open).
+In Princess Trina's look the panels are her lattice, the edges gold and pink, sparkles shed as tiles flip and along the
+seam, and the logo is in her title font; in the Blobfish's they're deep water with a seabed, the tiles sway in, bubbles
+rise, and the logo is in Lilita One.
 No sound. They're drawn live by a Trongates browser source on top of your scenes (`transition`, 1920 × 1080),
 invisible until OBS plays one of two Stingers named for them; the Stinger plays a 1.2 s invisible "hold" video
 (`/obs/assets/trongates-hold.webm`) just so OBS waits to cut until the middle, where the overlay covers the whole
@@ -493,8 +517,8 @@ python3 obs/build-scenes.py        # writes public/obs/{starting,brb,chatting,ga
 ```
 
 Paths inside `public/obs` are relative and it carries its own fonts and logos (`public/obs/assets/`), so the
-folder works anywhere (every script is a plain `<script>`, no modules, so `file://` works too). Shared pieces: `public/obs/shared/overlay.css` (look), `theme.js` (form colours, veadotube + OBS WebSocket, keeping the pages in step),
-`scene.js` (light trails, form-cycling art, guide labels), `icons.js` (platform icons), `transition.js` (the
+folder works anywhere (every script is a plain `<script>`, no modules, so `file://` works too). Shared pieces: `public/obs/shared/overlay.css` (look, and each form's look: "Form looks" at its end), `theme.js` (form colours and looks, veadotube + OBS WebSocket, keeping the pages in step),
+`scene.js` (light trails, form-cycling art and its switch-in, the look swap, guide labels), `icons.js` (platform icons), `transition.js` (the
 transitions: drawing and timing; its page is `transition.html`). The rescue dock is `rescue.html` (on purpose, only
 `obsws.js`). The control dock is
 `public/obs/control.html`; the Botrix CSS is `public/obs/botrix/`. Everything under `public/` deploys with

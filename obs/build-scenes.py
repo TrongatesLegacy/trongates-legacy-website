@@ -19,14 +19,17 @@ HEAD = '''<!doctype html>
 FOOT = '''<script src="shared/scene.js"></script>
 </body></html>
 '''
-BG = '''<div class="grid"></div>
+# each look's background and floor are always there and cross-fade (overlay.css, "Form looks"): Tron's grid floor,
+# Princess Trina's lattice and ballroom, the Blobfish's deep water and seabed
+BG = '''<div class="grid"></div><div class="bg-lattice lk-p"></div><div class="bg-deep lk-b"></div>
 <div class="glow" style="background:{glow}"></div>
-<div class="floor"></div><div class="horizon"></div>
+<div class="floor f-grid lk-t"></div><div class="floor f-ball lk-p"></div><div class="floor f-sand lk-b"></div><div class="horizon"></div>
 <canvas id="trails" data-riders="{riders}"></canvas>
 '''
 # the stage's rings, halo and pad: hide=rings turns them off (the dock's Rings chip)
 def ring(): return '''<div class="rings" data-part="rings"><div class="halo"></div>
-  <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg></div>
+  <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg>
+    <svg class="p1 lk-p" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="p2 lk-p" viewBox="0 0 200 200"><path d="m100 1 2.6 5.4 5.4 2.6-5.4 2.6-2.6 5.4-2.6-5.4-5.4-2.6 5.4-2.6z"/></svg><span class="sonar lk-b"><i></i><i></i><i></i></span><span class="sweep lk-b"></span></div>
   <div class="pad"></div></div>'''
 def stage(x, y, w, h, label='PNGtuber: veadotube (Spout)'):
     # a space for the veadotube (Spout) source: Game and Just chatting only
@@ -40,10 +43,19 @@ def frame(x, y, w, h, tab, icon, slot, extra='', inner='', part=''):
     ic = f'<svg class="i"><use href="#i-{icon}"/></svg>' if icon else ''
     dp = f' data-part="{part}"' if part else ''
     return f'''<div class="frame {extra}"{dp} style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
-  <div class="tab">{ic}{tab}</div>
+  {SKINS}<div class="tab">{ic}{tab}</div>
   <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px">{inner}</div>
 </div>
 '''
+# a frame's glass and border, one per look, cross-faded (overlay.css): the widget inside is never touched by a form change
+SKINS = '<i class="sk sk-tron lk-t"></i><i class="sk sk-royal lk-p"></i><i class="sk sk-chunky lk-b"></i>'
+# The big titles: the Orbitron text (.lay) sets the layout; .twin is the same two lines letter by letter, drawn in the
+# look's own font over it (overlay.css), with Princess Trina's tiara on the first letter
+TIARA = '<svg class="tiara" viewBox="0 0 62 42"><path d="M4 38 2 12l14 12L31 2l15 22 14-12-2 26Z" fill="#ffd98a" stroke="#fff3c4" stroke-width="2" stroke-linejoin="round"/><circle cx="31" cy="27" r="5" fill="#ff63b8"/><circle cx="15" cy="31" r="3" fill="#b48cff"/><circle cx="47" cy="31" r="3" fill="#b48cff"/></svg>'
+def title(o, s_):
+    letters = lambda t: ''.join(' ' if c == ' ' else f'<span class="ch" style="--i:{i}">{c}</span>' for i, c in enumerate(t))
+    return (f'<div class="title glitch" data-t="{o} {s_}"><span class="lay"><span class="o">{o}</span><span class="s">{s_}</span></span>'
+            f'<span class="twin" aria-hidden="true"><span class="o">{TIARA}{letters(o)}</span><span class="s" data-t="{s_}">{letters(s_)}</span></span></div>')
 def game_window(x, y, w, h, tag, slot, inner=''):
     # Game (window)'s game window: exactly the game capture's box (x, y, w, h), with only a thin border drawn outside it.
     # The tag and the loading text sit inside, so once the game is up it covers them and only the border shows.
@@ -99,7 +111,7 @@ scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', ride
 .copy .title { font-size: 116px; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">CEO of the Lulu Gang</div>
-  <div class="title glitch" data-t="Trongates Legacy"><span class="o">Trongates</span><span class="s">Legacy</span></div>
+  {title('Trongates', 'Legacy')}
   <div class="status">Stream starting soon <span class="dots"><i></i><i></i><i></i></span></div>
   <div class="sub">Grab a drink and <b>say hi in chat</b>.</div>
   {GANG}
@@ -113,7 +125,7 @@ scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6,
 .copy .title { font-size: 108px; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">Back in a moment</div>
-  <div class="title glitch" data-t="Be right back"><span class="o">Be right</span><span class="s">Back</span></div>
+  {title('Be right', 'Back')}
   <div class="sub">Grabbing snacks. <b>Keep chat alive.</b></div>
   {gang(compact=True)}
 </div>
@@ -130,9 +142,9 @@ scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='
 # it until the game covers it), follower goal bottom left with now playing beside it (the same height), chat top
 # right, and the bottom-right corner left for veadotube (?rings=1 puts the stage rings behind it). The window layout lives in a <template> swapped in before scene.js runs, so its
 # widgets only load when it's used.
-LOADING = '''<div class="copy" data-quiet>
+LOADING = f'''<div class="copy" data-quiet>
   <div class="eyebrow">Hang tight</div>
-  <div class="title glitch" data-t="Loading the game"><span class="o">Loading</span><span class="s">The game</span></div>
+  {title('Loading', 'The game')}
   <div class="bar"><i></i></div>
   <div class="sub">The game will pop up <b>any second now</b>.</div>
 </div>'''
@@ -140,10 +152,11 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 .copy { position: absolute; inset: 0; align-content: center; display: grid; gap: 30px; justify-items: center; text-align: center; }
 .copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 .copy .title { font-size: 120px; }
+.copy .title .twin > span { margin-inline: auto; }
 .layout-window .copy { gap: 24px; } .layout-window .copy .title { font-size: 96px; } .layout-window .copy .sub { font-size: 26px; }
-.gamewin { position: absolute; background: linear-gradient(180deg, var(--a10), rgba(5,10,20,.78) 18%); backdrop-filter: blur(6px);
-  box-shadow: 0 0 0 2px var(--a70), 0 0 18px var(--a40); }
-.gamewin .tag { position: absolute; left: 22px; top: 0; z-index: 2; padding: 4px 12px 3px; font: 700 12px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase; color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 8px 100%); }
+.gamewin { position: absolute; background: linear-gradient(180deg, var(--a10), color-mix(in srgb, var(--glass) 78%, transparent) 18%); backdrop-filter: blur(6px);
+  box-shadow: 0 0 0 2px var(--a70), 0 0 18px var(--a40), 0 0 0 2px transparent, 0 0 0 2px transparent; }
+.gamewin .tag { position: absolute; left: 22px; top: 0; z-index: 2; padding: 4px 12px 3px; font: 700 12px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase; color: #03060d; background: var(--accent); }
 .rings-opt { display: none; } .show-rings .rings-opt { display: block; }
 .bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
@@ -162,7 +175,7 @@ scenes['ending'] = dict(title='Ending', cycle=True, body_class='', riders=7, glo
 .copy .title { font-size: 116px; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">That's a wrap</div>
-  <div class="title glitch" data-t="Thanks for watching"><span class="o">Thanks for</span><span class="s">Watching</span></div>
+  {title('Thanks for', 'Watching')}
   <div class="sub"><b>GGs, Lulu Gang.</b> Catch the next one on Kick.</div>
   {GANG}
   {SOCIALS}
@@ -193,15 +206,14 @@ for name, w in widgets.items():
 html, body { width: 100%; height: 100%; }
 .frame, .np { inset: 0; }"""
     body = '<div class="np" data-np></div>\n' if name == 'music' else f'''<div class="frame">
-  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>{w['tab']}</div>
+  {SKINS}<div class="tab"><svg class="i"><use href="#i-kick"/></svg>{w['tab']}</div>
   <div data-slot="{w['slot']}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
 '''
     if name == 'chat':
         # ?bare=1: no frame of its own, the widget fills the page: the one shared chat source the scenes' frames show
         css += """
-.bare .frame { background: none; backdrop-filter: none; clip-path: none; }
-.bare .frame::before, .bare .frame::after, .bare .frame .tab { display: none; }
+.bare .frame .sk, .bare .frame .tab { display: none; }
 .bare [data-slot] { left: 0 !important; right: 0 !important; top: 0 !important; bottom: 0 !important; }"""
         body += "<script>if (new URLSearchParams(location.search).get('bare') === '1') document.documentElement.classList.add('bare');</script>\n"
     html = WIDGET_HEAD.format(name=name, html_attr='', title=w['title'], size=w['size'], css=css, body_class='transparent') + body + FOOT

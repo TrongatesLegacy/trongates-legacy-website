@@ -8,14 +8,13 @@
 <style>
 html, body { width: 100%; height: 100%; }
 .frame, .np { inset: 0; }
-.bare .frame { background: none; backdrop-filter: none; clip-path: none; }
-.bare .frame::before, .bare .frame::after, .bare .frame .tab { display: none; }
+.bare .frame .sk, .bare .frame .tab { display: none; }
 .bare [data-slot] { left: 0 !important; right: 0 !important; top: 0 !important; bottom: 0 !important; }</style>
 </head>
 <body class="transparent">
 <script src="shared/icons.js"></script>
 <div class="frame">
-  <div class="tab"><svg class="i"><use href="#i-kick"/></svg>Chat</div>
+  <i class="sk sk-tron lk-t"></i><i class="sk sk-royal lk-p"></i><i class="sk sk-chunky lk-b"></i><div class="tab"><svg class="i"><use href="#i-kick"/></svg>Chat</div>
   <div data-slot="Botrix chat" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px"></div>
 </div>
 <script>if (new URLSearchParams(location.search).get('bare') === '1') document.documentElement.classList.add('bare');</script>

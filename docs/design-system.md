@@ -78,6 +78,14 @@ Any change to a form's look has to keep it passing:
 - **Heavier edges:** drawn as shadows, never thicker borders.
 - **Roster cards:** every card keeps the room for "· active form".
 
+**The OBS scenes carry the same looks** (`public/obs/shared/overlay.css`, "Form looks"; obs/README.md, "Form looks"),
+keyed on `<html data-look>`, which `theme.js` works out from the form. The dock's *Form looks* (`looks=`) can give any form
+any look, or Tron's. The scenes' differences: frames, tabs and the status pill instead of buttons and cards (the frames'
+glass and border are three cross-fading skins, so a Botrix widget inside is never touched); no hook on the titles (it
+would hang over the text below); the Game (window) border keeps its width (the game covers everything inside it). The
+transitions are drawn in each look too (`transition.js`). The same rule holds, measured scene by scene in
+`tests/browser/obs-looks.test.mjs`: nothing an OBS source is placed on moves.
+
 **Smooth switching:**
 - **Colours:** blend over one clock (`--t`, 0.8s): accent, second accent, background, panels, lines, grey text.
 - **Layers:** the background, halo and floor cross-fade in place.

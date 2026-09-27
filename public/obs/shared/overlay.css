@@ -3,17 +3,34 @@
 @font-face { font-family: Orbitron; font-weight: 400 900; src: url(../assets/fonts/orbitron.woff2) format("woff2"); }
 @font-face { font-family: "Chakra Petch"; font-weight: 400; src: url(../assets/fonts/chakra-petch-400.woff2) format("woff2"); }
 @font-face { font-family: "Chakra Petch"; font-weight: 600; src: url(../assets/fonts/chakra-petch-600.woff2) format("woff2"); }
+/* Princess Trina's and the Blobfish's title fonts (their looks, below). Lilita One has one weight: declared for all, so
+   a 900 title never gets a faked bold. */
+@font-face { font-family: "Cinzel Decorative"; font-weight: 900; src: url(../assets/fonts/cinzel-decorative-900.woff2) format("woff2"); }
+@font-face { font-family: "Lilita One"; font-weight: 100 900; src: url(../assets/fonts/lilita-one.woff2) format("woff2"); }
+/* registered, so every colour a form change touches blends on one clock (--t) */
 @property --accent { syntax: '<color>'; inherits: true; initial-value: #22e5ff; }
+@property --accent2 { syntax: '<color>'; inherits: true; initial-value: #22e5ff; }
+@property --bg { syntax: '<color>'; inherits: true; initial-value: #03060d; }
+@property --glass { syntax: '<color>'; inherits: true; initial-value: #050a14; }
+@property --line { syntax: '<color>'; inherits: true; initial-value: #0e2034; }
+@property --muted { syntax: '<color>'; inherits: true; initial-value: #8ba3bd; }
+@property --g1 { syntax: '<color>'; inherits: true; initial-value: #ff2d78; }
+@property --g2 { syntax: '<color>'; inherits: true; initial-value: #22e5ff; }
 
 :root {
   --bg: #03060d; --panel: #070d18; --line: #0e2034; --text: #e8f4ff; --muted: #8ba3bd; --kick: #53fc18;
-  --accent: #22e5ff;
+  --accent: #22e5ff; --accent2: var(--accent); --glass: #050a14; --g1: #ff2d78; --g2: #22e5ff;
+  --title: Orbitron; --tscale: 1;          /* the big titles' font and its size against Orbitron's (form looks, below) */
+  --t: .8s;                                /* one clock for everything a form change blends */
   --a70: color-mix(in srgb, var(--accent) 70%, transparent);
   --a40: color-mix(in srgb, var(--accent) 40%, transparent);
   --a20: color-mix(in srgb, var(--accent) 20%, transparent);
   --a10: color-mix(in srgb, var(--accent) 10%, transparent);
-  transition: --accent .7s ease;
+  transition: --accent var(--t) ease, --accent2 var(--t) ease, --bg var(--t) ease, --glass var(--t) ease, --line var(--t) ease, --muted var(--t) ease, --g1 var(--t) ease, --g2 var(--t) ease;
 }
+/* Princess Trina and the Blobfish re-light the whole scene when their look is on (theme.js: data-look, looks=) */
+[data-look="princess"] { --accent2: #b48cff; --bg: #0a0510; --glass: #0e0714; --line: #2a1434; --muted: #b7a0c4; --g1: #b48cff; --g2: #ffd98a; }
+[data-look="blobfish"] { --accent2: #45d6c8; --bg: #020b11; --glass: #04121a; --line: #0e2a34; --muted: #8fb2ba; --g1: #45d6c8; --g2: #ffb36b; }
 * { box-sizing: border-box; margin: 0; }
 html, body { width: 1920px; height: 1080px; overflow: hidden; }
 body { background: var(--bg); color: var(--text); font-family: "Chakra Petch", sans-serif; }
@@ -27,10 +44,11 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .glow { position: absolute; inset: 0; pointer-events: none; }
 .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 430px; overflow: hidden; perspective: 900px; perspective-origin: 50% 0;
   -webkit-mask-image: linear-gradient(transparent 4%, #000 72%); }
-.floor::before { content: ""; position: absolute; top: -110px; left: -80%; right: -80%; height: calc(170% + 110px); transform-origin: 50% 110px;
+.floor::before { content: ""; position: absolute; top: -330px; left: -80%; right: -80%; height: calc(170% + 330px); transform-origin: 50% 330px;
   background: linear-gradient(var(--a40) 3px, transparent 3px) 0 0 / 110px 110px, linear-gradient(90deg, var(--a40) 3px, transparent 3px) 0 0 / 110px 110px;
   animation: floor 2.2s linear infinite; will-change: transform; }
 @keyframes floor { from { transform: rotateX(68deg) translateY(0); } to { transform: rotateX(68deg) translateY(110px); } }
+@keyframes floor-2 { from { transform: rotateX(68deg) translateY(0); } to { transform: rotateX(68deg) translateY(220px); } }
 .horizon { position: absolute; left: 0; right: 0; bottom: 430px; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); box-shadow: 0 0 22px var(--accent); opacity: .55; }
 #trails { position: absolute; inset: 0; pointer-events: none; }
 
@@ -44,13 +62,14 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 /* periodic glitch, same pattern as the website title; also fired by JS when the form changes */
 .glitch { position: relative; }
 .glitch::before, .glitch::after { content: attr(data-t); position: absolute; inset: 0; opacity: 0; pointer-events: none; -webkit-text-fill-color: currentColor; }
-.glitch::before { color: #ff2d78; animation: glitch-a 8s infinite steps(1); }
-.glitch::after { color: #22e5ff; animation: glitch-b 8s infinite steps(1); }
+.glitch::before { color: var(--g1); animation: glitch-a 8s infinite steps(1); }
+.glitch::after { color: var(--g2); animation: glitch-b 8s infinite steps(1); }
 .glitch.now::before { animation: glitch-a .5s 1 steps(1); } .glitch.now::after { animation: glitch-b .5s 1 steps(1); }
 @keyframes glitch-a { 0%,91%,100% { opacity: 0; } 92% { opacity: .8; transform: translate(-6px,2px); clip-path: inset(10% 0 55% 0); } 94% { opacity: .8; transform: translate(5px,-2px); clip-path: inset(60% 0 8% 0); } 96% { opacity: 0; } }
 @keyframes glitch-b { 0%,91%,100% { opacity: 0; } 93% { opacity: .8; transform: translate(6px,-1px); clip-path: inset(40% 0 30% 0); } 95% { opacity: .8; transform: translate(-5px,1px); clip-path: inset(5% 0 75% 0); } 97% { opacity: 0; } }
 .status { display: inline-flex; align-items: center; gap: 18px; white-space: nowrap; padding: 18px 30px; font: 900 34px/1 Orbitron; letter-spacing: .18em; text-transform: uppercase; color: #03060d; background: var(--accent);
-  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); box-shadow: 0 0 40px var(--a40); }
+  clip-path: polygon(18px 0, 100% 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 100%, 0 18px); box-shadow: 0 0 40px var(--a40), 0 0 0 transparent;
+  transition: clip-path var(--t) ease, border-radius var(--t) ease, box-shadow var(--t) ease; }
 .status .dots i { display: inline-block; width: 10px; height: 10px; margin-left: 6px; background: currentColor; animation: dot 1.4s infinite; opacity: .25; }
 .status .dots i:nth-child(2) { animation-delay: .2s; } .status .dots i:nth-child(3) { animation-delay: .4s; }
 @keyframes dot { 30% { opacity: 1; } }
@@ -106,17 +125,21 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 
 /* Framed panel for a Botrix widget (chat, goal...). The widget's own background should be transparent;
    this frame supplies the themed border and a dark glass behind it. */
-.frame { position: absolute; background: linear-gradient(180deg, var(--a10), rgba(5,10,20,.78) 18%); backdrop-filter: blur(6px);
+/* The frame's glass and border are its skins (.sk, one per look, cross-faded in "Form looks" below), so a form change
+   never touches the widget inside. Tron's: cut corners. */
+.frame { position: absolute; }
+.sk { position: absolute; inset: 0; pointer-events: none; }
+.sk-tron { background: linear-gradient(180deg, var(--a10), color-mix(in srgb, var(--glass) 78%, transparent) 18%); backdrop-filter: blur(6px);
   clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px)); }
-.frame::before { content: ""; position: absolute; inset: 0; border: 2px solid var(--a40);
-  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px)); }
-.frame::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+.sk-tron::before { content: ""; position: absolute; inset: 0; border: 2px solid var(--a40); }
+.sk-tron::after { content: ""; position: absolute; inset: 0;
   background: linear-gradient(to top right, transparent calc(50% - 1px), var(--a40) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) top right / 26px 26px no-repeat,
               linear-gradient(to top right, transparent calc(50% - 1px), var(--a40) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) bottom left / 26px 26px no-repeat; }
+/* the tab's outline morphs between the looks (the same six points each, so it can blend) */
+.frame .tab, .gamewin .tag { clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 50%, calc(100% - 12px) 100%, 12px 100%, 6px 50%); transition: clip-path var(--t) ease, border-radius var(--t) ease, box-shadow var(--t) ease; }
 .frame .tab { position: absolute; left: 22px; top: -1px; display: flex; align-items: center; gap: 10px; padding: 9px 16px 8px; font: 700 15px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase;
-  color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 12px 100%); }
+  color: #03060d; background: var(--accent); }
 .frame .tab .i { width: 18px; height: 18px; }
-.frame.clear { background: transparent; backdrop-filter: none; }
 
 /* corner brackets for the game overlay */
 .corner { position: absolute; width: 70px; height: 70px; border: 3px solid var(--accent); filter: drop-shadow(0 0 8px var(--accent)); opacity: .85; }
@@ -127,7 +150,7 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
    starts under it. */
 .content { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; }
 .ticker { position: absolute; left: 0; right: 0; top: 0; height: 64px; overflow: hidden; border-bottom: 1px solid var(--a40); z-index: 5;
-  background: linear-gradient(90deg, var(--a10), rgba(5,10,20,.92) 30%, rgba(5,10,20,.92) 70%, var(--a10)); }
+  background: linear-gradient(90deg, var(--a10), color-mix(in srgb, var(--glass) 92%, transparent) 30%, color-mix(in srgb, var(--glass) 92%, transparent) 70%, var(--a10)); }
 .ticker .track { display: flex; width: max-content; height: 100%; align-items: center; animation: marquee 50s linear infinite; }
 .ticker .item { display: inline-flex; align-items: center; gap: 12px; padding: 0 34px; font: 700 20px/1 Orbitron; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
 .ticker .item .i { width: 24px; height: 24px; }
@@ -170,11 +193,12 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 
 /* ---- now playing (SMTC Bridge, scene.js): album art, title, artist, progress. Shown while music plays,
    fades out when nothing is (or when not in OBS). Same cut-corner glass as the frames. */
-.np { position: absolute; display: flex; align-items: center; gap: 16px; padding: 12px 18px 12px 12px; opacity: 0; transform: translateY(-8px); transition: opacity .6s, transform .6s;
-  background: linear-gradient(90deg, var(--a10), rgba(5,10,20,.82) 30%); backdrop-filter: blur(6px);
+.np { position: absolute; display: flex; align-items: center; gap: 16px; padding: 12px 18px 12px 12px; opacity: 0; transform: translateY(-8px); transition: opacity .6s, transform .6s; }
+/* its glass and border are skins, like the frames' (scene.js adds them) */
+.np > :not(.sk) { position: relative; }
+.np > .sk-tron { background: linear-gradient(90deg, var(--a10), color-mix(in srgb, var(--glass) 82%, transparent) 30%);
   clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
-.np::before { content: ""; position: absolute; inset: 0; border: 2px solid var(--a40); pointer-events: none;
-  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+.np > .sk-tron::after { content: none; }
 .np.on { opacity: 1; transform: none; }
 .np { z-index: 3; }                         /* in front of the character (the Blobfish's rod tip reaches it) */
 .np-art { position: relative; flex: none; height: 100%; aspect-ratio: 1; overflow: hidden; background: var(--a20); box-shadow: 0 0 14px var(--a40); }
@@ -195,3 +219,139 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .np.no-time .np-bar { visibility: hidden; }
 .np-bar { height: 4px; margin-top: 3px; background: rgba(255,255,255,.1); }
 .np-bar i { display: block; height: 100%; width: 0; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+/* ---- Form looks: Princess Trina ("Redeemed") and the Blobfish ("The Deep") ------------------------------------------
+   The website's form themes (docs/design-system.md, "Form themes"), for the scenes. theme.js sets <html data-look>
+   from the form (princess, blobfish, else tron; looks= on the URL, the dock's Form looks, can give any form any look or
+   none). Colours blend over --t (above); every layer that belongs to one look is there all the time and cross-fades
+   (.lk-t Tron's, .lk-p Princess Trina's, .lk-b the Blobfish's); outlines morph. What would jump (the titles' font, the
+   ticker's marks) swaps behind a short blur (scene.js). Nothing changes a size or a position: every OBS source placed
+   on a scene lands on the same pixels in every look. */
+.lk-t, .lk-p, .lk-b { transition: opacity var(--t) ease, visibility 0s; }
+.lk-p, .lk-b, [data-look="princess"] .lk-t, [data-look="blobfish"] .lk-t { opacity: 0; visibility: hidden; transition: opacity var(--t) ease, visibility 0s var(--t); }
+[data-look="princess"] .lk-p, [data-look="blobfish"] .lk-b { opacity: 1; visibility: visible; transition: opacity var(--t) ease, visibility 0s; }
+
+/* the background: Princess's quilted lattice under a lilac glow; the Blobfish's grid sinks into the deep */
+.bg-lattice, .bg-deep { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.bg-lattice { background:
+    radial-gradient(90% 60% at 50% -10%, color-mix(in srgb, var(--accent2) 20%, transparent), transparent 70%),
+    repeating-linear-gradient(45deg, transparent 0 59px, color-mix(in srgb, var(--line) 80%, transparent) 59px 60px),
+    repeating-linear-gradient(-45deg, transparent 0 59px, color-mix(in srgb, var(--line) 80%, transparent) 59px 60px); }
+.bg-deep { background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent2) 12%, transparent), transparent 45%, rgba(0,0,0,.5)),
+    repeating-linear-gradient(100deg, transparent 0 90px, color-mix(in srgb, var(--accent2) 5%, transparent) 90px 150px, transparent 150px 250px); }
+.bg-deep::before { content: ""; position: absolute; inset: -20%; opacity: .5; will-change: transform;
+  background:
+    radial-gradient(28% 18% at 20% 25%, color-mix(in srgb, var(--accent2) 20%, transparent), transparent 70%),
+    radial-gradient(22% 14% at 70% 15%, color-mix(in srgb, var(--accent2) 20%, transparent), transparent 70%),
+    radial-gradient(30% 16% at 55% 60%, color-mix(in srgb, var(--accent2) 12%, transparent), transparent 70%);
+  animation: caustic 14s ease-in-out infinite alternate; }
+@keyframes caustic { to { transform: translate(6%, 4%) scale(1.08) rotate(3deg); } }
+.grid { transition: opacity var(--t) ease; }
+[data-look="princess"] .grid { opacity: .3; }
+[data-look="blobfish"] .grid { opacity: .35; }
+
+/* the floor: the grid, Princess's ballroom, the Blobfish's seabed, all in the same place. A loop is always a whole number
+   of the pattern's repeats (the ballroom's checker repeats every two cells), or the floor would jump at every loop. */
+.floor.f-ball::before { animation: floor-2 4.4s linear infinite;
+  background: linear-gradient(var(--a40) 2px, transparent 2px) 0 0 / 110px 110px, linear-gradient(90deg, var(--a40) 2px, transparent 2px) 0 0 / 110px 110px,
+    conic-gradient(color-mix(in srgb, var(--accent2) 10%, transparent) 25%, transparent 0 50%, color-mix(in srgb, var(--accent2) 10%, transparent) 0 75%, transparent 0) 0 0 / 220px 220px; }
+.floor.f-sand::before { animation-duration: 3.2s;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3Cg fill='none' stroke='%23ffb36b' stroke-opacity='.38' stroke-width='2'%3E%3Cpath d='M0 20 Q40 8 80 20 T160 20'/%3E%3Cpath d='M0 60 Q40 48 80 60 T160 60'/%3E%3C/g%3E%3Cpath d='M0 40 Q40 30 80 40 T160 40' fill='none' stroke='%2345d6c8' stroke-opacity='.18' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / 220px 110px; }
+
+/* the stage: Princess wears a pearl string with a gold star orbiting; the Blobfish's rings turn to sonar */
+.stage .ring svg { transition: opacity var(--t) ease; }
+[data-look="princess"] .stage .r2, [data-look="blobfish"] .stage :is(.r1, .r2) { opacity: 0; }
+.stage .ring .p1 { animation: spin 40s linear infinite; } .stage .ring .p1 circle { stroke: #ffe9f5; stroke-width: 2.6; stroke-dasharray: 0 7.2; stroke-linecap: round; filter: drop-shadow(0 0 2px var(--accent)); }
+.stage .ring .p2 { animation: spin 9s linear infinite; } .stage .ring .p2 path { fill: #ffd98a; stroke: none; filter: drop-shadow(0 0 4px #ffd98a); }
+.stage .sonar, .stage .sweep { position: absolute; inset: 8%; border-radius: 50%; }
+.stage .sonar i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--accent2); opacity: 0; animation: sonar 3.6s cubic-bezier(.2,.6,.4,1) infinite; }
+.stage .sonar i:nth-child(2) { animation-delay: 1.2s; } .stage .sonar i:nth-child(3) { animation-delay: 2.4s; }
+.stage .sweep { animation: spin 6s linear infinite; background: conic-gradient(from 0deg, transparent 0 80%, color-mix(in srgb, var(--accent) 35%, transparent) 100%);
+  -webkit-mask: radial-gradient(circle, transparent 0 60%, #000 61% 70%, transparent 71%); mask: radial-gradient(circle, transparent 0 60%, #000 61% 70%, transparent 71%); }
+@keyframes sonar { 0% { opacity: .7; transform: scale(.7); } 100% { opacity: 0; transform: scale(1.25); } }
+/* the Blobfish bobs slower and deeper: everything takes its time underwater */
+[data-look="blobfish"] .art-stage .art { animation-name: float-deep; animation-duration: 7s; }
+@keyframes float-deep { 50% { translate: 0 -20px; } }
+
+/* 👑 Royal frames: notched corners, a gold hairline inside. The corner lines are drawn as gradients (the clip cuts a border's). */
+.sk-royal { --c: 16px; --fill: linear-gradient(180deg, color-mix(in srgb, var(--accent2) 14%, transparent), color-mix(in srgb, var(--glass) 80%, transparent) 20%);
+  --d1: linear-gradient(to bottom right, transparent calc(50% - 1px), var(--a40) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
+  --d2: linear-gradient(to top right, transparent calc(50% - 1px), var(--a40) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px));
+  background: var(--d1) top left / var(--c) var(--c) no-repeat, var(--d2) top right / var(--c) var(--c) no-repeat, var(--d2) bottom left / var(--c) var(--c) no-repeat,
+    var(--d1) bottom right / var(--c) var(--c) no-repeat, var(--fill);
+  backdrop-filter: blur(6px);
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
+.sk-royal::before { content: ""; position: absolute; inset: 0; border: 2px solid var(--a40); }
+.sk-royal::after { content: ""; position: absolute; inset: 7px; border: 1px solid rgba(255,217,138,.32); }
+/* 🎣 Chunky frames: heavy rounded glass on a ledge (the heavier edges are shadows, never thicker borders) */
+.sk-chunky { --fill: linear-gradient(180deg, color-mix(in srgb, var(--accent2) 14%, transparent), color-mix(in srgb, var(--glass) 80%, transparent) 22%);
+  border-radius: 22px; background: var(--fill); backdrop-filter: blur(6px);
+  box-shadow: inset 0 0 0 2px var(--a40), 0 5px 0 color-mix(in srgb, var(--accent) 28%, transparent); }
+.sk-chunky::before { content: ""; position: absolute; right: 26px; top: 7px; width: 30%; height: 3px; border-radius: 3px; background: rgba(255,255,255,.12); }
+.np > .sk-royal { --c: 12px; --fill: linear-gradient(90deg, color-mix(in srgb, var(--accent2) 14%, transparent), color-mix(in srgb, var(--glass) 82%, transparent) 30%); }
+.np > .sk-royal::after { inset: 5px; }
+.np > .sk-chunky { --fill: linear-gradient(90deg, color-mix(in srgb, var(--accent2) 14%, transparent), color-mix(in srgb, var(--glass) 82%, transparent) 30%); border-radius: 18px; }
+.np > .sk-chunky::before { right: 20px; top: 6px; }
+
+/* tabs and the status pill morph: Princess's are ribbons with gold edges, the Blobfish's are rounded on a ledge */
+.frame .tab, .gamewin .tag { box-shadow: inset 0 0 0 transparent; }
+[data-look="princess"] :is(.frame .tab, .gamewin .tag) { clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 50%, 100% 100%, 0 100%, 9px 50%); box-shadow: inset 0 -2px 0 rgba(255,217,138,.9); }
+[data-look="blobfish"] :is(.frame .tab, .gamewin .tag) { clip-path: polygon(0 0, 100% 0, 100% 50%, 100% 100%, 0 100%, 0 50%); border-radius: 0 0 12px 12px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.22); }
+[data-look="princess"] .status { clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+  box-shadow: inset 0 0 0 3px var(--accent), inset 0 0 0 4px rgba(255,236,190,.95); }
+[data-look="blobfish"] .status { border-radius: 18px; box-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 55%, #000), 0 6px 26px var(--a40);
+  clip-path: polygon(-40px -40px, calc(100% + 40px) -40px, calc(100% + 40px) -40px, calc(100% + 40px) calc(100% + 40px), calc(100% + 40px) calc(100% + 40px), -40px calc(100% + 40px), -40px calc(100% + 40px), -40px -40px); }
+
+/* Game (window)'s border: the same width in every look (the game covers everything inside it); Princess adds a gold
+   ring outside, the Blobfish a thicker, softer edge */
+.gamewin { transition: box-shadow var(--t) ease; }
+[data-look="princess"] .gamewin { box-shadow: 0 0 0 2px var(--a70), 0 0 18px var(--a40), 0 0 0 5px color-mix(in srgb, var(--bg) 85%, transparent), 0 0 0 6px rgba(255,217,138,.55); }
+[data-look="blobfish"] .gamewin { box-shadow: 0 0 0 3px var(--a70), 0 0 24px color-mix(in srgb, var(--accent2) 35%, transparent), 0 5px 0 3px color-mix(in srgb, var(--accent) 28%, transparent), 0 0 0 3px transparent; }
+
+/* the socials strip: gold rules and hearts for Princess, bubbles for the Blobfish (the marks keep the diamond's box) */
+.ticker { transition: box-shadow var(--t) ease, border-color var(--t) ease; }
+[data-look="princess"] .ticker { border-bottom-color: rgba(255,217,138,.55); box-shadow: inset 0 -4px 0 -2px rgba(255,217,138,.3); }
+[data-look="blobfish"] .ticker { box-shadow: 0 2px 0 var(--a40); }
+[data-look="princess"] .ticker .item::after { transform: scale(1.35); box-shadow: none; filter: drop-shadow(0 0 5px var(--accent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M12 21C5 15 0 11 0 6a6 6 0 0 1 12-3 6 6 0 0 1 12 3c0 5-5 9-12 15z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M12 21C5 15 0 11 0 6a6 6 0 0 1 12-3 6 6 0 0 1 12 3c0 5-5 9-12 15z'/%3E%3C/svg%3E") center / contain no-repeat; }
+[data-look="blobfish"] .ticker .item::after { box-sizing: border-box; transform: scale(1.3); border-radius: 50%; background: none; border: 1.5px solid var(--accent2); box-shadow: 0 0 8px var(--accent2), inset 2px -2px 0 -1px rgba(255,255,255,.55); }
+
+/* The titles: their layout always comes from the Orbitron text (.lay); another look's font is drawn over it in the
+   same box (.twin, made by build-scenes.py), each line exactly as tall as the Orbitron line under it. */
+.title { --lh: .96; }
+.title .ch { display: inline-block; }
+.title .twin { display: none; position: absolute; inset: 0; font-family: var(--title); font-size: calc(1em * var(--tscale)); line-height: calc(var(--lh) / var(--tscale));
+  white-space: nowrap; font-kerning: none; pointer-events: none; }
+.title .twin > span { position: relative; width: max-content; }   /* hugs its letters, so the tiara sits on the first one */
+[data-look="princess"] { --title: "Cinzel Decorative", Orbitron; --tscale: .8; }
+[data-look="blobfish"] { --title: "Lilita One", Orbitron; --tscale: 1.12; }
+:is([data-look="princess"], [data-look="blobfish"]) .title .twin { display: block; }
+:is([data-look="princess"], [data-look="blobfish"]) .title .lay { visibility: hidden; }
+:is([data-look="princess"], [data-look="blobfish"]) .glitch::before, :is([data-look="princess"], [data-look="blobfish"]) .glitch::after { content: none; }
+/* Princess Trina: a shine sweeps the solid line and a star twinkles at its end, now and then; a tiara on the first letter */
+[data-look="princess"] .title .twin .s::before { content: attr(data-t); position: absolute; inset: 0; color: transparent; -webkit-text-fill-color: transparent;
+  background: linear-gradient(110deg, transparent 38%, #fff 47%, #ffd98a 51%, transparent 60%) 150% 0 / 260% 100% no-repeat; -webkit-background-clip: text; background-clip: text;
+  animation: shine 5s ease-in-out infinite; }
+@keyframes shine { 0%, 55% { background-position: 150% 0; } 85%, 100% { background-position: -60% 0; } }
+[data-look="princess"] .title .twin .s::after { content: "✦"; position: absolute; right: -.3em; top: -.1em; font-size: .36em; line-height: 1; color: #ffd98a; -webkit-text-fill-color: #ffd98a;
+  filter: drop-shadow(0 0 6px #ffd98a); transform: scale(0); animation: twinkle 5s ease-in-out infinite; }
+@keyframes twinkle { 0%, 78% { opacity: 0; transform: scale(0) rotate(0); } 86% { opacity: 1; transform: scale(1.2) rotate(90deg); } 94%, 100% { opacity: 0; transform: scale(0) rotate(180deg); } }
+.title .tiara { display: none; position: absolute; left: -.06em; top: -.2em; width: .5em; height: .34em; pointer-events: none; transform: rotate(-14deg); filter: drop-shadow(0 0 6px #ffd98a88); }
+[data-look="princess"] .title .tiara { display: block; }
+/* the Blobfish: the letters float, each a little behind the one before, and a bubble escapes now and then */
+[data-look="blobfish"] .title .twin :is(.o, .s) { filter: none; background: none; }
+[data-look="blobfish"] .title .twin .o .ch { filter: drop-shadow(0 0 14px var(--a40)); }
+[data-look="blobfish"] .title .twin .s .ch { background: linear-gradient(180deg, #fff 30%, var(--accent) 120%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 20px var(--a40)); }
+[data-look="blobfish"] .title .twin .ch { animation: swell 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -.22s); }
+[data-look="blobfish"] .title .twin .s .ch { animation-delay: calc(var(--i) * -.22s - .6s); }
+@keyframes swell { 50% { transform: translateY(-.06em) rotate(-1.5deg); } }
+[data-look="blobfish"] .title .twin .s::after { content: ""; position: absolute; left: 38%; top: -.1em; width: .14em; height: .14em; border-radius: 50%; border: 3px solid #9ff5ea; opacity: 0;
+  animation: escape 6s ease-in infinite; }
+@keyframes escape { 0%, 60% { opacity: 0; transform: translate(0, 0) scale(.6); } 65% { opacity: .9; } 100% { opacity: 0; transform: translate(.15em, -1.4em) scale(1.1); } }
+
+/* the character's switch-in (scene.js): Princess sparkles in, the Blobfish ripples in; no red/cyan split for either */
+.art-glitch.soft i { filter: none; }
+.art-glitch s { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; background: #ffd98a;
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); }

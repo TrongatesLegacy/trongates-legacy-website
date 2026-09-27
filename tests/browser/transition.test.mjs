@@ -25,9 +25,10 @@ const open = async (q = '') => {
 // wait (in the page) until the transition is at `p`, then measure
 const at = (tab, p) => tab.eval(`new Promise((ok) => { const t = () => { const pr = TGLTransitionPlayer.progress; if (pr !== null && pr >= ${p}) ok(${MEASURE}); else requestAnimationFrame(t); }; t(); })`, 5000);
 
-for (const [name, label] of [['Trongates · Derez', 'Derez grid'], ['Trongates · Shutters', 'Logo shutters']]) {
-  test(`${label}: clear when idle, the whole screen covered at the cut, clear again afterwards`, async () => {
-    const tab = await open();
+// each in every look: Tron's, Princess Trina's, the Blobfish's (their tiles sway and sparkle, the cover must still be whole)
+for (const [name, label] of [['Trongates · Derez', 'Derez grid'], ['Trongates · Shutters', 'Logo shutters']]) for (const form of ['cyan', 'princess', 'blobfish']) {
+  test(`${label}, ${form}: clear when idle, the whole screen covered at the cut, clear again afterwards`, async () => {
+    const tab = await open(`&form=${form}`);
     assert.equal((await tab.eval(MEASURE)).any, 0, 'idle: nothing drawn');
     obs.broadcast('SceneTransitionStarted', { transitionName: name });
     for (const p of [.42, .5, .58]) {
@@ -61,4 +62,19 @@ test('drawn in the current form\'s colour, following the dock', async () => {
     for (let i = 0; i < d.length; i += 16) if (d[i] > 220 && d[i + 1] > 150 && d[i + 1] < 200 && d[i + 2] > 80 && d[i + 2] < 140) n++; ok(n); } else requestAnimationFrame(t); }; t(); })`, 5000);
   assert.ok(orange > 200, `${orange} pixels in Blobfish orange (#ffb36b)`);
   await tab.close();
+});
+
+// the void at the cut, its commonest colour: Princess Trina's is plum (more red than green), Tron's blue-black (more green)
+test('drawn in the form\'s look: Princess Trina\'s lattice, or Tron\'s grid when her look is turned off (looks=)', async () => {
+  const at = `new Promise((ok) => { const t = () => { const pr = TGLTransitionPlayer.progress; if (pr !== null && pr >= .5) {
+    const d = document.getElementById('fx').getContext('2d').getImageData(0, 0, 1920, 1080).data, n = new Map();
+    for (let i = 0; i < d.length; i += 64) { const k = d[i] + ',' + d[i + 1]; n.set(k, (n.get(k) || 0) + 1); }
+    const [r, g] = [...n].sort((a, b) => b[1] - a[1])[0][0].split(',').map(Number); ok(r > g ? 'plum' : 'blue'); } else requestAnimationFrame(t); }; t(); })`;
+  for (const [q, want] of [['&form=princess', 'plum'], ['&form=princess&looks=princess:tron', 'blue'], ['&form=red&looks=red:princess', 'plum']]) {
+    const tab = await open(q);
+    obs.broadcast('SceneTransitionStarted', { transitionName: 'Trongates · Derez' });
+    assert.equal(await tab.eval(at, 5000), want, q);
+    await tab.until('TGLTransitionPlayer.playing === null', 3000, 'finished');
+    await tab.close();
+  }
 });

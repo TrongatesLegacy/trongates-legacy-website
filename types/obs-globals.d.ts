@@ -7,6 +7,8 @@ interface TGLTheme {
   FORMS: Record<Form, { accent: string; label: string }>;
   /** the form a veadotube state name stands for (pinned names, then word rules, else cyan) */
   formForState(name: string): Form | null;
+  /** the look a form gives the scenes (looks= can change it) */
+  lookOf(form: string): 'tron' | 'princess' | 'blobfish';
   readonly form: Form;
   /** the circuit breaker: how often it has tripped, and whether it's pausing colours from other pages now */
   readonly breaker: { trips: number; tripped: boolean };
@@ -47,7 +49,9 @@ declare var TGLObs: Window['TGLObs'];
 declare var TGLDockColour: Window['TGLDockColour'];
 declare var TGLPanel: Window['TGLPanel'];
 declare var TGLTransition: {
-  MS: number; COVER: [number, number]; ANIMS: Record<string, (ctx: CanvasRenderingContext2D, p: number, W: number, H: number, accent: string) => void>;
+  MS: number; COVER: [number, number]; ANIMS: Record<string, (ctx: CanvasRenderingContext2D, p: number, W: number, H: number, accent: string, look?: string) => void>;
+    /** each look's void, edges and logo font */
+    LOOK: Record<string, any>;
   pick(name: string): 'derez' | 'shutters' | null;
   player(io: any): { start(anim: string): void; end(): void; readonly playing: string | null; readonly progress: number | null };
 };

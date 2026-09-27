@@ -3,13 +3,15 @@
 <meta name="robots" content="noindex">
 <!-- OBS browser source (https://www.trongateslegacy.com/obs/transition?obs=4455&obspw=…), 1920x1080, on top of every
      scene it should cover (the dock adds it: Scenes → Transitions). Invisible until a Trongates Stinger starts, then
-     draws Derez grid or Logo shutters in the current form's colour around the cut. demo=1 plays both in turn (previews).
+     draws Derez grid or Logo shutters in the current form's colour and look around the cut. demo=1 plays both in turn (previews).
      See obs/README.md, "Transitions". -->
 <script src="shared/theme.js"></script>
 <script src="shared/obsws.js"></script>
 <script src="shared/transition.js"></script>
 <style>
 @font-face { font-family: Orbitron; font-weight: 400 900; src: url(assets/fonts/orbitron.woff2) format("woff2"); }
+@font-face { font-family: "Cinzel Decorative"; font-weight: 900; src: url(assets/fonts/cinzel-decorative-900.woff2) format("woff2"); }
+@font-face { font-family: "Lilita One"; font-weight: 100 900; src: url(assets/fonts/lilita-one.woff2) format("woff2"); }
 html, body { margin: 0; background: transparent; overflow: hidden; }
 canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; }
 </style></head>
@@ -21,11 +23,11 @@ canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; }
   const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, X = window.TGLTransition;
   const player = X.player({
     now: () => performance.now(), frame: (fn) => requestAnimationFrame(fn), later: (fn, ms) => setTimeout(fn, ms), cancel: clearTimeout,
-    draw: (anim, p) => { ctx.clearRect(0, 0, W, H); X.ANIMS[TGL.reduced ? 'fade' : anim](ctx, p, W, H, TGL.FORMS[TGL.form].accent); },
+    draw: (anim, p) => { ctx.clearRect(0, 0, W, H); X.ANIMS[TGL.reduced ? 'fade' : anim](ctx, p, W, H, TGL.FORMS[TGL.form].accent, TGL.lookOf(TGL.form)); },
     clear: () => ctx.clearRect(0, 0, W, H),
   });
   window.TGLTransitionPlayer = player;           // (the tests read its progress)
-  document.fonts.load('900 40px Orbitron').catch(() => {});
+  ['900 40px Orbitron', '900 40px "Cinzel Decorative"', '400 40px "Lilita One"'].forEach((f) => document.fonts.load(f).catch(() => {}));
   // a Trongates Stinger starting (by its name), and every transition ending
   const port = params.get('obs');
   if (port) TGLObs.connect({ port: +port, password: params.get('obspw') || '', events: 16, onEvent: (type, d) => {

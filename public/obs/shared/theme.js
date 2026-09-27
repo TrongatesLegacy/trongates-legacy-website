@@ -17,6 +17,7 @@
 //   map=fishing:blobfish,tiara:princess   pin veadotube state names to forms (beats the automatic matching)
 //   veadodelay=300       wait this many ms after a veadotube switch before recolouring (if the model loads slowly)
 //   hide=chat,goal,music,discord,socials,ticker,art,rings   turn parts of a scene off (art=0 and music=0 still work)
+//   looks=princess:tron  give a form another look (tron, princess, blobfish); looks=0: every form keeps Tron's look
 //   guide=1              show labelled boxes with the exact position of every source to add in OBS
 (() => {
   const FORMS = {
@@ -67,6 +68,16 @@
   // Starting soon / BRB / Ending cycle through the forms themselves (<html data-cycle>), so they don't follow
   // veadotube unless ?cycle=0.
   const cycling = root.hasAttribute('data-cycle') && params.get('cycle') !== '0';
+  // Princess Trina and the Blobfish also have their own look (fonts, shapes, backgrounds: shared/overlay.css "Form looks"),
+  // keyed on <html data-look>. It's only ever worked out from the form, so it travels with it and needs no messages of
+  // its own. Set here straight away (the first frame is drawn in it); scene.js changes it afterwards, behind a blur.
+  // looks=princess:tron,red:blobfish (the dock's Form looks) gives a form another look; looks=0 keeps every form on Tron's.
+  const LOOKS = ['tron', 'princess', 'blobfish'];
+  const lookMap = { princess: 'princess', blobfish: 'blobfish' };
+  const looksParam = params.get('looks') || '';
+  if (looksParam === '0') for (const f of Object.keys(lookMap)) lookMap[f] = 'tron';
+  else for (const pair of looksParam.split(',')) { const [f, l] = pair.split(':').map((x) => (x || '').trim().toLowerCase()); if (valid(f) && LOOKS.includes(l)) lookMap[f] = l; }
+  const lookOf = (f) => lookMap[f] || 'tron';
   function paint(f) { if (!valid(f)) return; root.dataset.form = f; root.style.setProperty('--accent', FORMS[f].accent); }
 
   // at: when the form was picked. Pages hear a pick at slightly different times and pass it on to each other, so a
@@ -177,7 +188,7 @@
   function notifyStatus() { statusListeners.forEach((fn) => fn({ ...status, form })); }
 
   window.TGL = {
-    FORMS, formForState,
+    FORMS, formForState, lookOf,
     get form() { return form; },
     get breaker() { return { trips: breaker.trips, tripped: Date.now() < breaker.until }; },
     // returns when it was picked, for passing on (the dock's OBS broadcast)
@@ -195,6 +206,7 @@
   };
 
   root.dataset.form = form;
+  root.dataset.look = lookOf(form);
   root.style.setProperty('--accent', FORMS[form].accent);
   if (window.TGL.guide) root.classList.add('guide');
   if (window.TGL.reduced) root.classList.add('reduce-motion');
