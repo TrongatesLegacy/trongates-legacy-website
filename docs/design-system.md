@@ -17,7 +17,8 @@ brand reads as one thing across platforms.
 | `--live` | `#ff2740` | the on-air ring and LIVE badge. Deliberately not a form colour, so "live" reads the same on every form. |
 
 Accent tints are `--a70/--a40/--a20/--a10` (`color-mix` of the accent with transparent). `--accent` is a
-registered `@property`, so changing form animates the whole page's colour over 0.6s.
+registered `@property`, so changing form animates the whole page's colour over 0.8s (`--t`). Princess Trina and the
+Blobfish also tint `--bg`, `--panel`, `--line` and `--muted` and add `--accent2` (see "Form themes").
 
 Brand colours are used only on their own links: YouTube `#ff3b3b`, TikTok `#25f4ee`, Instagram `#ff5fa2`,
 X `#e8f4ff`, Facebook `#4c9bff`, Discord blurple `#8c9bff` icons, **Club `#4800ff`** (their exact brand colour,
@@ -46,9 +47,49 @@ whole site.
   The Tron card remembers the last armour worn, so switching to the blobfish and back returns red Tron if
   that's what they had.
 
+### Form themes (Princess Trina and the Blobfish)
+
+The Tron armours only recolour. Princess Trina and the Blobfish re-light the whole page around the same layout (all in
+`public/index.html`, "form themes"):
+
+| | Princess Trina, "Redeemed" | The Blobfish, "The Deep" |
+|---|---|---|
+| Colours | pink `#ff63b8`, lilac `#b48cff`, gold `#ffd98a`, on plum-black `#0a0510` | peach `#ffb36b`, glow-teal `#45d6c8`, on deep-sea `#020b11` |
+| Background | a wide, faint diamond lattice under a lilac glow; at most 3 gold twinkles at a time | the grid sinks: surface light, slanted rays, drifting caustics |
+| Light cycles become | glitter comets on the same grid paths | rising, wobbling bubbles |
+| Halo | a pearl string and an orbiting gold star | sonar pings and a slow sweep |
+| Floor | a ballroom checker | rippled seabed sand, drifting slowly |
+| Title font | Cinzel Decorative | Lilita One |
+| Title extras | a tiara lands on the T; a gold shine sweeps LEGACY, a ✦ twinkles, TRONGATES glows letter by letter | a line and hook drop by the Y; the letters float on a swell, bubbles escape |
+| Buttons, cards, frames | Royal: notched crest corners, double gold frames, ✦ corner ornaments | Chunky: rounded, a thick ledge under buttons, heavy rounded cards |
+| Ticker marks | hearts | bubbles |
+| Switch-in | sparkles in (a dissolve with glitter) | ripples in |
+| Also | no scanlines | bobs slower and deeper; no scanlines |
+
+What never changes: the layout, labels and the nav logo (Orbitron), body text (Chakra Petch), the Kick green (the Kick
+button keeps its colour in every style; only its shape follows), and the three Tron armours.
+
+**Nothing moves when the form changes.** It's measured by `tests/browser/form-themes.test.mjs` on desktop and phone.
+Any change to a form's look has to keep it passing:
+- **Hero title:** two fixed-height rows sized from Orbitron's size; the form's font is scaled (`--tscale`) to fill them.
+- **Other titles:** these can wrap (section titles, roster names, the footer sign-off), so they are laid out by their
+  Orbitron text. The form's font is drawn over it in the same box (`.twin`, a copy the script makes), and the Orbitron
+  copy goes transparent but stays the title for screen readers and search.
+- **Heavier edges:** drawn as shadows, never thicker borders.
+- **Roster cards:** every card keeps the room for "· active form".
+
+**Smooth switching:**
+- **Colours:** blend over one clock (`--t`, 0.8s): accent, second accent, background, panels, lines, grey text.
+- **Layers:** the background, halo and floor cross-fade in place.
+- **Particles:** light cycles, glitter and bubbles already on screen fade out where they are while the new kind arrives.
+- **Fonts and shapes** (`[data-look]`): swap while the elements that change are blurred out for 0.16s (the script
+  animates them, so their own transitions are untouched), then they blur back in.
+- **Reduced motion:** everything swaps at once.
+
 ## Typography
 
-- **Orbitron** 700/900 for display: titles, labels, buttons. Uppercase, tracked out.
+- **Orbitron** 700/900 for display: titles, labels, buttons. Uppercase, tracked out. (Princess Trina's and the Blobfish's
+  big titles use Cinzel Decorative and Lilita One instead; see "Form themes". Their labels stay Orbitron.)
 - **Chakra Petch** 400/600 for body text.
 - Both self-hosted (`public/assets/fonts/`, latin subset, ~31KB total) and preloaded. Google Fonts was removed
   because it render-blocked the first paint by over a second on mobile.
@@ -78,13 +119,14 @@ whole site.
   first blink. Other forms' art is preloaded in the background at low priority after load (skipped on
   data-saver), and hovering or touching a chip warms that form at high priority.
 
-### Form-switch glitch
+### Form-switch glitch (Tron)
 
 ~240ms: four 60ms steps where the character is cut into 10-26% horizontal slices, each showing the old or new
 artwork (the new one's share rises 25% → 50% → 75% → 92%), shifted sideways up to ±13px with a red/cyan
 drop-shadow split. The theme colour changes instantly; only the character glitches. The last glitch frame
 stays up until the new idle pose has decoded, so the old form never flashes back. Rapid clicks resolve to the
-last pick (`switchId`). Skipped for reduced motion.
+last pick (`switchId`). Skipped for reduced motion. Switching to Princess Trina or the Blobfish uses their own
+switch-in instead (six 60ms steps): a dissolve with gold sparkles, or 14 bands swaying as through water.
 
 ## Character sizing
 

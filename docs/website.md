@@ -57,7 +57,9 @@ Lighthouse on the live site: see the latest `scripts/lighthouse.sh` run; the bas
 ≥97 and desktop ≥98 with accessibility and best practices 100 (performance / accessibility / best practices); every SEO audit passes (the local run can't produce an SEO score, see
 verification.md). Keep it there:
 
-- Fonts self-hosted and preloaded (no render-blocking requests).
+- Fonts self-hosted and preloaded (no render-blocking requests). Princess Trina's and the Blobfish's title fonts
+  (Cinzel Decorative, Lilita One; ~15 and ~11KB, both OFL) download only when that form is picked, its chip is hovered,
+  or a returning visitor's saved form needs it (then preloaded before first paint).
 - Character art ships at 400w and 640w via `srcset`; phones get the 400w. The hero's first frame is
   preloaded with `fetchpriority=high`, chosen before first paint from the saved form.
 - **Nothing else downloads until the hero has painted.** The current form's blink/talk frames start 900ms
