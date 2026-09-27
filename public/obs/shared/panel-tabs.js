@@ -65,32 +65,45 @@
       if (!dock) return `<p class="hint">Tap a part to turn it off in the previews and the copied addresses.</p>${Object.keys(M.TYPES).map((k) => `<div class="scene"><div class="t"><b>${M.TYPES[k].title}</b>${k === 'game' ? '<span class="muted">(chat, goal, now playing and rings: the window layout)</span>' : ''}</div>${chips(k)}${grows(k)}</div>`).join('')}`;
       if (obs.state !== 'connected') return `<p class="hint">Not connected to OBS (${esc(obs.state)}). Turn on Tools → WebSocket Server Settings, and give this dock's URL <code>?obs=4455&amp;obspw=…</code>.</p>`;
       if (!obs.scan) return '<p class="hint">Looking through your scenes…</p>';
+      const acts = P.plan().filter((a) => a.k !== 'skip');
+      const s = seg('scenes', [['list', 'Scenes', acts.filter((a) => a.sec !== 'tx').length], ['tx', 'Transitions', acts.filter((a) => a.sec === 'tx').length]]);
+      return s.html + (s.cur === 'tx' ? transitions() : sceneList(acts));
+    }
+    // Scenes → Scenes: one row per Trongates overlay, summed up in a line; open one at a time (P.ui.open)
+    function sceneList(acts) {
       const rows = obs.scan.rows, ignored = obs.scan.scenes.filter((x) => !rows.some((r) => r.sceneName === x.name) && !obs.scan.containers.some((c) => c.group && c.name === x.name));
-      return `<div class="row"><span class="grow hint">Found by each scene's Trongates overlay. Tap a part to turn it off; nothing changes in OBS before Review &amp; apply.</span><button type="button" class="btn small" data-act="rescan">Rescan</button></div>
-        ${rows.length ? rows.map((r) => {
-          const key = r.container.uuid + ':' + r.item.sceneItemId, managed = (P.s.dock.map[key] || 'manage') === 'manage';
-          return `<div class="scene"><div class="t"><b>${esc(r.sceneName)}</b><span class="muted">→</span>
-            <select data-row="${key}"><option value="manage" ${managed ? 'selected' : ''}>${M.TYPES[r.kind].title}</option><option value="none" ${managed ? '' : 'selected'}>Don't manage</option></select>
+      const row = (r) => {
+        const key = r.container.uuid + ':' + r.item.sceneItemId, managed = (P.s.dock.map[key] || 'manage') === 'manage', open = P.ui.open === key;
+        const sc = P.s.scenes[r.kind], type = M.TYPES[r.kind], parts = M.partsOf(r.kind, layoutOf(r)), on = parts.filter((p) => !sc.off.includes(p)).length;
+        const colour = type.cycling ? (sc.cycle ? 'cycles forms' : 'one form') : (sc.follow ? 'follows veadotube' : 'fixed colour');
+        const sum = managed ? `${r.kind === 'game' && layoutOf(r) === 'window' ? 'window · ' : ''}${on} of ${parts.length} parts · ${colour}` : 'not managed';
+        const n = acts.filter((a) => a.input === r.input.uuid).length;
+        return `<div class="acc ${open ? 'open' : ''}"><div class="sum" data-open="${key}"><i class="pip ${managed ? (on < parts.length ? 'warn' : '') : 'off'}"></i><b>${esc(r.sceneName)}</b><span class="muted">${esc(sum)}</span>${n ? `<i class="n">${n}</i>` : ''}<span class="chev">▸</span></div>
+          <div class="body"><div class="t"><span class="muted">${esc(r.input.name)} →</span>
+            <select data-row="${key}"><option value="manage" ${managed ? 'selected' : ''}>${type.title}</option><option value="none" ${managed ? '' : 'selected'}>Don't manage</option></select>
             ${r.kind === 'game' && managed ? `<select data-set="scenes.game.layout"><option value="full" ${layoutOf(r) === 'full' ? 'selected' : ''}>full screen</option><option value="window" ${layoutOf(r) === 'window' ? 'selected' : ''}>window</option></select>` : ''}
             <button type="button" class="btn small" data-refresh="${r.input.uuid}" title="Reload this overlay">↻</button></div>
             ${r.via || r.shown.length ? `<span class="hint">${esc([r.via && 'in ' + r.via, r.shown.length && 'shown in ' + r.shown.join(', ')].filter(Boolean).join(' · '))}</span>` : ''}
-            ${managed ? chips(r.kind, layoutOf(r)) + grows(r.kind) : ''}</div>`;
-        }).join('') : '<p class="hint warn">No Trongates overlays found. Add a browser source with a …/obs/ address (the index\'s Copy buttons), then Rescan.</p>'}
+            ${managed ? chips(r.kind, layoutOf(r)) + grows(r.kind) : ''}</div></div>`;
+      };
+      return `<div class="row"><span class="grow hint">Found by each scene's Trongates overlay. Tap a scene to open it; nothing changes in OBS before Review &amp; apply.</span><button type="button" class="btn small" data-act="rescan">Rescan</button></div>
+        ${rows.length ? rows.map(row).join('') : '<p class="hint warn">No Trongates overlays found. Add a browser source with a …/obs/ address (the index\'s Copy buttons), then Rescan.</p>'}
         ${ignored.length ? `<p class="hint">Not Trongates (left alone): ${esc(ignored.map((x) => x.name).join(', '))}</p>` : ''}
-        <div class="row"><button type="button" class="btn small grow" data-act="refresh-all">Reload all Trongates sources</button></div>
-        ${transitions()}`;
+        <div class="row"><span class="grow">Name them <span class="muted">Trongates · …</span></span>${tog('dock.names', P.s.dock.names !== false)}</div>
+        <span class="hint">Renames each Trongates overlay after its scene type (e.g. Trongates · Just chatting), like the dock's other sources. A Stream Deck button that finds a source by its old name would need updating.</span>
+        <div class="row"><button type="button" class="btn small grow" data-act="refresh-all">Reload all Trongates sources</button></div>`;
     }
     // Scenes → Transitions: Derez grid and Logo shutters (transition.html), each a Stinger in OBS playing the hold video
     function transitions() {
       const T = P.s.dock.tx, tx = obs.scan.tx;
-      const head = `<h3>Transitions</h3><div class="row"><span class="grow">Trongates transitions <span class="muted">(Derez grid, Logo shutters)</span></span>${tog('dock.tx.on', T.on)}</div>`;
+      const head = `<div class="row"><span class="grow">Trongates transitions <span class="muted">(Derez grid, Logo shutters)</span></span>${tog('dock.tx.on', T.on)}</div>`;
       if (!T.on) return head + '<p class="hint">Scene switches covered by a Derez grid or Logo shutters in your form\'s colour, drawn by a Trongates source on top of your scenes.</p>';
       if (!tx) return head + '<p class="hint warn">Couldn\'t read OBS\'s transitions (Rescan).</p>';
       const status = (anim, label) => `<div class="row"><span class="grow">${label}</span>${tx[anim] ? `<span class="ok">✓ ${esc(tx[anim])}</span>` : '<span class="warn">not set up in OBS</span>'}</div>`;
       const missing = !tx.derez || !tx.shutters;
       const opt = (v, label, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${label}</option>`;
       const choices = (cur, leave) => opt('', leave, cur) + opt('derez', 'Derez grid', cur) + opt('shutters', 'Logo shutters', cur);
-      const scenes = P.transitionScenes();
+      const scenes = P.transitionScenes(), ours = P.txScenes();
       return `${head}<div class="card">${status('derez', 'Derez grid')}${status('shutters', 'Logo shutters')}
         <details ${missing ? 'open' : ''}><summary>Set up in OBS (once)</summary><p class="hint">1. Download the hold video (a 1.2 s invisible clip that holds the cut): copy its address below, open it in your browser and save it, e.g. in Documents.<br>
           2. In OBS's <b>Scene Transitions</b> dock press <b>+</b> → <b>Stinger</b>, name it <b>Trongates · Derez</b>, pick the hold video, transition point type <b>Time</b>, transition point <b>600</b> ms.<br>
@@ -98,8 +111,8 @@
           <button type="button" class="btn small" data-act="copy-hold">Copy the hold video's address</button></details></div>
         <div class="row"><span class="grow">Default transition</span><select data-set="dock.tx.default">${choices(T.default, 'Leave as it is')}</select></div>
         <span class="hint">Now: ${esc(tx.current || '?')}</span>
-        <h3>Per scene</h3><span class="hint">The transition used when switching to that scene.</span>
-        ${scenes.map((c) => `<div class="row"><span class="grow">${esc(c.name)}</span><select data-tx-scene="${esc(c.name)}">${opt('', 'Leave as it is', T.scenes[c.name] || '')}${opt('default', 'Default', T.scenes[c.name])}${opt('derez', 'Derez grid', T.scenes[c.name])}${opt('shutters', 'Logo shutters', T.scenes[c.name])}</select></div>`).join('')}
+        <h3>Per scene</h3><span class="hint">The transition used when switching to that scene (scenes with a Trongates overlay).</span>
+        ${ours.map((c) => `<div class="row"><span class="grow">${esc(c.name)}</span><select data-tx-scene="${esc(c.name)}">${opt('', 'Leave as it is', T.scenes[c.name] || '')}${opt('default', 'Default', T.scenes[c.name])}${opt('derez', 'Derez grid', T.scenes[c.name])}${opt('shutters', 'Logo shutters', T.scenes[c.name])}</select></div>`).join('')}
         <h3>Overlay on top of</h3><span class="hint">The scenes the transition covers. A switch to or from a scene without it isn't covered on that side.</span>
         <div class="chips">${scenes.map((c) => `<button type="button" class="chip" data-tx-overlay="${c.uuid}" aria-pressed="${!!P.overlayIn(c)}">${esc(c.name)}</button>`).join('')}</div>`;
     }
@@ -122,17 +135,21 @@
           <div class="row">${['botrix-chat', 'bare'].includes(x.kind) && !shared() ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="shared-chat">Use as shared chat</button>` : ''}${x.kind !== 'botrix-chat' ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="widget:${x.kind}">Adopt</button>` : ''}<button type="button" class="btn red" data-ignore="${x.input.uuid}">Ignore</button></div></div>`).join('')}` : ''}
         <p class="hint">Adding happens straight away, just above the scene's overlay (or at the top of a scene without one), centred. After that it's yours to move; settings changes reach it through Review &amp; apply.</p>`;
     }
+    // sub-tabs inside a tab: [key, label, changes waiting]; the pick is kept per tab (P.ui.sub)
+    function seg(tab, items) {
+      const cur = P.ui.sub[tab] && items.some(([k]) => k === P.ui.sub[tab]) ? P.ui.sub[tab] : items[0][0];
+      return { cur, html: `<div class="seg">${items.map(([k, label, n]) => `<button type="button" data-sub="${tab}:${k}" aria-pressed="${k === cur}">${label}${n ? `<i>${n}</i>` : ''}</button>`).join('')}</div>` };
+    }
     function tabWidgets() {
       const pasted = (P.s.linksMode || (M.isLink(P.s.links.chat) || M.isLink(P.s.links.goal) ? 'paste' : 'key')) === 'paste';
       const sh = dock && shared();
-      return `<h3>OBS WebSocket</h3>
-        <div class="row"><label class="field grow">Port<input type="number" min="1" max="65535" data-conn="port" value="${esc(conn.port)}" placeholder="4455"></label>
+      const parts = {
+        obs: () => `<div class="row"><label class="field grow">Port<input type="number" min="1" max="65535" data-conn="port" value="${esc(conn.port)}" placeholder="4455"></label>
           <label class="field grow">Password<input type="password" data-conn="pw" value="${esc(conn.pw)}" autocomplete="off" placeholder="${dock ? 'none' : 'optional'}"></label></div>
         <span class="hint ${dock ? (obs.state === 'connected' ? 'ok' : obs.state === 'wrong password' ? 'bad' : '') : ''}">${dock
           ? (obs.state === 'connected' ? 'Connected.' : obs.state === 'wrong password' ? 'Wrong password.' : 'OBS → Tools → WebSocket Server Settings: enable it; the port and password are there.') + ' Kept for every scene collection.'
-          : 'From OBS → Tools → WebSocket Server Settings. Goes into the dock address (and the scene addresses you copy).'}</span>
-        <h3>Botrix</h3>
-        <div class="row"><span class="grow">Links from</span><select data-set="linksMode"><option value="key" ${pasted ? '' : 'selected'}>Netlify key</option><option value="paste" ${pasted ? 'selected' : ''}>Pasted links</option></select></div>
+          : 'From OBS → Tools → WebSocket Server Settings. Goes into the dock address (and the scene addresses you copy).'}</span>`,
+        botrix: () => `<div class="row"><span class="grow">Links from</span><select data-set="linksMode"><option value="key" ${pasted ? '' : 'selected'}>Netlify key</option><option value="paste" ${pasted ? 'selected' : ''}>Pasted links</option></select></div>
         ${pasted ? `<label class="field">Chat widget link<input type="password" data-set="links.chat" value="${esc(P.s.links.chat)}" placeholder="https://botrix.live/widgets/chat/?bid=…" autocomplete="off"></label>
           <label class="field">Follower goal link<input type="password" data-set="links.goal" value="${esc(P.s.links.goal)}" placeholder="https://botrix.live/widgets/…" autocomplete="off"></label>`
         : `<label class="field">Netlify key (OBS_KEY)<input type="password" data-set="key" value="${esc(P.s.key)}" autocomplete="off"></label>
@@ -140,30 +157,31 @@
         <div class="card"><div class="row"><b class="grow">Shared chat</b>${tog('shared', P.s.shared)}</div>
           <span class="hint">One chat source in every scene, so they all show the same messages; the scenes stop loading their own.${sh ? ` <span class="ok">In ${sh.places.length} scene${sh.places.length === 1 ? '' : 's'}.</span>` : ''}</span>
           ${dock ? `<div class="row"><button type="button" class="btn grow" data-act="shared-now" ${obs.state === 'connected' ? '' : 'disabled'}>${sh ? 'Update now' : 'Set up now'}</button>${sh ? '<button type="button" class="btn red" data-act="shared-remove">Remove</button>' : ''}</div>` : '<span class="hint">In OBS, the dock creates and places it; by hand see obs/README.md.</span>'}</div>
-        <div class="row"><span class="grow">Goal follows the scene colour</span>${tog('goalColor', P.s.goalColor)}</div>
-        <h3>Now playing</h3>
-        <label class="field">Music app (blank: whatever Windows has in focus)<input type="text" data-set="music.app" value="${esc(P.s.music.app)}" placeholder="e.g. cider, applemusic, spotify"></label>
+        <div class="row"><span class="grow">Goal follows the scene colour</span>${tog('goalColor', P.s.goalColor)}</div>`,
+        music: () => `<label class="field">Music app (blank: whatever Windows has in focus)<input type="text" data-set="music.app" value="${esc(P.s.music.app)}" placeholder="e.g. cider, applemusic, spotify"></label>
         <div class="row"><span class="grow">Stay up while paused</span>${tog('music.always', P.s.music.always)}</div>
         <label class="field">SMTC Bridge address<input type="text" data-set="music.host" value="${esc(P.s.music.host)}" placeholder="${M.BRIDGE_DEFAULT}"></label>
         <label class="field">Cider API token (only if Cider asks for one)<input type="password" data-set="music.ciderToken" value="${esc(P.s.music.ciderToken)}" autocomplete="off" placeholder="Cider → Settings → Connectivity"></label>
-        <h3>veadotube</h3>
-        <label class="field">Address (veadotube → program settings → serving at)<input type="text" data-set="veado.addr" value="${esc(P.s.veado.addr)}" placeholder="${M.VEADO_DEFAULT}"></label>
+        ${dock ? `<details><summary>Troubleshooting</summary><p class="hint">SMTC Bridge's raw timeline for the followed player (position, start, end, seek range, last update):</p><code>${esc(music.raw || '(not reachable)')}</code>${music.cider ? `<p class="hint">Windows gives no timeline for this player. Cider's own API: <b class="${/^ok/.test(music.cider) ? 'ok' : 'bad'}">${esc(music.cider)}</b></p>` : ''}</details>` : ''}`,
+        veado: () => `<label class="field">Address (veadotube → program settings → serving at)<input type="text" data-set="veado.addr" value="${esc(P.s.veado.addr)}" placeholder="${M.VEADO_DEFAULT}"></label>
         <div class="row"><span class="grow">Colour buttons switch the avatar</span>${tog('veado.switch', P.s.veado.switch)}</div>
         <div class="row"><span class="grow">Tron button uses state</span><input type="text" data-set="veado.tron" value="${esc(P.s.veado.tron)}" style="width:110px"></div>
         <div class="row"><span class="grow">Wait before recolouring (ms)</span><input type="number" min="0" step="50" data-set="veado.delay" value="${+P.s.veado.delay || 0}" style="width:80px"></div>
-        ${!dock && Object.keys(P.s.veado.map).length ? `<span class="hint">State colours (set in the dock): ${esc(Object.entries(P.s.veado.map).map(([k, f]) => k + ' → ' + SHORT[f]).join(', '))}</span>` : ''}
-        <h3>Animations</h3>
+        ${!dock && Object.keys(P.s.veado.map).length ? `<span class="hint">State colours (set in the dock): ${esc(Object.entries(P.s.veado.map).map(([k, f]) => k + ' → ' + SHORT[f]).join(', '))}</span>` : ''}`,
+        more: () => `<h3>Animations</h3>
         <div class="row"><span class="grow">Motion</span><select data-set="motion"><option value="auto" ${P.s.motion === 'auto' ? 'selected' : ''}>automatic</option><option value="full" ${P.s.motion === 'full' ? 'selected' : ''}>always animate</option><option value="reduce" ${P.s.motion === 'reduce' ? 'selected' : ''}>reduced</option></select></div>
         ${!dock ? `<div class="row"><span class="grow">Sample messages and music in the previews</span>${tog('sample', P.s.sample)}</div>` : ''}
-        ${dock ? `<details><summary>Troubleshooting</summary><p class="hint">SMTC Bridge's raw timeline for the followed player (position, start, end, seek range, last update):</p><code>${esc(music.raw || '(not reachable)')}</code>${music.cider ? `<p class="hint">Windows gives no timeline for this player. Cider's own API: <b class="${/^ok/.test(music.cider) ? 'ok' : 'bad'}">${esc(music.cider)}</b></p>` : ''}
-          <p class="hint">Scene collection: ${esc(obs.collection || '?')} · settings saved per collection.</p></details>` : ''}
         <h3>Backup</h3>
         <div class="row"><button type="button" class="btn grow" data-act="copy-link">Copy settings link</button><button type="button" class="btn" data-act="import">Import</button></div>
         ${!dock ? '<div class="row"><button type="button" class="btn grow" data-act="copy-dock">Copy dock address</button><button type="button" class="btn red" data-act="clear">Clear</button></div>' : '<div class="row"><button type="button" class="btn grow" data-act="rebuild">Read settings back from OBS</button></div>'}
-        <div class="row"><button type="button" class="btn grow" data-act="copy-rescue">Copy rescue dock address</button></div>
-        <p class="hint">The rescue dock is a second, tiny dock (Docks → Custom Browser Docks) that refreshes every Trongates source, or puts every scene back on Tron, even if this dock is stuck.</p>
         ${P.importNote ? `<p class="hint">${esc(P.importNote)}</p>` : ''}
-        <p class="hint">Settings links carry your key and links: keep them private.</p>`;
+        <p class="hint">Settings links carry your key and links: keep them private.${dock ? ` Scene collection: ${esc(obs.collection || '?')} (settings are saved per collection).` : ''}</p>
+        <h3>Rescue dock</h3>
+        <div class="row"><button type="button" class="btn grow" data-act="copy-rescue">Copy rescue dock address</button></div>
+        <p class="hint">A second, tiny dock (Docks → Custom Browser Docks) that refreshes every Trongates source, or puts every scene back on Tron, even if this dock is stuck.</p>`,
+      };
+      const s = seg('widgets', [['obs', 'OBS'], ['botrix', 'Botrix'], ['music', 'Music'], ['veado', 'veado'], ['more', 'More']]);
+      return s.html + parts[s.cur]();
     }
     function tabLayout() {
       if (obs.state !== 'connected' || !obs.scan) return '<p class="hint">Connect to OBS first.</p>';

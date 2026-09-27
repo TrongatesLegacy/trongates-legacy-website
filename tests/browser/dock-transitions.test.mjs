@@ -40,10 +40,14 @@ test('turn transitions on, pick them, apply: OBS gets the overlay on top, the de
   const tab = await chrome.open(`${site.origin}/obs/control?obs=${port}&veado=127.0.0.1:1`, { width: 380, height: 1400 });
   await tab.until(`document.querySelector('[data-tab="scenes"]')`);
   await tab.click('[data-tab="scenes"]');
-  await tab.until(`document.querySelector('.tgl-panel [data-set="dock.tx.on"]')`, 8000, 'the Transitions section');
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="scenes:tx"]')`, 8000, 'the Transitions sub-tab');
+  await tab.click('.tgl-panel [data-sub="scenes:tx"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-set="dock.tx.on"]')`, 3000, 'the Transitions section');
   await tab.click('.tgl-panel [data-set="dock.tx.on"]');
   await tab.until(`document.querySelector('.tgl-panel select[data-tx-scene]')`, 3000, 'the transition settings');
   assert.match(await tab.eval(`document.querySelector('.tgl-panel').textContent`), /✓ Trongates · Derez[\s\S]*✓ Trongates · Shutters/);
+  // per scene: only the scenes with a Trongates overlay (not Game Captures)
+  assert.deepEqual(await tab.eval(`[...document.querySelectorAll('.tgl-panel select[data-tx-scene]')].map((s) => s.dataset.txScene)`), ['Just chatting', 'Be right back']);
   await select(tab, '.tgl-panel select[data-set="dock.tx.default"]', 'derez');
   await tab.until(`document.querySelector('.tgl-panel select[data-tx-scene="Be right back"]')`);
   await select(tab, '.tgl-panel select[data-tx-scene="Be right back"]', 'shutters');
@@ -73,7 +77,7 @@ test('turn transitions on, pick them, apply: OBS gets the overlay on top, the de
 test('taking a scene off the list removes the overlay from it; a source added above it later gets it moved back on top', async () => {
   const tab = await chrome.open(`${site.origin}/obs/control?obs=${port}&veado=127.0.0.1:1`, { width: 380, height: 1400 });
   await tab.click('[data-tab="scenes"]');
-  await tab.until(`document.querySelector('.tgl-panel [data-tx-overlay]')`, 8000);
+  await tab.until(`document.querySelector('.tgl-panel [data-tx-overlay]')`, 8000, 'the Transitions sub-tab, remembered');
   await tab.eval(`[...document.querySelectorAll('.tgl-panel [data-tx-overlay]')].find((b) => b.textContent === 'Game Captures').click(); 1`);
   // meanwhile a new source lands on top of Be right back
   const brb = obs.sceneNamed('Be right back');
@@ -94,7 +98,9 @@ test('an OBS that can\'t set per-scene transitions over its WebSocket: the dock 
   const p = (await old.listening).split(':')[1];
   const tab = await chrome.open(`${site.origin}/obs/control?obs=${p}&veado=127.0.0.1:1`, { width: 380, height: 1400 });
   await tab.click('[data-tab="scenes"]');
-  await tab.until(`document.querySelector('.tgl-panel [data-set="dock.tx.on"]')`, 8000);
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="scenes:tx"]')`, 8000);
+  await tab.click('.tgl-panel [data-sub="scenes:tx"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-set="dock.tx.on"]')`, 3000);
   if (!(await tab.eval(`document.querySelector('.tgl-panel [data-set="dock.tx.on"]').checked`))) await tab.click('.tgl-panel [data-set="dock.tx.on"]');
   await tab.until(`document.querySelector('.tgl-panel select[data-tx-scene="Be right back"]')`, 3000);
   await select(tab, '.tgl-panel select[data-tx-scene="Be right back"]', 'shutters');

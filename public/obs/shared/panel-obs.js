@@ -134,16 +134,41 @@
       const ov = sceneItems.find((i) => i.sceneItemId === r.item.sceneItemId), me = sceneItems.find((i) => i.sceneItemId === itemId);
       if (ov && me) await call('SetSceneItemIndex', { sceneName: r.container.name, sceneItemId: itemId, sceneItemIndex: ov.sceneItemIndex + (me.sceneItemIndex > ov.sceneItemIndex ? 1 : 0) });
     }
+    // Each managed overlay's name: "Trongates · <scene type>" (Game (window) for the window layout), numbered when
+    // there's more than one of a type. A name that's already right is kept; nothing takes a name OBS already has.
+    const overlayTitle = (r) => (r.kind === 'game' && layoutOf(r) === 'window' ? 'Game (window)' : M.TYPES[r.kind].title);
+    function overlayNames() {
+      const rows = [], mine = new Set();
+      for (const r of managedRows()) if (!mine.has(r.input.uuid)) { mine.add(r.input.uuid); rows.push(r); }
+      const taken = new Set(obs.scan.scenes.map((x) => x.name));
+      for (const c of obs.scan.containers) for (const it of c.items) if (!mine.has(it.sourceUuid)) taken.add(it.sourceName);
+      for (const i of obs.scan.inputs.values()) if (!mine.has(i.uuid)) taken.add(i.name);
+      const out = new Map(), base = (r) => `Trongates · ${overlayTitle(r)}`, fits = (r, n) => n === base(r) || new RegExp(`^${base(r).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\d+$`).test(n);
+      for (const r of rows) if (fits(r, r.input.name) && !taken.has(r.input.name)) { out.set(r.input.uuid, r.input.name); taken.add(r.input.name); }
+      for (const r of rows) {
+        if (out.has(r.input.uuid)) continue;
+        let name = base(r), n = 2; while (taken.has(name)) name = `${base(r)} ${n++}`;
+        taken.add(name); out.set(r.input.uuid, name);
+      }
+      return out;
+    }
+    // the scenes with a Trongates scene overlay (for per-scene transitions)
+    const txScenes = () => transitionScenes().filter((c) => managedRows().some((r) => r.sceneName === c.name));
     function plan() {
+      /** @type {{ k: string, label: string, run?: () => any, reload?: string, input?: string, sec?: string }[]} */
       const acts = [];
       if (!obs.scan) return acts;
-      // 1. the overlays' options
+      // 1. the overlays' options, and their names (Trongates · <scene type>) unless that's turned off
       const seen = new Set();
       for (const r of managedRows()) {
         if (seen.has(r.input.uuid)) continue; seen.add(r.input.uuid);
         const want = M.withOptions(r.input.url, optsFor(r.kind, layoutOf(r)));
-        if (!M.sameUrl(want, r.input.url)) acts.push({ k: 'update', label: `${r.sceneName} overlay (${r.input.name}): ${changes(r.input.url, want)}`, reload: r.input.name,
+        if (!M.sameUrl(want, r.input.url)) acts.push({ k: 'update', input: r.input.uuid, label: `${r.sceneName} overlay (${r.input.name}): ${changes(r.input.url, want)}`, reload: r.input.name,
           run: () => call('SetInputSettings', { inputUuid: r.input.uuid, inputSettings: { url: want } }) });
+      }
+      if (P.s.dock.names !== false) for (const [uuid, name] of overlayNames()) {
+        const inp = obs.scan.inputs.get(uuid);
+        if (inp.name !== name) acts.push({ k: 'rename', input: uuid, label: `"${inp.name}" → "${name}"`, run: () => call('SetInputName', { inputUuid: uuid, newInputName: name }) });
       }
       // 2. the shared chat
       const link = M.linkFor(P.s, 'chat', env.links), sh = shared();
@@ -196,7 +221,7 @@
       }
       // 4. transitions (Scenes → Transitions): the overlay on top of the scenes picked, the default transition, each
       // scene's override, and the current Trongates Stinger cutting in the middle
-      const T = P.s.dock.tx, tx = obs.scan.tx;
+      const T = P.s.dock.tx, tx = obs.scan.tx, txFrom = acts.length;
       if (T.on && tx) {
         const want = transitionScenes().filter((c) => overlayIn(c));
         const ov = obs.scan.widgets.find((w) => w.kind === 'transition' && w.input.tag);
@@ -224,7 +249,7 @@
           if (!n) acts.push({ k: 'skip', label: `Default transition ${LABEL[T.default]}: add its Stinger in OBS first (Scenes → Transitions → Set up)` });
           else if (tx.current !== n) acts.push({ k: 'update', label: `Default transition: ${n}`, run: () => call('SetCurrentSceneTransition', { transitionName: n }) });
         }
-        for (const sc of obs.scan.scenes) {
+        for (const sc of txScenes()) {
           const choice = T.scenes[sc.name]; if (!choice) continue;                    // leave it as it is
           const n = choice === 'default' ? null : nameFor(choice);
           if (choice !== 'default' && !n) { acts.push({ k: 'skip', label: `${sc.name}: ${LABEL[choice]} isn't set up in OBS yet` }); continue; }
@@ -237,11 +262,13 @@
           acts.push({ k: 'update', label: `${tx.current}: cut at 600 ms, the middle of the hold video`,
             run: () => call('SetCurrentSceneTransitionSettings', { transitionSettings: { tp_type: 0, transition_point: 600 } }) });
       }
+      for (const a of acts.slice(txFrom)) a.sec = 'tx';
       // 5. lock or unlock the dock's own items
       // (only where the dock put them: in Trongates scenes, or added from the Sources tab; not your own scenes)
       const ours = new Set(managedRows().map((r) => r.container.uuid));
       if (obs.scan) for (const w of obs.scan.widgets) if (w.input.tag) for (const p of w.places) if ((ours.has(p.container.uuid) || w.kind !== 'shared') && !!p.item.sceneItemLocked !== !!P.s.dock.lock)
         acts.push({ k: 'lock', label: `${P.s.dock.lock ? 'Lock' : 'Unlock'} ${w.input.name} in ${p.container.name}`, run: () => call('SetSceneItemLocked', { sceneName: p.container.name, sceneItemId: p.item.sceneItemId, sceneItemLocked: !!P.s.dock.lock }) });
+      for (const a of acts) a.sec = a.sec || 'scenes';
       return acts;
     }
     const pendingCount = () => plan().filter((a) => a.k !== 'skip').length;
@@ -299,6 +326,6 @@
     }
     async function tagInput(inp, tag) { await call('SetInputSettings', { inputUuid: inp.uuid, inputSettings: { [TAG]: tag } }); await rescan(); }
 
-    return { connectObs, call, reconnectObs, rescan, managedRows, layoutOf, partOn, optsFor, widgetUrl, shared, chatRows, sharedTransform, sameTransform, plan, pendingCount, placeSharedLive, review, runReview, currentScene, addWidget, tagInput, transitionScenes, overlayIn };
+    return { connectObs, call, reconnectObs, rescan, managedRows, layoutOf, partOn, optsFor, widgetUrl, shared, chatRows, sharedTransform, sameTransform, plan, pendingCount, placeSharedLive, review, runReview, currentScene, addWidget, tagInput, transitionScenes, overlayIn, txScenes };
   };
 })();

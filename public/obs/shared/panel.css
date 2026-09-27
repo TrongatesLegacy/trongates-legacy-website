@@ -55,3 +55,21 @@
 .tgl-panel .k-create, .tgl-panel .k-add { color: var(--ok); } .tgl-panel .k-update, .tgl-panel .k-place, .tgl-panel .k-lock { color: var(--accent); } .tgl-panel .k-remove { color: var(--bad); } .tgl-panel .k-skip { color: var(--muted); }
 .tgl-panel details summary { cursor: pointer; color: var(--muted); font-size: 12px; }
 .tgl-panel code { font: 11.5px ui-monospace, monospace; color: #cfe3f5; overflow-wrap: anywhere; }
+/* sub-tabs inside a tab */
+.tgl-panel .seg { display: flex; gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 7px; background: #070d18; }
+.tgl-panel .seg button { flex: 1; padding: 6px 4px; border: 0; border-radius: 5px; background: none; color: var(--muted); font: 700 9.5px/1 Orbitron, sans-serif; letter-spacing: .05em; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+.tgl-panel .seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, #070d18); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent); }
+.tgl-panel .seg button i, .tgl-panel .acc .n { font-style: normal; display: inline-block; min-width: 14px; padding: 1px 3px; margin-left: 4px; border-radius: 7px; background: var(--warn); color: #000; font: 700 9px/1.2 system-ui; text-align: center; }
+/* collapsing rows (Scenes → Scenes): a one-line summary, the rest when open */
+.tgl-panel .acc { border: 1px solid var(--line); border-radius: 6px; background: rgba(7,13,24,.9); }
+.tgl-panel .acc > .sum { display: flex; align-items: center; gap: 7px; padding: 8px 9px; cursor: pointer; min-width: 0; }
+.tgl-panel .acc > .sum b { font-size: 12.5px; flex: none; }
+.tgl-panel .acc > .sum .muted { font-size: 11.5px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tgl-panel .acc > .sum .chev { color: var(--muted); font-size: 12px; transition: transform .15s; }
+.tgl-panel .acc.open > .sum .chev { transform: rotate(90deg); color: var(--accent); }
+.tgl-panel .acc > .body { display: none; padding: 0 9px 9px; gap: 6px; grid-template-columns: minmax(0, 1fr); }
+.tgl-panel .acc.open > .body { display: grid; }
+.tgl-panel .acc .t { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tgl-panel .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; box-shadow: 0 0 6px var(--accent); }
+.tgl-panel .pip.off { background: #4a5b70; box-shadow: none; } .tgl-panel .pip.warn { background: var(--warn); box-shadow: none; }
+.tgl-panel .k-rename { color: var(--accent); }

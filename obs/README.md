@@ -355,7 +355,14 @@ sees, and the connections.
 your own scene names don't matter (*Intermission → Just chatting*), including overlays inside groups and nested
 scenes. Per scene: *Don't manage* to leave it alone, Game's layout (full screen or window), ↻ to reload the
 overlay, and chips to turn parts off (Chat, Goal, Now playing, Discord, Social links, Socials strip, Character, Rings)
-and *Cycles forms* / *Follows veadotube*. Scenes without a Trongates overlay are listed and left alone.
+and *Cycles forms* / *Follows veadotube*. Scenes without a Trongates overlay are listed and left alone. Two sub-tabs:
+**Scenes** lists each one on a single line (what it is, how many parts are on, its colour; yellow when a part is off,
+a number when changes are waiting); tap one to open it (one at a time). **Name them** (on to start) renames each
+Trongates overlay after its scene type, like the dock's own sources: *Trongates · Just chatting*, *Trongates · Game
+(window)*, numbered if there are two of a type, never a name OBS already uses, a name that's already right kept. A
+Stream Deck button that finds a source by its old name needs updating after a rename; turn it off to keep your names.
+**Transitions** is the transitions section (below); its per-scene choices list only scenes with a Trongates overlay.
+The Widgets tab has sub-tabs too: OBS, Botrix, Music, veado, More (motion, backup, the rescue dock).
 
 **Sources:** add our widgets as their own OBS sources to the current scene (or any): the chat box, follower goal,
 now playing, and the shared chat. *Add existing* reuses the same source (one browser in several scenes); *New copy*

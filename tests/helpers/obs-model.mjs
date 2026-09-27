@@ -28,6 +28,11 @@ export function obsModel(net, addr, scenes, { collection = 'Test', transitions =
     GetSceneItemList: (d) => ({ sceneItems: find(d).items.map(itemOut) }),
     GetGroupSceneItemList: () => ({ sceneItems: [] }),
     GetInputList: (d) => ({ inputs: [...inputs.values()].filter((i) => !d.inputKind || i.kind === d.inputKind).map((i) => ({ inputName: i.name, inputUuid: i.uuid, inputKind: i.kind })) }),
+    SetInputName: (d) => {
+      const inp = inputs.get(d.inputUuid);
+      if ([...inputs.values()].some((i) => i !== inp && i.name === d.newInputName) || sceneList.some((s) => s.name === d.newInputName)) throw new Error('a source with that name already exists');
+      inp.name = d.newInputName; o.broadcast('InputNameChanged', { inputUuid: inp.uuid, inputName: inp.name });
+    },
     GetInputSettings: (d) => ({ inputSettings: { ...inputs.get(d.inputUuid).settings }, inputKind: inputs.get(d.inputUuid).kind }),
     SetInputSettings: (d) => { const inp = inputs.get(d.inputUuid); Object.assign(inp.settings, d.inputSettings); o.broadcast('InputSettingsChanged', { inputUuid: inp.uuid, inputName: inp.name }); },
     SetSceneItemTransform: (d) => { Object.assign(item(d).transform, d.sceneItemTransform); },

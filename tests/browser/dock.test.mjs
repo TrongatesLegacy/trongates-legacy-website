@@ -60,6 +60,9 @@ test('Review & apply: the overlays get their options once, then OBS matches and 
   await tab.until(`/OBS matches/.test(document.querySelector('.tgl-panel .ft span')?.textContent || '')`, 8000, 'OBS matches these settings');
   const sets = obs.count('SetInputSettings');
   for (const inp of obs.inputs.values()) if (inp.kind === 'browser_source') assert.match(inp.settings.url, new RegExp(`obs=${obsAddr.split(':')[1]}`), inp.name);
+  // and named after their scene type, like the dock's own sources
+  const names = [...obs.inputs.values()].filter((i) => i.kind === 'browser_source').map((i) => i.name).sort();
+  assert.deepEqual(names, ['Trongates · Be right back', 'Trongates · Game (window)', 'Trongates · Just chatting']);
   await sleep(1200);                               // its own InputSettingsChanged events must not set off more changes
   assert.equal(obs.count('SetInputSettings'), sets, 'the dock kept changing OBS after applying');
   assert.match(await footer(tab), /OBS matches/);
@@ -74,7 +77,7 @@ test('Tidy layout fixes what the checks find, and afterwards finds nothing', asy
   await tab.until(`document.querySelector('[data-act="apply"]:not([disabled])')`);
   await tab.click('[data-act="apply"]');
   await tab.until(`!document.querySelector('.review') && document.querySelector('[data-act="tidy"][disabled]')`, 8000, 'nothing left to tidy');
-  const game = obs.scenes.find((s) => s.name === 'Game').items.find((i) => /overlay/.test(i.input.name));
+  const game = obs.scenes.find((s) => s.name === 'Game').items.find((i) => /\/obs\/game/.test(i.input.settings.url || ''));
   assert.equal(game.transform.positionX, 0); assert.equal(game.input.settings.fps_custom, true);
   await tab.close();
 });

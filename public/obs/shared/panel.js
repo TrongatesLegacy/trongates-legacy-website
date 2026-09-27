@@ -94,7 +94,7 @@
     // tx: the transitions (on, default, each scene's pick by name, the overlay's scenes by uuid)
     const newTx = () => ({ on: false, default: '', scenes: {}, overlay: {} });
     const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 880, game: 580 }, tx: newTx() });
-    const fixDock = (d) => { d = d || newDock(); d.tx = { ...newTx(), ...(d.tx || {}) }; d.avatar = { chatting: 880, game: 580, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if ([454, 534].includes(d.avatar.game)) d.avatar.game = 580; return d; };   // 820, 454 and 534: earlier defaults
+    const fixDock = (d) => { d = d || newDock(); d.tx = { ...newTx(), ...(d.tx || {}) }; if (d.names === undefined) d.names = true; d.avatar = { chatting: 880, game: 580, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if ([454, 534].includes(d.avatar.game)) d.avatar.game = 580; return d; };   // 820, 454 and 534: earlier defaults
     s.dock = fixDock(s.dock);
     const save = () => { write(storeKey, s); onChange(s, env.links); refresh(); };
     const set = (path, value) => { const ks = path.split('.'); let o = s; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = value; save(); };
@@ -168,8 +168,10 @@
 
     // ---------------------------------------------------------------- the other parts, sharing this panel as P:
     // panel-obs.js (OBS: scan, Review & apply, Sources), panel-layout.js (Tidy, Measure avatar), panel-tabs.js (drawing)
+    // ui: which sub-tab each tab shows, and which scene row is open (kept in this browser)
+    const ui = { sub: read('tgl-panel-sub') || {}, open: read('tgl-panel-open') || '' };
     const P = { M, TGL, dock, params, el, conn, obs, env, music, veado, esc, SHORT, FORM_KEYS, TAG, SHARED_NAME,
-      read, write, obsCfg, newDock, fixDock, save, set, checkKey, refresh };
+      read, write, obsCfg, newDock, fixDock, save, set, checkKey, refresh, ui };
     const vars = { s: [() => s, (v) => { s = v; }], tab: [() => tab, (v) => { tab = v; }], storeKey: [() => storeKey, (v) => { storeKey = v; }],
       reviewing: [() => reviewing, (v) => { reviewing = v; }], importNote: [() => importNote, (v) => { importNote = v; }] };
     for (const [k, [get, put]] of Object.entries(vars)) Object.defineProperty(P, k, { get, set: put });
@@ -198,8 +200,13 @@
     };
     const link = (page) => new URL(page, location.href).href.split('#')[0] + '#s=' + M.pack({ ...s, dock: undefined });
     el.addEventListener('click', async (e) => {
-      const b = /** @type {HTMLElement} */ (e.target).closest('button'); if (!b || !el.contains(b)) return;
+      const target = /** @type {HTMLElement} */ (e.target);
+      // a scene row's summary line: open it (and close the others), or close it
+      const row = /** @type {HTMLElement} */ (target.closest('[data-open]'));
+      if (row && el.contains(row) && !target.closest('select, input')) { ui.open = ui.open === row.dataset.open ? '' : row.dataset.open; write('tgl-panel-open', ui.open); refresh(); return; }
+      const b = target.closest('button'); if (!b || !el.contains(b)) return;
       const d = b.dataset;
+      if (d.sub) { const [tb, k] = d.sub.split(':'); ui.sub[tb] = k; write('tgl-panel-sub', ui.sub); refresh(); return; }
       if (d.tab) { tab = d.tab; write('tgl-panel-tab', tab); refresh(); return; }
       if (d.form) { choose(d.form, d.state); return; }
       if (d.part) { const [k, p] = d.part.split(':'), off = s.scenes[k].off; s.scenes[k].off = off.includes(p) ? off.filter((x) => x !== p) : [...off, p]; save(); return; }
