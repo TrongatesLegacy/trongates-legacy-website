@@ -270,9 +270,10 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3Cg fill='none' stroke='%23ffb36b' stroke-opacity='.38' stroke-width='2'%3E%3Cpath d='M0 20 Q40 8 80 20 T160 20'/%3E%3Cpath d='M0 60 Q40 48 80 60 T160 60'/%3E%3C/g%3E%3Cpath d='M0 40 Q40 30 80 40 T160 40' fill='none' stroke='%2345d6c8' stroke-opacity='.18' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / 220px 110px; }
 
 /* the stage: Princess wears a pearl string with a gold star orbiting; the Blobfish's rings turn to sonar */
-.stage .ring svg { transition: opacity var(--t) ease; }
+.stage .ring > svg { transition: opacity var(--t) ease, visibility 0s; }
 .stage .ring > .lk-p, .stage .ring > .lk-b { position: absolute; inset: 0; }
-[data-look="princess"] .stage .r2, [data-look="blobfish"] .stage :is(.r1, .r2) { opacity: 0; }
+/* Tron's three rings give way to the look's own (they spin, so they fade and then stop being drawn) */
+:is([data-look="princess"], [data-look="blobfish"]) .stage .ring > svg { opacity: 0; visibility: hidden; transition: opacity var(--t) ease, visibility 0s var(--t); }
 .stage .ring .p1 { animation: spin 40s linear infinite; } .stage .ring .p1 circle { stroke: #ffe9f5; stroke-width: 2.6; stroke-dasharray: 0 7.2; stroke-linecap: round; filter: drop-shadow(0 0 2px var(--accent)); }
 .stage .ring .p2 { animation: spin 9s linear infinite; } .stage .ring .p2 path { fill: #ffd98a; stroke: none; filter: drop-shadow(0 0 4px #ffd98a); }
 .stage .sonar, .stage .sweep { position: absolute; inset: 8%; border-radius: 50%; }

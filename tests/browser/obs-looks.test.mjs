@@ -177,3 +177,20 @@ test('a look change stays light for the GPU: a look that\'s off draws nothing, a
   assert.equal(most, 1, `${most} floor-sized layers (4 Mpx or more) at once during the changes`);
   await tab.close();
 });
+
+// Princess Trina's stage wears her pearls and star, the Blobfish's its sonar: none of Tron's rings may stay on show
+test('the stage in Princess Trina\'s and the Blobfish\'s looks keeps none of Tron\'s rings', async () => {
+  for (const [scene, form] of [['chatting', 'princess'], ['chatting', 'blobfish'], ['starting', 'princess'], ['starting', 'blobfish']]) {
+    const tab = await chrome.open(`${site.origin}/obs/${scene}?noveado=1&cycle=0&form=cyan`, HD);
+    await tab.eval('document.fonts.ready.then(() => 1)');
+    await pick(tab, form, form);
+    await tab.until(`!document.documentElement.dataset.was`, 2000, 'the cross-fade');
+    await new Promise((r) => setTimeout(r, 900));      // the rings' own fade
+    const shown = await tab.eval(`[...document.querySelectorAll('.stage .ring > svg')].filter((e) => getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > 0).map((e) => e.getAttribute('class'))`);
+    assert.deepEqual(shown, [], `${scene}, ${form}: Tron's rings still on show`);
+    await pick(tab, 'cyan', 'tron');
+    await new Promise((r) => setTimeout(r, 900));
+    assert.equal(await tab.eval(`[...document.querySelectorAll('.stage .ring > svg')].filter((e) => +getComputedStyle(e).opacity > 0 && getComputedStyle(e).visibility !== 'hidden').length`), 3, `${scene}: Tron's rings back`);
+    await tab.close();
+  }
+});
