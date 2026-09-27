@@ -61,7 +61,10 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
   clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); }
 .side code { overflow-wrap: anywhere; }
 .url .big { border-color: #cfe3f5; color: #cfe3f5; }
-.viewer { position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; background: rgba(3,6,13,.94); backdrop-filter: blur(6px); }
+/* the large view covers the page solidly, and the previews behind it stop drawing while it's open: a blur over seven live
+   scenes, all changing form at once, overloaded the GPU (the view flickered and showed scraps of the page behind) */
+.viewer { position: fixed; inset: 0; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; background: #03060d; }
+.viewing .main-col { visibility: hidden; }
 .viewer.open { display: flex; }
 .viewer .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; width: var(--vw); }
 .viewer h2 { flex: 1; font: 700 20px/1 Orbitron; letter-spacing: .08em; text-transform: uppercase; }
@@ -189,13 +192,22 @@ footer code { color: #cfe3f5; }
   const ro = new ResizeObserver((entries) => entries.forEach((e) => e.target.style.setProperty('--s', e.contentRect.width / e.target.dataset.w)));
   document.querySelectorAll('.card .shot').forEach((el) => ro.observe(el));
 
+  // A colour pick recolours the previews where they are (TGL.set inside each, same origin) instead of reloading them all:
+  // a reload blacked every preview out for a moment and restarted each sample Botrix widget (Botrix then refused some).
+  // Anything else that changes a preview's address reloads it.
+  const noForm = (src) => src.replace(/([?&])form=[^&]*(&|$)/, (m, a, b) => (b ? a : '')).replace(/[?&]$/, '');
+  const show = (f, src) => {
+    const base = noForm(src), win = /** @type {any} */ (f.contentWindow);
+    if (f.getAttribute('src') && f.dataset.base === base) { if (win && win.TGL && win.TGL.form !== form) win.TGL.set(form); return; }
+    f.dataset.base = base; f.src = src;
+  };
   let pending = 0;
   const load = () => {
     cancelAnimationFrame(pending);
     pending = requestAnimationFrame(() => {
       document.querySelectorAll('#grid .card, #wgrid .card').forEach((a) => {
         const c = byId(a.dataset.id), src = previewSrc(c);
-        const f = a.querySelector('iframe'); if (f.getAttribute('src') !== src) f.src = src;
+        show(a.querySelector('iframe'), src);
         a.href = obsUrl(c);
         a.querySelector('code').textContent = new URL(c.file, location.href).href + (c.layout === 'window' ? '?layout=window' : c.id === 'bare' ? '?bare=1' : '') + extras(c);
       });
@@ -223,14 +235,14 @@ footer code { color: #cfe3f5; }
     const c = CARDS[current];
     document.getElementById('v-title').textContent = c.title;
     document.getElementById('v-open').href = obsUrl(c);
-    const src = previewSrc(c, vGuide.checked); if (vFrame.getAttribute('src') !== src) vFrame.src = src;
+    show(vFrame, previewSrc(c, vGuide.checked));
   };
   let guideTouched = false;
   function openViewer(id) {
     if (!guideTouched) vGuide.checked = !(s.key || M.pasted(s, 'chat') || M.pasted(s, 'goal'));
-    current = CARDS.findIndex((c) => c.id === id); fit(); showScene(); viewer.classList.add('open'); document.getElementById('v-close').focus();
+    current = CARDS.findIndex((c) => c.id === id); fit(); showScene(); viewer.classList.add('open'); document.body.classList.add('viewing'); document.getElementById('v-close').focus();
   }
-  const closeViewer = () => { viewer.classList.remove('open'); vFrame.removeAttribute('src'); };
+  const closeViewer = () => { viewer.classList.remove('open'); document.body.classList.remove('viewing'); vFrame.removeAttribute('src'); delete vFrame.dataset.base; };
   const step = (d) => { current = (current + d + CARDS.length) % CARDS.length; showScene(); };
   document.getElementById('v-close').onclick = closeViewer;
   document.getElementById('v-prev').onclick = () => step(-1);

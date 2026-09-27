@@ -194,3 +194,26 @@ test('a cycling scene\'s character never disappears while it switches, for a sin
   noErrors(tab, 'switching');
   await tab.close();
 });
+
+// The index draws every scene at once. A colour pick used to reload every preview (each blacked out, and every sample
+// Botrix widget restarted until Botrix refused some); and the large view blurred the live page behind it, so seven scenes
+// changing form at once flickered it. Now a pick recolours the previews in place, and the grid rests behind the large view.
+test('OBS index: a colour pick recolours the previews without reloading them, and the large view pauses the grid behind it', async () => {
+  const tab = await chrome.open(`${site.origin}/obs/`, { width: 1440, height: 900 });
+  await tab.until(`[...document.querySelectorAll('#grid iframe')].every((f) => f.contentWindow && f.contentWindow.TGL && f.contentDocument.readyState === 'complete')`, 10000, 'the previews');
+  await tab.eval(`window.__loads = 0; document.querySelectorAll('#grid iframe').forEach((f) => f.addEventListener('load', () => __loads++)); 1`);
+  await tab.eval(`document.querySelector('.tgl-panel [data-form="princess"]').click(); 1`);
+  await tab.until(`[...document.querySelectorAll('#grid iframe')].every((f) => f.contentWindow.TGL.form === 'princess')`, 4000, 'every preview on Princess');
+  await sleep(500);
+  assert.equal(await tab.eval('__loads'), 0, 'previews reloaded');
+  // anything else about a preview's address still reloads it
+  await tab.click('#guide');
+  await tab.until('__loads >= 6', 6000, 'the previews to reload with source positions');
+  await tab.eval(`document.querySelector('#grid [data-big]').click(); 1`);
+  assert.equal(await tab.eval(`getComputedStyle(document.querySelector('.main-col')).visibility`), 'hidden', 'the grid behind the large view');
+  assert.equal(await tab.eval(`getComputedStyle(document.getElementById('viewer')).backdropFilter`), 'none');
+  await tab.eval(`document.getElementById('v-close').click(); 1`);
+  assert.equal(await tab.eval(`getComputedStyle(document.querySelector('.main-col')).visibility`), 'visible');
+  noErrors(tab, 'the index');
+  await tab.close();
+});

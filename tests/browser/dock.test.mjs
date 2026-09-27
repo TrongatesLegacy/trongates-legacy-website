@@ -122,7 +122,8 @@ test('every tab of the dock and the OBS index draws without errors', async () =>
   await index.click('.tgl-panel [data-tab="live"]');
   await index.until(`document.querySelector('.tgl-panel button[data-form="princess"]')`);
   await index.click('.tgl-panel button[data-form="princess"]');
-  await index.until(`[...document.querySelectorAll('#grid iframe')].some((f) => /form=princess/.test(f.getAttribute('src') || ''))`, 3000, 'the previews recoloured');
+  // (recoloured where they are, or loaded on Princess if they hadn't loaded yet)
+  await index.until(`[...document.querySelectorAll('#grid iframe')].some((f) => f.contentWindow?.TGL?.form === 'princess' || /form=princess/.test(f.getAttribute('src') || ''))`, 5000, 'the previews recoloured');
   assert.deepEqual(index.errors, []);
   await index.close();
 });

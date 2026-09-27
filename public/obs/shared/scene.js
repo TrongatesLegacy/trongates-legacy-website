@@ -452,6 +452,8 @@
   // a fade, not the website's blur: a blur is a new filter layer for the GPU at the moment it's busiest (every scene and
   // every preview on the index changing at once)
   const FADE = [{ opacity: 1 }, { opacity: 0 }];
+  // the floor only dims while its pattern changes: fading it out with everything else read as the scene flashing to black
+  const DIM = [{ opacity: 1 }, { opacity: .35 }], outOf = (el) => (el.matches('.floor') ? DIM : FADE);
   let lookWant = root.dataset.look, lookBusy = false, wasTimer = 0;
   async function setLook(look) {
     lookWant = look;
@@ -459,7 +461,7 @@
     lookBusy = true;
     const quick = TGL.reduced || document.hidden;
     const els = quick ? [] : $$('.title, .ticker, .floor');
-    const gone = els.map((el) => el.animate(FADE, { duration: 160, easing: 'ease-in', fill: 'forwards' }));
+    const gone = els.map((el) => el.animate(outOf(el), { duration: 160, easing: 'ease-in', fill: 'forwards' }));
     if (!quick) await new Promise((r) => setTimeout(r, 160));
     while (root.dataset.look !== lookWant) {      // another pick may arrive while its font loads: follow it
       const want = lookWant;
@@ -471,7 +473,7 @@
       if (quick) delete root.dataset.was;
       else { root.dataset.was = was; wasTimer = setTimeout(() => delete root.dataset.was, 850); }
     }
-    els.forEach((el) => el.animate([...FADE].reverse(), { duration: 240, easing: 'ease-out' }));
+    els.forEach((el) => el.animate([...outOf(el)].reverse(), { duration: 240, easing: 'ease-out' }));
     gone.forEach((a) => a.cancel());
     lookBusy = false;
   }
