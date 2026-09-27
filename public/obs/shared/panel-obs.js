@@ -12,13 +12,29 @@
       obs.client = TGLObs.connect({ port: +conn.port || 4455, password: conn.pw,
         onStatus: ({ state }) => { obs.state = state; if (state === 'connected') rescan(); refresh(); },
         onEvent: (type) => {
-          if (/^(SceneItemCreated|SceneItemRemoved|SceneCreated|SceneRemoved|SceneNameChanged|InputCreated|InputRemoved|InputNameChanged|CurrentSceneCollectionChanged|SceneItemListReindexed|InputSettingsChanged)$/.test(type)) {
+          if (/^(SceneItemCreated|SceneItemRemoved|SceneCreated|SceneRemoved|SceneNameChanged|InputCreated|InputRemoved|InputNameChanged|CurrentSceneCollectionChanged|SceneItemListReindexed|InputSettingsChanged|CurrentSceneTransitionChanged)$/.test(type)) {
             clearTimeout(obs.rescanTimer); obs.rescanTimer = setTimeout(rescan, 800);
           }
         } });
     }
     const call = (t, d) => obs.client.call(t, d);
     const reconnectObs = () => { if (obs.client) obs.client.close(); obs.client = null; obs.scan = null; obs.state = 'connecting'; connectObs(); refresh(); };
+    // OBS's transitions: which Stingers are the Trongates ones (by name: …Derez…, …Shutter…), the current one and its
+    // settings (OBS only shows the current one's), and each scene's override (undefined: this OBS can't say)
+    async function readTransitions(scenes) {
+      try {
+        const list = await call('GetSceneTransitionList'), cur = await call('GetCurrentSceneTransition');
+        const all = (list.transitions || []).map((t) => ({ name: t.transitionName, kind: t.transitionKind }));
+        const stinger = (anim) => (all.find((t) => t.kind === 'obs_stinger_transition' && TGLTransition.pick(t.name) === anim) || {}).name || null;
+        const overrides = {};
+        for (const sc of scenes) {
+          try { overrides[sc.uuid] = (await call('GetSceneSceneTransitionOverride', { sceneUuid: sc.uuid })).transitionName || null; }
+          catch { overrides[sc.uuid] = undefined; }
+        }
+        return { current: list.currentSceneTransitionName, all, derez: stinger('derez'), shutters: stinger('shutters'),
+          settings: cur.transitionName === list.currentSceneTransitionName ? cur.transitionSettings || {} : {}, overrides };
+      } catch { return null; }
+    }
     async function rescan() {
       if (!obs.client || !obs.client.ready || obs.busy) return;
       try {
@@ -55,7 +71,8 @@
             widgets.set(inp.uuid, w);
           }
         }
-        obs.scan = { scenes, containers, inputs, rows, widgets: [...widgets.values()], at: Date.now() };
+        const tx = await readTransitions(scenes);
+        obs.scan = { scenes, containers, inputs, rows, widgets: [...widgets.values()], tx, at: Date.now() };
         // a collection with no saved settings: start from what its overlays already say (or an imported link)
         if (!read(P.storeKey)) {
           const pending = read('tgl-panel-pending');
@@ -87,6 +104,10 @@
     const baseDir = () => { const r = managedRows()[0]; return r ? r.input.url.split('?')[0].replace(/[^/]*$/, '') : new URL('./', location.href).href; };
     const widgetUrl = (kind) => M.withOptions(baseDir() + M.WIDGETS[kind].file + (/\.html$/.test(managedRows()[0]?.input.url.split('?')[0] || '') ? '.html' : ''), optsFor(kind));
     const shared = () => obs.scan && obs.scan.widgets.find((w) => w.kind === 'shared');
+    // the transition overlay: top-level scenes, and whether it goes in one (your pick; else yes in Trongates scenes)
+    const TRANSITION_NAME = 'Trongates · Transition';
+    const transitionScenes = () => (obs.scan ? obs.scan.scenes.map((sc) => obs.scan.containers.find((c) => c.uuid === sc.uuid && !c.group)).filter(Boolean) : []);
+    const overlayIn = (c) => P.s.dock.tx.overlay[c.uuid] ?? managedRows().some((r) => r.sceneName === c.name);
     // scenes with a chat frame (plain scenes before groups, so the shared chat is created in a scene)
     const chatRows = () => managedRows().filter((r) => partOn(r, 'chat') && (r.kind !== 'game' || layoutOf(r) === 'window')).sort((a, b) => a.container.group - b.container.group);
     // where the shared chat goes in a row's scene: the frame's inner box, the top cropped (or scaled, on Game (window))
@@ -168,12 +189,55 @@
       } else if (P.s.shared && !link) acts.push({ k: 'skip', label: 'Shared chat is on, but there is no Botrix chat link yet (Widgets: your key, or paste the link)' });
       // 3. widget sources the dock added or adopted: keep their options current
       if (obs.scan) for (const w of obs.scan.widgets) {
-        if (!['chatbox', 'goal', 'music', 'bare'].includes(w.kind) || !w.input.tag) continue;
+        if (!['chatbox', 'goal', 'music', 'bare', 'transition'].includes(w.kind) || !w.input.tag) continue;
         const want = M.withOptions(w.input.url, optsFor(w.kind));
         if (!M.sameUrl(want, w.input.url)) acts.push({ k: 'update', label: `${w.input.name}: ${changes(w.input.url, want)}`, reload: w.input.name,
           run: () => call('SetInputSettings', { inputUuid: w.input.uuid, inputSettings: { url: want } }) });
       }
-      // 4. lock or unlock the dock's own items
+      // 4. transitions (Scenes → Transitions): the overlay on top of the scenes picked, the default transition, each
+      // scene's override, and the current Trongates Stinger cutting in the middle
+      const T = P.s.dock.tx, tx = obs.scan.tx;
+      if (T.on && tx) {
+        const want = transitionScenes().filter((c) => overlayIn(c));
+        const ov = obs.scan.widgets.find((w) => w.kind === 'transition' && w.input.tag);
+        let made = null;
+        if (!ov && want.length) acts.push({ k: 'create', label: `Browser source "${TRANSITION_NAME}" (1920 × 1080, invisible until a Trongates transition) on top of ${want[0].name}`,
+          run: async () => {
+            ({ inputUuid: made } = await call('CreateInput', { sceneName: want[0].name, inputName: TRANSITION_NAME, inputKind: 'browser_source',
+              inputSettings: { url: widgetUrl('transition'), width: 1920, height: 1080, shutdown: false, [TAG]: 'widget:transition' } }));
+          } });
+        for (const c of want) {
+          if (!ov && c === want[0]) continue;
+          const place = ov && ov.places.find((p) => p.container.uuid === c.uuid);
+          if (!place) acts.push({ k: 'add', label: `${TRANSITION_NAME} to ${c.name}, on top`, run: async () => {
+            const uuid = ov ? ov.input.uuid : made; if (!uuid) throw new Error('the transition overlay was not created');
+            await call('CreateSceneItem', { sceneName: c.name, sourceUuid: uuid });
+          } });
+          else if (place.item.sceneItemIndex !== Math.max(...c.items.map((i) => i.sceneItemIndex))) acts.push({ k: 'place', label: `${TRANSITION_NAME} in ${c.name}: back on top`,
+            run: () => call('SetSceneItemIndex', { sceneName: c.name, sceneItemId: place.item.sceneItemId, sceneItemIndex: c.items.length - 1 }) });
+        }
+        if (ov) for (const p of ov.places) if (!p.container.group && !want.includes(p.container)) acts.push({ k: 'remove', label: `${TRANSITION_NAME} from ${p.container.name}`,
+          run: () => call('RemoveSceneItem', { sceneName: p.container.name, sceneItemId: p.item.sceneItemId }) });
+        const nameFor = (a) => (a === 'derez' ? tx.derez : a === 'shutters' ? tx.shutters : null), LABEL = { derez: 'Derez grid', shutters: 'Logo shutters' };
+        if (T.default) {
+          const n = nameFor(T.default);
+          if (!n) acts.push({ k: 'skip', label: `Default transition ${LABEL[T.default]}: add its Stinger in OBS first (Scenes → Transitions → Set up)` });
+          else if (tx.current !== n) acts.push({ k: 'update', label: `Default transition: ${n}`, run: () => call('SetCurrentSceneTransition', { transitionName: n }) });
+        }
+        for (const sc of obs.scan.scenes) {
+          const choice = T.scenes[sc.name]; if (!choice) continue;                    // leave it as it is
+          const n = choice === 'default' ? null : nameFor(choice);
+          if (choice !== 'default' && !n) { acts.push({ k: 'skip', label: `${sc.name}: ${LABEL[choice]} isn't set up in OBS yet` }); continue; }
+          if (tx.overrides[sc.uuid] === undefined) { acts.push({ k: 'skip', label: `${sc.name}: this OBS can't set a scene's transition over its WebSocket (right-click the scene → Transition Override)` }); continue; }
+          if ((tx.overrides[sc.uuid] || null) !== n) acts.push({ k: 'update', label: `${sc.name}: ${n ? 'transition ' + n : 'the default transition'}`,
+            run: () => call('SetSceneSceneTransitionOverride', { sceneUuid: sc.uuid, transitionName: n }) });
+        }
+        const curAnim = TGLTransition.pick(tx.current);
+        if (curAnim && tx.current === nameFor(curAnim) && !(+tx.settings.transition_point === 600 && !+tx.settings.tp_type))
+          acts.push({ k: 'update', label: `${tx.current}: cut at 600 ms, the middle of the hold video`,
+            run: () => call('SetCurrentSceneTransitionSettings', { transitionSettings: { tp_type: 0, transition_point: 600 } }) });
+      }
+      // 5. lock or unlock the dock's own items
       // (only where the dock put them: in Trongates scenes, or added from the Sources tab; not your own scenes)
       const ours = new Set(managedRows().map((r) => r.container.uuid));
       if (obs.scan) for (const w of obs.scan.widgets) if (w.input.tag) for (const p of w.places) if ((ours.has(p.container.uuid) || w.kind !== 'shared') && !!p.item.sceneItemLocked !== !!P.s.dock.lock)
@@ -235,6 +299,6 @@
     }
     async function tagInput(inp, tag) { await call('SetInputSettings', { inputUuid: inp.uuid, inputSettings: { [TAG]: tag } }); await rescan(); }
 
-    return { connectObs, call, reconnectObs, rescan, managedRows, layoutOf, partOn, optsFor, widgetUrl, shared, chatRows, sharedTransform, sameTransform, plan, pendingCount, placeSharedLive, review, runReview, currentScene, addWidget, tagInput };
+    return { connectObs, call, reconnectObs, rescan, managedRows, layoutOf, partOn, optsFor, widgetUrl, shared, chatRows, sharedTransform, sameTransform, plan, pendingCount, placeSharedLive, review, runReview, currentScene, addWidget, tagInput, transitionScenes, overlayIn };
   };
 })();

@@ -32,7 +32,8 @@ interface TGLObsClient {
 interface Window {
   TGL: TGLTheme;
   TGLModel: any;
-  TGLObs: { connect(opts: { host?: string; port?: number; password?: string; onStatus?: (s: { state: string; detail?: any }) => void; onEvent?: (type: string, data: any) => void }): TGLObsClient };
+  TGLObs: { connect(opts: { host?: string; port?: number; password?: string; onStatus?: (s: { state: string; detail?: any }) => void; onEvent?: (type: string, data: any) => void; events?: number }): TGLObsClient };
+  TGLTransition: typeof TGLTransition;
   TGLDockColour: { create(opts: any): any };
   TGLPanel: { mount(el: HTMLElement, opts?: { mode?: 'dock' | 'index'; onChange?: (settings: any, env: any) => void; onForm?: (form: Form) => void }): any };
   TGLPanelParts: Record<string, (P: any) => any>;
@@ -45,3 +46,8 @@ declare var TGLModel: Window['TGLModel'];
 declare var TGLObs: Window['TGLObs'];
 declare var TGLDockColour: Window['TGLDockColour'];
 declare var TGLPanel: Window['TGLPanel'];
+declare var TGLTransition: {
+  MS: number; COVER: [number, number]; ANIMS: Record<string, (ctx: CanvasRenderingContext2D, p: number, W: number, H: number, accent: string) => void>;
+  pick(name: string): 'derez' | 'shutters' | null;
+  player(io: any): { start(anim: string): void; end(): void; readonly playing: string | null; readonly progress: number | null };
+};

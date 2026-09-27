@@ -177,10 +177,12 @@ export function fakeObs(net, addr = '127.0.0.1:4455', { handlers = {} } = {}) {
       if (m.op !== 6) return;
       const { requestType, requestId, requestData } = m.d;
       o.calls.push([net.clock.now, requestType, requestData]);
-      let responseData = {};
-      if (requestType === 'BroadcastCustomEvent') o.broadcast('CustomEvent', requestData.eventData);
-      else if (handlers[requestType]) responseData = handlers[requestType](requestData) || {};
-      peer.send(JSON.stringify({ op: 7, d: { requestType, requestId, requestStatus: { result: true, code: 100 }, responseData } }));
+      let responseData = {}, requestStatus = { result: true, code: 100 };
+      try {
+        if (requestType === 'BroadcastCustomEvent') o.broadcast('CustomEvent', requestData.eventData);
+        else if (handlers[requestType]) responseData = handlers[requestType](requestData || {}) || {};
+      } catch (e) { requestStatus = { result: false, code: 600, comment: e.message }; responseData = undefined; }   // as OBS answers a failed request
+      peer.send(JSON.stringify({ op: 7, d: { requestType, requestId, requestStatus, responseData } }));
     };
   });
   return o;

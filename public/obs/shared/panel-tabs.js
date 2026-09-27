@@ -77,7 +77,31 @@
             ${managed ? chips(r.kind, layoutOf(r)) + grows(r.kind) : ''}</div>`;
         }).join('') : '<p class="hint warn">No Trongates overlays found. Add a browser source with a …/obs/ address (the index\'s Copy buttons), then Rescan.</p>'}
         ${ignored.length ? `<p class="hint">Not Trongates (left alone): ${esc(ignored.map((x) => x.name).join(', '))}</p>` : ''}
-        <div class="row"><button type="button" class="btn small grow" data-act="refresh-all">Reload all Trongates sources</button></div>`;
+        <div class="row"><button type="button" class="btn small grow" data-act="refresh-all">Reload all Trongates sources</button></div>
+        ${transitions()}`;
+    }
+    // Scenes → Transitions: Derez grid and Logo shutters (transition.html), each a Stinger in OBS playing the hold video
+    function transitions() {
+      const T = P.s.dock.tx, tx = obs.scan.tx;
+      const head = `<h3>Transitions</h3><div class="row"><span class="grow">Trongates transitions <span class="muted">(Derez grid, Logo shutters)</span></span>${tog('dock.tx.on', T.on)}</div>`;
+      if (!T.on) return head + '<p class="hint">Scene switches covered by a Derez grid or Logo shutters in your form\'s colour, drawn by a Trongates source on top of your scenes.</p>';
+      if (!tx) return head + '<p class="hint warn">Couldn\'t read OBS\'s transitions (Rescan).</p>';
+      const status = (anim, label) => `<div class="row"><span class="grow">${label}</span>${tx[anim] ? `<span class="ok">✓ ${esc(tx[anim])}</span>` : '<span class="warn">not set up in OBS</span>'}</div>`;
+      const missing = !tx.derez || !tx.shutters;
+      const opt = (v, label, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${label}</option>`;
+      const choices = (cur, leave) => opt('', leave, cur) + opt('derez', 'Derez grid', cur) + opt('shutters', 'Logo shutters', cur);
+      const scenes = P.transitionScenes();
+      return `${head}<div class="card">${status('derez', 'Derez grid')}${status('shutters', 'Logo shutters')}
+        <details ${missing ? 'open' : ''}><summary>Set up in OBS (once)</summary><p class="hint">1. Download the hold video (a 1.2 s invisible clip that holds the cut): copy its address below, open it in your browser and save it, e.g. in Documents.<br>
+          2. In OBS's <b>Scene Transitions</b> dock press <b>+</b> → <b>Stinger</b>, name it <b>Trongates · Derez</b>, pick the hold video, transition point type <b>Time</b>, transition point <b>600</b> ms.<br>
+          3. The same again as <b>Trongates · Shutters</b>. Then Rescan.</p>
+          <button type="button" class="btn small" data-act="copy-hold">Copy the hold video's address</button></details></div>
+        <div class="row"><span class="grow">Default transition</span><select data-set="dock.tx.default">${choices(T.default, 'Leave as it is')}</select></div>
+        <span class="hint">Now: ${esc(tx.current || '?')}</span>
+        <h3>Per scene</h3><span class="hint">The transition used when switching to that scene.</span>
+        ${scenes.map((c) => `<div class="row"><span class="grow">${esc(c.name)}</span><select data-tx-scene="${esc(c.name)}">${opt('', 'Leave as it is', T.scenes[c.name] || '')}${opt('default', 'Default', T.scenes[c.name])}${opt('derez', 'Derez grid', T.scenes[c.name])}${opt('shutters', 'Logo shutters', T.scenes[c.name])}</select></div>`).join('')}
+        <h3>Overlay on top of</h3><span class="hint">The scenes the transition covers. A switch to or from a scene without it isn't covered on that side.</span>
+        <div class="chips">${scenes.map((c) => `<button type="button" class="chip" data-tx-overlay="${c.uuid}" aria-pressed="${!!P.overlayIn(c)}">${esc(c.name)}</button>`).join('')}</div>`;
     }
     function tabSources() {
       if (obs.state !== 'connected' || !obs.scan) return '<p class="hint">Connect to OBS first (Live → Connections).</p>';

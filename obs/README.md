@@ -400,6 +400,33 @@ and only reloads it when the link changes. **Remove** takes it out of every scen
 Game (window) the chat sits just above the overlay: if your game capture is above the overlay, place it in the window
 (Layout) so it doesn't cover the chat.
 
+## Transitions
+
+Two scene transitions in your form's colour: **Derez grid** (dark grid tiles flip in from the centre, then flip
+away onto the new scene) and **Logo shutters** (two grid panels slam shut on a chevron, the logo hits, they open).
+No sound. They're drawn live by a Trongates browser source on top of your scenes (`transition`, 1920 × 1080),
+invisible until OBS plays one of two Stingers named for them; the Stinger plays a 1.2 s invisible "hold" video
+(`/obs/assets/trongates-hold.webm`) just so OBS waits to cut until the middle, where the overlay covers the whole
+screen (from 40% to 60%, so the cut at 600 ms lands inside even if the message is late). OBS can't create
+transitions or recolour a Stinger over its WebSocket, which is why it's done this way: the colour follows your form
+like every scene, and there's one tiny file to download, once.
+
+**Set up (once):**
+1. Download the hold video (the dock's *Copy the hold video's address*, then open it in a browser and save it,
+   e.g. in Documents).
+2. In OBS's **Scene Transitions** dock: **+** → **Stinger**, name it **Trongates · Derez**, video file: the hold
+   video, transition point type **Time**, transition point **600** ms.
+3. The same again as **Trongates · Shutters**. (Any name with *Derez* or *Shutter* in it works.)
+4. In the dock: **Scenes → Transitions**, turn it on, pick the default transition and any per-scene ones (the
+   transition used when switching *to* that scene, OBS's own Transition Override), tick the scenes the overlay
+   should cover (the Trongates scenes are ticked to start with), then **Review & apply**. The dock adds the overlay
+   on top of each ticked scene (and puts it back on top if something lands above it), sets the transitions, and
+   sets the current Trongates Stinger's cut point to 600 ms if it isn't.
+
+A switch to or from a scene without the overlay isn't covered on that side (OBS cuts in the open), so tick every
+scene you switch between. The overlay always clears itself 1.6 s after a transition starts, whatever happens, so it
+can never leave the stream covered. With reduced motion (`motion=reduce`) it fades to the grid and back instead.
+
 ## If something gets stuck
 
 **The rescue dock** is a second, tiny dock for when a scene or the control dock is stuck: add
@@ -459,7 +486,9 @@ python3 obs/build-scenes.py        # writes public/obs/{starting,brb,chatting,ga
 
 Paths inside `public/obs` are relative and it carries its own fonts and logos (`public/obs/assets/`), so the
 folder works anywhere (every script is a plain `<script>`, no modules, so `file://` works too). Shared pieces: `public/obs/shared/overlay.css` (look), `theme.js` (form colours, veadotube + OBS WebSocket, keeping the pages in step),
-`scene.js` (light trails, form-cycling art, guide labels), `icons.js` (platform icons). The control dock is
+`scene.js` (light trails, form-cycling art, guide labels), `icons.js` (platform icons), `transition.js` (the
+transitions: drawing and timing; its page is `transition.html`). The rescue dock is `rescue.html` (on purpose, only
+`obsws.js`). The control dock is
 `public/obs/control.html`; the Botrix CSS is `public/obs/botrix/`. Everything under `public/` deploys with
 the site, so check it the same way as any site change (docs/verification.md). `?guide=1` plus
 `scripts/shot.mjs` at `--width=1920 --height=1080` is the quickest check.

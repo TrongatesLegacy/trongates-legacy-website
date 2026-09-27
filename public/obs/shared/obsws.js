@@ -4,16 +4,16 @@
 //   const obs = TGLObs.connect({ port: 4455, password: '…', onStatus(s) {}, onEvent(type, data) {} });
 //   const { scenes } = await obs.call('GetSceneList');
 (() => {
-  // event subscriptions: General, Config (scene collections), Scenes, Inputs, SceneItems
-  const EVENTS = 1 | 2 | 4 | 8 | 128;
+  // event subscriptions: General, Config (scene collections), Scenes, Inputs, Transitions, SceneItems
+  const EVENTS = 1 | 2 | 4 | 8 | 16 | 128;
   const sha = async (s) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))));
 
   /**
    * @param {{ host?: string, port?: number, password?: string, onStatus?: (s: { state: string, detail?: any }) => void,
-   *   onEvent?: (type: string, data: any) => void }} opts
+   *   onEvent?: (type: string, data: any) => void, events?: number }} opts   events: which to hear (default: EVENTS)
    * @returns {TGLObsClient}
    */
-  function connect({ host = '127.0.0.1', port = 4455, password = '', onStatus = () => {}, onEvent = () => {} }) {
+  function connect({ host = '127.0.0.1', port = 4455, password = '', onStatus = () => {}, onEvent = () => {}, events = EVENTS }) {
     let ws = null, ready = false, id = 0, retry;
     const waiting = new Map();
     const status = (s, detail) => onStatus({ state: s, detail });
@@ -24,7 +24,7 @@
       ws.onmessage = async (e) => {
         const m = JSON.parse(e.data);
         if (m.op === 0) {                                  // Hello → Identify
-          const d = { rpcVersion: 1, eventSubscriptions: EVENTS };
+          const d = { rpcVersion: 1, eventSubscriptions: events };
           if (m.d.authentication) d.authentication = await sha((await sha(password + m.d.authentication.salt)) + m.d.authentication.challenge);
           ws.send(JSON.stringify({ op: 1, d }));
         } else if (m.op === 2) { ready = true; status('connected', m.d); }

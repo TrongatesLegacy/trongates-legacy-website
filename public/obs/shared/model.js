@@ -22,6 +22,8 @@
     goal: { title: 'Follower goal', file: 'goal', w: 500, h: 134, uses: ['goal'] },
     music: { title: 'Now playing', file: 'music', w: 560, h: 100, uses: ['music'] },
     bare: { title: 'Shared chat', file: 'chat', w: 554, h: 654, uses: ['chat'], extra: { bare: '1' } },
+    // the scene transitions (Derez grid, Logo shutters), on top of every scene they cover; the dock places it
+    transition: { title: 'Transition', file: 'transition', w: 1920, h: 1080, uses: [] },
   };
   const partsOf = (type, layout) => (type === 'game' && layout === 'window' ? TYPES.game.windowParts : TYPES[type].parts);
   const VEADO_DEFAULT = '127.0.0.1:54765', BRIDGE_DEFAULT = '127.0.0.1:5000';
@@ -98,6 +100,7 @@
     // the dock's colour buttons reach the scenes through the OBS WebSocket
     if (!ctx.preview && ctx.obs && ctx.obs.port) { add('obs', ctx.obs.port); if (ctx.obs.pw) add('obspw', ctx.obs.pw); }
     if (ctx.preview) {
+      if (kind === 'transition') add('demo', 1);          // the previews play both transitions in turn
       if (ctx.preview.form) add('form', ctx.preview.form);
       if (ctx.preview.guide) add('guide', 1);
       if (ctx.preview.sample && (has('chat') || has('goal'))) add('demo', 1);
@@ -122,7 +125,7 @@
 
   // Which Trongates page an address is, if any: { kind: 'brb' | … | 'chatbox' | 'goal' | 'music' | 'bare', layout }
   function recognise(url) {
-    const m = /\/obs\/(starting|brb|chatting|game|ending|chat|goal|music)(?:\.html)?(?:[?#]|$)/.exec(url || '');
+    const m = /\/obs\/(starting|brb|chatting|game|ending|chat|goal|music|transition)(?:\.html)?(?:[?#]|$)/.exec(url || '');
     if (!m) return /botrix\.live\/widgets\/chat\//.test(url || '') ? { kind: 'botrix-chat' } : /botrix\.live\/widgets\/goals?\//.test(url || '') ? { kind: 'botrix-goal' } : null;
     const q = new URLSearchParams((url.split('?')[1] || '').split('#')[0]);
     let kind = m[1];

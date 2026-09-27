@@ -91,8 +91,10 @@
     }
     importAddress();
     // the dock's own settings (per scene collection): scene choices, pickers, lock, the measured avatar
-    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 880, game: 580 } });
-    const fixDock = (d) => { d = d || newDock(); d.avatar = { chatting: 880, game: 580, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if ([454, 534].includes(d.avatar.game)) d.avatar.game = 580; return d; };   // 820, 454 and 534: earlier defaults
+    // tx: the transitions (on, default, each scene's pick by name, the overlay's scenes by uuid)
+    const newTx = () => ({ on: false, default: '', scenes: {}, overlay: {} });
+    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 880, game: 580 }, tx: newTx() });
+    const fixDock = (d) => { d = d || newDock(); d.tx = { ...newTx(), ...(d.tx || {}) }; d.avatar = { chatting: 880, game: 580, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if ([454, 534].includes(d.avatar.game)) d.avatar.game = 580; return d; };   // 820, 454 and 534: earlier defaults
     s.dock = fixDock(s.dock);
     const save = () => { write(storeKey, s); onChange(s, env.links); refresh(); };
     const set = (path, value) => { const ks = path.split('.'); let o = s; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = value; save(); };
@@ -208,6 +210,7 @@
         b.disabled = true; try { await addWidget(d.add, scene, d.copy === '1'); } catch (err) { alert(err.message); } return;
       }
       if (d.tag) { await tagInput(obs.scan.inputs.get(d.tag), d.tagv); if (d.tagv === 'shared-chat') { s.shared = true; save(); } return; }
+      if (d.txOverlay) { const c = P.transitionScenes().find((x) => x.uuid === d.txOverlay); if (c) { s.dock.tx.overlay[c.uuid] = !P.overlayIn(c); save(); } return; }
       if (d.ignore) { s.dock.ignore = [...(s.dock.ignore || []), d.ignore]; save(); return; }
       switch (d.act) {
         case 'review': review('Review & apply', plan()); break;
@@ -227,6 +230,7 @@
           measureAvatar().then(() => refresh()).catch((err) => { measure.note = err.message; refresh(); });
           break;
         case 'copy-link': copy(link(dock ? 'control' : ''), b); break;
+        case 'copy-hold': copy(new URL('assets/trongates-hold.webm', location.href).href, b); break;
         case 'copy-rescue': {
           const q = `obs=${encodeURIComponent(conn.port || '4455')}${conn.pw ? '&obspw=' + encodeURIComponent(conn.pw) : ''}`;
           copy(new URL('rescue?' + q, location.href).href, b); break;
@@ -271,6 +275,7 @@
       }
       if (d.map !== undefined) { if (t.value) s.veado.map[d.map] = t.value; else delete s.veado.map[d.map]; save(); return; }
       if (d.row) { s.dock.map[d.row] = t.value; save(); return; }
+      if (d.txScene !== undefined) { if (t.value) s.dock.tx.scenes[d.txScene] = t.value; else delete s.dock.tx.scenes[d.txScene]; save(); return; }
       if (d.pick) { const [what, uuid] = d.pick.split(':'); s.dock.pick[what][uuid] = t.value; save(); return; }
       if (d.target !== undefined) { obs.target = t.value; }
     });
