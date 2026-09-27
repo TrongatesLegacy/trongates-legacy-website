@@ -8,6 +8,8 @@ interface TGLTheme {
   /** the form a veadotube state name stands for (pinned names, then word rules, else cyan) */
   formForState(name: string): Form | null;
   readonly form: Form;
+  /** the circuit breaker: how often it has tripped, and whether it's pausing colours from other pages now */
+  readonly breaker: { trips: number; tripped: boolean };
   /** pick a form on this page and tell the other pages; returns when it was picked (ms) */
   set(next: Form): number;
   onChange(fn: (form: Form, source: string) => void): void;

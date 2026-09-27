@@ -274,6 +274,7 @@
 
     // ---------------------------------------------------------------- start
     TGL.onChange(() => refresh());
+    TGL.onStatus(() => refresh());                   // e.g. the circuit breaker tripping (theme.js)
     // a settings link pasted into a tab that's already open (only the part after # changes, so no reload)
     addEventListener('hashchange', () => { if (importAddress()) { if (dock) { try { localStorage.removeItem('tgl-panel-pending'); } catch {} } save(); checkKey(); } });
     if (dock) {

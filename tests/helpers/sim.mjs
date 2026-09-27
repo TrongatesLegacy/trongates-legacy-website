@@ -192,7 +192,7 @@ export class Page {
   constructor({ name, url, profile, net, clock, scripts = [], html = {}, globals = {} }) {
     Object.assign(this, { name, profile, clock, closed: false });
     this.stats = { writes: 0, posts: 0, sockets: 0, sends: 0, changes: 0, applied: [] };
-    this.sent = []; this.sockets = new Set(); this.listeners = new Map(); this.timers = new Set();
+    this.sent = []; this.sockets = new Set(); this.listeners = new Map(); this.timers = new Set(); this.warnings = [];
     profile.addPage(this);
     const page = this, loc = new URL(url);
     const attrs = new Map(Object.entries(html));
@@ -215,7 +215,7 @@ export class Page {
       removeItem: (k) => { page.cache.delete(k); },
     };
     const ctx = {
-      console, URL, URLSearchParams, TextEncoder, btoa, atob, JSON, Math, Date: class extends Date { static now() { return clock.now; } },
+      console: { ...console, warn: (...a) => page.warnings.push(a.join(' ')) }, URL, URLSearchParams, TextEncoder, btoa, atob, JSON, Math, Date: class extends Date { static now() { return clock.now; } },
       crypto: globalThis.crypto,
       location: { href: loc.href, search: loc.search, hash: loc.hash, protocol: loc.protocol, pathname: loc.pathname },
       document: { documentElement: root, querySelector: () => null, querySelectorAll: () => [], hidden: false, addEventListener() {} },

@@ -30,7 +30,8 @@
     function tabLive() {
       if (!dock) return `<h3>Colour</h3>${formButtons()}<p class="hint">Sets the colour the previews are shown in. In OBS, the dock's buttons switch veadotube too.</p>`;
       const t = music.track;
-      return `${measurePrompt()}<h3>Avatar &amp; colour</h3>${formButtons()}
+      const paused = TGL.breaker.tripped ? '<p class="hint warn">Colours came in too fast (over 10 in 2 s), so this dock is ignoring colours from the scenes for a moment; your buttons and veadotube still work. If it keeps happening, use the rescue dock (obs/README.md) and tell Claude.</p>' : '';
+      return `${measurePrompt()}${paused}<h3>Avatar &amp; colour</h3>${formButtons()}
         <p class="hint">${P.s.veado.switch && veado.state === 'ok' ? 'Switches veadotube; every scene follows once it has switched.' : 'Recolours every scene.'}</p>
         ${veado.states.length ? `<h3>veadotube states</h3><div class="states">${veado.states.map((x) => {
           const f = formFor(x.name), pinned = P.s.veado.map[x.name.toLowerCase()] || '';

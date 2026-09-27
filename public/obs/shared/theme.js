@@ -42,7 +42,7 @@
   const cfg = { stateMap: Object.fromEntries((params.get('map') || '').split(',').filter(Boolean).map((p) => p.split(':').map((x) => x.trim().toLowerCase()))) };
   const root = document.documentElement;
   const listeners = new Set();
-  const status = { veado: 'off', obs: 'off', state: null, states: [] };
+  const status = { veado: 'off', obs: 'off', state: null, states: [], breaker: 'ok' };
   const hidden = new Set((params.get('hide') || '').split(',').map((p) => p.trim()).filter(Boolean));
   if (params.get('art') === '0') hidden.add('art');
   if (params.get('music') === '0') hidden.add('music');
@@ -81,7 +81,7 @@
     // A form heard from another page (storage / channel) isn't saved again: every page echoing it back let two
     // quick switches bounce between the pages for ever (OBS: sources and the dock share one browser profile).
     if (source !== 'storage' && source !== 'channel') try { localStorage.setItem(KEY, `${form}@${at}`); } catch {}
-    if (changed) listeners.forEach((fn) => fn(form, source));
+    if (changed) { trip(); listeners.forEach((fn) => fn(form, source)); }
   }
 
   // ---- 1. veadotube mini: follow the avatar state ----------------------------------------------------
@@ -150,8 +150,26 @@
   const hear = (f, source, at) => {
     if (!valid(f)) return;
     heard = { f, source, at }; clearTimeout(heardTimer);
-    heardTimer = setTimeout(() => { const h = heard; heard = null; apply(h.f, h.source, h.at); }, 150);
+    const wait = Math.max(150, breaker.until - Date.now() + 150);      // tripped: hold it until the pause is over
+    heardTimer = setTimeout(() => { const h = heard; heard = null; apply(h.f, h.source, h.at); }, wait);
   };
+
+  // Circuit breaker, for whatever goes wrong between pages in future: a page that recolours more than 10 times in 2 s
+  // stops taking forms from other pages for a while, then applies only the latest one it heard. The pause is 5 s,
+  // doubling each time it trips again (up to a minute) until it's been calm for a minute. veadotube, the dock (over
+  // OBS) and this page still recolour at once, so the stream keeps following you. status.breaker says 'tripped'.
+  const breaker = { trips: 0, until: 0, recent: [], streak: 0, last: 0 };
+  function trip() {
+    const now = Date.now();
+    breaker.recent = breaker.recent.filter((t) => now - t < 2000); breaker.recent.push(now);
+    if (breaker.recent.length <= 10 || now < breaker.until) return;
+    breaker.streak = now - breaker.last > 60000 ? 1 : breaker.streak + 1; breaker.last = now;
+    const pause = Math.min(60000, 5000 * 2 ** (breaker.streak - 1));
+    breaker.until = now + pause; breaker.trips++; breaker.recent = [];
+    console.warn(`Trongates: over 10 colour changes in 2 s here; not taking colours from other pages for ${pause / 1000} s`);
+    status.breaker = 'tripped'; notifyStatus();
+    setTimeout(() => { if (Date.now() >= breaker.until) { status.breaker = 'ok'; notifyStatus(); } }, pause);
+  }
   addEventListener('storage', (e) => { if (e.key === KEY) { const { f, at } = parse(e.newValue); hear(f, 'storage', at); } });
   let channel; try { channel = new BroadcastChannel('tgl-obs'); channel.onmessage = (e) => e.data && hear(e.data.form, 'channel', e.data.at); } catch {}
 
@@ -161,6 +179,7 @@
   window.TGL = {
     FORMS, formForState,
     get form() { return form; },
+    get breaker() { return { trips: breaker.trips, tripped: Date.now() < breaker.until }; },
     // returns when it was picked, for passing on (the dock's OBS broadcast)
     set(next) { const at = Date.now(); apply(next, 'local', at); try { channel && channel.postMessage({ form: next, at }); } catch {} return at; },
     onChange(fn) { listeners.add(fn); },
