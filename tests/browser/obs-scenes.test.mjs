@@ -170,3 +170,27 @@ test('Game (window): the window is exactly where the game capture goes, and only
   noErrors(tab, 'game window');
   await tab.close();
 });
+
+// The switch-in draws the character in its own layer, then hands back to the art image. The image used to fade back in
+// (0.25 s) after the layer had already been cleared, so for a few frames there was no character at all: a flicker at every
+// turn of the cycle (visible in any recording). Sampled every frame through switches to every form.
+test('a cycling scene\'s character never disappears while it switches, for a single frame', async () => {
+  const tab = await chrome.open(`${site.origin}/obs/starting?noveado=1&motion=full&form=cyan`, HD);
+  await settled(tab);
+  await tab.eval(`(() => {
+    const art = document.querySelector('.art-stage .art'), img = art.querySelector('img[data-form-art]'), layer = art.querySelector('.art-glitch');
+    window.__gaps = 0; window.__frames = 0;
+    const look = () => { __frames++; const drawn = art.classList.contains('glitching') ? layer.children.length > 0 : +getComputedStyle(img).opacity > .95;
+      if (!drawn) __gaps++; requestAnimationFrame(look); };
+    requestAnimationFrame(look); return 1; })()`);
+  for (const f of ['princess', 'blobfish', 'red', 'cyan']) {
+    await tab.eval(`TGL.set('${f}'); 1`);
+    await tab.until(`!document.querySelector('.art-stage .art').classList.contains('glitching')`, 4000, `${f}: the switch-in`);
+    await sleep(500);
+  }
+  const [gaps, frames] = await tab.eval('[__gaps, __frames]');
+  assert.ok(frames > 60, `sampled ${frames} frames`);
+  assert.equal(gaps, 0, `the character was missing in ${gaps} of ${frames} frames`);
+  noErrors(tab, 'switching');
+  await tab.close();
+});

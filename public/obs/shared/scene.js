@@ -404,7 +404,9 @@
         show(to);
         await Promise.race([img.decode().catch(() => {}), step(400)]);
         if (g !== gen) return;
-        artBox.classList.remove('glitching'); glitchEl.innerHTML = '';
+        // the image back first, the switch-in layer cleared a frame later: never a frame with neither
+        artBox.classList.remove('glitching');
+        requestAnimationFrame(() => { if (g === gen && !artBox.classList.contains('glitching')) glitchEl.innerHTML = ''; });
       };
       const glitchTo = (to) => {
         if (hidden) { swap(to); return Promise.resolve(); }
@@ -438,31 +440,39 @@
 
   // ---- the look (Princess Trina's, the Blobfish's, Tron's) follows the form -------------------------------------
   // theme.js sets <html data-look> for the first frame; afterwards every recolour (the dock, veadotube, a cycling scene's
-  // paint) comes through data-form, and the look follows it here. The titles and the socials strip would visibly jump
-  // between fonts and marks, so they blur out for a moment, the look (and its font, fetched now if needed: at most
-  // 1.2 s) swaps while they're blurred, and they blur back in, all while the colours blend and the frames morph.
-  // Hidden (OBS not showing the scene) or reduced motion: it just swaps. The cycling scenes load both fonts up front.
+  // paint) comes through data-form, and the look follows it here. The titles, the socials strip and the floor would
+  // visibly jump between fonts, marks and patterns, so they fade out for a moment, the look (and its font, fetched now
+  // if needed: at most 1.2 s) swaps meanwhile, and they come back, all while the colours blend and the frames morph. The
+  // old look's layers stay for the cross-fade (data-was), then go. Hidden (OBS not showing the scene) or reduced motion:
+  // it just swaps. The cycling scenes load both fonts up front.
   const root = document.documentElement;
   const LOOK_FONTS = { princess: '900 1em "Cinzel Decorative"', blobfish: '400 1em "Lilita One"' };
   const loadLook = (look) => (LOOK_FONTS[look] ? Promise.race([document.fonts.load(LOOK_FONTS[look]).catch(() => {}), new Promise((r) => setTimeout(r, 1200))]) : null);
   if (TGL.cycling) Object.keys(LOOK_FONTS).forEach(loadLook);
-  const BLUR = [{ opacity: 1, filter: 'blur(0)' }, { opacity: 0, filter: 'blur(6px)' }];
-  let lookWant = root.dataset.look, lookBusy = false;
+  // a fade, not the website's blur: a blur is a new filter layer for the GPU at the moment it's busiest (every scene and
+  // every preview on the index changing at once)
+  const FADE = [{ opacity: 1 }, { opacity: 0 }];
+  let lookWant = root.dataset.look, lookBusy = false, wasTimer = 0;
   async function setLook(look) {
     lookWant = look;
     if (lookBusy || root.dataset.look === lookWant) return;
     lookBusy = true;
     const quick = TGL.reduced || document.hidden;
-    const els = quick ? [] : $$('.title, .ticker');
-    const out = els.map((el) => el.animate(BLUR, { duration: 160, easing: 'ease-in', fill: 'forwards' }));
+    const els = quick ? [] : $$('.title, .ticker, .floor');
+    const gone = els.map((el) => el.animate(FADE, { duration: 160, easing: 'ease-in', fill: 'forwards' }));
     if (!quick) await new Promise((r) => setTimeout(r, 160));
     while (root.dataset.look !== lookWant) {      // another pick may arrive while its font loads: follow it
       const want = lookWant;
       await loadLook(want);
-      if (want === lookWant) root.dataset.look = want;
+      if (want !== lookWant) continue;
+      const was = root.dataset.look;
+      root.dataset.look = want;
+      clearTimeout(wasTimer);
+      if (quick) delete root.dataset.was;
+      else { root.dataset.was = was; wasTimer = setTimeout(() => delete root.dataset.was, 850); }
     }
-    els.forEach((el) => el.animate([...BLUR].reverse(), { duration: 240, easing: 'ease-out' }));
-    out.forEach((a) => a.cancel());
+    els.forEach((el) => el.animate([...FADE].reverse(), { duration: 240, easing: 'ease-out' }));
+    gone.forEach((a) => a.cancel());
     lookBusy = false;
   }
   new MutationObserver(() => setLook(TGL.lookOf(root.dataset.form))).observe(root, { attributes: true, attributeFilter: ['data-form'] });

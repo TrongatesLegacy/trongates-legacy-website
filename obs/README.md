@@ -46,7 +46,7 @@ Like the website, Princess Trina and the Blobfish each re-light the scenes in th
 letter, a shine and a twinkling star; frames with notched corners and a gold hairline; ribbon tabs; a quilted lattice
 background under a lilac glow and a ballroom floor; a pearl string and an orbiting gold star round the stage; glitter
 comets and a few gold twinkles in place of the light cycles; hearts along the socials strip; she sparkles in.
-**The Deep** (the Blobfish): titles in Lilita One with floating letters and an escaping bubble; heavy rounded frames on a
+**The Deep** (the Blobfish): titles in Lilita One floating on a swell with an escaping bubble; heavy rounded frames on a
 ledge; the grid sinks into deep water with drifting light and a seabed floor; sonar rings; bubbles instead of riders;
 bubbles along the strip; it ripples in. Tron's forms keep the grid look and change colour only. The transitions follow
 the look too (see *Transitions*).

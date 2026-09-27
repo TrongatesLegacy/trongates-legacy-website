@@ -44,11 +44,12 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .glow { position: absolute; inset: 0; pointer-events: none; }
 .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 430px; overflow: hidden; perspective: 900px; perspective-origin: 50% 0;
   -webkit-mask-image: linear-gradient(transparent 4%, #000 72%); }
-.floor::before { content: ""; position: absolute; top: -330px; left: -80%; right: -80%; height: calc(170% + 330px); transform-origin: 50% 330px;
+.floor::before { content: ""; position: absolute; top: -110px; left: -80%; right: -80%; height: calc(170% + 110px); transform-origin: 50% 110px;
   background: linear-gradient(var(--a40) 3px, transparent 3px) 0 0 / 110px 110px, linear-gradient(90deg, var(--a40) 3px, transparent 3px) 0 0 / 110px 110px;
   animation: floor 2.2s linear infinite; will-change: transform; }
 @keyframes floor { from { transform: rotateX(68deg) translateY(0); } to { transform: rotateX(68deg) translateY(110px); } }
-@keyframes floor-2 { from { transform: rotateX(68deg) translateY(0); } to { transform: rotateX(68deg) translateY(220px); } }
+/* two cells (Princess's ballroom checker): starts a cell back, so the floor still covers its top edge all the way */
+@keyframes floor-2 { from { transform: rotateX(68deg) translateY(-110px); } to { transform: rotateX(68deg) translateY(110px); } }
 .horizon { position: absolute; left: 0; right: 0; bottom: 430px; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); box-shadow: 0 0 22px var(--accent); opacity: .55; }
 #trails { position: absolute; inset: 0; pointer-events: none; }
 
@@ -182,9 +183,10 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 /* Same box and per-artwork transforms as the website hero (docs/design-system.md, "Character sizing"),
    so every form's head lands in the same place. */
 .art-stage .art { position: absolute; inset: 0; filter: drop-shadow(0 22px 30px rgba(0,0,0,.6)) drop-shadow(0 0 28px var(--a20)); animation: float 5.5s ease-in-out infinite; }
-.art-stage .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; transition: opacity .25s; }
-.art-stage .art img.swap { opacity: 0; }
-.art-stage .art.glitching img { opacity: 0; transition: none; }
+/* the switch-in (scene.js) draws the character in its own layer, then hands back to the image in one frame: no fade, which
+   left a few frames with no character at all */
+.art-stage .art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 80%; transform-origin: 50% 80%; }
+.art-stage .art.glitching img { opacity: 0; }
 .art-glitch { position: absolute; inset: 0; pointer-events: none; }
 .art-glitch i { position: absolute; inset: 0; filter: drop-shadow(-3px 0 rgba(255,45,120,.75)) drop-shadow(3px 0 rgba(34,229,255,.75)); }
 .art-glitch b { position: absolute; inset: 0; background: no-repeat 50% 80% / contain; transform-origin: 50% 80%; }
@@ -223,13 +225,20 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 /* ---- Form looks: Princess Trina ("Redeemed") and the Blobfish ("The Deep") ------------------------------------------
    The website's form themes (docs/design-system.md, "Form themes"), for the scenes. theme.js sets <html data-look>
    from the form (princess, blobfish, else tron; looks= on the URL, the dock's Form looks, can give any form any look or
-   none). Colours blend over --t (above); every layer that belongs to one look is there all the time and cross-fades
-   (.lk-t Tron's, .lk-p Princess Trina's, .lk-b the Blobfish's); outlines morph. What would jump (the titles' font, the
+   none). Colours blend over --t (above); the layers that belong to one look (.lk-t Tron's, .lk-p Princess Trina's, .lk-b
+   the Blobfish's) cross-fade; outlines morph. What would jump (the titles' font, the
    ticker's marks) swaps behind a short blur (scene.js). Nothing changes a size or a position: every OBS source placed
    on a scene lands on the same pixels in every look. */
-.lk-t, .lk-p, .lk-b { transition: opacity var(--t) ease, visibility 0s; }
-.lk-p, .lk-b, [data-look="princess"] .lk-t, [data-look="blobfish"] .lk-t { opacity: 0; visibility: hidden; transition: opacity var(--t) ease, visibility 0s var(--t); }
-[data-look="princess"] .lk-p, [data-look="blobfish"] .lk-b { opacity: 1; visibility: visible; transition: opacity var(--t) ease, visibility 0s; }
+/* Only the look on show is drawn at all: a hidden look's floors and backgrounds are huge layers for the GPU, and keeping
+   all three alive (then waking two at once on a change) ran it out of memory, so every OBS source and every preview on
+   the index flickered at each change. During a change (scene.js sets data-was for --t) the outgoing look's layers stay,
+   fading out, while the new look's fade in. */
+.lk-t, .lk-p, .lk-b { display: none; }
+:root:not([data-look="princess"], [data-look="blobfish"]) .lk-t, [data-look="princess"] .lk-p, [data-look="blobfish"] .lk-b { display: block; }
+[data-was="tron"] .lk-t, [data-was="princess"] .lk-p, [data-was="blobfish"] .lk-b { display: block; animation: lk-out var(--t) ease both; }
+[data-was]:not([data-look="princess"], [data-look="blobfish"]) .lk-t, [data-was][data-look="princess"] .lk-p, [data-was][data-look="blobfish"] .lk-b { animation: lk-in var(--t) ease both; }
+@keyframes lk-in { from { opacity: 0; } }
+@keyframes lk-out { to { opacity: 0; } }
 
 /* the background: Princess's quilted lattice under a lilac glow; the Blobfish's grid sinks into the deep */
 .bg-lattice, .bg-deep { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
@@ -240,7 +249,7 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .bg-deep { background:
     linear-gradient(180deg, color-mix(in srgb, var(--accent2) 12%, transparent), transparent 45%, rgba(0,0,0,.5)),
     repeating-linear-gradient(100deg, transparent 0 90px, color-mix(in srgb, var(--accent2) 5%, transparent) 90px 150px, transparent 150px 250px); }
-.bg-deep::before { content: ""; position: absolute; inset: -20%; opacity: .5; will-change: transform;
+.bg-deep::before { content: ""; position: absolute; inset: -8%; opacity: .5;
   background:
     radial-gradient(28% 18% at 20% 25%, color-mix(in srgb, var(--accent2) 20%, transparent), transparent 70%),
     radial-gradient(22% 14% at 70% 15%, color-mix(in srgb, var(--accent2) 20%, transparent), transparent 70%),
@@ -251,16 +260,18 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 [data-look="princess"] .grid { opacity: .3; }
 [data-look="blobfish"] .grid { opacity: .35; }
 
-/* the floor: the grid, Princess's ballroom, the Blobfish's seabed, all in the same place. A loop is always a whole number
-   of the pattern's repeats (the ballroom's checker repeats every two cells), or the floor would jump at every loop. */
-.floor.f-ball::before { animation: floor-2 4.4s linear infinite;
+/* the floor: the grid, Princess's ballroom, the Blobfish's seabed. One floor (it's the biggest layer in the scene: two at
+   once for a cross-fade was too much for the GPU), which dips out for a moment while its pattern changes (scene.js). A loop
+   is always a whole number of the pattern's repeats (the ballroom's checker repeats every two cells), or it would jump. */
+[data-look="princess"] .floor::before { animation: floor-2 4.4s linear infinite;
   background: linear-gradient(var(--a40) 2px, transparent 2px) 0 0 / 110px 110px, linear-gradient(90deg, var(--a40) 2px, transparent 2px) 0 0 / 110px 110px,
     conic-gradient(color-mix(in srgb, var(--accent2) 10%, transparent) 25%, transparent 0 50%, color-mix(in srgb, var(--accent2) 10%, transparent) 0 75%, transparent 0) 0 0 / 220px 220px; }
-.floor.f-sand::before { animation-duration: 3.2s;
+[data-look="blobfish"] .floor::before { animation-duration: 3.2s;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='80'%3E%3Cg fill='none' stroke='%23ffb36b' stroke-opacity='.38' stroke-width='2'%3E%3Cpath d='M0 20 Q40 8 80 20 T160 20'/%3E%3Cpath d='M0 60 Q40 48 80 60 T160 60'/%3E%3C/g%3E%3Cpath d='M0 40 Q40 30 80 40 T160 40' fill='none' stroke='%2345d6c8' stroke-opacity='.18' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / 220px 110px; }
 
 /* the stage: Princess wears a pearl string with a gold star orbiting; the Blobfish's rings turn to sonar */
 .stage .ring svg { transition: opacity var(--t) ease; }
+.stage .ring > .lk-p, .stage .ring > .lk-b { position: absolute; inset: 0; }
 [data-look="princess"] .stage .r2, [data-look="blobfish"] .stage :is(.r1, .r2) { opacity: 0; }
 .stage .ring .p1 { animation: spin 40s linear infinite; } .stage .ring .p1 circle { stroke: #ffe9f5; stroke-width: 2.6; stroke-dasharray: 0 7.2; stroke-linecap: round; filter: drop-shadow(0 0 2px var(--accent)); }
 .stage .ring .p2 { animation: spin 9s linear infinite; } .stage .ring .p2 path { fill: #ffd98a; stroke: none; filter: drop-shadow(0 0 4px #ffd98a); }
@@ -340,13 +351,12 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 @keyframes twinkle { 0%, 78% { opacity: 0; transform: scale(0) rotate(0); } 86% { opacity: 1; transform: scale(1.2) rotate(90deg); } 94%, 100% { opacity: 0; transform: scale(0) rotate(180deg); } }
 .title .tiara { display: none; position: absolute; left: -.06em; top: -.2em; width: .5em; height: .34em; pointer-events: none; transform: rotate(-14deg); filter: drop-shadow(0 0 6px #ffd98a88); }
 [data-look="princess"] .title .tiara { display: block; }
-/* the Blobfish: the letters float, each a little behind the one before, and a bubble escapes now and then */
-[data-look="blobfish"] .title .twin :is(.o, .s) { filter: none; background: none; }
-[data-look="blobfish"] .title .twin .o .ch { filter: drop-shadow(0 0 14px var(--a40)); }
-[data-look="blobfish"] .title .twin .s .ch { background: linear-gradient(180deg, #fff 30%, var(--accent) 120%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 20px var(--a40)); }
-[data-look="blobfish"] .title .twin .ch { animation: swell 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -.22s); }
-[data-look="blobfish"] .title .twin .s .ch { animation-delay: calc(var(--i) * -.22s - .6s); }
-@keyframes swell { 50% { transform: translateY(-.06em) rotate(-1.5deg); } }
+/* the Blobfish: the lines float on a swell, one behind the other, and a bubble escapes now and then. (Line by line, not
+   letter by letter as on the website: every moving letter is a layer of its own for the GPU, and with every scene and the
+   index's previews drawing them at once, letters went missing and whole scenes blanked at each form change.) */
+[data-look="blobfish"] .title .twin > span { animation: swell 3.2s ease-in-out infinite; }
+[data-look="blobfish"] .title .twin .s { animation-delay: -.8s; }
+@keyframes swell { 50% { transform: translateY(-.05em) rotate(-.8deg); } }
 [data-look="blobfish"] .title .twin .s::after { content: ""; position: absolute; left: 38%; top: -.1em; width: .14em; height: .14em; border-radius: 50%; border: 3px solid #9ff5ea; opacity: 0;
   animation: escape 6s ease-in infinite; }
 @keyframes escape { 0%, 60% { opacity: 0; transform: translate(0, 0) scale(.6); } 65% { opacity: .9; } 100% { opacity: 0; transform: translate(.15em, -1.4em) scale(1.1); } }

@@ -108,18 +108,18 @@ test('a cycling scene: the look follows the form on show, and each form switches
 // The floors slide forward and jump back once a loop; the jump is invisible only if a loop is a whole number of the
 // pattern's repeats (Princess's checker repeats every two cells). Compared: the floor just before the jump and just after.
 test('every look\'s floor loops seamlessly: the frame before each jump matches the frame after it', async () => {
-  for (const [form, cls] of [['cyan', 'f-grid'], ['princess', 'f-ball'], ['blobfish', 'f-sand']]) {
+  for (const form of ['cyan', 'princess', 'blobfish']) {
     const tab = await chrome.open(`${site.origin}/obs/chatting?noveado=1&form=${form}`, HD);
     await tab.eval('document.fonts.ready.then(() => 1)');
     const box = await tab.eval(`(() => {
       document.getElementById('trails').style.display = 'none';
       document.querySelectorAll('.content, .ticker').forEach((e) => (e.style.visibility = 'hidden'));
       document.getAnimations().forEach((a) => a.pause());
-      const b = document.querySelector('.floor.${cls}').getBoundingClientRect();
+      const b = document.querySelector('.floor').getBoundingClientRect();
       return { x: b.x, y: b.y, width: b.width, height: b.height, scale: .5 };
     })()`);
     const at = async (edge) => {
-      await tab.eval(`(() => { const a = document.getAnimations().find((a) => a.effect.target?.classList?.contains('${cls}') && a.effect.pseudoElement === '::before');
+      await tab.eval(`(() => { const a = document.getAnimations().find((a) => a.effect.target?.classList?.contains('floor') && a.effect.pseudoElement === '::before');
         const d = a.effect.getComputedTiming().duration; a.currentTime = ${edge === 'end' ? 'd - 1' : '0'}; return 1; })()`);
       await tab.eval('new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(1))))');
       return (await tab.send('Page.captureScreenshot', { format: 'png', clip: box })).data;
@@ -152,4 +152,28 @@ test('no endless animation in any look changes a size or a position in the layou
     assert.ok(props.length > 3, `${form}: found its animations (${props})`);
     await tab.close();
   }
+});
+
+// OBS draws every browser source on the streaming PC's GPU (and the OBS index draws every scene at once). Keeping all three
+// looks' layers alive, then waking two at a time for a cross-fade (two 3D floors among them), made each change stall the
+// GPU for ~380 ms, so every source and every preview on the index froze and jumped at each turn of a cycling scene. Now
+// a look that's off draws nothing, and the floor is one layer that dips while its pattern changes.
+test('a look change stays light for the GPU: a look that\'s off draws nothing, and there\'s never a second floor', async () => {
+  const tab = await chrome.open(`${site.origin}/obs/starting?noveado=1&cycle=0&form=cyan`, HD);
+  await tab.eval('document.fonts.ready.then(() => 1)');
+  const drawnOff = `[...document.querySelectorAll('.lk-t, .lk-p, .lk-b')].filter((e) => getComputedStyle(e).display !== 'none'
+    && !e.matches({ tron: '.lk-t', princess: '.lk-p', blobfish: '.lk-b' }[document.documentElement.dataset.look])).length`;
+  assert.equal(await tab.eval(drawnOff), 0, 'Tron: another look\'s layers are drawn');
+  let most = 0;
+  tab.on('LayerTree.layerTreeDidChange', (pr) => { if (pr.layers) most = Math.max(most, pr.layers.filter((l) => l.drawsContent && l.width * l.height >= 4e6).length); });
+  await tab.send('LayerTree.enable');
+  for (const [form, look] of [['princess', 'princess'], ['blobfish', 'blobfish'], ['cyan', 'tron']]) {
+    await pick(tab, form, look);
+    await tab.until(`!document.documentElement.dataset.was`, 2000, `${form}: the cross-fade to end`);
+    assert.equal(await tab.eval(drawnOff), 0, `${form}: another look's layers are still drawn`);
+    // a moving letter is a layer of its own: the titles move line by line, never letter by letter
+    assert.equal(await tab.eval(`document.getAnimations().filter((a) => a.effect.target?.classList?.contains('ch')).length`), 0, `${form}: letters animate one by one`);
+  }
+  assert.equal(most, 1, `${most} floor-sized layers (4 Mpx or more) at once during the changes`);
+  await tab.close();
 });

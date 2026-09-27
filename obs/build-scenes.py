@@ -19,17 +19,17 @@ HEAD = '''<!doctype html>
 FOOT = '''<script src="shared/scene.js"></script>
 </body></html>
 '''
-# each look's background and floor are always there and cross-fade (overlay.css, "Form looks"): Tron's grid floor,
-# Princess Trina's lattice and ballroom, the Blobfish's deep water and seabed
+# each look's background cross-fades (overlay.css, "Form looks"): Princess Trina's lattice, the Blobfish's deep water;
+# the floor is one, its pattern set by the look
 BG = '''<div class="grid"></div><div class="bg-lattice lk-p"></div><div class="bg-deep lk-b"></div>
 <div class="glow" style="background:{glow}"></div>
-<div class="floor f-grid lk-t"></div><div class="floor f-ball lk-p"></div><div class="floor f-sand lk-b"></div><div class="horizon"></div>
+<div class="floor"></div><div class="horizon"></div>
 <canvas id="trails" data-riders="{riders}"></canvas>
 '''
 # the stage's rings, halo and pad: hide=rings turns them off (the dock's Rings chip)
 def ring(): return '''<div class="rings" data-part="rings"><div class="halo"></div>
   <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg>
-    <svg class="p1 lk-p" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="p2 lk-p" viewBox="0 0 200 200"><path d="m100 1 2.6 5.4 5.4 2.6-5.4 2.6-2.6 5.4-2.6-5.4-5.4-2.6 5.4-2.6z"/></svg><span class="sonar lk-b"><i></i><i></i><i></i></span><span class="sweep lk-b"></span></div>
+    <span class="lk-p"><svg class="p1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="p2" viewBox="0 0 200 200"><path d="m100 1 2.6 5.4 5.4 2.6-5.4 2.6-2.6 5.4-2.6-5.4-5.4-2.6 5.4-2.6z"/></svg></span><span class="lk-b"><span class="sonar"><i></i><i></i><i></i></span><span class="sweep"></span></span></div>
   <div class="pad"></div></div>'''
 def stage(x, y, w, h, label='PNGtuber: veadotube (Spout)'):
     # a space for the veadotube (Spout) source: Game and Just chatting only
