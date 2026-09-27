@@ -6,6 +6,7 @@ import { siteServer } from '../helpers/server.mjs';
 import { RealNet } from '../helpers/real-net.mjs';
 import { obsModel } from '../helpers/obs-model.mjs';
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let chrome, site, net;
 test.before(async () => { chrome = await launch(); site = await siteServer(); net = new RealNet(8); });
 test.after(async () => { await chrome?.close(); await site?.close(); net?.close(); });
@@ -106,6 +107,42 @@ test('Form looks (Widgets → More): turning Princess Trina\'s look off reaches 
   const urls = [...obs.inputs.values()].filter((i) => /\/obs\/(brb|chatting)/.test(i.settings.url || '')).map((i) => i.settings.url);
   assert.equal(urls.length, 2);
   for (const u of urls) assert.match(u, /[?&]looks=princess:tron(&|$)/, u);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+// The dock redraws itself on every status change (and each second on the Widgets tab, for the song). A redraw under an
+// open dropdown replaced it, so a select closed by itself before anything could be picked (OBS: the Form looks and Motion).
+test('a dropdown stays open while the dock redraws around it, and the dock catches up once it\'s picked', async () => {
+  const obs = obsModel(net, '127.0.0.1:0', { 'Be right back': [src('BRB', 'brb')] }, { collection: 'Selects' });
+  const tab = await dock(obs);
+  for (let i = 0; i < 3 && /waiting/.test(await tab.eval(footer)); i++) await apply(tab);
+  await tab.click('[data-tab="widgets"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:more"]')`);
+  await tab.click('.tgl-panel [data-sub="widgets:more"]');
+  await tab.until(`document.querySelector('.tgl-panel select[data-set="looks.princess"]')`);
+  await tab.eval(`window.__sel = document.querySelector('.tgl-panel select[data-set="looks.princess"]'); __sel.focus(); 1`);
+  for (const f of ['red', 'princess', 'cyan']) { await tab.eval(`TGL.set('${f}'); 1`); await sleep(120); }   // three redraws' worth
+  assert.ok(await tab.eval(`__sel.isConnected && document.activeElement === __sel`), 'the open dropdown was replaced by a redraw');
+  await tab.eval(`__sel.value = 'tron'; __sel.dispatchEvent(new Event('change', { bubbles: true })); 1`);
+  await tab.until(`/waiting/.test(${footer})`, 3000, 'the dock to redraw with the change waiting');
+  assert.equal(await tab.eval(`document.querySelector('.tgl-panel select[data-set="looks.princess"]').value`), 'tron');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+// The dock rebuilt itself on every status change and each second on the Live and Widgets tabs (the song), even when nothing
+// on show had changed. Now it only rebuilds when what it shows is different.
+test('the dock doesn\'t rebuild itself while nothing it shows changes', async () => {
+  const obs = obsModel(net, '127.0.0.1:0', { 'Be right back': [src('BRB', 'brb')] }, { collection: 'Idle' });
+  const tab = await dock(obs);
+  await tab.click('[data-tab="live"]');
+  await sleep(1500);
+  await tab.eval(`window.__rebuilds = 0; new MutationObserver((m) => { if (m.some((r) => r.target.classList?.contains('tgl-panel'))) __rebuilds++; }).observe(document.querySelector('.tgl-panel'), { childList: true }); 1`);
+  await sleep(3500);                                // the song is asked for every second
+  assert.equal(await tab.eval('__rebuilds'), 0, 'rebuilt with nothing changed');
+  await tab.eval(`TGL.set('red'); 1`);             // something on show changes: it redraws
+  await tab.until('__rebuilds > 0', 2000, 'a redraw for the new colour');
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });

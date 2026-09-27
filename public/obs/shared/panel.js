@@ -179,16 +179,22 @@
     const { connectObs, call, reconnectObs, rescan, managedRows, plan, placeSharedLive, review, runReview, currentScene, addWidget, tagInput,
       checks, measure, measureAvatar, head, foot, reviewHtml, bodies } = P;
 
-    let raf = 0;
+    let raf = 0, drawn = '';
     function refresh() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
     function render() {
       const a = /** @type {HTMLInputElement} */ (document.activeElement);
-      if (a && el.contains(a) && ['text', 'password', 'number'].includes(a.type)) return;   // don't redraw under someone typing
+      // don't redraw under someone typing, or under an open dropdown (a redraw replaces it, so it closed by itself); the
+      // focusout below redraws once they're done
+      if (a && el.contains(a) && (['text', 'password', 'number'].includes(a.type) || a.tagName === 'SELECT')) return;
+      // Most redraws (every status change, each second on the Live and Widgets tabs for the song) change nothing on show:
+      // those are skipped, so the dock only rebuilds when something it shows is different
+      const html = head() + `<div class="bd">${bodies[tab]()}</div>` + foot() + (reviewing ? reviewHtml() : '');
+      if (html === drawn && el.firstChild) return;
+      drawn = html;
       const bdScroll = el.querySelector('.bd')?.scrollTop || 0;
       // <details> sections stay open across redraws (the Widgets tab redraws every second for the song)
       const open = new Set([...el.querySelectorAll('details[open] summary')].map((x) => x.textContent));
-      const body = bodies[tab]();
-      el.innerHTML = head() + `<div class="bd">${body}</div>` + foot() + (reviewing ? reviewHtml() : '');
+      el.innerHTML = html;
       el.querySelectorAll('details').forEach((x) => { if (open.has(x.querySelector('summary')?.textContent)) x.open = true; });
       el.querySelector('.bd').scrollTop = bdScroll;
     }
@@ -286,7 +292,9 @@
       if (d.pick) { const [what, uuid] = d.pick.split(':'); s.dock.pick[what][uuid] = t.value; save(); return; }
       if (d.target !== undefined) { obs.target = t.value; }
     });
-    el.addEventListener('focusout', () => setTimeout(() => { if (!el.contains(document.activeElement)) refresh(); }, 0));
+    el.addEventListener('focusout', () => setTimeout(() => { const a = document.activeElement; if (!el.contains(a) || a.tagName !== 'SELECT') refresh(); }, 0));
+    // a pick made: the dropdown lets go, so the dock redraws with it (the footer's count, anything that depends on it)
+    el.addEventListener('change', (e) => { const t = /** @type {HTMLElement} */ (e.target); if (t.tagName === 'SELECT') setTimeout(() => t.blur(), 0); });
 
     // ---------------------------------------------------------------- start
     TGL.onChange(() => refresh());
