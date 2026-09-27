@@ -28,7 +28,7 @@ BG = '''<div class="grid"></div><div class="bg-lattice lk-p"></div><div class="b
 '''
 # the stage's rings, halo and pad: hide=rings turns them off (the dock's Rings chip)
 def ring(): return '''<div class="rings" data-part="rings"><div class="halo"></div>
-  <div class="ring"><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg>
+  <div class="ring"><svg class="r0" viewBox="0 0 200 200"><circle cx="100" cy="100" r="74"/></svg><svg class="r1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98"/></svg><svg class="r2" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="r3" viewBox="0 0 200 200"><circle cx="100" cy="100" r="92"/></svg>
     <span class="lk-p"><svg class="p1" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/></svg><svg class="p2" viewBox="0 0 200 200"><path d="m100 1 2.6 5.4 5.4 2.6-5.4 2.6-2.6 5.4-2.6-5.4-5.4-2.6 5.4-2.6z"/></svg></span><span class="lk-b"><span class="sonar"><i></i><i></i><i></i></span><span class="sweep"></span></span></div>
   <div class="pad"></div></div>'''
 def stage(x, y, w, h, label='PNGtuber: veadotube (Spout)'):

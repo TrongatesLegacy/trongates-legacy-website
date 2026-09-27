@@ -178,8 +178,9 @@ test('a look change stays light for the GPU: a look that\'s off draws nothing, a
   await tab.close();
 });
 
-// Princess Trina's stage wears her pearls and star, the Blobfish's its sonar: none of Tron's rings may stay on show
-test('the stage in Princess Trina\'s and the Blobfish\'s looks keeps none of Tron\'s rings', async () => {
+// The stage's rings are the website's, form by form: Princess Trina keeps Tron's dotted outer ring and thin inner ring under
+// her pearls and star, the Blobfish only the thin inner ring under its sonar (the fast arcs stayed at first)
+test('the stage\'s rings in each look are the website\'s', async () => {
   for (const [scene, form] of [['chatting', 'princess'], ['chatting', 'blobfish'], ['starting', 'princess'], ['starting', 'blobfish']]) {
     const tab = await chrome.open(`${site.origin}/obs/${scene}?noveado=1&cycle=0&form=cyan`, HD);
     await tab.eval('document.fonts.ready.then(() => 1)');
@@ -187,10 +188,10 @@ test('the stage in Princess Trina\'s and the Blobfish\'s looks keeps none of Tro
     await tab.until(`!document.documentElement.dataset.was`, 2000, 'the cross-fade');
     await new Promise((r) => setTimeout(r, 900));      // the rings' own fade
     const shown = await tab.eval(`[...document.querySelectorAll('.stage .ring > svg')].filter((e) => getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > 0).map((e) => e.getAttribute('class'))`);
-    assert.deepEqual(shown, [], `${scene}, ${form}: Tron's rings still on show`);
+    assert.deepEqual(shown, { princess: ['r0', 'r1'], blobfish: ['r0'] }[form], `${scene}, ${form}: Tron's rings on show`);
     await pick(tab, 'cyan', 'tron');
     await new Promise((r) => setTimeout(r, 900));
-    assert.equal(await tab.eval(`[...document.querySelectorAll('.stage .ring > svg')].filter((e) => +getComputedStyle(e).opacity > 0 && getComputedStyle(e).visibility !== 'hidden').length`), 3, `${scene}: Tron's rings back`);
+    assert.equal(await tab.eval(`[...document.querySelectorAll('.stage .ring > svg')].filter((e) => +getComputedStyle(e).opacity > 0 && getComputedStyle(e).visibility !== 'hidden').length`), 4, `${scene}: Tron's rings back`);
     await tab.close();
   }
 });

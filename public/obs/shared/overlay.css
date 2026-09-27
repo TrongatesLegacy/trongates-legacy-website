@@ -116,6 +116,7 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 .stage .ring { position: absolute; left: 50%; top: 44%; aspect-ratio: 1; width: 92%; translate: -50% -50%; }
 .stage .ring svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 50%; }
 .stage .ring circle { fill: none; stroke: var(--accent); }
+.stage .r0 { opacity: .35; } .stage .r0 circle { stroke-width: .5; }   /* the website's thin, still inner ring */
 .stage .r1 { opacity: .6; animation: spin 60s linear infinite; } .stage .r1 circle { stroke-width: .5; stroke-dasharray: 2 5; }
 .stage .r2 { opacity: .9; animation: spin 26s linear infinite reverse; filter: drop-shadow(0 0 4px var(--accent)); } .stage .r2 circle { stroke-width: 1.4; stroke-dasharray: 70 22 8 22; }
 .stage .r3 { animation: spin 9s linear infinite; filter: drop-shadow(0 0 5px var(--accent)); } .stage .r3 circle { stroke-width: 2.6; stroke-dasharray: 24 250; stroke-linecap: round; }
@@ -272,8 +273,9 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
 /* the stage: Princess wears a pearl string with a gold star orbiting; the Blobfish's rings turn to sonar */
 .stage .ring > svg { transition: opacity var(--t) ease, visibility 0s; }
 .stage .ring > .lk-p, .stage .ring > .lk-b { position: absolute; inset: 0; }
-/* Tron's three rings give way to the look's own (they spin, so they fade and then stop being drawn) */
-:is([data-look="princess"], [data-look="blobfish"]) .stage .ring > svg { opacity: 0; visibility: hidden; transition: opacity var(--t) ease, visibility 0s var(--t); }
+/* as on the website: Princess keeps Tron's dotted outer ring and thin inner ring under her own; the Blobfish only the thin
+   inner ring. The others fade, then stop being drawn (they spin). */
+[data-look="princess"] .stage :is(.r2, .r3), [data-look="blobfish"] .stage :is(.r1, .r2, .r3) { opacity: 0; visibility: hidden; transition: opacity var(--t) ease, visibility 0s var(--t); }
 .stage .ring .p1 { animation: spin 40s linear infinite; } .stage .ring .p1 circle { stroke: #ffe9f5; stroke-width: 2.6; stroke-dasharray: 0 7.2; stroke-linecap: round; filter: drop-shadow(0 0 2px var(--accent)); }
 .stage .ring .p2 { animation: spin 9s linear infinite; } .stage .ring .p2 path { fill: #ffd98a; stroke: none; filter: drop-shadow(0 0 4px #ffd98a); }
 .stage .sonar, .stage .sweep { position: absolute; inset: 8%; border-radius: 50%; }
