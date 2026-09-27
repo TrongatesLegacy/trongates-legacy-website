@@ -137,3 +137,31 @@ test('proof: the cycling from before the fix (7f5f65e~1) replays hidden picks, s
     await tab.close();
   } finally { delete site.files['/obs/shared/scene.js']; }
 });
+
+// Game (window): the window is exactly the game capture's box, where the dock's Tidy puts it (panel-layout.js CAPTURE),
+// so once the game is up only the window's thin border shows: the tag and "Loading the game" sit inside the box (the
+// game covers them), the border lies just outside it, and nothing else of the scene reaches into it.
+test('Game (window): the window is exactly where the game capture goes, and only its border shows around the game', async () => {
+  const [, x, y, w, h] = read('public/obs/shared/panel-layout.js').match(/CAPTURE = \{ positionX: (\d+), positionY: (\d+), boundsType: '[A-Z_]+', boundsWidth: (\d+), boundsHeight: (\d+)/).map(Number);
+  assert.equal(w / h, 16 / 9, 'a 16:9 window, so a 16:9 game fills it exactly');
+  const tab = await chrome.open(`${site.origin}/obs/game?layout=window&noveado=1`, HD);
+  await settled(tab);
+  const got = await tab.eval(`(() => {
+    const box = (el) => { const b = el.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)]; };
+    const win = document.querySelector('.gamewin'), slot = win.querySelector('[data-slot^="Game capture"]');
+    const inside = (el) => { const [a, b] = [el.getBoundingClientRect(), slot.getBoundingClientRect()]; return a.left >= b.left && a.top >= b.top && a.right <= b.right && a.bottom <= b.bottom; };
+    const s = slot.getBoundingClientRect();
+    // everything else drawn on the scene (frames, now playing, stage slots) must stay clear of the window and its border
+    const others = [...document.querySelectorAll('.frame, .np, [data-slot]')].filter((el) => !win.contains(el)).filter((el) => {
+      const b = el.getBoundingClientRect(); return b.width && b.left < s.right + 2 && b.right > s.left - 2 && b.top < s.bottom + 2 && b.bottom > s.top - 2;
+    }).map((el) => el.className || el.dataset.slot);
+    return { slot: box(slot), frame: box(win), shadow: getComputedStyle(win).boxShadow, tag: inside(win.querySelector('.tag')), loading: inside(win.querySelector('.copy')), others };
+  })()`);
+  assert.deepEqual(got.slot, [x, y, w, h], 'the drawn window is the capture box');
+  assert.deepEqual(got.frame, got.slot, 'no padding band: the window is the game');
+  assert.match(got.shadow, /0px 0px 0px 2px/, 'a 2px border drawn outside the box');
+  assert.ok(got.tag && got.loading, 'the tag and the loading text sit where the game covers them');
+  assert.deepEqual(got.others, [], 'nothing else overlaps the window or its border');
+  noErrors(tab, 'game window');
+  await tab.close();
+});

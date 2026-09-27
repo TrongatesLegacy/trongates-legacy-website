@@ -44,11 +44,11 @@ def frame(x, y, w, h, tab, icon, slot, extra='', inner='', part=''):
   <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:52px;bottom:18px">{inner}</div>
 </div>
 '''
-def thin_frame(x, y, w, h, tag, slot, inner=''):
-    # a frame with a small tag hanging from its top edge, inside the 18px band above the slot, so the game capture
-    # never covers it (Game (window)'s game window)
-    return f'''<div class="frame thin" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
-  <div data-slot="{slot}" style="position:absolute;left:18px;right:18px;top:18px;bottom:18px">{inner}</div>
+def game_window(x, y, w, h, tag, slot, inner=''):
+    # Game (window)'s game window: exactly the game capture's box (x, y, w, h), with only a thin border drawn outside it.
+    # The tag and the loading text sit inside, so once the game is up it covers them and only the border shows.
+    return f'''<div class="gamewin" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">
+  <div data-slot="{slot}" style="position:absolute;inset:0">{inner}</div>
   <div class="tag">{tag}</div>
 </div>
 '''
@@ -125,7 +125,7 @@ scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='
 
 # ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
 # appears: "Loading the game" in the middle, nothing else (chat and goal would sit under the game anyway).
-# ?layout=window instead: a 1408x792 window for the game capture on the left (73% of 1080p, the loading text inside
+# ?layout=window instead: a 1440x810 window for the game capture on the left (75% of 1080p, the loading text inside
 # it until the game covers it), follower goal bottom left with now playing beside it (the same height), chat top
 # right, and the bottom-right corner left for veadotube (?rings=1 puts the stage rings behind it). The window layout lives in a <template> swapped in before scene.js runs, so its
 # widgets only load when it's used.
@@ -140,7 +140,9 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 .copy .eyebrow::after { content: ""; width: 60px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 .copy .title { font-size: 120px; }
 .layout-window .copy { gap: 24px; } .layout-window .copy .title { font-size: 96px; } .layout-window .copy .sub { font-size: 26px; }
-.frame.thin .tag { position: absolute; left: 22px; top: -1px; z-index: 2; padding: 4px 12px 3px; font: 700 12px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase; color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 8px 100%); }
+.gamewin { position: absolute; background: linear-gradient(180deg, var(--a10), rgba(5,10,20,.78) 18%); backdrop-filter: blur(6px);
+  box-shadow: 0 0 0 2px var(--a70), 0 0 18px var(--a40); }
+.gamewin .tag { position: absolute; left: 22px; top: 0; z-index: 2; padding: 4px 12px 3px; font: 700 12px/1 Orbitron; letter-spacing: .22em; text-transform: uppercase; color: #03060d; background: var(--accent); clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 8px 100%); }
 .rings-opt { display: none; } .show-rings .rings-opt { display: block; }
 .bar { position: relative; width: 560px; height: 10px; overflow: hidden; background: rgba(255,255,255,.08); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .bar i { position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, var(--accent), #fff); box-shadow: 0 0 16px var(--accent); animation: load 1.6s cubic-bezier(.5,0,.5,1) infinite; }
@@ -149,7 +151,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 {LOADING}
 </div>
 <template id="game-window">
-{thin_frame(10, 10, 1444, 828, 'Game', 'Game capture (1408 × 792)', inner=LOADING)}{frame(10, 866, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(620, 866, 560, 134)}{frame(1470, 10, 440, 440, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1470, 466, 440, 534)}{slot(1470, 466, 440, 534, 'PNGtuber: veadotube (Spout)')}</template>
+{game_window(12, 12, 1440, 810, 'Game', 'Game capture (1440 × 810)', inner=LOADING)}{frame(10, 866, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(620, 866, 560, 134)}{frame(1470, 10, 440, 440, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1470, 466, 440, 534)}{slot(1470, 466, 440, 534, 'PNGtuber: veadotube (Spout)')}</template>
 <script>{{ const q = new URLSearchParams(location.search); if (q.get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); if (q.get('rings') === '1') document.documentElement.classList.add('show-rings'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }} }}</script>
 {ticker()}''')
 

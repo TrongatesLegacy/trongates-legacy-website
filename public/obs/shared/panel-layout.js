@@ -10,7 +10,7 @@
     const shared = () => P.shared(), chatRows = () => P.chatRows(), sharedTransform = (r) => P.sharedTransform(r);
 
     // ---------------------------------------------------------------- layout (tidy)
-    const CAPTURE = { positionX: 28, positionY: 92, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: 1408, boundsHeight: 792, boundsAlignment: 0, alignment: 5, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0, rotation: 0 };
+    const CAPTURE = { positionX: 12, positionY: 76, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: 1440, boundsHeight: 810, boundsAlignment: 0, alignment: 5, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0, rotation: 0 };
     const VEADO_BOX = { chatting: [760, 174, 980, 880], game: [1470, 530, 440, 534] };
     const veadoTransform = (kind) => { const [x, y, w, h] = VEADO_BOX[kind]; return { positionX: x, positionY: y, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: w, boundsHeight: h, boundsAlignment: 0, alignment: 5, rotation: 0 }; };
     // Measured (Layout → Measure avatar): scale veadotube's canvas so the avatar's resting outline is the chosen
@@ -95,7 +95,7 @@
         if (r.kind === 'game' && layoutOf(r) === 'window' && pickC) {
           const it = r.container.items.find((i) => i.sourceName === pickC);
           if (!it) out.push({ where, what: pickC, state: 'not found (renamed or removed?): pick again', bad: true });
-          else if (!sameTransform(it.sceneItemTransform, CAPTURE)) out.push({ where, what: pickC, state: 'not in the game window', fix: { k: 'place', label: `${pickC} in ${where}: the 1408 × 792 window (X 28, Y 92)`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: CAPTURE }) } });
+          else if (!sameTransform(it.sceneItemTransform, CAPTURE)) out.push({ where, what: pickC, state: 'not in the game window', fix: { k: 'place', label: `${pickC} in ${where}: the 1440 × 810 window (X 12, Y 76)`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: CAPTURE }) } });
           else out.push({ where, what: pickC, state: 'in place', good: true });
         }
         if ((r.kind === 'chatting' || (r.kind === 'game' && layoutOf(r) === 'window')) && pickV) {

@@ -25,7 +25,7 @@ else. Your full-screen game capture sits on top of it, so once the game is up no
 is reserved for the PNGtuber: put veadotube in the far bottom-right corner, over everything.
 
 **Game with `?layout=window`** (the index's *Game (window)* card) keeps the overlay on show around the game:
-a 1408 × 792 window on the left for your game capture, with a small *Game* tag in its corner ("Loading the game" shows inside until the game covers it),
+a 1440 × 810 window on the left for your game capture (75% of 1080p), exactly the game's size: its small *Game* tag and "Loading the game" sit inside, so once the game is up it covers them and only the window's thin border shows,
 the follower goal bottom left with Now playing beside it, the chat top right, and the bottom-right corner left
 free for veadotube (`rings=1`, the dock's *Rings* chip, puts the stage's animated rings behind it).
 
@@ -119,7 +119,7 @@ the bottom edge is kept clear of anything that matters.
 | | veadotube (Spout) | 760 | 174 | 980 | 880 |
 | Game | your game capture, full screen, *above* the overlay | 0 | 0 | 1920 | 1080 |
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
-| Game `?layout=window` | your game capture, *above* the overlay | 28 | 92 | 1408 | 792 |
+| Game `?layout=window` | your game capture, *above* the overlay | 12 | 76 | 1440 | 810 |
 | | Botrix chat | 1488 | 126 | 404 | 370 |
 | | Botrix follower goal | 28 | 982 | 554 | 64 |
 | | veadotube (Spout) | 1470 | 530 | 440 | 534 |
@@ -144,7 +144,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `obs=4455`, `obspw=…` | all | listen to the dock's colour buttons through the OBS WebSocket (the dock adds these) |
 | `chat=…`, `goal=…` | Be right back, Just chatting, Game (window), chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 | `key=…` | Be right back, Just chatting, Game (window), chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
-| `layout=window` | Game | the windowed layout (a 1408 × 792 game window, goal, now playing, chat, space for veadotube) instead of the full-screen backdrop |
+| `layout=window` | Game | the windowed layout (a 1440 × 810 game window, goal, now playing, chat, space for veadotube) instead of the full-screen backdrop |
 | `rings=1` | Game (`layout=window`) | the stage's animated rings behind veadotube (off by default here; the dock's *Rings* chip). The other scenes have them on: `hide=rings` turns them off |
 | `chat=0` | Be right back, Just chatting, Game (window) | don't load the chat (a shared chat source sits in the frame instead; see *One shared chat for every scene*) |
 | `bare=1` | chat | no frame: just the chat, filling the source (the shared chat source) |
