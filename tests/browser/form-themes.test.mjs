@@ -87,3 +87,50 @@ test('a returning Blobfish visitor gets the look before first paint: titles in L
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
+
+test('?form=princess opens the site as a returning Princess visitor (how Lighthouse measures her look), without saving it', async () => {
+  const tab = await chrome.open(site.origin + '/?form=princess', { init: `localStorage.setItem('tgl-form', 'yellow')` });
+  assert.equal(await tab.eval(`document.documentElement.dataset.theme + ' ' + document.documentElement.dataset.look`), 'princess princess');
+  assert.equal(await tab.eval(`document.documentElement.classList.contains('no-pick')`), false, 'no first-visit hint');
+  assert.ok(await tab.eval(`[...document.querySelectorAll('link[rel=preload][as=font]')].some((l) => l.href.endsWith('/cinzel-decorative-900.woff2'))`), 'her title font is preloaded');
+  assert.equal(await tab.eval(`localStorage.getItem('tgl-form')`), 'yellow', 'the visitor\'s own pick is kept');
+  const junk = await chrome.open(site.origin + '/?form=pink', { init: `localStorage.setItem('tgl-form', 'red')` });
+  assert.equal(await junk.eval(`document.documentElement.dataset.theme`), 'red', 'an unknown form is ignored');
+  assert.deepEqual([...tab.errors, ...junk.errors], []);
+  await tab.close(); await junk.close();
+});
+
+// Each floor slides forward and jumps back once a loop; the jump is invisible only if the loop is a whole number of the
+// floor's pattern repeats. Princess Trina's ballroom checker repeats every two cells: looping one cell flipped every
+// square's colour at each jump. Compared: the floor just before the jump against just after it, everything else paused.
+test('the moving floors loop seamlessly: the frame before each jump matches the frame after it', async () => {
+  for (const form of ['cyan', 'princess', 'blobfish']) {
+    const tab = await chrome.open(site.origin + '/?form=' + form, { init: FRESH });
+    await booted(tab);
+    const cls = { cyan: 'f-grid', princess: 'f-ball', blobfish: 'f-sand' }[form];
+    const box = await tab.eval(`(() => {
+      document.getElementById('cycles').style.display = 'none';
+      document.querySelector('.stage-wrap').style.visibility = 'hidden';
+      document.getAnimations().forEach((a) => a.pause());
+      const b = document.querySelector('.floor.${cls}').getBoundingClientRect();
+      return { x: b.x, y: b.y, width: b.width, height: b.height, scale: 1 };
+    })()`);
+    const at = async (edge) => {
+      await tab.eval(`(() => { const a = document.getAnimations().find((a) => a.effect.target?.classList?.contains('${cls}') && a.effect.pseudoElement === '::before');
+        const d = a.effect.getComputedTiming().duration; a.currentTime = ${edge === 'end' ? 'd - 1' : '0'}; return 1; })()`);
+      await tab.eval('new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(1))))');
+      return (await tab.send('Page.captureScreenshot', { format: 'png', clip: box })).data;
+    };
+    const [start, end] = [await at('start'), await at('end')];
+    const differ = await tab.eval(`(async () => {
+      const load = (d) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = 'data:image/png;base64,' + d; });
+      const [a, b] = await Promise.all([load(${JSON.stringify(start)}), load(${JSON.stringify(end)})]);
+      const px = (i) => { const c = document.createElement('canvas'); c.width = i.width; c.height = i.height; const g = c.getContext('2d'); g.drawImage(i, 0, 0); return g.getImageData(0, 0, i.width, i.height).data; };
+      const p = px(a), q = px(b); let n = 0;
+      for (let k = 0; k < p.length; k += 4) if (Math.abs(p[k] - q[k]) + Math.abs(p[k + 1] - q[k + 1]) + Math.abs(p[k + 2] - q[k + 2]) > 24) n++;
+      return n / (p.length / 4);
+    })()`);
+    assert.ok(differ < .002, `${form}: ${(differ * 100).toFixed(2)}% of the floor changes at the loop's jump`);
+    await tab.close();
+  }
+});

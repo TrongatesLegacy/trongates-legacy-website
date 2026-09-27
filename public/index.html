@@ -32,6 +32,10 @@
 (function () {
   var forms = ['cyan', 'yellow', 'red', 'princess', 'blobfish'], form;
   try { form = localStorage.getItem('tgl-form'); } catch (e) {}
+  // ?form=princess opens the site in that form for this visit, as a returning visitor sees it, without saving it
+  // (scripts/lighthouse.sh measures each form's look this way)
+  var asked = (location.search.match(/[?&]form=([a-z]+)/) || [])[1];
+  if (forms.indexOf(asked) >= 0) form = asked;
   var picked = forms.indexOf(form) >= 0;
   if (!picked) form = 'cyan';
   var file = form === 'princess' ? 'princess-uwu' : form === 'blobfish' ? 'blobfish-mclosed-eopen' : 'tron-' + form + '-mclosed-eopen';
@@ -303,6 +307,7 @@ h1 .l2::after  { color: var(--g2); animation: glitch-b 7s infinite steps(1); }
   animation: floor 1.6s linear infinite; will-change: transform; }
 /* one grid cell per loop, moved in the floor's own plane: seamless, and GPU-composited */
 @keyframes floor { from { transform: rotateX(68deg) translateY(0); } to { transform: rotateX(68deg) translateY(80px); } }
+@keyframes floor-2 { from { transform: rotateX(68deg) translateY(0); } to { transform: rotateX(68deg) translateY(160px); } }
 .scroll-hint { position: absolute; left: 50%; bottom: 1.4rem; transform: translateX(-50%); width: 1px; height: 3rem; background: linear-gradient(var(--accent), transparent); overflow: hidden; }
 .scroll-hint::after { content: ''; position: absolute; left: -1px; width: 3px; height: 35%; background: #fff; animation: drop 2s ease-in infinite; }
 @keyframes drop { from { transform: translateY(-115%); } to { transform: translateY(315%); } }
@@ -558,7 +563,8 @@ footer { position: relative; margin-top: 3rem; border-top: 1px solid var(--a20);
 /* the floor: three versions cross-fade in the same place: the grid, Princess's ballroom, the Blobfish's seabed */
 .floor { transition: opacity var(--t) ease, visibility 0s; }
 .floor.f-ball, .floor.f-sand { opacity: 0; visibility: hidden; transition: opacity var(--t) ease, visibility 0s var(--t); }
-.f-ball::before { animation-duration: 2.4s;
+/* the checker repeats every two cells, so the ballroom loops over two (one cell would flip every square's colour at each loop) */
+.f-ball::before { animation: floor-2 4.8s linear infinite;
   background: linear-gradient(var(--a40) 1.5px, transparent 1.5px) 0 0 / 80px 80px, linear-gradient(90deg, var(--a40) 1.5px, transparent 1.5px) 0 0 / 80px 80px,
     conic-gradient(color-mix(in srgb, var(--accent2) 9%, transparent) 25%, transparent 0 50%, color-mix(in srgb, var(--accent2) 9%, transparent) 0 75%, transparent 0) 0 0 / 160px 160px; }
 .f-sand::before { animation-duration: 6.4s;

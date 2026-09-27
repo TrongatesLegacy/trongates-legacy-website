@@ -96,7 +96,7 @@ node --experimental-websocket scripts/shot.mjs                # screenshot; opti
 node --experimental-websocket scripts/presize-art.mjs          # pre-size the character art (--measure, --bounds)
 node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image
 python3 obs/build-scenes.py                                    # regenerate the OBS scene overlays
-scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running)
+scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running; +Princess/Blobfish when their theme changed, --forms to force)
 scripts/lighthouse.sh                                          # Lighthouse on the live site after deploy
 YOUTUBE_API_KEY=… node scripts/update-feed.mjs                 # refresh public/feed.json by hand
 node --experimental-websocket artwork/kick/render.mjs           # re-render Kick panels

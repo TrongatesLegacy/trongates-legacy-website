@@ -85,6 +85,11 @@ Any change to a form's look has to keep it passing:
 - **Fonts and shapes** (`[data-look]`): swap while the elements that change are blurred out for 0.16s (the script
   animates them, so their own transitions are untouched), then they blur back in.
 - **Reduced motion:** everything swaps at once.
+- **Moving floors:** each loop must be a whole number of its pattern's repeats, or the jump back shows. The ballroom
+  checker repeats every two cells, so it loops over two (`floor-2`). Tested: the frame before the jump must match the
+  frame after it.
+- **`?form=`:** `?form=princess` (or any form) opens the site in that form for one visit, as a returning visitor would
+  see it, without saving it. `scripts/lighthouse.sh` measures the themes this way.
 
 ## Typography
 

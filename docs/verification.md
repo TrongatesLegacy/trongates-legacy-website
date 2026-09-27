@@ -63,7 +63,16 @@ Run it twice:
    `curl -s https://www.trongateslegacy.com/ | grep <something new>`): `scripts/lighthouse.sh`. Adds the
    performance gates: mobile ≥97, desktop ≥98.
 
-Both print scores, metrics and any failing audits, and exit non-zero when below baseline. Mobile performance varies by a few points run to run; if it dips just under, run it again
+**Which forms it measures.** Tron (a first visit) every time. Princess Trina and the Blobfish too, opened with
+`?form=princess` / `?form=blobfish` (the page's way of showing a returning visitor's form without saving it: their title
+font, backgrounds and canvas), when the change touches the form themes: a font, their art, or lines in
+`public/index.html` naming forms, looks or theme tokens. For `--local` that's everything not yet on origin/main; for the
+live run, the last push. The first line says which it chose and why; `--forms` measures all three regardless (e.g. after
+a CSS change the detection can't name), `--changed=<range>` picks the range. All three together take about three times
+as long.
+
+Both print scores, metrics and any failing audits (per form when there are three), and exit non-zero when any is below
+baseline. Mobile performance varies by a few points run to run; if it dips just under, run it again
 before investigating. Include the scores when reporting the change to the owner.
 
 The local run can't produce an overall SEO score (its "canonical" audit crashes on Node 21), so the script
