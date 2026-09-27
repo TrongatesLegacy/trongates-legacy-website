@@ -126,6 +126,7 @@ scenes['chatting'] = dict(title='Just chatting', body_class='', riders=5, glow='
 # ---- GAME (loading backdrop): shown behind the full-screen game capture, for the moments before the game
 # appears: "Loading the game" in the middle, nothing else (chat and goal would sit under the game anyway).
 # ?layout=window instead: a 1440x810 window for the game capture on the left (75% of 1080p, the loading text inside
+# it; the goal and now playing below are centred between its border and the bottom, 29px each side
 # it until the game covers it), follower goal bottom left with now playing beside it (the same height), chat top
 # right, and the bottom-right corner left for veadotube (?rings=1 puts the stage rings behind it). The window layout lives in a <template> swapped in before scene.js runs, so its
 # widgets only load when it's used.
@@ -151,7 +152,7 @@ scenes['game'] = dict(title='Game', body_class='', riders=6, glow='radial-gradie
 {LOADING}
 </div>
 <template id="game-window">
-{game_window(12, 12, 1440, 810, 'Game', 'Game capture (1440 × 810)', inner=LOADING)}{frame(10, 866, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(620, 866, 560, 134)}{frame(1470, 10, 440, 440, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1470, 466, 440, 534)}{slot(1470, 466, 440, 534, 'PNGtuber: veadotube (Spout)')}</template>
+{game_window(12, 12, 1440, 810, 'Game', 'Game capture (1440 × 810)', inner=LOADING)}{frame(10, 853, 590, 134, 'Goal', 'kick', 'Botrix follower goal', part='goal')}{np(620, 853, 560, 134)}{frame(1470, 10, 440, 440, 'Chat', 'kick', 'Botrix chat', part='chat')}{rings(1470, 466, 440, 534)}{slot(1470, 466, 440, 534, 'PNGtuber: veadotube (Spout)')}</template>
 <script>{{ const q = new URLSearchParams(location.search); if (q.get('layout') === 'window') {{ document.documentElement.classList.add('layout-window'); if (q.get('rings') === '1') document.documentElement.classList.add('show-rings'); document.getElementById('game-default').replaceWith(document.getElementById('game-window').content.cloneNode(true)); }} }}</script>
 {ticker()}''')
 

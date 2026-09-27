@@ -155,13 +155,18 @@ test('Game (window): the window is exactly where the game capture goes, and only
     const others = [...document.querySelectorAll('.frame, .np, [data-slot]')].filter((el) => !win.contains(el)).filter((el) => {
       const b = el.getBoundingClientRect(); return b.width && b.left < s.right + 2 && b.right > s.left - 2 && b.top < s.bottom + 2 && b.bottom > s.top - 2;
     }).map((el) => el.className || el.dataset.slot);
-    return { slot: box(slot), frame: box(win), shadow: getComputedStyle(win).boxShadow, tag: inside(win.querySelector('.tag')), loading: inside(win.querySelector('.copy')), others };
+    // the goal and now playing: centred between the window's 2px border and the bottom of the canvas (their layout boxes:
+    // now playing slides in from 8px above when a track starts)
+    const below = [document.querySelector('.frame[data-part="goal"]'), document.querySelector('.np')].map((el) => {
+      const top = el.offsetParent.getBoundingClientRect().top + el.offsetTop; return [Math.round(top - (s.bottom + 2)), Math.round(innerHeight - top - el.offsetHeight)]; });
+    return { slot: box(slot), frame: box(win), shadow: getComputedStyle(win).boxShadow, tag: inside(win.querySelector('.tag')), loading: inside(win.querySelector('.copy')), others, below };
   })()`);
   assert.deepEqual(got.slot, [x, y, w, h], 'the drawn window is the capture box');
   assert.deepEqual(got.frame, got.slot, 'no padding band: the window is the game');
   assert.match(got.shadow, /0px 0px 0px 2px/, 'a 2px border drawn outside the box');
   assert.ok(got.tag && got.loading, 'the tag and the loading text sit where the game covers them');
   assert.deepEqual(got.others, [], 'nothing else overlaps the window or its border');
+  for (const [above, under] of got.below) assert.equal(above, under, `the goal and now playing are centred below the window (${above}px above, ${under}px below)`);
   noErrors(tab, 'game window');
   await tab.close();
 });

@@ -121,7 +121,7 @@ the bottom edge is kept clear of anything that matters.
 | | veadotube (Spout) | far bottom-right corner, sized to taste, above everything | | | | |
 | Game `?layout=window` | your game capture, *above* the overlay | 12 | 76 | 1440 | 810 |
 | | Botrix chat | 1488 | 126 | 404 | 370 |
-| | Botrix follower goal | 28 | 982 | 554 | 64 |
+| | Botrix follower goal | 28 | 969 | 554 | 64 |
 | | veadotube (Spout) | 1470 | 530 | 440 | 534 |
 | Ending | *(nothing else: the overlay is the whole scene)* | | | | |
 
@@ -265,7 +265,7 @@ It only asks the bridge from inside OBS: a normal browser would ask for *Apps on
 "Not Secure", so there it stays hidden unless the URL has `music=1`. The index previews use a sample track.
 Positions (for reference; it isn't an OBS source): Starting soon / Ending X 1220 Y 86 W 560 H 100; Be right back
 and Just chatting X 40 Y 74 W 590 H 100 (top of the left column, above the chat and goal: the right side stays clear
-for the character / avatar); Game `layout=window` X 637 Y 890 W 560 H 134 (beside the goal, the same height). This replaces nutty's Universal Now Playing
+for the character / avatar); Game `layout=window` X 620 Y 917 W 560 H 134 (beside the goal, the same height). This replaces nutty's Universal Now Playing
 widget (same bridge), so that one isn't needed; it can still be layered on top as a browser source if preferred.
 
 **Players that give Windows no timeline (Cider):** some players report the song but no position or length
@@ -460,8 +460,9 @@ After any change, commit and push: that updates the hosted overlays and the Botr
 
 **Spacing:** the scenes with frames (Be right back, Just chatting, Game (window)) keep 10px from the canvas's left and
 right edges and below the socials strip, 16px from the bottom edge, and 16px between stacked frames. The left
-column (now playing, chat, goal) and the goal's spot are the same on all three, so switching scenes doesn't move
-them. The geometry lives in four places that must agree: `build-scenes.py` (the frames), `model.js` `chatBox()`
+column (now playing, chat, goal) is the same on Be right back and Just chatting, so switching between them doesn't move
+it. On Game (window), the goal and now playing are centred between the game window's border and the bottom edge instead
+(29px each side, so 13px higher than on the other two). The geometry lives in four places that must agree: `build-scenes.py` (the frames), `model.js` `chatBox()`
 (where the dock fits the shared chat), `panel.js` `CAPTURE` and `VEADO_BOX` (where Tidy puts the game capture and
 veadotube), and the position tables above. Change one, change all, and measure the rendered slots (the browser
 tests compare `chatBox()` with the drawn chat slot on every layout, docs/testing.md).
