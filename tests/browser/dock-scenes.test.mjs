@@ -89,3 +89,23 @@ test('Widgets sub-tabs: each group on its own, the pick remembered', async () =>
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
+
+test('Form looks (Widgets → More): turning Princess Trina\'s look off reaches every scene\'s address through Review & apply', async () => {
+  const obs = obsModel(net, '127.0.0.1:0', { 'Be right back': [src('BRB', 'brb')], 'Just chatting': [src('JC', 'chatting')] }, { collection: 'Looks' });
+  const tab = await dock(obs);
+  for (let i = 0; i < 3 && /waiting/.test(await tab.eval(footer)); i++) await apply(tab);   // whatever the dock tidies first
+  await tab.click('[data-tab="widgets"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:more"]')`);
+  await tab.click('.tgl-panel [data-sub="widgets:more"]');
+  await tab.until(`document.querySelector('.tgl-panel select[data-set="looks.princess"]')`, 3000, 'the Form looks');
+  assert.equal(await tab.eval(`document.querySelectorAll('.tgl-panel select[data-set^="looks."]').length`), 5, 'one per form');
+  assert.equal(await tab.eval(`document.querySelector('.tgl-panel select[data-set="looks.princess"]').value`), 'princess');
+  await tab.eval(`(() => { const s = document.querySelector('.tgl-panel select[data-set="looks.princess"]'); s.value = 'tron'; s.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  await tab.until(`/waiting/.test(${footer})`, 3000, 'the change waiting');
+  await apply(tab);
+  const urls = [...obs.inputs.values()].filter((i) => /\/obs\/(brb|chatting)/.test(i.settings.url || '')).map((i) => i.settings.url);
+  assert.equal(urls.length, 2);
+  for (const u of urls) assert.match(u, /[?&]looks=princess:tron(&|$)/, u);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});

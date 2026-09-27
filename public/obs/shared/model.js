@@ -27,20 +27,25 @@
   };
   const partsOf = (type, layout) => (type === 'game' && layout === 'window' ? TYPES.game.windowParts : TYPES[type].parts);
   const VEADO_DEFAULT = '127.0.0.1:54765', BRIDGE_DEFAULT = '127.0.0.1:5000';
+  // Form looks: the look each form gives the scenes (fonts, frames, background, the switch-in, transitions). Princess
+  // Trina and the Blobfish have their own; any form can be given any look, or Tron's (colour only). theme.js: looks=
+  const LOOKS = { tron: 'Tron (colour only)', princess: 'Royal (Princess Trina)', blobfish: 'The Deep (Blobfish)' };
+  const LOOK_DEFAULTS = { cyan: 'tron', yellow: 'tron', red: 'tron', princess: 'princess', blobfish: 'blobfish' };
 
   const defaults = () => ({
     v: 1,
     key: '', links: { chat: '', goal: '' }, shared: false, goalColor: true,
     music: { app: '', always: false, host: '', ciderToken: '' },
     veado: { addr: '', switch: true, tron: 'cyan', map: {}, delay: 0 },
-    motion: 'auto', sample: true,
+    motion: 'auto', sample: true, looks: { ...LOOK_DEFAULTS },
     scenes: Object.fromEntries(Object.keys(TYPES).map((t) => [t, { off: [], cycle: true, follow: true, layout: 'full', rings: false }])),
   });
   // fill in anything missing (older saves, partial imports)
   const normalise = (s) => {
     const d = defaults(), o = s && typeof s === 'object' ? s : {};
     const out = { ...d, ...o, links: { ...d.links, ...(o.links || {}) }, music: { ...d.music, ...(o.music || {}) },
-      veado: { ...d.veado, ...(o.veado || {}), map: { ...((o.veado || {}).map || {}) } }, scenes: {} };
+      veado: { ...d.veado, ...(o.veado || {}), map: { ...((o.veado || {}).map || {}) } }, looks: { ...d.looks, ...(o.looks || {}) }, scenes: {} };
+    for (const f of Object.keys(LOOK_DEFAULTS)) if (!LOOKS[out.looks[f]]) out.looks[f] = LOOK_DEFAULTS[f];
     for (const t of Object.keys(TYPES)) out.scenes[t] = { ...d.scenes[t], ...((o.scenes || {})[t] || {}), off: [...(((o.scenes || {})[t] || {}).off || [])] };
     return out;
   };
@@ -97,6 +102,8 @@
       if (+s.veado.delay > 0) add('veadodelay', +s.veado.delay);
     }
     if (s.motion === 'full' || s.motion === 'reduce') add('motion', s.motion);
+    const looks = Object.keys(LOOK_DEFAULTS).filter((f) => s.looks[f] !== LOOK_DEFAULTS[f]);
+    if (looks.length) add('looks', looks.map((f) => `${f}:${s.looks[f]}`).join(','));
     // the dock's colour buttons reach the scenes through the OBS WebSocket
     if (!ctx.preview && ctx.obs && ctx.obs.port) { add('obs', ctx.obs.port); if (ctx.obs.pw) add('obspw', ctx.obs.pw); }
     if (ctx.preview) {
@@ -109,7 +116,7 @@
   }
   // Every option the panel owns: when it rewrites a URL these are replaced, anything else is kept as it was.
   const OWNED = ['layout', 'rings', 'bare', 'hide', 'chat', 'goal', 'key', 'goalcolor', 'music', 'app', 'musichost', 'cidertoken', 'cycle', 'noveado',
-    'veado', 'map', 'veadodelay', 'motion', 'obs', 'obspw', 'art', 'demo', 'guide', 'form'];
+    'veado', 'map', 'veadodelay', 'motion', 'looks', 'obs', 'obspw', 'art', 'demo', 'guide', 'form'];
   const query = (pairs) => pairs.map(([k, v]) => `${k}=${encodeURIComponent(v).replace(/%2C/g, ',').replace(/%3A/g, ':')}`).join('&');
   // A URL with the panel's options in place of its own (base: an existing address, hosted or file://)
   function withOptions(base, pairs) {
@@ -151,6 +158,8 @@
       if (get('veadodelay')) s.veado.delay = +get('veadodelay') || 0;
       if (get('map')) for (const p of get('map').split(',')) { const [a, b] = p.split(':'); if (a && b) s.veado.map[a.trim().toLowerCase()] = b.trim(); }
       if (get('motion')) s.motion = get('motion');
+      if (get('looks') === '0') { s.looks.princess = 'tron'; s.looks.blobfish = 'tron'; }
+      else for (const p of (get('looks') || '').split(',')) { const [f, l] = p.split(':'); if (LOOK_DEFAULTS[f] && LOOKS[l]) s.looks[f] = l; }
       if (TYPES[r.kind]) {
         const sc = s.scenes[r.kind];
         if (r.kind === 'game') { sc.layout = r.layout; sc.rings = get('rings') === '1'; }
@@ -183,6 +192,6 @@
     return { x: 28, y: 64 + top + 52, w: 554, h: bottom - top - 70 };
   }
 
-  window.TGLModel = { PARTS, TYPES, WIDGETS, partsOf, defaults, normalise, options, withOptions, sameUrl, recognise, fromUrls,
+  window.TGLModel = { PARTS, TYPES, WIDGETS, LOOKS, LOOK_DEFAULTS, partsOf, defaults, normalise, options, withOptions, sameUrl, recognise, fromUrls,
     pack, unpack, b64, linkFor, isLink, pasted, chatBox, SHARED_W, SHARED_H, VEADO_DEFAULT, BRIDGE_DEFAULT };
 })();

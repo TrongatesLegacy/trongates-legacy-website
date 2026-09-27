@@ -173,3 +173,17 @@ test('chatBox: the shared chat always fits the chat frame, and the frame grows w
   const g = M.chatBox('game', s, true);
   assert.ok(g.w < M.SHARED_W && g.h > 0);
 });
+
+test('Form looks: only a look changed from its default goes on the addresses (every page, the transition too), and reads back', () => {
+  const s = M.defaults();
+  assert.deepEqual(plain(s.looks), { cyan: 'tron', yellow: 'tron', red: 'tron', princess: 'princess', blobfish: 'blobfish' });
+  assert.equal(url('brb', s), HOST + 'brb', 'the defaults add nothing');
+  s.looks.princess = 'tron'; s.looks.red = 'blobfish';
+  for (const kind of ['starting', 'brb', 'chatting', 'game', 'ending', 'goal', 'transition']) assert.equal(opts(M.options(kind, s)).looks, 'red:blobfish,princess:tron', kind);
+  const back = M.fromUrls([url('chatting', s)]);
+  assert.deepEqual(plain(back.looks), plain(s.looks));
+  assert.deepEqual(plain(M.fromUrls([HOST + 'brb?looks=0']).looks), { cyan: 'tron', yellow: 'tron', red: 'tron', princess: 'tron', blobfish: 'tron' });
+  // a save with a look that doesn't exist falls back to that form's own
+  assert.equal(M.normalise({ looks: { princess: 'disco' } }).looks.princess, 'princess');
+  assert.ok(M.withOptions(HOST + 'brb?looks=princess:tron&x=1', []).endsWith('brb?x=1'), 'the panel owns looks=');
+});

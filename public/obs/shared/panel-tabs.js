@@ -168,7 +168,11 @@
         <div class="row"><span class="grow">Tron button uses state</span><input type="text" data-set="veado.tron" value="${esc(P.s.veado.tron)}" style="width:110px"></div>
         <div class="row"><span class="grow">Wait before recolouring (ms)</span><input type="number" min="0" step="50" data-set="veado.delay" value="${+P.s.veado.delay || 0}" style="width:80px"></div>
         ${!dock && Object.keys(P.s.veado.map).length ? `<span class="hint">State colours (set in the dock): ${esc(Object.entries(P.s.veado.map).map(([k, f]) => k + ' → ' + SHORT[f]).join(', '))}</span>` : ''}`,
-        more: () => `<h3>Animations</h3>
+        more: () => `<h3>Form looks</h3>
+        <span class="hint">The look each form gives the scenes: title font, frames, background, the character's switch-in and the transitions. Princess Trina and the Blobfish have their own; Tron's changes only the colour.</span>
+        ${FORM_KEYS.map((f) => `<div class="row"><span class="grow">${SHORT[f]}</span><select data-set="looks.${f}" aria-label="Look for ${SHORT[f]}">${Object.entries(M.LOOKS).map(([l, label]) => `<option value="${l}" ${P.s.looks[f] === l ? 'selected' : ''}>${label}</option>`).join('')}</select></div>`).join('')}
+        ${dock ? '<span class="hint">Reaches the scenes through Review &amp; apply (they reload).</span>' : ''}
+        <h3>Animations</h3>
         <div class="row"><span class="grow">Motion</span><select data-set="motion"><option value="auto" ${P.s.motion === 'auto' ? 'selected' : ''}>automatic</option><option value="full" ${P.s.motion === 'full' ? 'selected' : ''}>always animate</option><option value="reduce" ${P.s.motion === 'reduce' ? 'selected' : ''}>reduced</option></select></div>
         ${!dock ? `<div class="row"><span class="grow">Sample messages and music in the previews</span>${tog('sample', P.s.sample)}</div>` : ''}
         <h3>Backup</h3>
