@@ -23,8 +23,9 @@ for arg in "$@"; do
 done
 [ "$LOCAL" = 1 ] && { curl -s -o /dev/null -m 3 "$URL" || { echo "dev server not running: start it with: node dev.mjs"; exit 1; }; }
 
-# does the change touch the form themes? (the names the themes' code and styles use; see "form themes" in public/index.html)
-THEME_WORDS='princess|blobfish|data-look|data-theme|theme-btn|lookOf|setLook|LOOK_|SWITCH_IN|glitchSwap|accent2|--g1|--g2|--bg[:;) ]|--panel|--muted|--title|--tscale|twin|\.lay|lattice|bg-deep|f-grid|f-ball|f-sand|tiara|\.hook|sonar|sweep|glitter|bubbling|MODES|__form|tgl-form|cinzel|lilita'
+# does the change touch the form themes? (the names the themes' code and styles use, and the hero title and fonts, which
+# change most between forms; see "form themes" in public/index.html)
+THEME_WORDS='princess|blobfish|data-look|data-theme|theme-btn|lookOf|setLook|LOOK_|SWITCH_IN|glitchSwap|accent2|--g1|--g2|--bg[:;) ]|--panel|--muted|--title|--tscale|twin|\.lay|lattice|bg-deep|f-grid|f-ball|f-sand|tiara|\.hook|sonar|sweep|glitter|bubbling|MODES|__form|tgl-form|cinzel|lilita|h1[ .,{:]|\.ch[ ,{:]|font-family|--display'
 THEMED=0
 if [ "$ALL" = 1 ]; then THEMED=1; why="--forms"
 else

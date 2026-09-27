@@ -134,3 +134,20 @@ test('the moving floors loop seamlessly: the frame before each jump matches the 
     await tab.close();
   }
 });
+
+// Until a form's title font arrives, the hero title draws in the fallback (Orbitron) at that form's size: for the Blobfish
+// that's wider than the column, and the letter-by-letter title broke onto a new line, so the whole hero shifted when the
+// font landed (Lighthouse: CLS 0.127, "web font loaded"). The rows must hold whatever font is drawing them.
+test('the hero title never wraps, even while a form\'s font is still loading', async () => {
+  for (const form of ['princess', 'blobfish']) {
+    const tab = await chrome.open(site.origin + '/?form=' + form, { width: 1350, height: 940, init: FRESH });
+    await tab.eval('document.fonts.ready.then(() => 1)');
+    const measure = `[document.querySelector('h1').offsetHeight, document.querySelector('.hero-in > div').offsetHeight].join()`;
+    const loaded = await tab.eval(measure);
+    for (const fallback of ['Orbitron', 'serif', 'sans-serif']) {
+      await tab.eval(`document.querySelector('h1').style.fontFamily = '${fallback}'; 1`);
+      assert.equal(await tab.eval(measure), loaded, `${form}: the hero moves when the title draws in ${fallback}`);
+    }
+    await tab.close();
+  }
+});

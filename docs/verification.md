@@ -66,7 +66,7 @@ Run it twice:
 **Which forms it measures.** Tron (a first visit) every time. Princess Trina and the Blobfish too, opened with
 `?form=princess` / `?form=blobfish` (the page's way of showing a returning visitor's form without saving it: their title
 font, backgrounds and canvas), when the change touches the form themes: a font, their art, or lines in
-`public/index.html` naming forms, looks or theme tokens. For `--local` that's everything not yet on origin/main; for the
+`public/index.html` naming forms, looks or theme tokens, or the hero title and fonts (which change most between forms). For `--local` that's everything not yet on origin/main; for the
 live run, the last push. The first line says which it chose and why; `--forms` measures all three regardless (e.g. after
 a CSS change the detection can't name), `--changed=<range>` picks the range. All three together take about three times
 as long.
