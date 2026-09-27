@@ -2,7 +2,8 @@
 
 One HTML file, no framework, no build: `public/index.html`. The owner asked for a single-page site that's
 visually impressive but fast on every device; a single file with inline CSS/JS and no dependencies gives the
-fastest first paint and nothing to break on deploy. Main focus: **get people to the Kick stream**.
+fastest first paint and nothing to break on deploy. That's the default, not a law: when a build step or framework
+would pay for itself, the owner wants to be told (CLAUDE.md lists the signs). Main focus: **get people to the Kick stream**.
 
 ## Page structure
 

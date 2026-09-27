@@ -34,8 +34,13 @@ website edit) and **channel-art** (Kick/Discord/other platform artwork).
   (and `YOUTUBE_API_KEY` also as a GitHub Actions secret), as do the OBS scenes' `OBS_KEY`, `BOTRIX_CHAT_URL` and
   `BOTRIX_GOAL_URL` (the Botrix links carry the account's widget id: never print or commit them). Netlify's secret scanner fails the build if a
   secret's *value* appears in the repo.
-- **No build step, no framework, no dependencies.** The site is `public/index.html` (HTML, CSS and JS inline)
-  plus static assets. Keep it that way unless the owner asks otherwise. See docs/website.md for why.
+- **No build step, no framework, no dependencies: the default, not a law.** The site is `public/index.html` (HTML,
+  CSS and JS inline) plus static assets (docs/website.md says why). Don't add a build, framework or dependency on your
+  own, but **tell the owner when one starts to pay for itself**, with the evidence, and let them decide. Signs to watch:
+  the same code kept by hand in two places drifting apart (the form looks live in both `index.html` and the OBS
+  `overlay.css`); hand-rolled state bugs recurring in the dock/panel (redraws losing focus, open dropdowns, scroll) that
+  a reactive view would prevent; Lighthouse or OBS performance held back by something only a build fixes (minifying,
+  bundling, image pipelines); JSDoc types no longer enough to keep the OBS scripts safe.
 - **Measure, don't eyeball.** Artwork has transparent margins, so image boxes lie about where a character
   actually is. Alignment and sizing decisions are made from measured visible pixels (docs/verification.md).
 - **Character art is pre-sized, never adjusted in place.** Every form is drawn at the same size and position on one
