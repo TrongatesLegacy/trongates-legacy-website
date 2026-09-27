@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Trongates rescue</title>
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- OBS custom browser dock (Docks → Custom Browser Docks): https://www.trongateslegacy.com/obs/rescue?obs=4455&obspw=…
+     A second, tiny dock for when something's stuck: refreshes every Trongates source in OBS, or puts every scene back
+     on Tron. It shares nothing with the control dock but the OBS WebSocket client (shared/obsws.js), so it still works
+     if the control dock has frozen. With no obs= it uses the control dock's saved connection. See obs/README.md. -->
+<script src="shared/obsws.js"></script>
+<style>
+@font-face { font-family: Orbitron; font-weight: 400 900; src: url(assets/fonts/orbitron.woff2) format("woff2"); }
+* { box-sizing: border-box; margin: 0; }
+body { padding: 10px 12px; background: #03060d; color: #e8f4ff; font: 400 13px/1.4 system-ui, sans-serif; display: grid; gap: 8px; }
+b { font: 900 12px/1 Orbitron, sans-serif; letter-spacing: .14em; color: #ff8a3d; text-transform: uppercase; }
+button { padding: 9px 10px; border: 1px solid #ff8a3d; border-radius: 5px; background: transparent; color: #ff8a3d; font: 700 11px Orbitron, sans-serif; letter-spacing: .06em; cursor: pointer; }
+button:hover:not(:disabled) { background: #ff8a3d; color: #03060d; }
+button:disabled { opacity: .4; cursor: default; }
+#state { color: #8ba3bd; font-size: 12px; }
+#state.ok { color: #53fc18; } #state.bad { color: #ff8a96; }
+</style></head>
+<body>
+<b>Trongates rescue</b>
+<button type="button" id="refresh" disabled>Refresh all Trongates sources</button>
+<button type="button" id="tron" disabled>Every scene back to Tron</button>
+<div id="state">Connecting to OBS…</div>
+<script>
+(() => {
+  const params = new URLSearchParams(location.search);
+  let saved = {}; try { saved = JSON.parse(localStorage.getItem('tgl-panel-obs') || '{}') || {}; } catch {}
+  const port = +(params.get('obs') || saved.port || 4455), password = params.get('obspw') ?? saved.pw ?? '';
+  const $ = (id) => document.getElementById(id), state = $('state');
+  const say = (text, cls = '') => { state.textContent = text; state.className = cls; };
+  // a Trongates source: one of the overlay pages, or one the control dock tagged as its own
+  const ours = (s) => /\/obs\/(starting|brb|chatting|game|ending|chat|goal|music|transition)(\.html)?([?#]|$)/.test(s.url || '') || !!s.tgl_managed;
+  const obs = TGLObs.connect({ port, password, onStatus: ({ state: s }) => {
+    const ready = s === 'connected';
+    $('refresh').disabled = $('tron').disabled = !ready;
+    if (!ready) say(s === 'wrong password' ? 'OBS rejected the password (add obspw= to this dock\'s address).' : `OBS: ${s}…`, s === 'wrong password' ? 'bad' : '');
+    else say('Connected. Use these if a scene or the control dock is stuck.', 'ok');
+  } });
+  $('refresh').onclick = async () => {
+    $('refresh').disabled = true; say('Finding the Trongates sources…');
+    try {
+      const { inputs } = await obs.call('GetInputList', { inputKind: 'browser_source' });
+      const found = [];
+      for (const i of inputs) {
+        const { inputSettings } = await obs.call('GetInputSettings', { inputUuid: i.inputUuid });
+        if (ours(inputSettings)) found.push(i);
+      }
+      for (const i of found) await obs.call('PressInputPropertiesButton', { inputUuid: i.inputUuid, propertyName: 'refreshnocache' });
+      say(`Refreshed ${found.length} Trongates source${found.length === 1 ? '' : 's'}. If the control dock is still stuck, restart OBS.`, 'ok');
+    } catch (e) { say('Couldn\'t refresh: ' + e.message, 'bad'); }
+    $('refresh').disabled = false;
+  };
+  // the same message the control dock's buttons send: every Trongates scene listening over OBS recolours
+  $('tron').onclick = async () => {
+    try { await obs.call('BroadcastCustomEvent', { eventData: { tgl: 'form', form: 'cyan', at: Date.now() } }); say('Told every scene: Tron.', 'ok'); }
+    catch (e) { say('Couldn\'t send: ' + e.message, 'bad'); }
+  };
+})();
+</script>
+</body></html>

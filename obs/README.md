@@ -400,6 +400,22 @@ and only reloads it when the link changes. **Remove** takes it out of every scen
 Game (window) the chat sits just above the overlay: if your game capture is above the overlay, place it in the window
 (Layout) so it doesn't cover the chat.
 
+## If something gets stuck
+
+**The rescue dock** is a second, tiny dock for when a scene or the control dock is stuck: add
+`https://www.trongateslegacy.com/obs/rescue?obs=4455&obspw=…` under Docks → Custom Browser Docks (the dock's Widgets
+tab copies the address). **Refresh all Trongates sources** reloads every Trongates overlay and every source the dock
+made (like pressing *Refresh cache of current page* on each); **Every scene back to Tron** recolours every scene
+that listens to the dock. It shares no code with the control dock but the small OBS WebSocket client, so it works when
+the control dock has frozen (a stuck page can't answer its own buttons, which is why the rescue is a separate dock).
+If the control dock itself stays stuck, restart OBS.
+
+**The circuit breaker:** every scene and the dock watch their own colour changes. If one recolours more than 10 times in
+2 seconds (something going wrong between the pages, like the Princess/Blobfish loop of 2026-09-26), it stops taking
+colours from the other pages for 5 seconds (10, 20… up to a minute if it keeps happening), then applies only the
+latest. veadotube and the dock's buttons still recolour at once, so the stream keeps following you. The dock shows a
+warning on its Live tab while its own breaker is tripped; the scenes log it to the browser console.
+
 ## Changing the scenes
 
 **QR code:** it's generated once with the `qrcode` npm package (in a temp folder, not a dependency of the repo):

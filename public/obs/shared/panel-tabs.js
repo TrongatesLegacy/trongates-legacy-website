@@ -136,6 +136,8 @@
         <h3>Backup</h3>
         <div class="row"><button type="button" class="btn grow" data-act="copy-link">Copy settings link</button><button type="button" class="btn" data-act="import">Import</button></div>
         ${!dock ? '<div class="row"><button type="button" class="btn grow" data-act="copy-dock">Copy dock address</button><button type="button" class="btn red" data-act="clear">Clear</button></div>' : '<div class="row"><button type="button" class="btn grow" data-act="rebuild">Read settings back from OBS</button></div>'}
+        <div class="row"><button type="button" class="btn grow" data-act="copy-rescue">Copy rescue dock address</button></div>
+        <p class="hint">The rescue dock is a second, tiny dock (Docks → Custom Browser Docks) that refreshes every Trongates source, or puts every scene back on Tron, even if this dock is stuck.</p>
         ${P.importNote ? `<p class="hint">${esc(P.importNote)}</p>` : ''}
         <p class="hint">Settings links carry your key and links: keep them private.</p>`;
     }

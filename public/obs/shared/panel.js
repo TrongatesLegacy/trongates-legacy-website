@@ -227,6 +227,10 @@
           measureAvatar().then(() => refresh()).catch((err) => { measure.note = err.message; refresh(); });
           break;
         case 'copy-link': copy(link(dock ? 'control' : ''), b); break;
+        case 'copy-rescue': {
+          const q = `obs=${encodeURIComponent(conn.port || '4455')}${conn.pw ? '&obspw=' + encodeURIComponent(conn.pw) : ''}`;
+          copy(new URL('rescue?' + q, location.href).href, b); break;
+        }
         case 'copy-dock': {
           const q = `obs=${encodeURIComponent(conn.port || '4455')}${conn.pw ? '&obspw=' + encodeURIComponent(conn.pw) : ''}`;
           copy(new URL('control?' + q, location.href).href + '#s=' + M.pack({ ...s, dock: undefined }), b); break;
