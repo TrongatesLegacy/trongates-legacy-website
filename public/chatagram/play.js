@@ -359,21 +359,29 @@
     if (s.phase === 'playing') runClock(true); else { runClock(false); drawSummary(); }
     runSummaryClock(s.phase !== 'playing');
   }
+  let pendingFind = null, findFrame = 0;
   function onEvent(e) {
     switch (e.type) {
       case 'round':
+        pendingFind = null;
         recent.length = 0; drawRecent();
         board.classList.remove('summary', 'low'); hideEnd();
         drawAll(); bannerIdle(); dropTiles(); anim(wordsEl, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
         break;
       case 'found': {
         lastFoundAt = Date.now();
-        const pts = ` <small>+${e.pts}${e.longest ? ' · longest!' : ''}</small>`;
-        whoEl.innerHTML = `${shownPlatforms.length > 1 ? badge(e.by.platform) : ''} ${esc(e.by.name)} found`;
-        scramble(whatEl, e.word, pts);
-        lightTiles(e.tiles);
-        drawAnswer(e.index, true);
-        recent.unshift({ word: e.word, by: e.by }); recent.length = Math.min(recent.length, 3); drawRecent(true);
+        drawAnswer(e.index, true);                                   // every find lights up its own slot
+        recent.unshift({ word: e.word, by: e.by }); recent.length = Math.min(recent.length, 3);
+        // the banner, the letter tiles and the recent chips show only the newest find of a burst (finds arriving in the
+        // same moment would otherwise restart them over each other): drawn once, on the next frame
+        pendingFind = e;
+        if (!findFrame) findFrame = requestAnimationFrame(() => {
+          findFrame = 0; const f = pendingFind; if (!f) return; pendingFind = null;
+          whoEl.innerHTML = `${shownPlatforms.length > 1 ? badge(f.by.platform) : ''} ${esc(f.by.name)} found`;
+          scramble(whatEl, f.word, ` <small>+${f.pts}${f.longest ? ' · longest!' : ''}</small>`);
+          lightTiles(f.tiles.length ? f.tiles : []);
+          drawRecent(true);
+        });
         const before = goalEl.parentElement.classList.contains('met');
         drawStats();
         if (!before && goalEl.parentElement.classList.contains('met')) anim(goalEl.parentElement, [{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 500 });
@@ -416,11 +424,14 @@
 
   // ---- time --------------------------------------------------------------------------------------------------------------------
   let wake = null;
+  // one timer, for the next thing due; only re-set when that moment changes (a busy chat mustn't churn timers)
+  let wakeAt = Infinity;
   function schedule() {
-    clearTimeout(wake); wake = null;
     if (still) return;
     const w = game.nextWake();
-    if (w !== Infinity) wake = setTimeout(() => { game.tick(); flush(); schedule(); }, Math.max(0, w - now()));
+    if (w === wakeAt && wake) return;
+    clearTimeout(wake); wake = null; wakeAt = w;
+    if (w !== Infinity) wake = setTimeout(() => { wake = null; wakeAt = Infinity; game.tick(); flush(); schedule(); }, Math.max(0, w - now()));
   }
 
   // ---- chat ---------------------------------------------------------------------------------------------------------------------
