@@ -273,7 +273,7 @@ test('the board shows 12 boxes at level 1, 3 more a level up to the setting; box
   assert.ok(r.answers.some((a) => a.word === r.seed));
   for (const len of new Set(all.map((w) => w.length))) assert.ok(r.answers.some((a) => a.word.length === len), `a ${len}-letter box`);
   assert.equal(r.goal, Math.ceil(12 * 0.65));
-  for (const [level, want] of [[2, 15], [5, 24], [9, 24]]) {
+  for (const [level, want] of [[2, 15], [5, 24], [9, 36], [12, 40], [20, 40]]) {
     const g = setup({}, 3); g.g.boot(); g.g.state.level = level; g.say('!skip', MOD);
     assert.ok(g.round().answers.length <= want, `level ${level}: ${g.round().answers.length} boxes`);
     if (g.round().valid.length >= want) assert.equal(g.round().answers.length, want, `level ${level}`);

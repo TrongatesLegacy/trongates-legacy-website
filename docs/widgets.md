@@ -123,7 +123,7 @@ round highlights (fastest find, longest streak, last-second save).
   border round it), then the summary fades in (it never flips the widget: too jarring on stream).
 - **Countdowns** to the next level or game: the ring drains smoothly (one linear animation to the moment it starts); only
   the number inside changes each second. Reduced motion: the ring steps once a second.
-- **Boxes, not every answer**: the board shows 12 word boxes at level 1, 3 more each level up to 24 (Advanced → Most
+- **Boxes, not every answer**: the board shows 12 word boxes at level 1, 3 more each level up to 40 (Advanced → Most
   word boxes, 16–50), spread over the lengths in proportion, the longest word always among them. A box belongs to a
   length, not a word: any real word of that length fills the next open box, and once a length's boxes are full, more words
   of that length don't count ("full"). The goal is 65% of the boxes. Unfilled boxes' words are the "missed" ones.
