@@ -1,6 +1,8 @@
 /* The widgets' themes (docs/widgets.md, "Themes"): each is only these variables, set on the element with data-theme.
    A widget's own CSS draws with them, so a new theme is one block here and every widget gets it.
-   --accent can be overridden by the link (accent=) or a live theme message; --accent-ink is text drawn on the accent. */
+   --accent can be overridden by the link (accent=) or a live theme message; --accent-ink is text drawn on the accent.
+   --bg is solid; a widget can make it see-through by setting --bgo (0–1) on the same element (Chatagram's "Background"
+   setting), so every theme's background colour carries / var(--bgo, 1). */
 @font-face { font-family: "Lilita One"; src: url("../../assets/fonts/lilita-one.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Chakra Petch"; src: url("../../assets/fonts/chakra-petch-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Chakra Petch"; src: url("../../assets/fonts/chakra-petch-600.woff2") format("woff2"); font-weight: 600 700; font-display: swap; }
@@ -14,24 +16,24 @@
 }
 [data-theme=chatagram] {
   --frame: 3px;   /* the frame's width (overlays sit inside it) */
-  --bg: rgba(22,18,43,.95); --panel: #221b40; --slot: #2f2656; --text: #fff7ec; --muted: #b4acd6; --accent: #ffc93c; --accent-ink: #16122b;
+  --bg: rgb(22 18 43 / var(--bgo, 1)); --panel: #221b40; --slot: #2f2656; --text: #fff7ec; --muted: #b4acd6; --accent: #ffc93c; --accent-ink: #16122b;
   --tile: #fff7ec; --tile-text: #16122b; --tile-edge: #ff5a5f; --radius: 12px;
   --edge: inset 0 0 0 3px #ff5a5f, 0 6px 0 #c73a40;
 }
 [data-theme=neutral] {
-  --bg: rgba(20,22,28,.94); --panel: #262a35; --slot: #323746; --text: #f3f5f9; --muted: #9aa3b4; --accent: #4f8cff; --accent-ink: #fff;
+  --bg: rgb(20 22 28 / var(--bgo, 1)); --panel: #262a35; --slot: #323746; --text: #f3f5f9; --muted: #9aa3b4; --accent: #4f8cff; --accent-ink: #fff;
   --tile: #f6f7fa; --tile-text: #15171d; --tile-edge: rgba(0,0,0,.28); --radius: 10px;
   --font: system-ui, -apple-system, "Segoe UI", sans-serif; --display: system-ui, -apple-system, "Segoe UI", sans-serif; --display-weight: 900;
 }
 [data-theme=light] {
-  --bg: rgba(250,250,252,.96); --panel: #eceef3; --slot: #dde1e9; --text: #16181d; --muted: #5f6673; --accent: #ff5a36; --accent-ink: #fff;
+  --bg: rgb(250 250 252 / var(--bgo, 1)); --panel: #eceef3; --slot: #dde1e9; --text: #16181d; --muted: #5f6673; --accent: #ff5a36; --accent-ink: #fff;
   --tile: #16181d; --tile-text: #fff; --tile-edge: rgba(0,0,0,.3); --radius: 10px;
   --font: system-ui, -apple-system, "Segoe UI", sans-serif; --display: system-ui, -apple-system, "Segoe UI", sans-serif; --display-weight: 900;
   --edge: 0 2px 12px rgba(0,0,0,.18);
 }
 [data-theme=neon] {
   --frame: 1px;   /* the frame's width (overlays sit inside it) */
-  --bg: rgba(3,6,13,.93); --panel: #070d18; --slot: #0d1a2c; --text: #e8f4ff; --muted: #8ba3bd; --accent: #22e5ff; --accent-ink: #03060d;
+  --bg: rgb(3 6 13 / var(--bgo, 1)); --panel: #070d18; --slot: #0d1a2c; --text: #e8f4ff; --muted: #8ba3bd; --accent: #22e5ff; --accent-ink: #03060d;
   --tile: #070d18; --tile-text: var(--accent); --tile-edge: transparent; --radius: 0px;
   --tile-ring: var(--accent); --tile-glow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
   --display: Orbitron, sans-serif; --display-weight: 800;
@@ -39,25 +41,25 @@
 }
 [data-theme=candy] {
   --frame: 4px;   /* the frame's width (overlays sit inside it) */
-  --bg: linear-gradient(160deg, #7b3cf0, #5a22c9); --panel: rgba(40,10,110,.45); --slot: rgba(30,8,90,.55); --text: #fff; --muted: #e2d6ff; --accent: #ffd23f; --accent-ink: #3b1590;
+  --bg: linear-gradient(160deg, rgb(123 60 240 / var(--bgo, 1)), rgb(90 34 201 / var(--bgo, 1))); --panel: rgba(40,10,110,.45); --slot: rgba(30,8,90,.55); --text: #fff; --muted: #e2d6ff; --accent: #ffd23f; --accent-ink: #3b1590;
   --tile: #fff; --tile-text: #3b1590; --tile-edge: #b69cff; --radius: 14px;
   --edge: inset 0 0 0 4px #a57cff, inset 0 -8px 0 rgba(0,0,0,.18);
 }
 [data-theme=royal] {
   --frame: 6px;   /* the frame's width (overlays sit inside it) */
-  --bg: rgba(10,5,16,.95); --panel: #1a0f24; --slot: #2a1838; --text: #fff4fb; --muted: #c6a9c9; --accent: #ff63b8; --accent-ink: #1a0712;
+  --bg: rgb(10 5 16 / var(--bgo, 1)); --panel: #1a0f24; --slot: #2a1838; --text: #fff4fb; --muted: #c6a9c9; --accent: #ff63b8; --accent-ink: #1a0712;
   --tile: #fff4fb; --tile-text: #5a1440; --tile-edge: #b8924a; --tile-ring: #ffd98a; --radius: 4px;
   --display: "Cinzel Decorative", Georgia, serif; --display-weight: 900;
   --edge: inset 0 0 0 1px #ffd98a88, inset 0 0 0 5px rgba(10,5,16,.94), inset 0 0 0 6px #ffd98a55, 0 0 30px #ff63b833;
 }
 [data-theme=deep] {
-  --bg: linear-gradient(180deg, rgba(8,40,52,.95), rgba(2,11,17,.95)); --panel: #06202b; --slot: #0b2f3c; --text: #eafcff; --muted: #8fbac2; --accent: #ffb36b; --accent-ink: #1b0f02;
+  --bg: linear-gradient(180deg, rgb(8 40 52 / var(--bgo, 1)), rgb(2 11 17 / var(--bgo, 1))); --panel: #06202b; --slot: #0b2f3c; --text: #eafcff; --muted: #8fbac2; --accent: #ffb36b; --accent-ink: #1b0f02;
   --tile: #ffb36b; --tile-text: #1b0f02; --tile-edge: #b86a26; --radius: 16px;
   --edge: inset 0 -5px 0 #45d6c833;
 }
 [data-theme=cozy] {
   --frame: 3px;   /* the frame's width (overlays sit inside it) */
-  --bg: rgba(243,230,207,.97); --panel: #ead7b5; --slot: #dcc49c; --text: #4a3222; --muted: #7a5a40; --accent: #d9653b; --accent-ink: #fffaf0;
+  --bg: rgb(243 230 207 / var(--bgo, 1)); --panel: #ead7b5; --slot: #dcc49c; --text: #4a3222; --muted: #7a5a40; --accent: #d9653b; --accent-ink: #fffaf0;
   --tile: #fffaf0; --tile-text: #4a3222; --tile-edge: #b98c5a; --tile-ring: #e2cda8; --radius: 12px;
   --display: Georgia, "Iowan Old Style", "Palatino Linotype", serif; --display-weight: 700;
   --edge: inset 0 0 0 3px #c9a878, 0 6px 0 #9c7a4e;

@@ -62,7 +62,7 @@
   // Chatagram's own settings (public/chatagram/settings.js), which a pasted Chatagram link carries. theme and accent aren't
   // here: obs/chatagram.html sets them from the form.
   const CHATAGRAM_KEYS = ['twitch', 'kick', 'kickid', 'layout', 'time', 'diff', 'shuffle', 'minlen', 'slots', 'goal', 'tricky', 'longbonus', 'bonus',
-    'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear', 'perm', 'lb', 'wrong', 'ignore', 'block', 'top', 'remember', 'credit', 'seed'];
+    'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear', 'perm', 'lb', 'wrong', 'ignore', 'block', 'top', 'remember', 'bgo', 'credit', 'seed'];
   /** the game settings in a pasted Chatagram link (the whole link or just what's after the ?) */
   const chatagramPairs = (link) => {
     const qs = String(link || '').trim().split('#')[0].split('?').pop();

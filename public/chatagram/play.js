@@ -17,6 +17,7 @@
   const rm = W.theme.reducedMotion(q);
   if (rm) document.documentElement.classList.add('rm');
   W.theme.apply(board, { theme: cfg.theme, accent: cfg.accent });
+  if (cfg.bgo < 100) board.style.setProperty('--bgo', String(cfg.bgo / 100));   // Advanced → Background: see-through
   W.theme.listen(board);
   board.classList.toggle('compact', cfg.layout === 'compact');
   const [BW, BH] = C.settings.SIZES[cfg.layout];
