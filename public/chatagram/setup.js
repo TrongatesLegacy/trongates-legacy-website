@@ -200,14 +200,19 @@
   function preview() {
     const shown = { ...s, theme: SCHEMA.theme.def, accent: '' };             // theme and accent go by message (no reload)
     const src = `play.html?${W.settings.encode(SCHEMA, shown)}&${screen === 'play' ? 'demo=1' : 'still=1&screen=' + screen}`;
-    fitFrame(pv, pvScreen);
-    const poster = $('#pv-poster');
-    poster.src = `assets/themes/${s.theme}${s.layout === 'full' ? '-full' : ''}.webp`;
+    setPoster();
     if (!loaded) return;                                                      // starts after the page has loaded
     if (src !== lastPv) {
       lastPv = src; pv.src = src; showWhenReady(pv);
       pv.onload = () => themePreview();
     } else themePreview();
+  }
+  // the picture for the chosen theme and layout, placed exactly where the live board will be: set at once (not when the
+  // preview loads), so the first frame already shows the right board in the right place
+  function setPoster() {
+    const poster = $('#pv-poster'), want = `assets/themes/${s.theme}${s.layout === 'full' ? '-full' : ''}.webp`;
+    if (poster.getAttribute('src') !== want) poster.setAttribute('src', want);
+    fitFrame(pv, pvScreen);
   }
   const themePreview = () => { try { pv.contentWindow.postMessage({ type: 'widget-theme', theme: s.theme, accent: s.accent }, '*'); } catch {} };
   function update({ fill: refill = true } = {}) {
@@ -220,6 +225,7 @@
     $('#chg').hidden = !n; $('#chg').textContent = `${n} changed`;
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
     readyToCopy();
+    setPoster();
     themePreview();
     clearTimeout(pvTimer); pvTimer = setTimeout(preview, 350);
   }

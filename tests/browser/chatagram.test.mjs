@@ -275,3 +275,17 @@ test('the placeholder picture fades out once the live game has drawn (no two boa
   const before = await siteServer({ files: { '/chatagram/setup.js': old } });
   try { assert.notDeepEqual(await pictureGoneOnceLive(before), [0, 0], 'the test should fail on the old code'); } finally { await before.close(); }
 });
+
+// Bug (2026-09-28): on every page load the set-up preview first showed the default theme's compact picture (the built-in
+// src) and only switched to the visitor's saved theme and layout a moment later, so the wrong board flashed up.
+test('the set-up preview shows the saved theme and layout\'s picture from the first frame', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/', { width: 1354, height: 860, wait: 'dom',
+    init: `localStorage.setItem('chatagram:setup', JSON.stringify({ theme: 'candy', layout: 'full' }));` });
+  // straight after the page's own scripts have run, before any preview has loaded
+  assert.match(await tab.eval('document.getElementById("pv-poster").getAttribute("src")'), /themes\/candy-full\.webp$/);
+  await tab.eval('localStorage.clear(); 1');
+  await tab.close();
+  const fresh = await chrome.open(site.origin + '/chatagram/', { width: 1354, height: 860, wait: 'dom' });
+  assert.match(await fresh.eval('document.getElementById("pv-poster").getAttribute("src")'), /themes\/chatagram-full\.webp$/, 'the default (full layout) picture');
+  await fresh.close();
+});
