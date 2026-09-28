@@ -60,9 +60,12 @@ test('a whole game from Twitch and Kick chat: finds score, the round ends, the e
   for (const [i, w] of words.entries()) await tab.eval(`__chat.${i % 2 ? 'kick' : 'twitch'}(${JSON.stringify(i % 3 ? 'PixelPanda' : 'NeonNacho')}, ${JSON.stringify(w.toUpperCase())}); 1`);
   await tab.until('window.chatagram.game.state.phase === "cleared"', 3000);
   // the end card first ("Cleared!" over the board), then the summary fades in; the board never flips
-  await tab.until('/Cleared!/i.test(document.getElementById("endcard").textContent)', 2000, 'the end card');
+  // the last find gets its moment first: no end card straight away (owner, 2026-09-28)
+  await sleep(700);
+  assert.equal(await tab.eval('document.getElementById("endcard").classList.contains("on")'), false, 'the end card waited for the last find');
+  await tab.until('/Cleared!/i.test(document.getElementById("endcard").textContent)', 3000, 'the end card');
   assert.equal(await tab.eval('document.getElementById("board").classList.contains("summary")'), false, 'no summary under the end card');
-  await tab.until('document.getElementById("board").classList.contains("summary")', 5000, 'the summary to fade in');
+  await tab.until('document.getElementById("board").classList.contains("summary")', 6000, 'the summary to fade in');
   assert.equal(await tab.eval('document.getElementById("endcard").classList.contains("on")'), false);
   // nothing turns over: every transform is 'none' or a plain scale (no rotation terms)
   const transforms = await tab.eval('[...document.querySelectorAll(".card, .face")].map((el) => getComputedStyle(el).transform)');

@@ -13,6 +13,7 @@
   --radius: 12px; --tile-ring: transparent; --tile-glow: none; --edge: none;
 }
 [data-theme=chatagram] {
+  --frame: 3px;   /* the frame's width (overlays sit inside it) */
   --bg: rgba(22,18,43,.95); --panel: #221b40; --slot: #2f2656; --text: #fff7ec; --muted: #b4acd6; --accent: #ffc93c; --accent-ink: #16122b;
   --tile: #fff7ec; --tile-text: #16122b; --tile-edge: #ff5a5f; --radius: 12px;
   --edge: inset 0 0 0 3px #ff5a5f, 0 6px 0 #c73a40;
@@ -29,6 +30,7 @@
   --edge: 0 2px 12px rgba(0,0,0,.18);
 }
 [data-theme=neon] {
+  --frame: 1px;   /* the frame's width (overlays sit inside it) */
   --bg: rgba(3,6,13,.93); --panel: #070d18; --slot: #0d1a2c; --text: #e8f4ff; --muted: #8ba3bd; --accent: #22e5ff; --accent-ink: #03060d;
   --tile: #070d18; --tile-text: var(--accent); --tile-edge: transparent; --radius: 0px;
   --tile-ring: var(--accent); --tile-glow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
@@ -36,11 +38,13 @@
   --edge: inset 0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 [data-theme=candy] {
+  --frame: 4px;   /* the frame's width (overlays sit inside it) */
   --bg: linear-gradient(160deg, #7b3cf0, #5a22c9); --panel: rgba(40,10,110,.45); --slot: rgba(30,8,90,.55); --text: #fff; --muted: #e2d6ff; --accent: #ffd23f; --accent-ink: #3b1590;
   --tile: #fff; --tile-text: #3b1590; --tile-edge: #b69cff; --radius: 14px;
   --edge: inset 0 0 0 4px #a57cff, inset 0 -8px 0 rgba(0,0,0,.18);
 }
 [data-theme=royal] {
+  --frame: 6px;   /* the frame's width (overlays sit inside it) */
   --bg: rgba(10,5,16,.95); --panel: #1a0f24; --slot: #2a1838; --text: #fff4fb; --muted: #c6a9c9; --accent: #ff63b8; --accent-ink: #1a0712;
   --tile: #fff4fb; --tile-text: #5a1440; --tile-edge: #b8924a; --tile-ring: #ffd98a; --radius: 4px;
   --display: "Cinzel Decorative", Georgia, serif; --display-weight: 900;
@@ -52,6 +56,7 @@
   --edge: inset 0 -5px 0 #45d6c833;
 }
 [data-theme=cozy] {
+  --frame: 3px;   /* the frame's width (overlays sit inside it) */
   --bg: rgba(243,230,207,.97); --panel: #ead7b5; --slot: #dcc49c; --text: #4a3222; --muted: #7a5a40; --accent: #d9653b; --accent-ink: #fffaf0;
   --tile: #fffaf0; --tile-text: #4a3222; --tile-edge: #b98c5a; --tile-ring: #e2cda8; --radius: 12px;
   --display: Georgia, "Iowan Old Style", "Palatino Linotype", serif; --display-weight: 700;

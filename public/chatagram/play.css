@@ -172,7 +172,8 @@ footer .conn span { display: inline-flex; gap: 5px; align-items: center; }
 .rm *, .rm *::before, .rm *::after { transition: none !important; animation: none !important; }
 
 /* ---- the end card: "Cleared!" / "Time's up!" over the board before the summary fades in ------------------------ */
-.endcard { position: absolute; inset: 0; z-index: 6; display: none; place-items: center; pointer-events: none; text-align: center; border-radius: calc(var(--radius) * 1.6); }
+/* inside the theme's frame (--frame: its border width), so the frame stays visible round the overlay */
+.endcard { position: absolute; inset: var(--frame, 0px); z-index: 6; display: none; place-items: center; pointer-events: none; text-align: center; border-radius: max(0px, calc(var(--radius) * 1.6 - var(--frame, 0px))); }
 .endcard.on { display: grid; }
 .endcard .shade { position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--panel) 88%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 /* the words sit on their own panel, so nothing of the game behind can clash with them */

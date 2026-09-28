@@ -118,8 +118,9 @@ round highlights (fastest find, longest streak, last-second save).
   scrambles into the word; **the find lights up where it lands on the board** (it pops out big and gold, letter by letter,
   and stays gold a few seconds; in compact, the newest "recent" chip pops); wrong guesses only as large bubbles when
   "Show wrong guesses" is on (off by default); the hidden letter turns over; the fake letter tips away; the last 10 s
-  go red; the longest word gets confetti. **Round end**: an end card ("Cleared!", "Time's up!", with the count) springs
-  in letter by letter over the dimmed board, then the summary fades in (it never flips the widget: too jarring on stream).
+  go red; the longest word gets confetti. **Round end**: 1.6 s after the last find (so its highlight is seen), an end card ("Cleared!", "Time's up!", with the count) springs
+  in letter by letter over the dimmed board (inside the theme's frame, `--frame` in themes.css, so a framed theme keeps its
+  border round it), then the summary fades in (it never flips the widget: too jarring on stream).
 - **Countdowns** to the next level or game: the ring drains smoothly (one linear animation to the moment it starts); only
   the number inside changes each second. Reduced motion: the ring steps once a second.
 - **Boxes, not every answer**: the board shows 12 word boxes at level 1, 3 more each level up to 24 (Advanced → Most

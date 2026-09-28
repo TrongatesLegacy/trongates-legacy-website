@@ -327,7 +327,8 @@
 
   // ---- the end card: big text over the board, then the summary fades in (no flip: it's calmer on stream) ----------------
   const endEl = $('#endcard');
-  let ending = false;
+  let ending = false, lastFoundAt = 0;
+  const END_HOLD = 1600;              // ms from the last find to the end card
   function showEnd([text, sub, bad]) {
     if (rm) return;
     ending = true; board.classList.remove('summary');
@@ -366,6 +367,7 @@
         drawAll(); bannerIdle(); dropTiles(); anim(wordsEl, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
         break;
       case 'found': {
+        lastFoundAt = Date.now();
         const pts = ` <small>+${e.pts}${e.longest ? ' · longest!' : ''}</small>`;
         whoEl.innerHTML = `${shownPlatforms.length > 1 ? badge(e.by.platform) : ''} ${esc(e.by.name)} found`;
         scramble(whatEl, e.word, pts);
@@ -397,8 +399,14 @@
       case 'unlock': drawTimer(); { const l = locksEl.children[e.index]; anim(l, [{ transform: 'scale(1)' }, { transform: 'scale(1.5) rotate(-12deg)' }, { transform: 'scale(1)' }], { duration: 500 }); } break;
       case 'end':
         drawStats(); runClock(false); board.classList.remove('low');
-        showEnd(e.phase === 'cleared' ? ['Cleared!', `${e.result.found} of ${e.result.total} words`, false] : [e.result.timeLeft > 0 ? 'Game over' : 'Time’s up!', `${e.result.found} of ${e.result.goal} needed`, true]);
-        setTimeout(() => { drawSummary(); hideEnd(); board.classList.add('summary'); runSummaryClock(true); }, rm ? 0 : 2200);
+        {
+          // the last find gets its moment (its highlight) before the end card covers the board
+          const hold = rm ? 0 : Math.max(0, END_HOLD - (Date.now() - lastFoundAt));
+          const card = e.phase === 'cleared' ? ['Cleared!', `${e.result.found} of ${e.result.total} words`, false] : [e.result.timeLeft > 0 ? 'Game over' : 'Time’s up!', `${e.result.found} of ${e.result.goal} needed`, true];
+          ending = true;
+          setTimeout(() => showEnd(card), hold);
+          setTimeout(() => { drawSummary(); hideEnd(); board.classList.add('summary'); runSummaryClock(true); }, rm ? 0 : hold + 2200);
+        }
         break;
       case 'skip': break;
       case 'reset': case 'game': case 'phase': case 'resume': drawAll(); break;
