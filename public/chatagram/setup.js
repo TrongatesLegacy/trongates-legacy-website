@@ -195,7 +195,8 @@
   function fitPoster(frame) {
     const poster = frame.parentElement.querySelector('.poster'); if (!poster) return;
     const box = frame.parentElement, [w, h] = [frame.width, frame.height], k = Math.min((box.clientWidth - 16) / w, (box.clientHeight - 16) / h);
-    Object.assign(poster.style, { width: w * k + 'px', height: h * k + 'px', left: (box.clientWidth - w * k) / 2 + 'px', top: (box.clientHeight - h * k) / 2 + 'px', inset: 'auto' });
+    // centred exactly as the live game is (left/top 50% and a -50% shift), so the swap can't move anything
+    Object.assign(poster.style, { inset: 'auto', left: '50%', top: '50%', width: w * k + 'px', height: h * k + 'px', transform: 'translate(-50%, -50%)' });
   }
   function preview() {
     const shown = { ...s, theme: SCHEMA.theme.def, accent: '' };             // theme and accent go by message (no reload)

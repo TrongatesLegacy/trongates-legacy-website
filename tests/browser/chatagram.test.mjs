@@ -304,3 +304,16 @@ test('the banner always ends on the newest find, however close together finds ar
   await tab.eval('localStorage.clear(); 1');
   await tab.close();
 });
+
+// Bug (2026-09-28): the placeholder picture sat 8–18 px off the live game (its position was set, then reset), so the
+// board jumped when the game took over. They must cover exactly the same pixels.
+test('the placeholder picture sits exactly where the live game appears', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/', { width: 1354, height: 860 });
+  await tab.until('document.getElementById("pv").contentDocument?.documentElement.dataset.ready === "1" && document.getElementById("hero-frame").contentDocument?.documentElement.dataset.ready === "1"', 10000);
+  const off = await tab.eval(`['hero', 'pv'].map((id) => {
+    const box = document.getElementById(id + '-screen'), f = box.querySelector('iframe'), p = box.querySelector('.poster').getBoundingClientRect(), fr = f.getBoundingClientRect();
+    return Math.max(Math.abs(p.left - fr.left), Math.abs(p.top - fr.top), Math.abs(p.width - fr.width), Math.abs(p.height - fr.height));
+  })`);
+  for (const o of off) assert.ok(o < 1, `picture and game differ by ${o} px`);
+  await tab.close();
+});
