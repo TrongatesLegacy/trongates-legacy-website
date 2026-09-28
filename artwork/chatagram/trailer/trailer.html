@@ -62,7 +62,33 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 #g .kick span { background: #53fc18; color: #0b0b0b; border-radius: 12px; padding: 4px 16px; font: 40px "Lilita One", sans-serif; }
 .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 10; }
 .flash.go { animation: flash .35s ease-out; } @keyframes flash { from { opacity: .55; } to { opacity: 0; } }
-</style></head><body>
+/* ---- vertical (Shorts, Reels, TikTok): 1080 × 1920, the same scenes stacked for a phone (trailer.html?v=1) ---- */
+html.v, .v body { width: 1080px; height: 1920px; }
+br.vb { display: none; } .v br.vb { display: inline; }
+.v #a .logo { font-size: 150px; } .v #a h1 { font-size: 100px; padding: 0 70px; margin-top: 60px; }
+.v #b .row { flex-direction: column; gap: 50px; } .v .plat { font-size: 140px; } .v .plus { font-size: 150px; }
+.v #b h2 { font-size: 110px; padding: 0 60px; margin-top: 90px; line-height: 1.05; }
+.v .cap { top: 400px; font-size: 96px; padding: 0 60px; line-height: 1.05; }
+.v #c .frame { left: 20px; top: 740px; width: 1040px; height: 585px; } .v #c iframe { width: 1040px; height: 585px; }
+.v #c .under { display: flex; }
+#c .under { display: none; position: absolute; left: 0; right: 0; top: 1430px; justify-content: center; gap: 30px; }
+#c .under span { display: inline-flex; align-items: center; gap: 14px; font: 64px "Lilita One", sans-serif; padding: 14px 34px; border-radius: 26px; }
+#c .under svg { width: 60px; height: 60px; }
+.v #e h2 { top: 190px; font-size: 104px; padding: 0 60px; line-height: 1.05; }
+.v #e .grid { left: 50px; right: 50px; top: 520px; grid-template-columns: repeat(2, 1fr); gap: 34px 30px; }
+.v #f h2 { font-size: 116px; padding: 0 50px; line-height: 1.05; }
+.v #f .steps { flex-direction: column; gap: 40px; align-items: center; }
+.v #f .step { width: 880px; display: grid; grid-template-columns: 110px 1fr; column-gap: 36px; align-items: center; padding: 40px 44px; }
+.v #f .step i { grid-row: span 2; width: 110px; height: 110px; font-size: 76px; }
+.v #f .step b { margin: 0; font-size: 64px; } .v #f .step p { font-size: 38px; }
+.v #f .free { font-size: 48px; }
+.v #g .logo { font-size: 160px; }
+.v #g .url { font-size: 58px; padding: 18px 40px 22px; }
+.v #g .by { font-size: 54px; margin-top: 60px; }
+.v #g .kick { font-size: 48px; flex-direction: column; margin-top: 40px; } .v #g .kick span { font-size: 50px; }
+</style>
+<script>if (/[?&]v=1/.test(location.search)) document.documentElement.classList.add('v');</script>
+</head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
   <symbol id="i-kick" viewBox="0 0 10 10"><path transform="translate(.4 0)" d="M1 1h2.4v2.2h1.2V2.1h1.2V1H8.2v2.4H7v1.2H5.8v.8H7v1.2h1.2V9H5.8V7.9H4.6V6.8H3.4V9H1z" fill="currentColor"/></symbol>
   <symbol id="i-twitch" viewBox="0 0 10 10"><path d="M2 1 1.2 2.8v5.4h2V9.3h1.1l1.1-1.1h1.7L9 6.3V1zm6.2 4.9-1.3 1.3H5.1L4 8.3V7.2H2.4V1.8h5.8zM6.9 3v2.2h-.8V3zm-2 0v2.2h-.8V3z" fill="currentColor"/></symbol>
@@ -76,12 +102,13 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 
 <section class="scene" id="b"><div class="center">
   <div class="row"><span class="plat t slamL"><svg><use href="#i-twitch"/></svg>Twitch</span><span class="plus pop d3">+</span><span class="plat k slamR d2"><svg><use href="#i-kick"/></svg>Kick</span></div>
-  <h2 class="up d5">Both chats. <em>One board.</em></h2>
+  <h2 class="up d5">Both chats.<br class="vb"> <em>One board.</em></h2>
 </div></section>
 
 <section class="scene" id="c">
   <div class="cap" id="cap"></div>
   <div class="frame"><iframe id="game" allowtransparency="true"></iframe></div>
+  <div class="under"><span class="plat t"><svg><use href="#i-twitch"/></svg>Twitch</span><span class="plat k"><svg><use href="#i-kick"/></svg>Kick</span></div>
 </section>
 
 <section class="scene" id="e">
@@ -139,9 +166,9 @@ window.start = () => {
   for (const [id, b] of SCENES) at(b, () => show(id));
   at(4, () => caption('Chat types <em>words</em>'));
   for (let i = 0; i < 5; i++) at(4.4 + i * 0.45, () => find(1));
-  at(6.5, () => caption('First to find one <em>scores</em>'));
+  at(6.5, () => caption('First to find<br class="vb"> one <em>scores</em>'));
   at(6.7, () => find(1)); at(7.1, () => find(1));
-  at(7.9, () => { caption('Beat the goal. <em>Clear the level!</em>'); find(99); });
+  at(7.9, () => { caption('Beat the goal.<br class="vb"> <em>Clear the level!</em>'); find(99); });
   window.started = performance.now();
 };
 window.ready = () => document.fonts.status === 'loaded' && [...document.images].every((i) => i.complete);

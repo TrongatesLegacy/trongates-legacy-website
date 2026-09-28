@@ -24,4 +24,16 @@ screencast and muxes the music with ffmpeg). The gameplay is the real overlay wi
 node --experimental-websocket artwork/chatagram/trailer/record.mjs ~/Downloads/chatagram-trailer.mp4
 ```
 
+`--vertical` records the 1080 × 1920 cut for Shorts, Reels and TikTok (the same scenes, re-laid out for a phone, key content
+kept clear of the bottom where the platforms put their buttons and captions).
+
+`thumbnail.mjs` renders the YouTube thumbnails from `thumbnail.html` at YouTube's recommended sizes
+(support.google.com/youtube/answer/72431): 3840 × 2160 for the video and 2160 × 3840 for the Short, JPG under 2 MB.
+Shorts thumbnails can only be set in YouTube Studio on a computer, on a verified account.
+
+```
+node --experimental-websocket artwork/chatagram/trailer/record.mjs ~/Downloads/chatagram-trailer-short.mp4 --vertical
+node --experimental-websocket artwork/chatagram/trailer/thumbnail.mjs          # both thumbnails into ~/Downloads
+```
+
 Re-record after the overlay's look changes, and watch the result before sharing it.
