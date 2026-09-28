@@ -2,7 +2,8 @@
 //
 // One timer drives the game (set for game.nextWake()), one updates the clock once a second while a round is on;
 // animations are Web Animations on transform and opacity only, skipped with reduced motion. The game is saved to this
-// browser (OBS keeps it) so a refresh carries on where it was.
+// browser (OBS keeps it) so a refresh carries on where it was, and so are the leaderboards (scores.js), in their own
+// record. Whether the channel is live comes from Twitch or Kick (see "the stream" below).
 //
 // Link: the settings (settings.js). Also: demo=1 (a pretend chat plays), still=1&screen=play|cleared|over (a frozen
 // moment, for pictures and the set-up page's tabs), motion=reduce|full. window.chatagram is there for tests.
@@ -47,12 +48,25 @@
   const queue = [];
   // still pictures (the site's previews, the share image) always show a hand-checked, friendly puzzle
   const STILL_SEEDS = { easy: 'heart', normal: 'garden', hard: 'clovers' };
-  const game = C.game(cfg, { dict, seeds, now, random: still ? seeded : Math.random, emit: (e) => queue.push(e), firstSeed: /^[a-z]{3,9}$/.test(q.get('seed') || '') ? q.get('seed') : still ? STILL_SEEDS[cfg.diff] : null });   // seed=: the first puzzle's word (the trailer), if it's a real seed
-  const SAVE = `chatagram:v1:${channels.twitch}|${channels.kick}`;
-  let saved = null;
-  if (!demo && !still) try { saved = JSON.parse(localStorage.getItem(SAVE) || 'null'); } catch {}
+  // Saved in OBS's browser: the game (as it has always been) and, beside it, the leaderboards. A first run after the
+  // leaderboards arrived takes All time from the game's save; All time is still written back into the game's save, so an
+  // older overlay reading it (a cached copy) sees the same scores. docs/widgets.md, "Saved data".
+  const SAVE = `chatagram:v1:${channels.twitch}|${channels.kick}`, SCORES = `chatagram:scores:v1:${channels.twitch}|${channels.kick}`;
+  let saved = null, savedScores = null;
+  if (!demo && !still) try { saved = JSON.parse(localStorage.getItem(SAVE) || 'null'); savedScores = JSON.parse(localStorage.getItem(SCORES) || 'null'); } catch {}
+  const scores = C.scores(demo || still ? pretendScores() : savedScores, { now, gameAllTime: saved && saved.allTime });
+  const game = C.game(cfg, { dict, seeds, now, random: still ? seeded : Math.random, emit: (e) => queue.push(e), award: (m, pts, words) => scores.award(m, pts, words), firstSeed: /^[a-z]{3,9}$/.test(q.get('seed') || '') ? q.get('seed') : still ? STILL_SEEDS[cfg.diff] : null });   // seed=: the first puzzle's word (the trailer), if it's a real seed
   let saveTimer = null;
-  const save = () => { if (demo || still || saveTimer) return; saveTimer = setTimeout(() => { saveTimer = null; try { localStorage.setItem(SAVE, JSON.stringify(game.snapshot())); } catch {} }, 800); };
+  const writeSaves = () => { try { game.state.allTime = scores.allTime; localStorage.setItem(SAVE, JSON.stringify(game.snapshot())); localStorage.setItem(SCORES, JSON.stringify(scores.record)); } catch {} };
+  const save = () => { if (demo || still || saveTimer) return; saveTimer = setTimeout(() => { saveTimer = null; writeSaves(); }, 800); };
+  // the set-up preview and still pictures: a made-up leaderboard, live (every name is made up)
+  function pretendScores() {
+    const t = now(), pf = (i) => (shownPlatforms.length > 1 ? shownPlatforms[i % 2] : shownPlatforms[0] || 'twitch');
+    const list = (rows) => Object.fromEntries(rows.map(([name, score, words], i) => [`${pf(i)}:${name.toLowerCase()}`, { name, platform: pf(i), score, words }]));
+    return { v: 1, status: 'live', checkedAt: t, primary: pf(0), log: [],
+      allTime: list([['NeonNacho', 761, 212], ['CaptainQuack', 688, 190], ['PixelPanda', 502, 141], ['ByteSizeBea', 344, 97], ['SleepyWaffle', 305, 88]]),
+      stream: { ids: { [pf(0)]: 'pretend' }, started: t - 3600000, lastSeen: t, players: list([['CaptainQuack', 46, 14], ['NeonNacho', 38, 11], ['SleepyWaffle', 30, 9], ['LunaLlama', 22, 6], ['TurboTofu', 16, 5]]) } };
+  }
 
   // ---- drawing: the tiles ---------------------------------------------------------------------------------------------
   const tilesEl = $('#tiles');
@@ -102,22 +116,22 @@
   let barAnim = null, clockTimer = null;
   function drawTimer() {
     const r = round(); if (!r) return;
-    const total = r.endsAt - r.startedAt, left = Math.max(0, r.endsAt - now());
+    const total = r.endsAt - r.startedAt, left = Math.max(0, r.endsAt - game.clock());
     if (barAnim) barAnim.cancel();
     fill.style.transform = `scaleX(${left / total})`;
-    barAnim = still || rm ? null : fill.animate([{ transform: `scaleX(${left / total})` }, { transform: 'scaleX(0)' }], { duration: left, easing: 'linear', fill: 'forwards' });
+    barAnim = still || rm || game.held || game.state.phase !== 'playing' ? null : fill.animate([{ transform: `scaleX(${left / total})` }, { transform: 'scaleX(0)' }], { duration: left, easing: 'linear', fill: 'forwards' });
     locksEl.innerHTML = r.locks.map((t, i) => `<span class="lock${i < r.opened ? ' open' : ''}" style="left:${((t - r.startedAt) / total) * 100}%"><svg viewBox="0 0 16 16"><use href="#i-${i < r.opened ? 'unlock' : 'lock'}"/></svg></span>`).join('');
     tickClock();
   }
   function tickClock() {
     const r = round(); if (!r) return;
-    const left = Math.max(0, Math.ceil((r.endsAt - now()) / 1000));
+    const left = Math.max(0, Math.ceil((r.endsAt - game.clock()) / 1000));
     clockEl.textContent = mmss(left);
     const low = game.state.phase === 'playing' && left <= 10;
     if (low && !board.classList.contains('low')) board.classList.add('low');
     if (!low) board.classList.remove('low');
-    if (low && left > 0) anim(clockEl, [{ transform: 'scale(1.3)' }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
-    if (rm) fill.style.transform = `scaleX(${Math.max(0, r.endsAt - now()) / (r.endsAt - r.startedAt)})`;
+    if (low && left > 0 && !game.held) anim(clockEl, [{ transform: 'scale(1.3)' }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
+    if (rm) fill.style.transform = `scaleX(${Math.max(0, r.endsAt - game.clock()) / (r.endsAt - r.startedAt)})`;
   }
   const runClock = (on) => { clearInterval(clockTimer); clockTimer = on && !still ? setInterval(tickClock, 1000) : null; };
 
@@ -270,8 +284,8 @@
   const nextLine = (label) => {
     const s = game.state;
     if (!s.nextAt) return `<div class="next">Type <b>${esc(game.commandName(s.phase === 'cleared' ? 'next' : 'start'))}</b> ${s.phase === 'cleared' ? 'for the next level' : 'to play again'}</div>`;
-    const total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, left = Math.max(0, Math.ceil((s.nextAt - now()) / 1000)), c = 2 * Math.PI * 15;
-    return `<div class="next"><svg class="ring" viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15"/><circle class="fg" cx="18" cy="18" r="15" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.max(0, s.nextAt - now()) / total)}"/><text x="18" y="18">${left}</text></svg>${label.replace('{s}', `<span class="secs">${left}</span>`)}</div>`;
+    const total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, left = Math.max(0, Math.ceil((s.nextAt - game.clock()) / 1000)), c = 2 * Math.PI * 15;
+    return `<div class="next"><svg class="ring" viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15"/><circle class="fg" cx="18" cy="18" r="15" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.max(0, s.nextAt - game.clock()) / total)}"/><text x="18" y="18">${left}</text></svg>${label.replace('{s}', `<span class="secs">${left}</span>`)}</div>`;
   };
   const ranks = (list) => list.map((p, i) => `<div class="rank"><span class="n">${i + 1}</span>${shownPlatforms.length > 1 ? badge(p.platform) : '<span></span>'}<span class="nm">${esc(p.name)}</span><span class="ws">${p.words} word${p.words === 1 ? '' : 's'}</span><span class="pts">${p.pts}</span></div>`).join('') || '<div class="hl">Nobody scored this time</div>';
   function splitBox(split) {
@@ -292,21 +306,22 @@
       const head = `<div class="sum-head"><div class="sum-title"><small>Level ${r.level} complete${compact ? ` · ${r.found} of ${r.total} words` : ''}</small><b>Cleared!</b>${compact ? '' : ` ${r.found} of ${r.total} words`}</div>${starsHtml(r.stars)}</div>`;
       const label = `Level ${r.level + 1} in {s} s`;
       if (compact) {
-        back.innerHTML = head + `<div class="row3">${r.mvps.slice(0, 3).map((p, i) => `<div class="pcard"><small>${['MVP', '2ND', '3RD'][i]}</small><span class="who">${badge(p.platform)}${esc(p.name)}</span><b>${p.pts}</b></div>`).join('')}</div>` + nextLine(label);
+        back.innerHTML = head + `<div class="row3">${r.mvps.slice(0, 3).map((p, i) => `<div class="pcard"><small>${['MVP', '2ND', '3RD'][i]}</small><span class="who">${badge(p.platform)}${esc(p.name)}</span><b>${p.pts}</b></div>`).join('')}</div>` + LB_SEC + nextLine(label);
       } else {
         back.innerHTML = head + `<div class="kpis"><div class="kpi"><small>WORDS</small><b>${r.found}<i>/${r.total}</i></b></div><div class="kpi"><small>GOAL</small><b>${r.goal} <span class="ok">✓ beat</span></b></div><div class="kpi"><small>TIME LEFT</small><b>${mmss(r.timeLeft)}</b></div><div class="kpi"><small>PLAYERS</small><b>${r.players}</b></div></div>` +
-          `<div class="two"><div class="box"><h4><span>ROUND MVPS</span><span>PTS</span></h4>${ranks(r.mvps)}</div><div class="box">${splitBox(r.split) || highlights(r.highlights)}${r.missed.length ? `<h4 style="margin-top:6px"><span>MISSED</span></h4><div class="missed">${r.missed.slice(0, 12).map((w) => `<span>${esc(w)}</span>`).join('')}</div>` : ''}${nextLine(label + ': longer words')}</div></div>`;
+          `<div class="two"><div class="box"><h4><span>ROUND MVPS</span><span>PTS</span></h4>${ranks(r.mvps)}</div><div class="box">${splitBox(r.split) || highlights(r.highlights)}${r.missed.length ? `<h4 style="margin-top:6px"><span>MISSED</span></h4><div class="missed">${r.missed.slice(0, 12).map((w) => `<span>${esc(w)}</span>`).join('')}</div>` : ''}${LB_SEC}${nextLine(label + ': longer words')}</div></div>`;
       }
     } else if (s.phase === 'over' && g) {
       const head = `<div class="sum-head"><div class="sum-title"><small>Level ${g.level} · goal missed, ${r.found} of ${r.goal}</small><b>Game over</b></div>${starsHtml(r.stars)}</div>`;
       const label = 'New game in {s} s';
       if (compact) {
-        back.innerHTML = head + `<div class="row3">${g.mvps.slice(0, 2).map((p, i) => `<div class="pcard"><small>${['MVP', '2ND'][i]}</small><span class="who">${badge(p.platform)}${esc(p.name)}</span><b>${p.pts}</b></div>`).join('')}${g.best ? `<div class="pcard"><small>BEST WORD</small><span class="who">${esc(g.best.word.toUpperCase())}</span><span class="who" style="font-weight:600">${badge(g.best.platform)}${esc(g.best.name)}</span></div>` : ''}</div>` + nextLine(label);
+        back.innerHTML = head + `<div class="row3">${g.mvps.slice(0, 2).map((p, i) => `<div class="pcard"><small>${['MVP', '2ND'][i]}</small><span class="who">${badge(p.platform)}${esc(p.name)}</span><b>${p.pts}</b></div>`).join('')}${g.best ? `<div class="pcard"><small>BEST WORD</small><span class="who">${esc(g.best.word.toUpperCase())}</span><span class="who" style="font-weight:600">${badge(g.best.platform)}${esc(g.best.name)}</span></div>` : ''}</div>` + LB_SEC + nextLine(label);
       } else {
         back.innerHTML = head + `<div class="kpis"><div class="kpi"><small>REACHED</small><b>Level ${g.level}</b></div><div class="kpi"><small>WORDS, ALL LEVELS</small><b>${g.words}</b></div><div class="kpi"><small>BEST WORD</small><b>${g.best ? esc(g.best.word) : '–'}</b></div><div class="kpi"><small>PLAYERS</small><b>${g.players}</b></div></div>` +
-          `<div class="two"><div class="box"><h4><span>GAME MVPS</span><span>PTS</span></h4>${ranks(g.mvps)}</div><div class="box"><h4><span>THE ONE THAT GOT AWAY</span></h4><div class="missed">${g.away.map((w, i) => `<span class="${i ? '' : 'best'}">${esc(w)}</span>`).join('')}</div><div style="margin-top:6px"></div>${splitBox(g.split) || highlights(r.highlights)}${nextLine(label)}</div></div>`;
+          `<div class="two"><div class="box"><h4><span>GAME MVPS</span><span>PTS</span></h4>${ranks(g.mvps)}</div><div class="box"><h4><span>THE ONE THAT GOT AWAY</span></h4><div class="missed">${g.away.map((w, i) => `<span class="${i ? '' : 'best'}">${esc(w)}</span>`).join('')}</div><div style="margin-top:6px"></div>${splitBox(g.split) || highlights(r.highlights)}${LB_SEC}${nextLine(label)}</div></div>`;
       }
     }
+    fillLbSec();
   }
   let sumTimer = null;
   // the countdown ring drains smoothly to the moment the next level / game starts (one animation, no ticking); only the
@@ -315,12 +330,13 @@
   function runRing() {
     if (ringAnim) { ringAnim.cancel(); ringAnim = null; }
     const fg = back.querySelector('.ring .fg'), s = game.state; if (!fg || !s.nextAt || still) return;
-    const c = +fg.getAttribute('stroke-dasharray'), total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, left = Math.max(0, s.nextAt - now());
-    if (!rm && fg.animate) ringAnim = fg.animate([{ strokeDashoffset: c * (1 - left / total) }, { strokeDashoffset: c }], { duration: left, easing: 'linear', fill: 'forwards' });
+    const c = +fg.getAttribute('stroke-dasharray'), total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, left = Math.max(0, s.nextAt - game.clock());
+    fg.setAttribute('stroke-dashoffset', String(c * (1 - left / total)));
+    if (!rm && !game.held && fg.animate) ringAnim = fg.animate([{ strokeDashoffset: c * (1 - left / total) }, { strokeDashoffset: c }], { duration: left, easing: 'linear', fill: 'forwards' });
   }
   function tickRing() {
     const s = game.state, t = back.querySelector('.ring text'), fg = back.querySelector('.ring .fg'); if (!t || !s.nextAt) return;
-    const total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, leftMs = Math.max(0, s.nextAt - now()), left = Math.ceil(leftMs / 1000);
+    const total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, leftMs = Math.max(0, s.nextAt - game.clock()), left = Math.ceil(leftMs / 1000);
     t.textContent = left;
     const label = back.querySelector('.next .secs'); if (label) label.textContent = left;
     if (rm && fg) fg.setAttribute('stroke-dashoffset', String(+fg.getAttribute('stroke-dasharray') * (1 - leftMs / total)));
@@ -347,6 +363,156 @@
   const msg = $('#msg');
   function message(h, p) { msg.innerHTML = h ? `<div><h2>${h}</h2><p>${p}</p></div>` : ''; msg.classList.toggle('on', !!h); }
 
+  // ---- the stream: is the channel live, and which stream is it? (docs/widgets.md, "Leaderboards") ------------------------
+  // Asked when the overlay starts, before the leaderboard is shown (unless a live answer is under 2 minutes old), when a
+  // round starts (if the last answer is over 5 minutes old) and every 10 minutes while live. Offline and idle: never on
+  // its own. The platform that answered "live" last time is asked first; the other only if that one isn't live.
+  const ASK_WAIT = 8000, ROUND_ASK = 5 * 60000;
+  let asking = null;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  function checkStream() {
+    if (still) return null;
+    if (demo || !platforms.length) {
+      if (demo) scores.checked({ state: 'live', platform: shownPlatforms[0] || 'twitch', id: 'pretend', started: scores.record.stream ? scores.record.stream.started : now() });
+      return null;
+    }
+    if (asking) return asking;
+    asking = (async () => {
+      const first = scores.record.primary, order = platforms.slice().sort((a, b) => (b === first) - (a === first));
+      const states = [];
+      for (const p of order) {
+        const r = await Promise.race([W.platforms[p].stream(channels[p]), sleep(ASK_WAIT).then(() => ({ state: 'unknown' }))]);
+        if (r && r.state === 'live') { scores.checked({ ...r, platform: p }); return; }
+        states.push(r ? r.state : 'unknown');
+      }
+      scores.checked({ state: states.every((x) => x === 'offline') ? 'offline' : 'unknown' });
+    })().catch(() => {}).finally(() => { asking = null; if (!demo) writeSaves(); lbChecked(); });
+    return asking;
+  }
+
+  // ---- the leaderboard: !cg top (docs/widgets.md, "Leaderboards") ---------------------------------------------------------
+  // Full layout while a round is on: a panel over the word board (the letters and timer stay, nothing pauses). Full layout
+  // on a card (or waiting to start): a bigger popup over a dimmed backdrop, the countdown paused. Compact: it covers the
+  // whole widget and every timer pauses. This stream is only shown once a check confirms the stream it belongs to.
+  const LB_SHOW = 8000, LB_LATE = 300, LB_GIVE_UP = 3000, LB_MIN_WAIT = 400;
+  const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const dateOf = (t, short) => { const d = new Date(t); return `${short ? '' : DAYS[d.getDay()] + ' '}${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+  const wordsN = (n) => `${n} word${n === 1 ? '' : 's'}`;
+  let lb = null;
+  /** what This stream's half shows: 'stream' | 'last' | 'game' | 'checking' (gaveUp: stop waiting for the answer) */
+  function lbView(gaveUp) {
+    if (asking && !scores.fresh() && !gaveUp) return { kind: 'checking', list: [] };
+    const v = asking && !scores.fresh() ? { kind: 'game' } : scores.view(5);
+    return v.kind === 'game' ? { kind: 'game', list: game.top(5) } : v;
+  }
+  function lbTitle(v, { podium = false, short = false } = {}) {
+    if (v.kind === 'last') return podium && !short ? `LAST STREAM’S PODIUM${v.started ? ' · ' + dateOf(v.started) : ''}` : `LAST STREAM${v.started && !(short && podium === 'line') ? ' · ' + dateOf(v.started, short) : ''}`;
+    const what = v.kind === 'game' ? 'THIS GAME' : 'THIS STREAM';
+    return podium === true ? `${what}’S PODIUM` : what;
+  }
+  const lbEmpty = (v) => (v.kind === 'last' ? 'Nobody scored last stream' : v.kind === 'game' ? 'No scores yet this game' : v.kind === 'all' ? 'No scores yet' : 'No scores yet this stream');
+  const lbSide = (v) => (v.kind === 'last' ? '<span class="off">OFFLINE</span>' : v.kind === 'checking' ? '<span class="chk">Checking stream…</span>' : '<span>PTS</span>');
+  function lbRows(v, n, words = true) {
+    if (v.kind === 'checking') return '<div class="rank sk"><i></i><i></i><i></i></div>'.repeat(n);
+    if (!v.list.length) return `<div class="hl none">${lbEmpty(v)}</div>`;
+    const rows = v.list.slice(0, n).map((p, i) => `<div class="rank"><span class="n">${i + 1}</span>${badge(p.platform)}<span class="nm">${esc(p.name)}</span>${words ? `<span class="ws">${wordsN(p.words)}</span>` : '<span></span>'}<span class="pts">${p.score}</span></div>`);
+    for (let i = rows.length; i < n; i++) rows.push(`<div class="rank empty"><span class="n">${i + 1}</span><span></span><span class="nm">—</span><span></span><span></span></div>`);
+    return rows.join('');
+  }
+  function lbPodium(v) {
+    const place = (i) => {
+      const p = v.kind === 'checking' ? null : v.list[i];
+      const who = v.kind === 'checking' ? '<div class="who"><i class="skl"></i></div><div class="pp">&nbsp;</div>'
+        : p ? `<div class="who">${badge(p.platform)}<span>${esc(p.name)}</span></div><div class="pp">${p.score}<small>${wordsN(p.words)}</small></div>` : '<div class="who"><span>—</span></div><div class="pp">&nbsp;</div>';
+      return `<div class="p p${i + 1}">${i ? '' : '<i class="crown"></i>'}${who}<div class="step">${i + 1}</div></div>`;
+    };
+    return `<div class="pod">${place(1)}${place(0)}${place(2)}</div>`;
+  }
+  function lbPaused(kind) {
+    const s = game.state;
+    if (kind === 'play' || !game.held) return '';
+    if (s.phase === 'playing') return '<span class="paused">Timer paused</span> · ';
+    if (!s.nextAt) return '';
+    if (kind === 'cmp') return '<span class="paused">Countdown paused</span> · ';
+    return `<span class="paused">${s.phase === 'cleared' ? 'Next level' : 'New game'} countdown paused</span> · `;
+  }
+  function lbInner(me) {
+    const v = lbView(me.gaveUp), all = { kind: 'all', list: scores.allTimeTop(5) }, short = me.kind === 'cmp';
+    const list = (x, title) => `<div class="box"><h4><span>${title}</span>${lbSide(x)}</h4>${lbRows(x, 5, !short)}</div>`;
+    const cols = cfg.remember ? list(v, lbTitle(v, { short })) + list(all, 'ALL TIME')
+      : `<div class="box"><h4><span>${lbTitle(v, { podium: true, short })}</span>${v.kind === 'last' || v.kind === 'checking' ? lbSide(v) : ''}</h4>${lbPodium(v)}</div>` + list(v, lbTitle(v, { short }));
+    return `<div class="hd"><b>LEADERBOARD</b><span>${lbPaused(me.kind)}${esc(me.text)} · asked by ${esc(me.by)}</span></div><div class="cols">${cols}</div><div class="lbbar"><i></i></div>`;
+  }
+  function lbDraw() {
+    const me = lb; if (!me) return;
+    if (!me.el) {
+      me.el = document.createElement('div');
+      me.el.className = `lb ${me.kind}${cfg.remember ? '' : ' podium'}`;
+      if (me.kind === 'big') { me.wrap = document.createElement('div'); me.wrap.className = 'lbwrap'; me.wrap.innerHTML = '<div class="lbdim"></div>'; me.wrap.appendChild(me.el); board.appendChild(me.wrap); }
+      else if (me.kind === 'play') $('.front').appendChild(me.el);
+      else board.appendChild(me.el);
+      anim(me.wrap || me.el, [{ opacity: 0, transform: me.kind === 'play' ? 'translateY(12px)' : 'scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'ease-out' });
+    }
+    if (me.kind === 'play') Object.assign(me.el.style, { left: wordsEl.offsetLeft + 'px', top: wordsEl.offsetTop + 'px', width: wordsEl.offsetWidth + 'px', height: wordsEl.offsetHeight + 'px' });
+    me.el.innerHTML = lbInner(me);
+    if (me.until) runLbBar();
+  }
+  // the bar along the bottom: how long it stays
+  function runLbBar() {
+    const i = lb && lb.el.querySelector('.lbbar i'); if (!i) return;
+    const left = Math.max(0, lb.until - Date.now()), k = left / LB_SHOW;
+    i.style.transform = `scaleX(${k})`;
+    if (!rm && i.animate) i.animate([{ transform: `scaleX(${k})` }, { transform: 'scaleX(0)' }], { duration: left, easing: 'linear', fill: 'forwards' });
+  }
+  const timersNow = () => { drawTimer(); tickClock(); runRing(); tickRing(); };
+  async function showLeaderboard(e) {
+    if (lb || still) return;
+    const compact = cfg.layout === 'compact', phase = game.state.phase;
+    const me = lb = { kind: compact ? 'cmp' : phase === 'playing' && !ending ? 'play' : 'big', by: e.by || 'Streamer', text: e.text || game.commandName('top') || '', el: null, wrap: null, until: 0, gaveUp: false };
+    if (me.kind !== 'play' && game.hold(true)) { timersNow(); save(); }
+    const ask = scores.fresh() ? null : checkStream();
+    if (ask) await Promise.race([ask, sleep(LB_LATE)]);           // a quick answer: the popup opens already showing it
+    if (lb !== me) return;
+    lbDraw();
+    if (asking && !scores.fresh()) {                               // slow: the placeholder shows, for at least LB_MIN_WAIT
+      const from = Date.now();
+      await Promise.race([asking, sleep(LB_GIVE_UP)]);
+      if (lb !== me) return;
+      const wait = LB_MIN_WAIT - (Date.now() - from); if (wait > 0) await sleep(wait);
+      if (lb !== me) return;
+      if (asking) me.gaveUp = true;                                // no answer: this game instead (never an unconfirmed stream)
+      lbDraw();
+    }
+    me.until = Date.now() + LB_SHOW; runLbBar();
+    me.timer = setTimeout(hideLeaderboard, LB_SHOW);
+  }
+  function hideLeaderboard() {
+    const me = lb; if (!me) return;
+    lb = null; clearTimeout(me.timer);
+    const el = me.wrap || me.el;
+    const out = el && anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'forwards' });
+    if (out) out.onfinish = () => el.remove(); else if (el) el.remove();
+    if (game.hold(false)) { flush(); timersNow(); schedule(); }
+  }
+  // an answer arrived: whatever shows the leaderboard catches up
+  function lbChecked() { if (lb && lb.el && (lb.gaveUp || lb.until)) { lb.gaveUp = false; lbDraw(); } fillLbSec(); }
+
+  // the standing leaderboard on the cleared and game-over cards (left off when there's no answer: the MVPs show this game)
+  const LB_SEC = '<div class="lbsec" hidden></div>';
+  function fillLbSec() {
+    const el = back.querySelector('.lbsec'); if (!el) return;
+    const v = lbView(false);
+    if (v.kind === 'game') { el.hidden = true; el.innerHTML = ''; return; }
+    el.hidden = false;
+    if (cfg.layout === 'compact') {
+      el.innerHTML = `<span class="rl">${lbTitle(v, { short: true, podium: 'line' })}</span>` + (v.kind === 'checking' ? '<span class="rf sk"><i></i></span>'.repeat(3)
+        : v.list.length ? v.list.slice(0, 3).map((p, i) => `<span class="rf"><span class="n">${i + 1}</span>${badge(p.platform)}${esc(p.name)} <b>${p.score}</b></span>`).join('') : `<span class="none">${lbEmpty(v)}</span>`);
+      return;
+    }
+    const col = (x, title) => `<div><h5>${title}${x.kind === 'last' ? '<span class="off">OFFLINE</span>' : ''}</h5>${lbRows(x, 5, false)}</div>`;
+    el.innerHTML = `<h4><span>LEADERBOARD</span></h4><div class="mini${cfg.remember ? '' : ' one'}">${col(v, lbTitle(v, { short: cfg.remember }))}${cfg.remember ? col({ kind: 'all', list: scores.allTimeTop(5) }, 'ALL TIME') : ''}</div>`;
+  }
+
   // ---- events → drawing -------------------------------------------------------------------------------------------------------
   function drawAll() {
     const s = game.state;
@@ -369,6 +535,7 @@
         recent.length = 0; drawRecent();
         board.classList.remove('summary', 'low'); hideEnd();
         drawAll(); bannerIdle(); dropTiles(); anim(wordsEl, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+        if (now() - scores.record.checkedAt > ROUND_ASK) checkStream();       // points are coming: know which stream they're for
         break;
       case 'found': {
         lastFoundAt = Date.now();
@@ -414,11 +581,15 @@
           const hold = rm ? 0 : Math.max(0, END_HOLD - (Date.now() - lastFoundAt));
           const card = e.phase === 'cleared' ? ['Cleared!', `${e.result.found} of ${e.result.total} words`, false] : [e.result.timeLeft > 0 ? 'Game over' : 'Time’s up!', `${e.result.found} of ${e.result.goal} needed`, true];
           ending = true;
+          if (!scores.fresh()) checkStream();                         // the card's leaderboard: asked now, ready when it shows
+          if (lb && lb.kind === 'play') hideLeaderboard();            // the panel belonged to the round (the card has its own)
           setTimeout(() => showEnd(card), hold);
           setTimeout(() => { drawSummary(); hideEnd(); board.classList.add('summary'); runSummaryClock(true); }, rm ? 0 : hold + 2200);
         }
         break;
       case 'skip': break;
+      case 'leaderboard': showLeaderboard(e); break;
+      case 'clearscores': scores.clear(); writeSaves(); if (lb) lbDraw(); fillLbSec(); break;
       case 'reset': case 'game': case 'phase': case 'resume': drawAll(); break;
     }
   }
@@ -482,11 +653,19 @@
         else if (st.phase === 'cleared') hear({ ...OWNER, text: game.commandName('next') });
       }, 6000);
     }
-    else W.chat({ twitch: channels.twitch, kick: channels.kick, kickId: cfg.kickid || undefined }, hear, drawConn);
+    else {
+      W.chat({ twitch: channels.twitch, kick: channels.kick, kickId: cfg.kickid || undefined }, hear, drawConn);
+      checkStream();
+      // while live, ask every 10 minutes (so a crash or a dropped stream is told apart from a new one); offline, never
+      setInterval(() => { const d = scores.record; if (d.status === 'live' && now() - d.checkedAt >= C.scores.LIVE_EVERY) checkStream(); }, 60000);
+    }
+    // the set-up page's preview: its "Show leaderboard" button
+    if (demo) addEventListener('message', (ev) => { if (ev.data && ev.data.type === 'chatagram-leaderboard') showLeaderboard({ by: 'Streamer', text: game.commandName('top') || '!cg top' }); });
   }
   document.documentElement.dataset.ready = '1';
   window.chatagram = {
-    game, cfg, hear,
+    game, cfg, hear, scores, checkStream,
+    leaderboard: { show: (by = 'Streamer', text = '!cg top') => showLeaderboard({ by, text }), hide: hideLeaderboard, get open() { return lb ? { kind: lb.kind, gaveUp: lb.gaveUp, until: lb.until } : null; } },
     advance(ms) { offset += ms; for (let i = 0; i < 200 && game.nextWake() <= now(); i++) game.tick(); flush(); drawAll(); schedule(); },
   };
 })();

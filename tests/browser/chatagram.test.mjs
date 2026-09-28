@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { launch, TIMERS } from '../helpers/chrome.mjs';
 import { siteServer } from '../helpers/server.mjs';
 import { readAt } from '../helpers/sim.mjs';
+import { readFileSync } from 'node:fs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let chrome, site;
@@ -75,10 +76,10 @@ test('a whole game from Twitch and Kick chat: finds score, the round ends, the e
   // moves on by itself
   await tab.eval('window.chatagram.advance(5000); 1');
   await tab.until('window.chatagram.game.state.level === 2 && !document.getElementById("board").classList.contains("summary")', 3000);
-  // a regular viewer's !reset does nothing; a mod's works
-  await tab.eval('__chat.twitch("PixelPanda", "!reset"); 1');
+  // a regular viewer's !cg reset does nothing; a mod's works
+  await tab.eval('__chat.twitch("PixelPanda", "!cg reset"); 1');
   assert.equal(await tab.eval('window.chatagram.game.state.level'), 2);
-  await tab.eval('__chat.twitch("GridMod", "!reset", true); 1');
+  await tab.eval('__chat.twitch("GridMod", "!cg reset", true); 1');
   assert.equal(await tab.eval('window.chatagram.game.state.level'), 1);
   noErrors(tab, 'game');
   await tab.close();
@@ -331,7 +332,7 @@ test('a board of mostly short words groups its few long-word boxes into one "N+"
     const heads = await tab.eval('[...document.querySelectorAll("#words h4 span:first-child")].map((s) => s.textContent)');
     const lens = await tab.eval('[...new Set(chatagram.game.state.round.answers.map((a) => a.word.length))].length');
     if (lens >= 4 && heads.length < lens) seen = heads;
-    else await tab.eval('chatagram.hear({ platform: "twitch", user: "o", name: "O", owner: true, mod: true, text: "!skip" }); 1');
+    else await tab.eval('chatagram.hear({ platform: "twitch", user: "o", name: "O", owner: true, mod: true, text: "!cg skip" }); 1');
   }
   assert.ok(seen, 'a board with merged columns came up');
   assert.ok(seen.some((h) => /^\d\+/.test(h)), `an N+ heading: ${seen}`);
@@ -407,4 +408,167 @@ test('seed= in the link sets the first puzzle (the trailer uses it); anything el
     if (want) assert.equal(seed, want); else assert.match(seed, /^[a-z]{6}$/, `${q}: a normal random puzzle`);
     await tab.close();
   }
+});
+
+// ---- the leaderboard (!cg top) -------------------------------------------------------------------------------------------
+// Twitch's and Kick's "is it live" answers are stubbed in the page: live / offline / unknown, or 'hang' (answers only when
+// window.__release() is called). window.__asked lists which platforms were asked.
+const STUB = (answers) => `(() => { window.__asked = []; for (const [p, a] of Object.entries(${JSON.stringify(answers)})) Widgets.platforms[p].stream = async () => {
+  __asked.push(p);
+  const live = { state: 'live', id: 's1', started: Date.now() - 60000 };
+  if (a === 'hang') return new Promise((r) => { window.__release = () => r(live); });
+  return a === 'live' ? live : { state: a }; }; return 1; })()`;
+const LB = (q) => `/chatagram/play.html?twitch=gridrunner&${q || ''}`;
+// every leaderboard test starts with nothing saved (the tabs share the site's storage)
+const CLEAN = `for (const k of Object.keys(localStorage)) if (k.startsWith('chatagram:v1:') || k.startsWith('chatagram:scores:')) localStorage.removeItem(k);`;
+async function lbTab(q, answers, size = { width: 960, height: 540 }) {
+  const tab = await chrome.open(site.origin + LB(q), { ...size, init: FAKE_CHAT + CLEAN });
+  await ready(tab);
+  await tab.until('document.querySelector("#conn .dot.live")', 5000, 'chat live');
+  if (answers) { await tab.eval(STUB(answers)); await tab.eval('chatagram.checkStream(); 1'); }
+  return tab;
+}
+const text = (tab, sel) => tab.eval(`(document.querySelector(${JSON.stringify(sel)}) || {}).textContent || ''`);
+
+test('leaderboard, full layout while playing: covers the word board exactly, never the letters or timer; nothing pauses', async () => {
+  const tab = await lbTab('', { twitch: 'live' });
+  await tab.until('chatagram.scores.fresh()', 3000, 'a live answer');
+  const w = await tab.eval('chatagram.game.state.round.answers[0].word');
+  await tab.eval(`__chat.twitch("PixelPanda", ${JSON.stringify(w)}); 1`);
+  await tab.eval('__chat.twitch("PixelPanda", "!cg top"); 1');
+  assert.equal(await tab.eval('!!document.querySelector(".lb")'), false, 'a viewer can\'t (who can use commands: me and mods)');
+  await tab.eval('__chat.twitch("GridMod", "!cg top", true); 1');
+  await tab.until('document.querySelector(".lb.play")', 3000, 'the panel');
+  await sleep(400);                                                  // its entrance (a short slide) has finished
+  const g = await tab.eval(`(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const lb = r('.lb.play'), w = r('#words'); return { lb: [lb.left, lb.top, lb.width, lb.height].map(Math.round), w: [w.left, w.top, w.width, w.height].map(Math.round), timer: r('.timer').bottom, tiles: r('#tiles').bottom }; })()`);
+  assert.deepEqual(g.lb, g.w, 'the panel is exactly the word board');
+  assert.ok(g.lb[1] >= g.timer && g.lb[1] >= g.tiles, 'below the letters and the timer');
+  const t = await text(tab, '.lb');
+  assert.match(t, /THIS STREAM/); assert.match(t, /ALL TIME/); assert.match(t, /PixelPanda/); assert.match(t, /!cg top · asked by GridMod/);
+  assert.equal(await tab.eval('chatagram.game.held'), false, 'nothing pauses');
+  const c1 = await text(tab, '#clock'); await sleep(1300);
+  assert.notEqual(await text(tab, '#clock'), c1, 'the clock keeps running');
+  await tab.eval('chatagram.leaderboard.hide(); 1');
+  await tab.until('!document.querySelector(".lb")', 2000, 'gone');
+  noErrors(tab, 'full leaderboard');
+  await tab.close();
+});
+
+test('leaderboard, compact: covers the whole widget and every timer stops until it goes', async () => {
+  const tab = await lbTab('layout=compact', { twitch: 'live' }, { width: 560, height: 230 });
+  await tab.until('chatagram.scores.fresh()', 3000);
+  const ends = await tab.eval('chatagram.game.state.round.endsAt');
+  await tab.eval('__chat.twitch("GridMod", "!cg", true); 1');
+  await tab.until('document.querySelector(".lb.cmp")', 3000, 'the cover');
+  await sleep(400);
+  const cover = await tab.eval(`(() => { const a = document.querySelector('.lb.cmp').getBoundingClientRect(), b = document.getElementById('board').getBoundingClientRect(); return [a.width / b.width, a.height / b.height]; })()`);
+  assert.ok(cover[0] > 0.97 && cover[1] > 0.95, `covers the widget: ${cover}`);
+  assert.match(await text(tab, '.lb'), /Timer paused/);
+  assert.equal(await tab.eval('chatagram.game.held'), true);
+  const c1 = await text(tab, '#clock'); await sleep(1500);
+  assert.equal(await text(tab, '#clock'), c1, 'the clock stands still');
+  const before = Date.now();
+  await tab.eval('chatagram.leaderboard.hide(); 1');
+  assert.equal(await tab.eval('chatagram.game.held'), false);
+  const moved = await tab.eval('chatagram.game.state.round.endsAt') - ends;
+  assert.ok(moved >= 1500 && moved <= Date.now() - before + 4000, `the round's end moved on by the time shown: ${moved} ms`);
+  noErrors(tab, 'compact leaderboard');
+  await tab.close();
+});
+
+test('leaderboard on a card: the standing list, then !cg top opens a popup over a dimmed card and pauses the countdown', async () => {
+  const tab = await lbTab('next=10', { twitch: 'live' });
+  await tab.until('chatagram.scores.fresh()', 3000);
+  const words = await tab.eval('chatagram.game.state.round.answers.map((a) => a.word)');
+  for (const w of words) await tab.eval(`__chat.twitch("PixelPanda", ${JSON.stringify(w)}); 1`);
+  await tab.until('document.getElementById("board").classList.contains("summary")', 8000, 'the summary');
+  await tab.until('!document.querySelector(".lbsec").hidden', 3000, 'the standing list');
+  assert.match(await text(tab, '.lbsec'), /THIS STREAM[\s\S]*PixelPanda[\s\S]*ALL TIME/);
+  const next = await tab.eval('chatagram.game.state.nextAt');
+  await tab.eval('__chat.twitch("GridMod", "!cg top", true); 1');
+  await tab.until('document.querySelector(".lbwrap .lbdim") && document.querySelector(".lb.big")', 3000, 'the popup');
+  assert.match(await text(tab, '.lb'), /Next level countdown paused/);
+  await sleep(1200);
+  await tab.eval('chatagram.leaderboard.hide(); 1');
+  assert.ok(await tab.eval('chatagram.game.state.nextAt') - next >= 1200, 'the countdown was paused');
+  noErrors(tab, 'card leaderboard');
+  await tab.close();
+});
+
+test('This stream is never shown before a check confirms it: nothing for 300 ms, then a placeholder, then This game if no answer', async () => {
+  const tab = await lbTab('', { twitch: 'unknown' });
+  const w = await tab.eval('chatagram.game.state.round.answers[0].word');
+  await tab.eval(`__chat.twitch("PixelPanda", ${JSON.stringify(w)}); 1`);
+  await tab.eval(STUB({ twitch: 'hang' }));
+  await tab.eval('__chat.twitch("GridMod", "!cg top", true); 1');
+  await sleep(120);
+  assert.equal(await tab.eval('!!document.querySelector(".lb")'), false, 'nothing yet');
+  await tab.until('document.querySelector(".lb .rank.sk")', 1500, 'the placeholder');
+  const t = await text(tab, '.lb');
+  assert.match(t, /Checking stream…/); assert.doesNotMatch(t, /PixelPanda[\s\S]*ALL TIME/, 'no names in This stream while checking');
+  await tab.until('/THIS GAME/.test(document.querySelector(".lb").textContent)', 5000, 'This game after no answer');
+  assert.match(await text(tab, '.lb'), /PixelPanda/);
+  await tab.eval('__release(); 1');
+  await tab.until('/THIS STREAM/.test(document.querySelector(".lb").textContent) && !/THIS GAME/.test(document.querySelector(".lb").textContent)', 3000, 'catches up when the answer comes');
+  await tab.eval('chatagram.leaderboard.hide(); 1');
+  noErrors(tab, 'confirmation');
+  await tab.close();
+});
+
+test('confirmed offline: Last stream with its date and the Offline tag; All time hidden → the podium', async () => {
+  const tab = await lbTab('remember=0', { twitch: 'live' });
+  await tab.until('chatagram.scores.fresh()', 3000);
+  for (const [i, a] of (await tab.eval('chatagram.game.state.round.answers.slice(0, 3).map((a) => a.word)')).entries()) await tab.eval(`__chat.twitch(${JSON.stringify(['PixelPanda', 'NeonNacho', 'LunaLlama'][i])}, ${JSON.stringify(a)}); 1`);
+  await tab.eval(STUB({ twitch: 'offline' }));
+  await tab.eval('chatagram.checkStream(); 1');
+  await tab.until('chatagram.scores.record.status === "offline"', 3000);
+  await tab.eval('chatagram.leaderboard.show("GridMod"); 1');
+  await tab.until('document.querySelector(".lb .pod")', 3000, 'the podium');
+  const t = await text(tab, '.lb');
+  assert.match(t, /LAST STREAM’S PODIUM · [A-Z]{3} \d+ [A-Z]{3}/); assert.match(t, /OFFLINE/);
+  assert.doesNotMatch(t, /ALL TIME/, 'All time hidden');
+  assert.equal(await tab.eval('document.querySelectorAll(".lb .pod .step").length'), 3);
+  assert.equal(await tab.eval('!!document.querySelector(".lb .pod .p1 .crown")'), true);
+  await tab.eval('chatagram.leaderboard.hide(); 1');
+  noErrors(tab, 'offline');
+  await tab.close();
+});
+
+test('both platforms set up: the one that said live is asked first; the other only when it isn\'t live', async () => {
+  const tab = await lbTab('kick=gridrunner&kickid=715', { twitch: 'offline', kick: 'live' });
+  await tab.until('chatagram.scores.fresh()', 3000);
+  assert.deepEqual(await tab.eval('__asked'), ['twitch', 'kick']);
+  await tab.eval('__asked.length = 0; chatagram.checkStream(); 1');
+  await tab.until('__asked.length', 3000);
+  await sleep(200);
+  assert.deepEqual(await tab.eval('__asked'), ['kick'], 'Kick answered live last time: only Kick');
+  await tab.close();
+});
+
+test('saved data: a save from before the leaderboards resumes, and its All time scores carry into the leaderboards', async () => {
+  const fixture = JSON.parse(readFileSync(new URL('../fixtures/chatagram-save-v1.json', import.meta.url), 'utf8'));
+  const init = FAKE_CHAT + CLEAN + `\nlocalStorage.setItem('chatagram:v1:gridrunner|', JSON.stringify(Object.assign(${JSON.stringify(fixture)}, { savedAt: Date.now() - 3000 })));`;
+  const tab = await chrome.open(site.origin + LB(''), { width: 960, height: 540, init });
+  await ready(tab);
+  assert.equal(await tab.eval('chatagram.game.state.round.seed'), fixture.round.seed, 'the game resumed');
+  const names = await tab.eval('chatagram.scores.allTimeTop().map((p) => p.name).sort()');
+  assert.deepEqual(names, Object.values(fixture.allTime).map((p) => p.name).sort());
+  const open = await tab.eval('chatagram.game.state.round.answers.find((a) => !a.by).word');
+  await tab.eval(`__chat.twitch("PixelPanda", ${JSON.stringify(open)}); 1`);
+  await tab.until('localStorage.getItem("chatagram:scores:v1:gridrunner|")', 3000, 'the leaderboards saved');
+  const both = await tab.eval('(() => { const g = JSON.parse(localStorage.getItem("chatagram:v1:gridrunner|")), s = JSON.parse(localStorage.getItem("chatagram:scores:v1:gridrunner|")); return [JSON.stringify(g.allTime), JSON.stringify(s.allTime)]; })()');
+  assert.equal(both[0], both[1], 'All time also written back into the game\'s save (for an older overlay)');
+  noErrors(tab, 'migration');
+  await tab.close();
+});
+
+test('reduced motion: the leaderboard just appears and goes, with nothing animating', async () => {
+  const tab = await lbTab('motion=reduce&layout=compact', { twitch: 'live' }, { width: 560, height: 230 });
+  await tab.until('chatagram.scores.fresh()', 3000);
+  await tab.eval('chatagram.leaderboard.show("GridMod"); 1');
+  await tab.until('document.querySelector(".lb.cmp")', 2000);
+  assert.equal(await tab.eval('document.getAnimations().filter((a) => a.playState === "running").length'), 0);
+  await tab.eval('chatagram.leaderboard.hide(); 1');
+  assert.equal(await tab.eval('!!document.querySelector(".lb")'), false, 'gone at once');
+  await tab.close();
 });
