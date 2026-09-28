@@ -15,12 +15,13 @@ scenes" below).
 public/widgets/index.html                 the widgets list (the site's own style; linked last in the homepage nav)
 public/widgets/lib/settings.js            settings ⇄ link, from a per-widget schema
 public/widgets/lib/chat.js                every platform's chat as one reconnecting stream of messages
-public/widgets/lib/platforms/twitch.js    Twitch: anonymous IRC over WebSocket
-public/widgets/lib/platforms/kick.js      Kick: Pusher, chatroom looked up from the channel name
+public/widgets/lib/platforms/twitch.js    Twitch: anonymous IRC over WebSocket; is the channel live (its public web API)
+public/widgets/lib/platforms/kick.js      Kick: Pusher, chatroom looked up from the channel name; is the channel live
 public/widgets/lib/theme.js, themes.css   the eight themes, the accent, the live theme message, reduced motion
 public/chatagram/index.html + setup.js    the Chatagram page: hero, how it works, themes, set-up with live preview, FAQ
 public/chatagram/play.html/.css/.js       the overlay OBS loads (noindex)
 public/chatagram/game.js                  the rules only: no drawing, no timers (unit-tested)
+public/chatagram/scores.js                the leaderboards: All time, This stream, which stream is on (unit-tested)
 public/chatagram/settings.js              every setting, its default and range
 public/chatagram/words.js                 word logic shared by the overlay and the builder
 public/chatagram/words/                   words.txt, seeds.txt (built), LICENSE.txt (the sources' notices)
@@ -93,13 +94,74 @@ passed in, so the tests replay any game exactly.
   word drops out once half the goal is found.
 - **Padlocks** (off by default: people don't know them): 2–4 checkpoints on the countdown; a player who finds a word
   can't score again until the timer passes the next one. Stops one fast typer taking every word.
-- **Commands** `!start`, `!next`, `!skip`, `!reset` (renamable, several names each, any capitals; who: only the
-  owner, owner and mods, or everyone). Reset also clears the all-time scores.
+- **Commands** `!cg start`, `!cg next`, `!cg skip`, `!cg reset`, `!cg top` (or just `!cg`), `!cg clearscores`
+  (renamable, several names each, any capitals; who: only the owner, owner and mods, or everyone, except clearscores:
+  the owner only). They were `!start`, `!next`, `!skip`, `!reset` until 2026-09-28; a link that named its own keeps them.
+  Reset restarts the game; the leaderboards stay.
 - **Flow**: after a level, the next one starts in 10 s (or waits for the next command); after game over, a new game in
   15 s (or waits for start). "Keep playing by itself" on the set-up page sets both.
 - **Saved**: the game is saved in the OBS source's browser storage as it goes, so a refresh carries on. A save older
-  than 10 minutes starts a new game but keeps the all-time scores (unless "remember scores" is off).
+  than 10 minutes starts a new game. The leaderboards are saved beside it (see "Saved data").
+- **Hold** (`hold(true|false)`): every timer stops (the round's end, padlocks, the half-time reveal, shuffles, the
+  countdown to the next level or game) and carries on from where it stopped; guesses still count, timed at the moment the
+  hold began. The leaderboard uses it; a refresh while held carries on (giving back at most 12 s).
 - Bots are ignored as players (Botrix, Nightbot, StreamElements… editable), and streamers can block words of their own.
+
+## Chatagram: leaderboards
+
+`scores.js` keeps two lists, both from every point scored (board words and bonus words, as they're scored):
+
+- **All time**: everyone ever, kept for good (only `!cg clearscores` wipes it). Always recorded; the "Show all-time
+  leaderboard" switch (`remember`, the name it had when it decided whether scores were kept) only decides if it's shown.
+- **This stream**: since the current stream started. **Which stream is on comes from the platforms**: Twitch's public
+  web API (`gql.twitch.tv`, the one twitch.tv uses: the stream's id and start time) and Kick's channel API
+  (`livestream`: id and start time), both without a login and both allowing other sites to ask (checked 2026-09-28).
+  Unofficial, like reading Kick's chat: if one stops answering, the answer is "unknown", which never resets anything.
+  - A **new stream id** is the same stream when it started within **40 minutes** of the last time the old one was seen
+    live (a crash, OBS closing, a dropped connection: both platforms give a restarted stream a new id; 40 = 30 minutes
+    of outage + one 10-minute check interval), otherwise This stream starts again.
+  - **When it asks** (play.js): when the overlay starts; before the leaderboard shows, unless a live answer is under 2
+    minutes old; when a round starts, if the last answer is over 5 minutes old; as a round ends, for the card; every 10
+    minutes while live. Offline or idle: never on its own. With both platforms set up, the one that last said "live"
+    is asked first and the other only when it isn't live (a streamer set up for both but on one today costs one
+    request after the first).
+  - **Points go where they belong by their time**: they're logged until an answer places them. Live: into the stream
+    (from its start). A new stream found late (OBS left open, a game started before the check): the points after its
+    start go in, earlier ones don't. Offline: the stream's final minutes count (up to one check interval after it was last
+    seen live), anything later is All time only.
+- **What shows**: This stream only once an answer confirms it: live → This stream; offline → **Last stream** (its date,
+  an Offline tag, its final scores); no answer within 3 s → **This game** (the game's own players, always right);
+  checking → nothing for 300 ms, then a placeholder (at least 400 ms, never a flash). All time hidden: This stream's
+  **podium** (2nd, 1st with a crown, 3rd) on the left and its list on the right.
+- **`!cg top`** follows "who can use commands"; with everyone allowed, viewers share a 60-second cooldown (mods and the
+  owner never wait). Shown for 8 s (counted from when the lists fill in).
+  - Full layout while a round is on: a panel exactly over the word board (the letters, timer and banner stay; nothing
+    pauses, guesses keep landing).
+  - Full layout on a card or while waiting to start: a bigger popup over the dimmed card; the countdown is held.
+  - Compact: it covers the whole widget and the game is held (every timer), so nobody loses time.
+- **On the cards**: the cleared and game-over cards show the standing top 5 (both lists, or This stream only); compact
+  cards a This stream top 3 line. Left off when there's no answer (the MVPs already show this game).
+- The set-up page's preview has **Show leaderboard** (a made-up leaderboard in the pretend game).
+
+## Saved data
+
+Everything is in the OBS browser source's `localStorage`, per channel pair (`<twitch>|<kick>`, as typed in the link).
+**Rule: new versions only add fields.** Anything saved by an older version must always load, and what a newer one saves
+must still work for an older copy (OBS can have a cached one). Tests: `tests/unit/chatagram-scores.test.mjs` with a real
+save from before the leaderboards (`tests/fixtures/chatagram-save-v1.json`, written by the game at commit 6d8e97d),
+and the browser test "saved data".
+
+| Key | What | Fields |
+|---|---|---|
+| `chatagram:v1:<twitch>\|<kick>` | the game, as it goes (a refresh resumes it; over 10 minutes old starts a new game) | the game's state (`game.js` `fresh()`): phase, level, round, this game's players, … `allTime` (a copy of the leaderboards' All time, written back for older overlays), `heldAt` (added 2026-09-28: the leaderboard holding the game), `lbAt` (added 2026-09-28: the last viewer `!cg top`, for the cooldown) |
+| `chatagram:scores:v1:<twitch>\|<kick>` | the leaderboards (added 2026-09-28) | `allTime` {`platform:user`: name, platform, score, words}, `stream` (ids per platform, started, lastSeen, players), `log` (points not yet placed), `status` (live, offline, unknown), `checkedAt`, `primary` (the platform asked first) |
+| `chatagram:setup` | the set-up page's last settings (the page, not OBS) | the settings, as `settings.js` |
+
+**The move to separate leaderboards (2026-09-28):** the first load with no leaderboards record takes All time from the
+game's save (`allTime`, whatever it held, whatever "remember" was set to), and This stream starts with the first live
+answer. Points scored earlier that day aren't in This stream (the old version didn't record when they were scored). A
+game in progress resumes as before. An older overlay reading the new game save sees the same `allTime` and ignores the
+new fields.
 
 ## Chatagram: the overlay
 
@@ -201,8 +263,10 @@ following the dock's Form looks. It's the only Chatagram file that knows the for
 ## Tests
 
 `tests/unit/chatagram-words.test.mjs` (the lists as shipped, blocking, every difficulty's seeds make good puzzles),
-`tests/unit/chatagram-game.test.mjs` (the rules, with the real word lists), `tests/unit/widgets-lib.test.mjs` (settings,
+`tests/unit/chatagram-game.test.mjs` (the rules, with the real word lists; commands, holding),
+`tests/unit/chatagram-scores.test.mjs` (the leaderboards: streams, crashes, offline, no answer, saved data across versions), `tests/unit/widgets-lib.test.mjs` (settings,
 Twitch and Kick parsing from real captured messages, themes), `tests/loops/widgets-chat.test.mjs` (reconnecting, on the
 virtual clock), `tests/loops/chatagram-flow.test.mjs` (hours of play: no runaway, always moves on),
 `tests/browser/chatagram.test.mjs` (the pages, a whole game from fake Twitch and Kick sockets, every layout and theme
-fits, theme messages, the OBS wrapper, the set-up link, reduced motion). See testing.md.
+fits, theme messages, the OBS wrapper, the set-up link, reduced motion, the leaderboard in each layout with stubbed
+"is it live" answers, saved data from before the leaderboards). See testing.md.
