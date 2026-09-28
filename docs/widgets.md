@@ -104,7 +104,9 @@ passed in, so the tests replay any game exactly.
 ## Chatagram: the overlay
 
 `play.html` is the OBS browser source: **full** 960 × 540 (16:9, exactly half of 1920 × 1080, so a full-screen source
-shows it at a clean 2×; every word slot, in columns by length, fitted into at most five columns, rows as big as fit) or **compact** 560 × 230 (bigger tiles, the last three finds, the count). The board scales to fit if the
+shows it at a clean 2×; every word slot in columns by length; the layout measures what fits the width and picks the biggest
+letter boxes it can, with players' names beside the words when they fit, without them for very big puzzles; narrow
+columns shorten their heading to the length) or **compact** 560 × 230 (bigger tiles, the last three finds, the count). The board scales to fit if the
 source is another size. With one platform the badges beside names go, and the summary's "Twitch vs Kick" box becomes
 round highlights (fastest find, longest streak, last-second save).
 
@@ -154,7 +156,7 @@ node scripts/build-words.mjs --scowl /tmp/scowl
 
 Its own brand, not the site's: lowercase wordmark **chat**agram in Lilita One (Chakra Petch for text, both already
 self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, coral `#ff5a5f`, sun `#ffc93c`, mint
-`#2ee6a8`, paper `#fff7ec`. The header says **by Trongates Legacy**; the overlay's footer credit
+`#2ee6a8`, paper `#fff7ec`. The header says **made by TrongatesLegacy** (one word, the owner's choice) and links to the homepage; the overlay's footer credit
 `Made by TrongatesLegacy.com` (the owner's choice of spelling for the credit) is on by default and can be turned off
 (Advanced → Other).
 
@@ -171,8 +173,9 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
   game over; **Copy OBS link** sits under it; the full link hides behind "Show link". On phones the preview goes first
   and a Copy bar stays at the bottom. The preview is re-themed by message, so changing theme or accent never reloads it.
 - Indexed (in `sitemap.xml`) with its own title, description, canonical, share image and JSON-LD. The overlay isn't.
-- **Pictures before live games**: the hero and the set-up preview show a picture at once and the live game fades in
-  over it when it has drawn; the theme gallery and the widgets page only ever show pictures (click a theme to use it).
+- **Pictures before live games**: the hero and the set-up preview show a picture at once (sized exactly like the live
+  board) and the live game fades in over it when it has drawn, while the picture fades out (both showing at once looked
+  like two games stacked; a browser test guards it); the theme gallery and the widgets page only ever show pictures (click a theme to use it).
   They're the real overlay, rendered per theme and layout by
   `node --experimental-websocket artwork/chatagram/render-previews.mjs` into `public/chatagram/assets/themes/`; re-run it
   whenever the overlay's look changes (a test checks every theme has both). `/chatagram/words/*` and `/chatagram/assets/*`
