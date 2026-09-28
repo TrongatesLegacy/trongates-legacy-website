@@ -592,3 +592,16 @@ test('backgrounds: every theme 95% opaque by default, solid at bgo=100, see-thro
     await tab.close();
   }
 });
+
+test('a find never lights up a hidden ? tile (that would give the letter away)', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/play.html?twitch=gridrunner&tricky=1&shuffle=0', { width: 960, height: 540, init: FAKE_CHAT + CLEAN });
+  await ready(tab);
+  await tab.until('document.querySelector("#conn .dot.live")', 5000);
+  // a word that uses the hidden letter
+  const w = await tab.eval(`(() => { const r = chatagram.game.state.round, ch = r.letters.find((l) => l.id === r.hidden[0]).ch; return r.answers.map((a) => a.word).find((x) => x.includes(ch)); })()`);
+  await tab.eval(`__chat.twitch("PixelPanda", ${JSON.stringify(w)}); 1`);
+  await sleep(250);
+  assert.equal(await tab.eval('document.querySelectorAll("#tiles .tile.lit").length > 0'), true, 'its other letters light up');
+  assert.equal(await tab.eval('document.querySelectorAll("#tiles .tile.hidden.lit").length'), 0, 'the ? stays dark');
+  await tab.close();
+});

@@ -96,8 +96,10 @@ passed in, so the tests replay any game exactly.
   but rarer, or the other country's spelling) score 1 and never take a slot. Players are `platform:user`, so the same
   name on Twitch and Kick is two players.
 - **The shuffle**: every 10 s, whatever chat does (a setting; 0 = never).
-- **Hidden and fake letters** from level 3: one letter shows as `?` until half time; one extra letter that isn't in the
-  word drops out once half the goal is found.
+- **Hidden letters** from level 3: one letter shows as `?` until half time; from level 6 (3 levels on), two, shown at 40%
+  and 70% of the round. (A fake letter, as in WOS, was dropped on 2026-09-29 for the second hidden letter: WOS only counts
+  its own answer list, but here any real word counts, so a fake letter made real words that were turned down, e.g. a fake
+  G beside UNLEASH: *hang, glue, angle*. A save with one resumes without it.)
 - **Padlocks** (off by default: people don't know them): 2–4 checkpoints on the countdown; a player who finds a word
   can't score again until the timer passes the next one. Stops one fast typer taking every word.
 - **Commands** `!cg start`, `!cg next`, `!cg skip`, `!cg reset`, `!cg top` (or just `!cg`), `!cg clearscores`
@@ -185,7 +187,7 @@ round highlights (fastest find, longest streak, last-second save).
 - **Other moments**: tiles drop in at the start of a round; the letters of a find light up in order; the banner
   scrambles into the word; **the find lights up where it lands on the board** (it pops out big and gold, letter by letter,
   and stays gold a few seconds; in compact, the newest "recent" chip pops); wrong guesses only as large bubbles when
-  "Show wrong guesses" is on (off by default); the hidden letter turns over; the fake letter tips away; the last 10 s
+  "Show wrong guesses" is on (off by default); the hidden letter turns over; the last 10 s
   go red; the longest word gets confetti. **Round end**: 1.6 s after the last find (so its highlight is seen), an end card ("Cleared!", "Time's up!", with the count) springs
   in letter by letter over the dimmed board (inside the theme's frame, `--frame` in themes.css, so a framed theme keeps its
   border round it), then the summary fades in (it never flips the widget: too jarring on stream).

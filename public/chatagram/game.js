@@ -1,4 +1,4 @@
-// Chatagram's rules (docs/widgets.md, "The game"): puzzles, guesses, scoring, padlocks, hidden and fake letters,
+// Chatagram's rules (docs/widgets.md, "The game"): puzzles, guesses, scoring, padlocks, hidden letters,
 // levels, commands and the summaries. No drawing and no timers of its own: the overlay (play.html) passes chat
 // messages to handle() and calls tick() when nextWake() says something is due; everything that happens comes back as
 // events for the overlay to animate. The clock and the randomness are passed in, so a test can replay any game.
@@ -11,7 +11,6 @@
 // game's players. state.allTime is still in the save, filled in by the overlay, so an older overlay reading it sees them.
 (() => {
   const C = (window.Chatagram = window.Chatagram || {});
-  const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
   const STALE = 10 * 60000;             // a saved game older than this (OBS was closed) starts over instead of resuming
   const COOLDOWN = 60000;               // the leaderboard command, when everyone can use commands (mods and the owner never wait)
   const HOLD_MAX = 12000;               // a hold saved mid-way (OBS refreshed under the leaderboard) gives back at most this
@@ -74,21 +73,23 @@
       if (!pool.length) pool = all.filter((w) => !block.has(w));
       // deps.firstSeed: the first puzzle's word, when a caller wants a known one (the pictures on the site)
       const seed = deps.firstSeed && !s.recent.length && all.includes(deps.firstSeed) ? deps.firstSeed : pick(pool);
+      s.recent = [seed, ...s.recent].slice(0, 60);
       const { board: every, bonus } = Wd.solve(seed, deps.dict, { tier: d.tier, minLen: cfg.minlen, block });
       const { shown: board } = pickSlots(every, seed);
-      s.recent = [seed, ...s.recent].slice(0, 60);
+      // tricky levels hide real letters as ?: one from cfg.tricky (shown at half time), two from 3 levels later (shown at
+      // 40% and 70% of the round). (There was also a fake letter, as in WOS, until 2026-09-29: here any real word counts,
+      // so a fake letter made real words that were turned down, e.g. a fake G beside UNLEASH: hang, glue, angle… The
+      // owner dropped it for a second hidden letter.)
       const tricky = cfg.tricky > 0 && s.level >= cfg.tricky;
-      let letters = seed.split('').map((ch, i) => ({ ch, id: i }));
-      if (tricky) {
-        const missing = LETTERS.split('').filter((c) => !seed.includes(c) && !'jqxz'.includes(c));
-        letters.push({ ch: pick(missing), id: letters.length, fake: true });
-      }
+      const nHidden = !tricky ? 0 : s.level >= cfg.tricky + 3 ? 2 : 1;
+      const letters = seed.split('').map((ch, i) => ({ ch, id: i }));
       let order = shuffled(letters);
       for (let i = 0; i < 5 && order.map((l) => l.ch).join('') === seed; i++) order = shuffled(letters);
       const t = clock(), dur = cfg.time * 1000;
-      const hidden = tricky ? pick(order.filter((l) => !l.fake)).id : -1;
+      const hidden = shuffled(order).slice(0, nHidden).map((l) => l.id);
       s.round = {
-        id: (s.round ? s.round.id : 0) + 1, seed, letters: order, hidden, revealed: !tricky, fakeGone: !tricky,
+        id: (s.round ? s.round.id : 0) + 1, seed, letters: order,
+        hidden, shown: 0, reveals: nHidden === 2 ? [0.4, 0.7] : [0.5],   // the hidden letters' ids, how many are shown, when
         answers: board.map((word) => ({ word, by: null, at: 0, pts: 0 })), valid: every, bonus, bonusFound: [],
         goal: Math.max(1, Math.ceil(board.length * cfg.goal / 100)),
         startedAt: t, endsAt: t + dur,
@@ -155,12 +156,6 @@
         const res = { kind: 'found', word, by: a.by, pts, longest, tiles: tilesFor(word), index: r.answers.indexOf(a) };
         emit({ type: 'found', ...res });
         const found = r.answers.filter((x) => x.by).length;
-        if (!r.fakeGone && found >= Math.ceil(r.goal / 2)) {
-          r.fakeGone = true;
-          const index = r.letters.findIndex((l) => l.fake);
-          r.letters = r.letters.filter((l) => !l.fake);
-          emit({ type: 'fakegone', index });
-        }
         if (found === r.answers.length) endRound();
         return res;
       }
@@ -256,6 +251,9 @@
       emit({ type: 'end', result: s.result, game: s.gameResult, phase: s.phase });
     }
 
+    /** when the next hidden letter is shown */
+    const revealAt = (r) => r.startedAt + (r.endsAt - r.startedAt) * r.reveals[r.shown];
+
     /** do whatever is due now */
     function tick() {
       if (s.heldAt) return;
@@ -263,7 +261,7 @@
       if (s.phase === 'playing') {
         const r = s.round;
         while (r.opened < r.locks.length && t >= r.locks[r.opened]) { r.opened++; emit({ type: 'unlock', index: r.opened - 1 }); }
-        if (!r.revealed && t >= r.startedAt + (r.endsAt - r.startedAt) / 2) { r.revealed = true; emit({ type: 'reveal', index: r.letters.findIndex((l) => l.id === r.hidden) }); }
+        while (r.shown < r.hidden.length && t >= revealAt(r)) { const id = r.hidden[r.shown++]; emit({ type: 'reveal', index: r.letters.findIndex((l) => l.id === id) }); }
         if (t >= r.endsAt) return endRound();
         if (r.nextShuffle && t >= r.nextShuffle) {
           const before = r.letters.map((l) => l.ch).join('');
@@ -284,7 +282,7 @@
       if (s.phase === 'playing') {
         const r = s.round, due = [r.endsAt];
         if (r.opened < r.locks.length) due.push(r.locks[r.opened]);
-        if (!r.revealed) due.push(r.startedAt + (r.endsAt - r.startedAt) / 2);
+        if (r.shown < r.hidden.length) due.push(revealAt(r));
         if (r.nextShuffle) due.push(r.nextShuffle);
         return Math.min(...due);
       }
@@ -321,6 +319,11 @@
         s = saved;
         for (const [k, v] of Object.entries({ allTime: {}, heldAt: 0, lbAt: 0 })) if (s[k] === undefined) s[k] = v;   // a save from an older version
         if (s.heldAt) { shift(Math.min(t - s.heldAt, HOLD_MAX)); s.heldAt = 0; }   // refreshed under the leaderboard: carry on
+        if (s.round) {                                  // a round saved by an older version
+          const r = s.round;
+          if (r.letters.some((l) => l.fake)) r.letters = r.letters.filter((l) => !l.fake);          // fake letters (to 2026-09-29)
+          if (!Array.isArray(r.hidden)) { r.hidden = r.hidden >= 0 ? [r.hidden] : []; r.shown = r.revealed ? r.hidden.length : 0; r.reveals = [0.5]; }
+        }
         emit({ type: 'resume', phase: s.phase });
         return;
       }

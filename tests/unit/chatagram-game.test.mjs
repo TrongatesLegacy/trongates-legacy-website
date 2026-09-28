@@ -159,20 +159,30 @@ test('padlocks off (the default): nobody is ever locked', () => {
   for (const w of ws.slice(0, 4)) assert.equal(t.say(w).kind, 'found');
 });
 
-test('tricky letters from level 3: a fake letter and a hidden one; the hidden one shows at half time, the fake one drops out', () => {
-  const t = setup({ tricky: 1 }); t.g.boot();
-  const r = t.round();
-  assert.equal(r.letters.length, r.seed.length + 1);
-  const fake = r.letters.find((l) => l.fake);
-  assert.ok(fake && !r.seed.includes(fake.ch), 'the fake letter is not in the word');
-  assert.ok(r.hidden >= 0 && !r.revealed);
-  t.advance(45000);
-  assert.equal(t.of('reveal').length, 1); assert.ok(t.round().revealed);
-  for (const w of t.words().slice(0, Math.ceil(r.goal / 2))) t.say(w);
-  assert.equal(t.of('fakegone').length, 1);
-  assert.equal(t.round().letters.length, r.seed.length);
-  const plainT = setup(); plainT.g.boot();
-  assert.equal(plainT.round().letters.length, plainT.round().seed.length, 'level 1 of the default: no tricks');
+test('hidden letters: one from the tricky level (shown at half time), two from 3 levels later (shown at 40% and 70%); no fake letter', () => {
+  const hiddenNow = (r) => r.hidden.slice(r.shown);
+  const one = setup({ tricky: 1 }); one.g.boot();
+  let r = one.round();
+  assert.equal(r.letters.length, r.seed.length, 'just the word\'s own letters (no fake letter since 2026-09-29)');
+  assert.ok(r.letters.every((l) => !l.fake));
+  assert.equal(r.hidden.length, 1); assert.equal(hiddenNow(r).length, 1);
+  assert.ok(r.letters.some((l) => l.id === r.hidden[0]));
+  one.advance(44999); assert.equal(one.of('reveal').length, 0);
+  one.advance(1); assert.equal(one.of('reveal').length, 1); assert.equal(hiddenNow(one.round()).length, 0);
+  // three levels on: two hidden letters, different ones
+  const two = setup({ tricky: 1 }); two.g.boot(); two.g.state.level = 4; two.say('!cg skip', MOD);
+  r = two.round();
+  assert.equal(r.hidden.length, 2); assert.notEqual(r.hidden[0], r.hidden[1]);
+  two.advance(35999); assert.equal(two.of('reveal').length, 0);
+  two.advance(1); assert.equal(two.of('reveal').length, 1, 'the first at 40%');
+  two.advance(26999); assert.equal(two.of('reveal').length, 1);
+  two.advance(1); assert.equal(two.of('reveal').length, 2, 'the second at 70%');
+  assert.equal(hiddenNow(two.round()).length, 0, 'both shown');
+  // the default: none at level 1, one from level 3, two from level 6
+  for (const [level, n] of [[1, 0], [2, 0], [3, 1], [5, 1], [6, 2], [9, 2]]) {
+    const d = setup(); d.g.boot(); d.g.state.level = level; d.say('!cg skip', MOD);
+    assert.equal(d.round().hidden.length, n, `level ${level}`);
+  }
 });
 
 test('the letters shuffle every 10 s whatever chat does (a setting; 0 = never)', () => {
@@ -414,4 +424,21 @@ test('a refresh while held carries on (giving back at most 12 s), never stuck', 
   assert.equal(again.g.held, false);
   assert.equal(again.round().endsAt - ends, 12000);
   assert.notEqual(again.g.nextWake(), Infinity);
+});
+
+test('a round saved before these changes (a fake letter, one hidden letter as a number) resumes: the fake letter gone, the ? still revealed', () => {
+  const t = setup({ tricky: 1 }); t.g.boot();
+  const snap = plain(t.g.snapshot());
+  // the old shape: hidden was one letter's id, revealed a flag, and there could be a fake letter
+  const fakeCh = 'jqxzkvwyfgpbmcdhu'.split('').find((c) => !snap.round.seed.includes(c));
+  snap.round.letters.push({ ch: fakeCh, id: snap.round.letters.length, fake: true }); snap.round.fakeGone = false;
+  snap.round.hidden = snap.round.letters[0].id; snap.round.revealed = false; delete snap.round.shown; delete snap.round.reveals;
+  const again = setup({ tricky: 1 }); again.at = t.at + 2000; again.g.boot(snap);
+  const r = again.round();
+  assert.ok(r.letters.every((l) => !l.fake), 'the fake letter is gone');
+  assert.equal(r.letters.length, r.seed.length);
+  assert.deepEqual(plain(r.hidden), [snap.round.letters[0].id]);
+  assert.equal(again.say(r.answers.find((a) => !a.by).word).kind, 'found');
+  again.advance(60000);
+  assert.equal(again.of('reveal').length, 1, 'still revealed at half time');
 });

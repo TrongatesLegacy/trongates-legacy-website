@@ -19,7 +19,7 @@
     minlen: { type: 'int', def: 3, min: 3, max: 4 },
     slots: { type: 'int', def: 40, min: 12, max: 50 },               // most boxes on the board (12 at level 1, +3 a level up to this)
     goal: { type: 'int', def: 65, min: 30, max: 100 },                // % of the words
-    tricky: { type: 'int', def: 3, min: 0, max: 20 },                 // hidden and fake letters from this level, 0 = never
+    tricky: { type: 'int', def: 3, min: 0, max: 20 },                 // hidden letters (?): one from this level, two from 3 levels later; 0 = never
     longbonus: { type: 'bool', def: true },
     bonus: { type: 'bool', def: true },                               // rarer real words score a little
     // advanced: padlocks (off: people don't know them)

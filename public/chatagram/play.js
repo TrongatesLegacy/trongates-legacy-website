@@ -72,7 +72,7 @@
   // ---- drawing: the tiles ---------------------------------------------------------------------------------------------
   const tilesEl = $('#tiles');
   const round = () => game.state.round;
-  const shows = (l) => (l.id === round().hidden && !round().revealed ? '?' : l.ch);
+  const shows = (l) => (round().hidden.indexOf(l.id) >= round().shown ? '?' : l.ch);   // a hidden letter not shown yet
   function tileSize() {
     const n = round() ? round().letters.length : 9, avail = BW - (cfg.layout === 'compact' ? 28 : 40), gap = cfg.layout === 'compact' ? 8 : 9;
     const tw = Math.min(cfg.layout === 'compact' ? 58 : 60, Math.floor((avail - gap * (n - 1)) / n));
@@ -106,7 +106,7 @@
   }
   function lightTiles(idx) {
     idx.forEach((i, n) => {
-      const t = tilesEl.children[i]; if (!t) return;
+      const t = tilesEl.children[i]; if (!t || t.classList.contains('hidden')) return;   // a ? never lights up (it'd give it away)
       setTimeout(() => { t.classList.add('lit'); anim(t, [{ transform: 'none' }, { transform: 'translateY(-8px)' }, { transform: 'none' }], { duration: 300, easing: 'ease-out' }); }, rm ? 0 : n * 70);
       setTimeout(() => t.classList.remove('lit'), (rm ? 0 : idx.length * 70) + 650);
     });
@@ -565,13 +565,6 @@
         const a = anim(t, [{ transform: 'rotateY(0)' }, { transform: 'rotateY(90deg)' }], { duration: 200 });
         const swap = () => { t.classList.remove('hidden'); t.firstElementChild.innerHTML = `<b>${esc(round().letters[e.index].ch)}</b>`; anim(t, [{ transform: 'rotateY(-90deg)' }, { transform: 'none' }], { duration: 200 }); };
         if (a) a.onfinish = swap; else swap();
-        break;
-      }
-      case 'fakegone': {
-        const t = tilesEl.children[e.index];
-        const a = t && anim(t, [{ transform: 'none', opacity: 1 }, { transform: 'translateY(40px) rotateX(-70deg)', opacity: 0 }], { duration: 450, easing: 'ease-in', fill: 'forwards' });
-        const redraw = () => drawTiles();
-        if (a) a.onfinish = redraw; else redraw();
         break;
       }
       case 'unlock': drawTimer(); { const l = locksEl.children[e.index]; anim(l, [{ transform: 'scale(1)' }, { transform: 'scale(1.5) rotate(-12deg)' }, { transform: 'scale(1)' }], { duration: 500 }); } break;
