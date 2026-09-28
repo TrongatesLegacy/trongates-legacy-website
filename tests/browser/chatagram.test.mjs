@@ -6,6 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { launch } from '../helpers/chrome.mjs';
 import { siteServer } from '../helpers/server.mjs';
+import { readAt } from '../helpers/sim.mjs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let chrome, site;
@@ -254,4 +255,23 @@ test('reduced motion: no animations run, the letters still change', async () => 
   await ready(obs);
   assert.ok(!(await obs.eval('document.documentElement.classList.contains("rm")')));
   await obs.close(); await tab.close();
+});
+
+// Bug (2026-09-28): the picture shown until the live game loads stayed behind it, at a slightly different size, so both
+// showed at once (it looked like a new game stacked on top of the old one). Once the game has drawn, the picture goes.
+async function pictureGoneOnceLive(server) {
+  const tab = await chrome.open(server.origin + '/chatagram/', { width: 1354, height: 860 });
+  await tab.until('document.getElementById("hero-frame").contentDocument?.documentElement.dataset.ready === "1"', 10000, 'the hero game');
+  await sleep(900);
+  const shown = await tab.eval('[...document.querySelectorAll("#hero-screen .poster, #pv-screen .poster")].map((p) => +getComputedStyle(p).opacity)');
+  await tab.close();
+  return shown;
+}
+test('the placeholder picture fades out once the live game has drawn (no two boards at once)', async () => {
+  assert.deepEqual(await pictureGoneOnceLive(site), [0, 0]);
+  // proof: on the code before the fix the picture stays up
+  const old = readAt('d7bb30b', 'public/chatagram/setup.js');
+  if (!old) return;
+  const before = await siteServer({ files: { '/chatagram/setup.js': old } });
+  try { assert.notDeepEqual(await pictureGoneOnceLive(before), [0, 0], 'the test should fail on the old code'); } finally { await before.close(); }
 });

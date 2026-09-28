@@ -175,15 +175,27 @@
     frame.width = w; frame.height = h;
     const k = Math.min((box.clientWidth - 16) / w, (box.clientHeight - 16) / h);
     frame.style.transform = `translate(-50%,-50%) scale(${k})`;
+    fitPoster(frame);
   }
   // a preview fades in over its picture once the game inside has drawn
+  // …and the picture underneath fades out then, so the two never show together (they'd look like two games stacked)
+  const polls = new Map();
   function showWhenReady(frame) {
-    frame.classList.remove('ready');
+    const poster = frame.parentElement.querySelector('.poster');
+    clearInterval(polls.get(frame));
+    frame.classList.remove('ready'); if (poster) poster.classList.remove('gone');
     const poll = setInterval(() => {
       let ok = false; try { ok = frame.contentDocument.documentElement.dataset.ready === '1'; } catch {}
-      if (ok) { clearInterval(poll); requestAnimationFrame(() => frame.classList.add('ready')); }
+      if (ok) { clearInterval(poll); requestAnimationFrame(() => { frame.classList.add('ready'); if (poster) poster.classList.add('gone'); }); }
     }, 100);
+    polls.set(frame, poll);
     setTimeout(() => clearInterval(poll), 15000);
+  }
+  // the picture sits exactly where the live board will (same size and centre), so the hand-over doesn't jump
+  function fitPoster(frame) {
+    const poster = frame.parentElement.querySelector('.poster'); if (!poster) return;
+    const box = frame.parentElement, [w, h] = [frame.width, frame.height], k = Math.min((box.clientWidth - 16) / w, (box.clientHeight - 16) / h);
+    Object.assign(poster.style, { width: w * k + 'px', height: h * k + 'px', left: (box.clientWidth - w * k) / 2 + 'px', top: (box.clientHeight - h * k) / 2 + 'px', inset: 'auto' });
   }
   function preview() {
     const shown = { ...s, theme: SCHEMA.theme.def, accent: '' };             // theme and accent go by message (no reload)

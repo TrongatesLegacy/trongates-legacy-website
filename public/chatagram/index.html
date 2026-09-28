@@ -45,7 +45,9 @@ h1, h2, h3, .lil { font-family: "Lilita One", system-ui, sans-serif; font-weight
 /* header */
 .nav { position: sticky; top: 0; z-index: 10; background: rgba(22,18,43,.88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--ink3); }
 .nav .in { height: var(--nav); display: flex; align-items: center; gap: 22px; }
-.brandlock { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brandlock { display: flex; align-items: center; gap: 12px; }
+.brandlock a { text-decoration: none; }
+.by:hover b { color: var(--sun); }
 .brandlock .logo { font-size: 27px; }
 .by { font-size: 13px; color: var(--muted); border-left: 1px solid var(--ink3); padding-left: 12px; line-height: 1.2; }
 .by b { color: var(--paper); font-weight: 600; display: block; font-size: 14px; }
@@ -175,7 +177,8 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .tag button { border: 0; background: none; color: var(--muted); font: 700 15px/1 system-ui; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; }
 .tag button:hover, .tag button:focus-visible { background: var(--coral); color: var(--ink); }
 .tags input { flex: 1; min-width: 110px; background: transparent; border: 0; color: var(--paper); font: inherit; padding: 4px 4px; outline: none; }
-.poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transition: opacity .4s; }
+.poster.gone { opacity: 0; }
 .screen iframe { opacity: 0; transition: opacity .4s; } .screen iframe.ready { opacity: 1; }
 
 /* FAQ, footer */
@@ -216,7 +219,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
 </defs></svg>
 
 <header class="nav"><div class="wrap in">
-  <a class="brandlock" href="#top"><span class="logo"><img src="assets/icon.svg" alt="" width="35" height="35"><span>chat<span class="g">agram</span></span></span><span class="by">by <b>Trongates Legacy</b></span></a>
+  <div class="brandlock"><a class="logo" href="#top"><img src="assets/icon.svg" alt="" width="35" height="35"><span>chat<span class="g">agram</span></span></a><a class="by" href="/">made by <b>TrongatesLegacy</b></a></div>
   <nav class="menu" aria-label="Sections"><a href="#how">How it works</a><a href="#themes">Themes</a><a href="#setup">Set up</a><a href="#faq">FAQ</a></nav>
   <div class="navr"><a class="more" href="/widgets/">More widgets ↗</a><a class="btn small" href="#setup">Set it up free</a></div>
 </div></header>
