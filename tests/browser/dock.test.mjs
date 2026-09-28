@@ -128,6 +128,30 @@ test('every tab of the dock and the OBS index draws without errors', async () =>
   await index.close();
 });
 
+test('Chatagram: a link pasted in Widgets → Chatagram goes into the source the Sources tab adds', async () => {
+  const tab = await openDock();
+  await tab.click('[data-tab="widgets"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:chatagram"]')`);
+  await tab.click('.tgl-panel [data-sub="widgets:chatagram"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-set="chatagram"]')`);
+  await tab.eval(`(() => { const f = document.querySelector('.tgl-panel [data-set="chatagram"]'); f.value = 'https://www.trongateslegacy.com/chatagram/play?twitch=someone&kick=someone&time=120&theme=pop'; f.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  await tab.click('[data-tab="sources"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-add="chatagram"]')`);
+  await tab.click('.tgl-panel [data-add="chatagram"]');
+  await tab.until(`[...document.querySelectorAll('.tgl-panel')].some((p) => /Chatagram[\\s\\S]*In /.test(p.textContent))`, 5000, 'Chatagram listed as added');
+  const made = [...obs.inputs.values()].filter((i) => i.settings.tgl_managed === 'widget:chatagram');
+  assert.equal(made.length, 1);
+  const url = new URL(made[0].settings.url);
+  assert.equal(url.pathname, '/obs/chatagram');
+  assert.equal(url.searchParams.get('twitch'), 'someone');
+  assert.equal(url.searchParams.get('kick'), 'someone');
+  assert.equal(url.searchParams.get('time'), '120');
+  assert.equal(url.searchParams.get('theme'), null, 'the form picks the theme, not the link');
+  assert.deepEqual([made[0].settings.width, made[0].settings.height], [960, 540]);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
 test('Sources: "Add to scene" creates the widget once, in the chosen scene, tagged as the dock\'s', async () => {
   const tab = await openDock();
   await tab.click('[data-tab="sources"]');

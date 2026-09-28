@@ -24,6 +24,9 @@
     bare: { title: 'Shared chat', file: 'chat', w: 554, h: 654, uses: ['chat'], extra: { bare: '1' } },
     // the scene transitions (Derez grid, Logo shutters), on top of every scene they cover; the dock places it
     transition: { title: 'Transition', file: 'transition', w: 1920, h: 1080, uses: [] },
+    // Chatagram (the chat word game) in the form's colours (obs/chatagram.html): its game settings come from the link the
+    // streamer copied on trongateslegacy.com/chatagram, pasted into Widgets → Chatagram (s.chatagram)
+    chatagram: { title: 'Chatagram', file: 'chatagram', w: 960, h: 540, uses: [] },
   };
   const partsOf = (type, layout) => (type === 'game' && layout === 'window' ? TYPES.game.windowParts : TYPES[type].parts);
   const VEADO_DEFAULT = '127.0.0.1:54765', BRIDGE_DEFAULT = '127.0.0.1:5000';
@@ -34,7 +37,7 @@
 
   const defaults = () => ({
     v: 1,
-    key: '', links: { chat: '', goal: '' }, shared: false, goalColor: true,
+    key: '', links: { chat: '', goal: '' }, shared: false, goalColor: true, chatagram: '',
     music: { app: '', always: false, host: '', ciderToken: '' },
     veado: { addr: '', switch: true, tron: 'cyan', map: {}, delay: 0 },
     motion: 'auto', sample: true, looks: { ...LOOK_DEFAULTS },
@@ -56,6 +59,18 @@
   // where a widget's link comes from (env: what the key returned)
   const linkFor = (s, k, env) => (pasted(s, k) ? s.links[k] : env && isLink(env[k]) ? env[k] : '');
 
+  // Chatagram's own settings (public/chatagram/settings.js), which a pasted Chatagram link carries. theme and accent aren't
+  // here: obs/chatagram.html sets them from the form.
+  const CHATAGRAM_KEYS = ['twitch', 'kick', 'kickid', 'layout', 'time', 'diff', 'shuffle', 'minlen', 'slots', 'goal', 'tricky', 'longbonus', 'bonus',
+    'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'perm', 'wrong', 'ignore', 'block', 'top', 'remember', 'credit', 'seed'];
+  /** the game settings in a pasted Chatagram link (the whole link or just what's after the ?) */
+  const chatagramPairs = (link) => {
+    const qs = String(link || '').trim().split('#')[0].split('?').pop();
+    if (!qs || !/=/.test(qs)) return [];
+    const q = new URLSearchParams(qs);
+    return CHATAGRAM_KEYS.filter((k) => q.has(k) && q.get(k) !== '').map((k) => [k, q.get(k)]);
+  };
+
   // The options for a scene or widget page, as [name, value] pairs, in a stable order.
   // ctx: { layout, preview: { form, guide, sample }, obs: { port, pw }, env }
   function options(kind, s, ctx = {}) {
@@ -66,6 +81,7 @@
     const has = (p) => (scene ? partsOf(kind, layout).includes(p) && !sc.off.includes(p) : widget.uses.includes(p));
     if (scene && kind === 'game' && layout === 'window') { add('layout', 'window'); if (sc.rings) add('rings', 1); }
     if (widget && widget.extra) for (const [k, v] of Object.entries(widget.extra)) add(k, v);
+    if (kind === 'chatagram') for (const [k, v] of chatagramPairs(s.chatagram)) add(k, v);
     const off = scene ? partsOf(kind, layout).filter((p) => sc.off.includes(p)) : [];
     if (off.length) add('hide', off.join(','));
     // Botrix: pasted links go in whole, Netlify ones through the key; a shared chat means the scene loads none
@@ -107,7 +123,7 @@
     // the dock's colour buttons reach the scenes through the OBS WebSocket
     if (!ctx.preview && ctx.obs && ctx.obs.port) { add('obs', ctx.obs.port); if (ctx.obs.pw) add('obspw', ctx.obs.pw); }
     if (ctx.preview) {
-      if (kind === 'transition') add('demo', 1);          // the previews play both transitions in turn
+      if (kind === 'transition' || kind === 'chatagram') add('demo', 1);   // transitions play in turn; Chatagram plays with a pretend chat
       if (ctx.preview.form) add('form', ctx.preview.form);
       if (ctx.preview.guide) add('guide', 1);
       if (ctx.preview.sample && (has('chat') || has('goal'))) add('demo', 1);
@@ -121,7 +137,12 @@
   // A URL with the panel's options in place of its own (base: an existing address, hosted or file://)
   function withOptions(base, pairs) {
     const [path, qs = ''] = base.split('#')[0].split('?');
-    const keep = qs.split('&').filter((p) => p && !OWNED.includes(decodeURIComponent(p.split('=')[0])));
+    // Chatagram's own settings share two names with the scenes' (layout, goal): on a Chatagram address they're the game's,
+    // and the panel only owns them when it has a pasted Chatagram link to put in their place
+    const owned = /\/chatagram(\.html)?$/.test(path)
+      ? [...OWNED.filter((k) => k !== 'layout' && k !== 'goal'), ...(pairs.some(([k]) => CHATAGRAM_KEYS.includes(k)) ? CHATAGRAM_KEYS : [])]
+      : OWNED;
+    const keep = qs.split('&').filter((p) => p && !owned.includes(decodeURIComponent(p.split('=')[0])));
     const all = [...keep, query(pairs)].filter(Boolean).join('&');
     return all ? `${path}?${all}` : path;
   }
@@ -132,7 +153,7 @@
 
   // Which Trongates page an address is, if any: { kind: 'brb' | … | 'chatbox' | 'goal' | 'music' | 'bare', layout }
   function recognise(url) {
-    const m = /\/obs\/(starting|brb|chatting|game|ending|chat|goal|music|transition)(?:\.html)?(?:[?#]|$)/.exec(url || '');
+    const m = /\/obs\/(starting|brb|chatting|game|ending|chat|goal|music|transition|chatagram)(?:\.html)?(?:[?#]|$)/.exec(url || '');
     if (!m) return /botrix\.live\/widgets\/chat\//.test(url || '') ? { kind: 'botrix-chat' } : /botrix\.live\/widgets\/goals?\//.test(url || '') ? { kind: 'botrix-goal' } : null;
     const q = new URLSearchParams((url.split('?')[1] || '').split('#')[0]);
     let kind = m[1];
@@ -146,6 +167,7 @@
       const r = recognise(url);
       if (!r || !r.q) continue;
       const q = r.q, get = (k) => q.get(k);
+      if (r.kind === 'chatagram') { const pairs = CHATAGRAM_KEYS.filter((k) => q.has(k)).map((k) => [k, q.get(k)]); if (pairs.length) s.chatagram = new URLSearchParams(pairs).toString(); continue; }
       if (get('key')) s.key = get('key');
       for (const k of ['chat', 'goal']) if (isLink(get(k))) s.links[k] = get(k);
       if (get('chat') === '0') s.shared = true;
@@ -192,6 +214,6 @@
     return { x: 28, y: 64 + top + 52, w: 554, h: bottom - top - 70 };
   }
 
-  window.TGLModel = { PARTS, TYPES, WIDGETS, LOOKS, LOOK_DEFAULTS, partsOf, defaults, normalise, options, withOptions, sameUrl, recognise, fromUrls,
+  window.TGLModel = { PARTS, TYPES, WIDGETS, LOOKS, LOOK_DEFAULTS, CHATAGRAM_KEYS, chatagramPairs, partsOf, defaults, normalise, options, withOptions, sameUrl, recognise, fromUrls,
     pack, unpack, b64, linkFor, isLink, pasted, chatBox, SHARED_W, SHARED_H, VEADO_DEFAULT, BRIDGE_DEFAULT };
 })();

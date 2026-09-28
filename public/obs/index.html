@@ -47,7 +47,13 @@ label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .shot { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
 /* widget cards: just the frame (chat.html, goal.html), previewed at their suggested size */
 .grid[hidden] { display: none; }
-.wgrid { grid-template-columns: repeat(auto-fill, minmax(280px, 360px)); align-items: start; }
+.wgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 4px; grid-auto-flow: row dense; row-gap: 0; align-items: start; }
+.wgrid .card { margin-bottom: 20px; }
+.wgrid .card.wide { grid-column: span 2; }
+/* tall previews (the chats) are capped and centred, so they sit level with the short cards stacked beside them */
+.wgrid .card.tall .shot { aspect-ratio: auto !important; height: 330px; }
+@media (max-width: 1250px) { .wgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .wgrid { grid-template-columns: 1fr; } .wgrid .card.wide { grid-column: auto; } }
 .wgrid .shot { background: #07101c; }
 .shot iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; transform: scale(var(--s, .25)); pointer-events: none; }
 .info { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 12px 16px 14px; }
@@ -140,9 +146,10 @@ footer code { color: #cfe3f5; }
   ].map((c) => ({ ...c, title: c.title || M.TYPES[c.kind].title, desc: DESC[c.id], file: M.TYPES[c.kind].file }));
   const SOURCES = [
     { id: 'chatbox', desc: 'Just the framed chat, as its own browser source (e.g. on top of the game). 500 × 800 suggested; any size works.' },
-    { id: 'goal', desc: 'Just the framed follower goal. 500 × 134 suggested (at least ~464 wide).' },
     { id: 'bare', desc: 'The chat with no frame, to add to OBS once and reuse in every scene. The dock sets this up for you (with the raw Botrix link); by hand: 554 × 654, placement in obs/README.md.' },
+    { id: 'goal', desc: 'Just the framed follower goal. 500 × 134 suggested (at least ~464 wide).' },
     { id: 'music', desc: 'Now playing from SMTC Bridge (Windows), on its own (e.g. over the game). 560 × 100 suggested.' },
+    { id: 'chatagram', desc: 'The chat word game, in your form\'s colours (Tron neon, Princess Trina royal, the Blobfish deep). Set it up on trongateslegacy.com/chatagram and paste its link in Widgets → Chatagram; that link\'s channels and game settings go into this one. 960 × 540, or 1920 × 1080 to fill the screen.' },
     { id: 'transition', desc: 'The scene transitions (Derez grid, Logo shutters) in your colour, invisible until OBS plays a Trongates Stinger. The dock sets it all up (Scenes → Transitions); by hand: 1920 × 1080, on top of every scene, obs= with your WebSocket port.' },
   ].map((c) => ({ ...c, kind: c.id, title: M.WIDGETS[c.id].title, file: M.WIDGETS[c.id].file, w: M.WIDGETS[c.id].w, h: M.WIDGETS[c.id].h }));
   const grid = document.getElementById('grid'), wgrid = document.getElementById('wgrid'), guide = document.getElementById('guide');
@@ -176,6 +183,12 @@ footer code { color: #cfe3f5; }
   };
   CARDS.forEach((c) => card(c, grid));
   SOURCES.forEach((c) => card(c, wgrid));
+  // Sources: Chatagram (a whole game board) takes two columns, with the transition beside it; each card spans as many 4px rows as it's tall, so short cards (the goal,
+  // now playing) sit together beside a tall one (the chat) instead of leaving gaps
+  wgrid.querySelectorAll('.card').forEach((a) => { const c = SOURCES.find((x) => x.id === a.dataset.id); if (c.id === 'chatagram') a.classList.add('wide'); if (c.h > c.w) { a.classList.add('tall'); a.querySelector('.shot').dataset.h = c.h; } });
+  const pack = () => { if (wgrid.hidden) return; wgrid.querySelectorAll('.card').forEach((a) => { a.style.gridRowEnd = `span ${Math.ceil((a.getBoundingClientRect().height + 20) / 4)}`; }); };
+  new ResizeObserver(pack).observe(wgrid);
+  wgrid.querySelectorAll('.card').forEach((a) => new ResizeObserver(pack).observe(a));
   const byId = (id) => CARDS.find((c) => c.id === id) || SOURCES.find((c) => c.id === id);
 
   // Scenes | Sources tabs (remembered in this browser)
@@ -183,13 +196,20 @@ footer code { color: #cfe3f5; }
   const showView = (v) => {
     tabs.forEach((b) => b.setAttribute('aria-pressed', b.dataset.view === v));
     grid.hidden = v !== 'scenes'; wgrid.hidden = v !== 'sources';
+    if (v === 'sources') requestAnimationFrame(() => typeof pack === 'function' && pack());
     localStorage.setItem('tgl-obs-view', v);
   };
   tabs.forEach((b) => (b.onclick = () => showView(b.dataset.view)));
   showView(localStorage.getItem('tgl-obs-view') === 'sources' || localStorage.getItem('tgl-obs-view') === 'widgets' ? 'sources' : 'scenes');
 
   // scale each preview (1920x1080, or the widget's size) to its card
-  const ro = new ResizeObserver((entries) => entries.forEach((e) => e.target.style.setProperty('--s', e.contentRect.width / e.target.dataset.w)));
+  // (a tall one whose box is capped fits its height instead, centred)
+  const ro = new ResizeObserver((entries) => entries.forEach((e) => {
+    const el = e.target, w = +el.dataset.w, h = +el.dataset.h || 0, box = e.contentRect;
+    const k = h ? Math.min(box.width / w, box.height / h) : box.width / w;
+    el.style.setProperty('--s', k);
+    const f = el.querySelector('iframe'); if (h && f) f.style.left = Math.max(0, (box.width - w * k) / 2) + 'px';
+  }));
   document.querySelectorAll('.card .shot').forEach((el) => ro.observe(el));
 
   // A colour pick recolours the previews where they are (TGL.set inside each, same origin) instead of reloading them all:
@@ -210,6 +230,7 @@ footer code { color: #cfe3f5; }
         show(a.querySelector('iframe'), src);
         a.href = obsUrl(c);
         a.querySelector('code').textContent = new URL(c.file, location.href).href + (c.layout === 'window' ? '?layout=window' : c.id === 'bare' ? '?bare=1' : '') + extras(c);
+        if (c.id === 'chatagram' && !M.chatagramPairs(s.chatagram).length) a.querySelector('code').textContent += '  (paste your Chatagram link in Widgets → Chatagram)';
       });
       if (viewer.classList.contains('open')) showScene();
     });

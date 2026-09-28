@@ -187,3 +187,40 @@ test('Form looks: only a look changed from its default goes on the addresses (ev
   assert.equal(M.normalise({ looks: { princess: 'disco' } }).looks.princess, 'princess');
   assert.ok(M.withOptions(HOST + 'brb?looks=princess:tron&x=1', []).endsWith('brb?x=1'), 'the panel owns looks=');
 });
+
+// Chatagram (obs/chatagram.html): its game settings come from the link pasted in Widgets → Chatagram; the colours come
+// from the form, so the pasted link's theme and accent are left out. layout and goal are the game's own on this page.
+test('Chatagram: the pasted link\'s game settings go into the source; theme and accent are left to the form', () => {
+  const s = M.normalise(null);
+  s.chatagram = 'https://www.trongateslegacy.com/chatagram/play?kick=gridrunner&kickid=715&layout=compact&goal=80&theme=candy&accent=ff0000&cstart=!cg+start';
+  const out = url('chatagram', s);
+  const q = new URL(out).searchParams;
+  assert.equal(q.get('kick'), 'gridrunner'); assert.equal(q.get('kickid'), '715'); assert.equal(q.get('layout'), 'compact'); assert.equal(q.get('goal'), '80');
+  assert.equal(q.get('cstart'), '!cg start');
+  assert.equal(q.get('theme'), null, 'the form sets the theme'); assert.equal(q.get('accent'), null);
+  // just the part after the ? works too
+  s.chatagram = 'twitch=pixelpanda&time=120';
+  assert.deepEqual(plain(M.chatagramPairs(s.chatagram)), [['twitch', 'pixelpanda'], ['time', '120']]);
+  // previews play with a pretend chat
+  assert.ok(M.options('chatagram', s, { preview: { form: 'red' } }).some(([k, v]) => k === 'demo' && v === '1'));
+});
+
+test('Chatagram: rewriting an existing source keeps hand-set game settings unless a link is pasted, then replaces them', () => {
+  const base = HOST + 'chatagram?kick=old&layout=compact&goal=90&noveado=1';
+  const none = M.normalise(null);
+  const kept = new URL(M.withOptions(base, M.options('chatagram', none))).searchParams;
+  assert.equal(kept.get('kick'), 'old'); assert.equal(kept.get('layout'), 'compact'); assert.equal(kept.get('goal'), '90');
+  const pasted = M.normalise(null); pasted.chatagram = 'kick=new&time=60';
+  const out = new URL(M.withOptions(base, M.options('chatagram', pasted))).searchParams;
+  assert.equal(out.get('kick'), 'new'); assert.equal(out.get('time'), '60');
+  assert.equal(out.get('layout'), null, 'replaced by the pasted link (which has no layout)'); assert.equal(out.get('goal'), null);
+  // the scenes' own layout and goal are untouched by all this
+  assert.match(url('game', M.normalise(null), { layout: 'window' }), /layout=window/);
+});
+
+test('Chatagram: its address is recognised, and settings can be read back out of it', () => {
+  const r = M.recognise(HOST + 'chatagram?twitch=pixelpanda&kick=gridrunner&form=red');
+  assert.equal(r.kind, 'chatagram');
+  const s = M.fromUrls([HOST + 'chatagram?twitch=pixelpanda&kick=gridrunner&noveado=1']);
+  assert.deepEqual(plain(M.chatagramPairs(s.chatagram)), [['twitch', 'pixelpanda'], ['kick', 'gridrunner']]);
+});
