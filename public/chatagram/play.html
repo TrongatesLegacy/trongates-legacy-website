@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Chatagram overlay</title>
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Chatagram's OBS browser source: 900 × 470 (full) or 560 × 230 (layout=compact). Set it up at /chatagram/, which
+     writes this page's link. docs/widgets.md explains how it all works. -->
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../widgets/lib/themes.css">
+<link rel="stylesheet" href="play.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-kick" viewBox="0 0 10 10"><path d="M1 1h2.4v2.2h1.2V2.1h1.2V1H8.2v2.4H7v1.2H5.8v.8H7v1.2h1.2V9H5.8V7.9H4.6V6.8H3.4V9H1z" fill="currentColor"/></symbol>
+  <symbol id="i-twitch" viewBox="0 0 10 10"><path d="M2 1 1.2 2.8v5.4h2V9.3h1.1l1.1-1.1h1.7L9 6.3V1zm6.2 4.9-1.3 1.3H5.1L4 8.3V7.2H2.4V1.8h5.8zM6.9 3v2.2h-.8V3zm-2 0v2.2h-.8V3z" fill="currentColor"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><path d="M4 7V5a4 4 0 0 1 8 0v2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="2.5" y="7" width="11" height="8" rx="2" fill="currentColor"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 16 16"><path d="M4 7V5a4 4 0 0 1 7.6-1.8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="2.5" y="7" width="11" height="8" rx="2" fill="currentColor"/></symbol>
+</defs></svg>
+<div class="stage">
+  <div class="board" id="board" data-theme="chatagram">
+    <div class="card">
+      <section class="face front">
+        <header>
+          <div class="brand">chat<b>agram</b></div>
+          <div class="banner"><div class="who" id="who"></div><div class="what" id="what"></div></div>
+          <div class="stats"><div class="stat"><small>GOAL</small><b id="goal">0<i>/0</i></b></div><div class="stat"><small>LEVEL</small><b id="level">1</b></div></div>
+        </header>
+        <div class="tiles" id="tiles"></div>
+        <div class="bubbles" id="bubbles" style="top:84px"></div>
+        <div class="timer"><div class="bar"><div class="fill"></div><div id="locks"></div></div><em id="clock">0:00</em></div>
+        <div class="words" id="words"></div>
+        <div class="recent" id="recent"></div>
+        <footer><div id="foot-left"></div><div class="credit"><b>chatagram</b> · made by trongateslegacy.com</div><div class="conn" id="conn"></div></footer>
+        <div class="fx" id="fx"></div>
+      </section>
+      <section class="face back"></section>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+<script src="../widgets/lib/settings.js"></script>
+<script src="../widgets/lib/theme.js"></script>
+<script src="../widgets/lib/platforms/twitch.js"></script>
+<script src="../widgets/lib/platforms/kick.js"></script>
+<script src="../widgets/lib/chat.js"></script>
+<script src="settings.js"></script>
+<script src="words.js"></script>
+<script src="game.js"></script>
+<script src="demo.js"></script>
+<script src="play.js"></script>
+</body></html>
