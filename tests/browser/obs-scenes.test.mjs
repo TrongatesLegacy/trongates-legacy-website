@@ -188,8 +188,9 @@ test('a cycling scene\'s character never disappears while it switches, for a sin
     await tab.until(`!document.querySelector('.art-stage .art').classList.contains('glitching')`, 4000, `${f}: the switch-in`);
     await sleep(500);
   }
+  // enough frames to mean something; a slow machine (CI) just takes longer to get there
+  await tab.until('__frames > 60', 10000, 'at least 60 frames sampled');
   const [gaps, frames] = await tab.eval('[__gaps, __frames]');
-  assert.ok(frames > 60, `sampled ${frames} frames`);
   assert.equal(gaps, 0, `the character was missing in ${gaps} of ${frames} frames`);
   noErrors(tab, 'switching');
   await tab.close();

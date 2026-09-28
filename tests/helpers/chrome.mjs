@@ -73,7 +73,12 @@ export async function launch({ allow = ['http://127.0.0.1'] } = {}) {
       // poll until the expression is truthy
       async until(expression, ms = 5000, what = expression) {
         const end = Date.now() + ms;
-        while (Date.now() < end) { if (await tab.eval(expression)) return true; await sleep(50); }
+        // a page that is navigating (a reload the test started) can't answer: that's "not yet", not a failure
+        const navigating = (e) => /navigated or closed|Execution context was destroyed|Cannot find context/i.test(String(e && e.message));
+        while (Date.now() < end) {
+          try { if (await tab.eval(expression)) return true; } catch (e) { if (!navigating(e)) throw e; }
+          await sleep(50);
+        }
         throw new Error(`timed out after ${ms} ms waiting for: ${what}`);
       },
       async click(selector) { const ok = await tab.eval(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) return false; el.click(); return true; })()`); if (!ok) throw new Error('nothing to click: ' + selector); },
