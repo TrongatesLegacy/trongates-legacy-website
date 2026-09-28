@@ -9,19 +9,18 @@ body { background: #16122b; color: #fff7ec; font-family: "Chakra Petch", sans-se
 .logo { position: absolute; left: 64px; top: 56px; display: flex; align-items: center; gap: 18px; font: 64px "Lilita One"; line-height: 1; }
 .logo img { width: 84px; height: 84px; } .logo b { color: #ffc93c; font-weight: 400; }
 .by { position: absolute; left: 168px; top: 132px; font-size: 22px; color: #bcb4dc; }
-h1 { position: absolute; left: 64px; top: 196px; width: 520px; margin: 0; font: 56px/1.02 "Lilita One"; } h1 em { font-style: normal; color: #ffc93c; }
+h1 { position: absolute; left: 64px; top: 196px; width: 500px; margin: 0; font: 52px/1.05 "Lilita One"; } h1 em { font-style: normal; color: #ffc93c; }
 .chips { position: absolute; left: 64px; bottom: 60px; display: flex; gap: 12px; }
 .chips span { display: inline-flex; gap: 8px; align-items: center; background: #221b40; border-radius: 99px; padding: 8px 16px; font-size: 22px; }
 .chips i { width: 22px; height: 22px; border-radius: 5px; display: inline-block; }
-.screen { position: absolute; right: 48px; top: 60px; width: 560px; height: 460px; border-radius: 22px; overflow: hidden; box-shadow: 0 0 0 5px #2f2656;
-  background: radial-gradient(circle at 25% 30%, #3b5d3a, transparent 45%), radial-gradient(circle at 80% 75%, #6b3d1f, transparent 45%), linear-gradient(135deg, #1d2b36, #2a1b14); }
-.screen iframe { position: absolute; left: 50%; top: 50%; width: 900px; height: 470px; border: 0; transform: translate(-50%, -50%) scale(.6); }
+.screen { position: absolute; right: 48px; top: 150px; width: 576px; height: 324px; }   /* just the game: no backdrop or frame */
+.screen iframe { position: absolute; left: 0; top: 0; width: 960px; height: 540px; border: 0; transform-origin: 0 0; transform: scale(.6); }
 .url { position: absolute; right: 48px; bottom: 60px; font-size: 22px; color: #bcb4dc; } .url b { color: #fff7ec; }
 </style></head><body>
 <div class="logo"><img src="/chatagram/assets/icon.svg" alt=""><span>chat<b>agram</b></span></div>
 <div class="by">made by TrongatesLegacy</div>
 <h1>The word game your <em>whole chat</em> plays.</h1>
 <div class="chips"><span><i style="background:#9146ff"></i>Twitch</span><span><i style="background:#53fc18"></i>Kick</span><span>Free</span></div>
-<div class="screen"><iframe src="/chatagram/play.html?still=1&diff=easy&layout=compact" style="width:560px;height:230px;transform:translate(-50%,-50%) scale(.96)"></iframe></div>
+<div class="screen"><iframe src="/chatagram/play.html?still=1&diff=easy"></iframe></div>
 <div class="url"><b>trongateslegacy.com</b>/chatagram</div>
 </body></html>

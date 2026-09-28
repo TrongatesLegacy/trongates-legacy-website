@@ -384,3 +384,17 @@ test('phones have no sticky Copy bar (the owner removed it)', async () => {
   noErrors(tab, 'phone');
   await tab.close();
 });
+
+// Bug (2026-09-28): the footer's platform icons sat against the left of their coloured badge: the footer's
+// ".conn span" rule also matched the badge (a span), overriding its centring. Every badge's icon must be centred.
+test('every platform badge\'s icon is centred in its badge (footer, banner, summary)', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/play.html?still=1', { width: 960, height: 540 });
+  await ready(tab);
+  const off = await tab.eval(`[...document.querySelectorAll('.pf')].filter((p) => p.offsetParent).map((p) => {
+    const b = p.getBoundingClientRect(), s = p.querySelector('svg').getBoundingClientRect();
+    return [p.parentElement.className || p.parentElement.id, Math.abs((s.left - b.left) - (b.right - s.right)), Math.abs((s.top - b.top) - (b.bottom - s.bottom))];
+  })`);
+  assert.ok(off.length >= 4, 'found the badges');
+  for (const [where, dx, dy] of off) assert.ok(dx < 0.5 && dy < 0.5, `${where}: icon off-centre by ${dx} × ${dy} px`);
+  await tab.close();
+});

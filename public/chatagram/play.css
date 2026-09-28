@@ -101,7 +101,7 @@ footer { display: flex; justify-content: space-between; align-items: center; gap
 footer .top { display: flex; gap: 12px; overflow: hidden; } footer .top b { color: var(--text); font-weight: 600; }
 footer .credit { letter-spacing: .02em; }
 footer .conn { display: flex; gap: 10px; }
-footer .conn span { display: inline-flex; gap: 5px; align-items: center; }
+footer .conn > span { display: inline-flex; gap: 5px; align-items: center; }   /* the groups only, not the badge inside */
 .dot { width: 7px; height: 7px; border-radius: 50%; background: #f5b43c; }
 .dot.live { background: var(--good); box-shadow: 0 0 6px var(--good); }
 .dot.error { background: var(--bad); }
