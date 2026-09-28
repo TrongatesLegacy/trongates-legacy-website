@@ -82,7 +82,7 @@ header { display: grid; grid-template-columns: 150px 1fr auto; gap: 14px; align-
   font-family: var(--display); font-weight: var(--display-weight); font-size: calc(var(--cw, 16px) * .72); text-transform: uppercase; }
 .w.got .l i { background: var(--tile); color: var(--tile-text); box-shadow: none; }
 [data-theme=neon] .w.got .l i { background: color-mix(in srgb, var(--accent) 24%, transparent); color: var(--text); border-radius: 0; }
-.w.new { position: relative; z-index: 2; }
+.w.new { position: relative; z-index: 2; transform-origin: left center; }
 .w.new .l i { background: var(--gold); color: #2a1a00; box-shadow: 0 0 10px color-mix(in srgb, var(--gold) 70%, transparent); }
 .w.new .by { color: var(--text); font-weight: 700; }
 .w .by { font-size: calc(var(--rh, 20px) * .52); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; gap: 4px; align-items: center; min-width: 0; }
@@ -174,7 +174,12 @@ footer .conn span { display: inline-flex; gap: 5px; align-items: center; }
 /* ---- the end card: "Cleared!" / "Time's up!" over the board before the summary fades in ------------------------ */
 .endcard { position: absolute; inset: 0; z-index: 6; display: none; place-items: center; pointer-events: none; text-align: center; border-radius: calc(var(--radius) * 1.6); }
 .endcard.on { display: grid; }
-.endcard .shade { position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--bg) 70%, transparent); }
+.endcard .shade { position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--panel) 88%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+/* the words sit on their own panel, so nothing of the game behind can clash with them */
+.endcard .card-in { position: relative; padding: 26px 54px 24px; border-radius: calc(var(--radius) * 1.6 + 4px); background: var(--bg); box-shadow: 0 0 0 3px var(--accent), 0 18px 50px rgba(0,0,0,.45); }
+[data-theme=candy] .endcard .card-in, [data-theme=deep] .endcard .card-in { background: var(--panel); }
+.endcard.bad .card-in { box-shadow: 0 0 0 3px var(--bad), 0 18px 50px rgba(0,0,0,.45); }
+.compact .endcard .card-in { padding: 14px 30px 12px; }
 .endcard .txt { position: relative; font-family: var(--display); font-weight: var(--display-weight); font-size: 84px; line-height: 1; color: var(--accent);
   text-transform: uppercase; text-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 35%, #000), 0 0 30px color-mix(in srgb, var(--accent) 50%, transparent); white-space: nowrap; }
 .endcard .txt span { display: inline-block; }

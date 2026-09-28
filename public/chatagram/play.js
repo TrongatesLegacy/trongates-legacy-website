@@ -126,29 +126,37 @@
     const groups = new Map();
     for (const [i, a] of r.answers.entries()) { const k = Math.min(a.word.length, 7); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); }
     wordsEl.innerHTML = '';
-    // the largest rows that fit every word in at most 5 columns
-    const H = wordsEl.clientHeight - 30;
-    let rowH = 20, maxRows = 0, cols = [];
-    for (rowH of [28, 25, 22, 20, 18, 16, 14, 12]) {
-      maxRows = Math.max(3, Math.floor(H / (rowH + 3)));
-      cols = [];
-      for (const [len, idx] of groups) for (let c = 0; c * maxRows < idx.length; c++) cols.push({ len, idx: idx.slice(c * maxRows, (c + 1) * maxRows), first: c === 0, all: idx });
-      if (cols.length <= 5) break;
+    // The biggest letter boxes where every column really fits the board's width: names beside the words if at all possible,
+    // otherwise without names. Each column's width is measured (letters + name), not guessed, so a big puzzle never ends
+    // up squeezed into thin stacks with the rest of the board empty.
+    const W = wordsEl.clientWidth, H = wordsEl.clientHeight - 30, GAP = 8, PAD = 16;
+    let plan = null;
+    for (const names of [true, false]) {
+      for (const rowH of [28, 25, 22, 20, 18, 16, 14, 12, 10]) {
+        const cw = rowH - 3, maxRows = Math.max(2, Math.floor(H / (rowH + 3))), nameW = names ? Math.round(rowH * 4.6) + 20 : 0;
+        const cols = [];
+        for (const [len, idx] of groups) for (let c = 0; c * maxRows < idx.length; c++) {
+          const part = idx.slice(c * maxRows, (c + 1) * maxRows), maxLen = Math.max(...part.map((i) => r.answers[i].word.length));
+          cols.push({ len, idx: part, first: c === 0, all: idx, width: PAD + maxLen * (cw + 2) + nameW + (names ? 5 : 0) });
+        }
+        const total = cols.reduce((t, c) => t + c.width, 0) + GAP * (cols.length - 1);
+        if (total <= W && (!names || rowH >= 14)) { plan = { rowH, cw, names, cols }; break; }
+      }
+      if (plan) break;
     }
+    if (!plan) plan = { rowH: 10, cw: 7, names: false, cols: [] };
+    const { rowH, cw, names, cols } = plan;
     wordsEl.style.setProperty('--rh', rowH + 'px');
-    wordsEl.style.gridTemplateColumns = cols.map((c) => `${Math.max(...c.idx.map((i) => r.answers[i].word.length)) + 8}fr`).join(' ');
+    wordsEl.style.setProperty('--cw', cw + 'px');
+    // every column gets at least what it needs; spare width is shared out by need
+    wordsEl.style.gridTemplateColumns = cols.map((c) => `minmax(${c.width}px, ${c.width}fr)`).join(' ');
     for (const c of cols) {
       const got = c.all.filter((i) => r.answers[i].by).length;
-      const col = document.createElement('div'); col.className = 'col';
-      col.innerHTML = `<h4>${c.first ? `<span>${c.len === 7 ? '7+ LETTERS' : `${c.len} LETTERS`}</span><span data-count="${c.len}">${got}/${c.all.length}</span>` : ''}</h4>` +
+      const col = document.createElement('div'); col.className = 'col' + (names ? '' : ' nonames');
+      const label = c.width >= 125 ? (c.len === 7 ? '7+ LETTERS' : `${c.len} LETTERS`) : (c.len === 7 ? '7+' : `${c.len}`);   // narrow columns: just the length
+      col.innerHTML = `<h4>${c.first ? `<span>${label}</span><span data-count="${c.len}">${got}/${c.all.length}</span>` : ''}</h4>` +
         c.idx.map((i) => `<div class="w" data-a="${i}"></div>`).join('');
       wordsEl.appendChild(col);
-      const maxLen = Math.max(...c.idx.map((i) => r.answers[i].word.length)), avail = col.clientWidth - 16;
-      const cap = rowH - 3;                                         // letter boxes as big as the rows allow
-      let cw = Math.min(cap, Math.floor((avail - 100) / maxLen) - 2), names = true;
-      if (cw < 11) { names = false; cw = Math.min(cap, Math.floor(avail / maxLen) - 2); }
-      col.style.setProperty('--cw', cw + 'px');
-      col.classList.toggle('nonames', !names);
       for (const i of c.idx) drawAnswer(i);
     }
   }
@@ -158,9 +166,9 @@
     const named = a.by && !el.parentElement.classList.contains('nonames');
     el.innerHTML = `<span class="l">${[...a.word].map((ch) => `<i>${a.by ? esc(ch) : ''}</i>`).join('')}</span>` + (named ? `<span class="by">${badge(a.by.platform)}<span>${esc(a.by.name)}</span></span>` : '');
     if (fresh) {
-      // the find lights up where it lands: it pops out big and gold, letter by letter, then settles and stays gold a while
-      anim(el, [{ transform: 'scale(1.7)', transformOrigin: 'left center' }, { transform: 'scale(1.7)', offset: 0.55 }, { transform: 'none' }], { duration: 1300, easing: 'cubic-bezier(.3,.7,.3,1)' });
-      [...el.querySelectorAll('.l i')].forEach((b, n) => anim(b, [{ transform: 'translateY(-10px) scale(1.4)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, delay: n * 60, easing: 'cubic-bezier(.3,.7,.4,1.3)', fill: 'backwards' }));
+      // the find lights up where it lands: it pops out big and gold, then settles and stays gold a while
+      // one animation on the whole word (the letters never move on their own, so they can't overlap)
+      anim(el, [{ transform: 'scale(1)' }, { transform: 'scale(1.6)', offset: 0.18 }, { transform: 'scale(1.6)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 1400, easing: 'cubic-bezier(.3,.7,.3,1)' });
       setTimeout(() => el.classList.remove('new'), 3500);
       const count = wordsEl.querySelector(`[data-count="${Math.min(a.word.length, 7)}"]`);
       if (count) { const all = round().answers.filter((x) => Math.min(x.word.length, 7) === Math.min(a.word.length, 7)); count.textContent = `${all.filter((x) => x.by).length}/${all.length}`; }
@@ -301,8 +309,9 @@
     if (rm) return;
     ending = true; board.classList.remove('summary');
     endEl.className = 'endcard on' + (bad ? ' bad' : '');
-    endEl.innerHTML = `<div class="shade"></div><div><div class="txt">${[...text].map((c) => `<span>${c === ' ' ? '&nbsp;' : esc(c)}</span>`).join('')}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>`;
+    endEl.innerHTML = `<div class="shade"></div><div class="card-in"><div class="txt">${[...text].map((c) => `<span>${c === ' ' ? '&nbsp;' : esc(c)}</span>`).join('')}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>`;
     anim(endEl.querySelector('.shade'), [{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: 'both' });
+    anim(endEl.querySelector('.card-in'), [{ transform: 'scale(.6)', opacity: 0 }, { transform: 'scale(1.04)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'ease-out', fill: 'both' });
     [...endEl.querySelectorAll('.txt span')].forEach((c, i) => anim(c, [{ transform: 'translateY(40px) scale(.4)', opacity: 0 }, { transform: 'translateY(-8px) scale(1.15)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }], { duration: 480, delay: 120 + i * 45, easing: 'ease-out', fill: 'both' }));
     const subEl = endEl.querySelector('.sub'); if (subEl) anim(subEl, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 350, delay: 700, fill: 'both' });
   }
