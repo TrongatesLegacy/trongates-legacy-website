@@ -63,7 +63,8 @@
       const all = (deps.seeds[cfg.diff] && deps.seeds[cfg.diff][len]) || [];
       let pool = all.filter((w) => !block.has(w) && !s.recent.includes(w));
       if (!pool.length) pool = all.filter((w) => !block.has(w));
-      const seed = pick(pool);
+      // deps.firstSeed: the first puzzle's word, when a caller wants a known one (the pictures on the site)
+      const seed = deps.firstSeed && !s.recent.length && all.includes(deps.firstSeed) ? deps.firstSeed : pick(pool);
       const { board: every, bonus } = Wd.solve(seed, deps.dict, { tier: d.tier, minLen: cfg.minlen, block });
       const { shown: board } = pickSlots(every, seed);
       s.recent = [seed, ...s.recent].slice(0, 60);

@@ -45,7 +45,9 @@
   let offset = 0, frozen = 0;                                      // tests move time on; still pictures stop it
   const now = () => (frozen || Date.now()) + offset;
   const queue = [];
-  const game = C.game(cfg, { dict, seeds, now, random: still ? seeded : Math.random, emit: (e) => queue.push(e) });
+  // still pictures (the site's previews, the share image) always show a hand-checked, friendly puzzle
+  const STILL_SEEDS = { easy: 'heart', normal: 'garden', hard: 'clovers' };
+  const game = C.game(cfg, { dict, seeds, now, random: still ? seeded : Math.random, emit: (e) => queue.push(e), firstSeed: still ? STILL_SEEDS[cfg.diff] : null });
   const SAVE = `chatagram:v1:${channels.twitch}|${channels.kick}`;
   let saved = null;
   if (!demo && !still) try { saved = JSON.parse(localStorage.getItem(SAVE) || 'null'); } catch {}

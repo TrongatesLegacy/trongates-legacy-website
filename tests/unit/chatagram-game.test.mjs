@@ -302,3 +302,15 @@ test('any real word fills the next open box of its length; when that length is f
   if (spare) assert.equal(t.say(spare).kind, 'full');
   assert.equal(r.answers.length, 12, 'no boxes added');
 });
+
+test('a caller can choose the first puzzle (the site\'s still pictures use hand-checked words)', () => {
+  const cfg = { ...S.defaults(C.settings.SCHEMA) };
+  const g = C.game(cfg, { dict, seeds, now: () => 1e6, random: rng(1), firstSeed: 'garden' }); g.boot();
+  assert.equal(g.state.round.seed, 'garden');
+  g.handle({ platform: 'twitch', user: 'o', name: 'O', owner: true, mod: true, text: '!skip' });
+  assert.notEqual(g.state.round.seed, 'garden', 'only the first puzzle');
+  for (const [d, w] of [['easy', 'heart'], ['normal', 'garden'], ['hard', 'clovers']]) {
+    const len = Wd.seedLength(d, 1);
+    assert.ok(seeds[d][len].includes(w), `${w} is a ${d} seed, so the pictures really use it`);
+  }
+});
