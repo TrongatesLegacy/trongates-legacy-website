@@ -221,9 +221,26 @@ node scripts/build-words.mjs --scowl /tmp/scowl
   left out. Kept: plain lowercase words of 3–9 letters (no names, abbreviations, contractions, hyphens, accents).
   A word spelt the same in the US and UK gets its smallest size; a US-only or UK-only spelling gets 71 (bonus only).
 - **Blocked** as well: **LDNOOBW** (CC BY 4.0, `scripts/words/ldnoobw-en.txt`) and our own
-  `scripts/words/blocklist.txt` (plus each word's s/es/d/ed/ing forms). To block a word: add it there and rebuild.
+  `scripts/words/blocklist.txt` (plus each word's s/es/d/ed/ing forms; other forms, like *cockily* or *bitchier*, are listed
+  on their own). To block a word: add it there and rebuild.
+- **Bonus only** (`scripts/words/bonus-only.txt`, about 6,100 words): everyday words most people wouldn't think of: odd
+  plurals, verb forms and comparatives (*acuter, loyaler, timider, drys, geed*), rare short words (*eke, lye, mete, vise*),
+  words that only look common because they're names (*hart, lee, eddy, glen*) and old forms (*doth, hath, unto*). They
+  stay real words: typed in chat they score as bonus words; they never get a box and are never the scrambled word. On
+  Hard, which also uses SCOWL's medium words, only the really rare ones are moved. **Checked** (`scripts/words/checked.txt`,
+  about 4,600): words that are rare in everyday speech but well known (*raccoons, hashtags, logins, edamame*), looked at
+  and kept. Both lists are exact words (each form is judged on its own) and a word is never in both (a test).
+- **How they were made (2026-09-28), and reviewing after a rebuild**: every word that can get a box was ranked by how often
+  it's said in film and TV subtitles (FrequencyWords' OpenSubtitles list, `en_full.txt` from
+  https://github.com/hermitdave/FrequencyWords, CC BY-SA 4.0, so it's never committed): everyday words beyond rank 40,000
+  (short ones beyond 20,000) and medium words beyond 80,000 were each put in one list or the other by hand. Moving words
+  changes the seeds, which brings new words onto boards, so it was repeated until none were left. To check after a
+  rebuild: `node scripts/build-words.mjs --scowl /tmp/scowl --freq /tmp/en_full.txt` writes the rare words in neither
+  list to `rare-words.txt` in the temp folder; put each in a list, rebuild, repeat until it reports 0. The ranking only
+  finds candidates: it misses names (*hart*) and flags words everyone knows (*raccoons*), so the lists are hand-made.
 - **Seeds**: for each difficulty and length, well-known words whose puzzle has 12–50 slots (at least 6 of 4+ letters),
-  at most 1,200 per list, spread through the alphabet. `words.txt` only keeps words that fit inside some seed.
+  at most 1,200 per list, spread through the alphabet, plus the still pictures' words (*heart, garden, clovers*: play.js
+  `STILL_SEEDS`), always kept. `words.txt` only keeps words that fit inside some seed.
 - Sizes: `words.txt` ~72 KB and `seeds.txt` ~29 KB compressed, fetched once after the board appears.
 - The builder prints a report; read the seeds for anything that shouldn't be on stream before committing.
 - Credits: the Chatagram page's footer and FAQ.

@@ -90,3 +90,19 @@ test('the word lists carry their sources\' licence notices', () => {
   assert.match(lic, /Copyright 2000-\d{4} by Kevin Atkinson/);
   assert.match(lic, /CC BY 4\.0/);
 });
+
+test('bonus-only words (scripts/words/bonus-only.txt) still score as bonus words but never get a box and are never the scrambled word', () => {
+  const bonusOnly = listFile('bonus-only.txt'), checked = new Set(listFile('checked.txt'));
+  assert.ok(bonusOnly.length > 1000, 'the reviewed list is there');
+  assert.deepEqual(bonusOnly.filter((w) => checked.has(w)), [], 'a word is either bonus-only or checked-and-kept, never both');
+  const allSeeds = new Set(Object.values(seeds).flatMap((byLen) => Object.values(byLen).flat()));
+  for (const w of bonusOnly) {
+    const t = dict.tierOf.get(w);
+    if (t !== undefined) assert.ok(t >= 60, `${w} is tier ${t}: it could get a box`);
+    assert.ok(!allSeeds.has(w), `${w} is a scrambled word`);
+  }
+  // e.g. eke: made from a seed, it's a bonus word, not a box
+  const seed = [...allSeeds].find((s) => Wd.fits('eke', Wd.counts(s)));
+  const { board, bonus } = Wd.solve(seed, dict, { tier: 50, minLen: 3 });
+  assert.ok(!board.includes('eke') && bonus.includes('eke'), `eke in ${seed}`);
+});
