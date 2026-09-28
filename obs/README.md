@@ -524,3 +524,26 @@ transitions: drawing and timing; its page is `transition.html`). The rescue dock
 `public/obs/control.html`; the Botrix CSS is `public/obs/botrix/`. Everything under `public/` deploys with
 the site, so check it the same way as any site change (docs/verification.md). `?guide=1` plus
 `scripts/shot.mjs` at `--width=1920 --height=1080` is the quickest check.
+
+## Chatagram (the chat word game)
+
+Chatagram is a free widget for any streamer (docs/widgets.md, set up at https://www.trongateslegacy.com/chatagram/).
+`/obs/chatagram` is the same game in the stream's colours: it follows the form like every scene (veadotube, the dock,
+`form=`) and passes each change to the game without reloading it, so switching form mid-round never restarts it:
+
+| Form | Chatagram theme |
+|---|---|
+| Tron (cyan, yellow, red) | **neon**, in the armour's colour |
+| Princess Trina | **royal** |
+| The Blobfish | **deep** |
+
+The dock's **Form looks** (`looks=`) are followed too: a form given Tron's look gets neon.
+
+**Adding it in OBS** (it isn't in the dock's Sources tab):
+1. Set it up on the Chatagram page (channels, layout, game), **Copy OBS link**.
+2. Change `/chatagram/play?` in the link to `/obs/chatagram?` (keep everything after the `?`).
+3. Sources → **+** → Browser: paste it; width `900`, height `470` (`560` × `230` for the compact layout); tick
+   **Use custom frame rate**, FPS `30`.
+
+Any `theme=` or `accent=` in the link is replaced by the form's. It needs the hosted address (it loads `/chatagram/`), so
+it doesn't work as a local file. Scores and the game in progress are kept in OBS's browser, so a refresh carries on.

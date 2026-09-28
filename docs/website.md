@@ -91,6 +91,13 @@ because platforms cache previews by URL), JSON-LD `WebSite` + `Person` with ever
 sitemap.xml. `www` is the primary domain; the apex redirects to it (DNS: A record to Netlify's load balancer
 on the apex, CNAME for `www`, at OVH).
 
+## Widgets and Chatagram
+
+`/widgets/` lists free stream widgets for any streamer and `/chatagram/` is the first one: its own brand and page,
+its OBS overlay at `/chatagram/play` (noindex). Both pages are indexed and in the sitemap; "Widgets" is the last
+item in the homepage nav. They're separate pages with their own inline CSS, so they add nothing to the homepage's
+load. All static: no functions, no Netlify cost beyond bandwidth. See [widgets.md](widgets.md).
+
 ## OBS overlays
 
 `public/obs/` holds the stream overlays (see obs/README.md). OBS loads them from the hosted URLs. The two that follow
