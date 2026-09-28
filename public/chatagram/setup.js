@@ -10,7 +10,7 @@
   const THEME_NAMES = { chatagram: 'Chatagram', neutral: 'Neutral', light: 'Light', neon: 'Neon', candy: 'Candy', royal: 'Royal', deep: 'Deep', cozy: 'Cozy' };
   const THEME_BG = { chatagram: '#16122b', neutral: '#1b1e26', light: '#f4f5f8', neon: '#03060d', candy: '#6b2fd6', royal: '#0a0510', deep: '#020b11', cozy: '#f3e6cf' };
   const ACCENTS = [['ffc93c', 'Sun'], ['ff5a5f', 'Coral'], ['2ee6a8', 'Mint'], ['22e5ff', 'Cyan'], ['4f8cff', 'Blue'], ['b48cff', 'Lilac'], ['ff63b8', 'Pink']];
-  const ADVANCED = ['shuffle', 'slots', 'minlen', 'goal', 'tricky', 'longbonus', 'bonus', 'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'perm', 'wrong', 'ignore', 'block', 'top', 'remember', 'credit'];
+  const ADVANCED = ['shuffle', 'slots', 'minlen', 'goal', 'tricky', 'longbonus', 'bonus', 'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear', 'perm', 'lb', 'wrong', 'ignore', 'block', 'top', 'remember', 'credit'];
 
   let saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
   const fromLink = location.search.length > 1;
@@ -74,6 +74,8 @@
     $('#auto').checked = s.next > 0 && s.restart > 0;
     $('#theme-name').textContent = THEME_NAMES[s.theme];
     for (const r of $$('input[name=lockmsg]')) r.disabled = !s.locks;
+    $('input[name=ctop]').disabled = !s.lb;
+    $('#lbshow').hidden = !s.lb;
     drawAccents();
   }
   function read(el) {
@@ -85,7 +87,7 @@
     else v = el.value;
     const clean = W.settings.read(f, f.type === 'bool' ? (v ? '1' : '0') : f.type === 'list' ? v.join(',') : String(v));
     s[k] = clean === undefined ? (f.type === 'list' ? [] : f.def) : clean;
-    if (k === 'cstart' || k === 'cnext' || k === 'cskip' || k === 'creset') if (!s[k].length) s[k] = [...f.def];
+    if (['cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear'].includes(k) && !s[k].length) s[k] = [...f.def];
   }
   form.addEventListener('input', (e) => {
     const el = e.target;
@@ -117,7 +119,7 @@
   // id the overlay needs. Only the set-up page asks; the overlay never does (for Twitch) or only if the link has no id (Kick).
   async function twitchUser(login) {
     try {
-      const r = await fetch('https://gql.twitch.tv/gql', { method: 'POST', headers: { 'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko', 'Content-Type': 'application/json' },
+      const r = await fetch('https://gql.twitch.tv/gql', { method: 'POST', headers: { 'Client-Id': W.platforms.twitch.GQL_ID, 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: `query{user(login:${JSON.stringify(login)}){login displayName}}` }) });
       if (!r.ok) return undefined;
       const j = await r.json();
@@ -232,6 +234,14 @@
     clearTimeout(pvTimer); pvTimer = setTimeout(preview, 350);
   }
   for (const b of $$('.tabs button')) b.addEventListener('click', () => { screen = b.dataset.screen; for (const x of $$('.tabs button')) x.setAttribute('aria-pressed', String(x === b)); preview(); });
+  // "Show leaderboard": the preview shows it as !cg top would (on the Playing tab, where the pretend chat plays)
+  $('#lbshow').addEventListener('click', () => {
+    const ask = () => { try { pv.contentWindow.postMessage({ type: 'chatagram-leaderboard' }, '*'); } catch {} };
+    if (screen === 'play' && pv.classList.contains('ready')) return ask();
+    if (screen !== 'play') $('.tabs button[data-screen=play]').click();
+    const wait = setInterval(() => { if (pv.classList.contains('ready')) { clearInterval(wait); ask(); } }, 100);
+    setTimeout(() => clearInterval(wait), 8000);
+  });
   addEventListener('resize', () => { fitFrame(pv, pvScreen); fitHero(); });
 
   // ---- copy -----------------------------------------------------------------------------------------------------------------------

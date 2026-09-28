@@ -156,12 +156,15 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .toggles { display: grid; gap: 12px; background: var(--ink); border-radius: 12px; padding: 14px 16px; }
 @media (max-width: 720px) { .chatcols { grid-template-columns: 1fr; } }
 .sub-h { margin: 8px 0 0; padding-top: 12px; border-top: 1px solid var(--ink3); font: 17px "Lilita One", sans-serif; color: var(--sun); }
-.cmds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.cmds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .cmds .box input { font-family: ui-monospace, Menlo, monospace; color: var(--sun); font-size: 15px; }
 .right { position: sticky; top: calc(var(--nav) + 16px); background: var(--ink2); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
 .right h3 { margin: 0; font-size: 19px; color: var(--sun); display: flex; justify-content: space-between; align-items: baseline; }
 .right h3 small { font: 12px "Chakra Petch", sans-serif; color: var(--muted); }
+.pvbar { display: flex; gap: 6px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
 .tabs { display: flex; gap: 6px; }
+.lbbtn { font: inherit; font-size: 13px; background: none; color: var(--sun); border: 1px solid var(--ink3); padding: 3px 11px; border-radius: 99px; cursor: pointer; }
+.lbbtn:hover { border-color: var(--sun); } .lbbtn[hidden] { display: none; }
 .tabs button { font: inherit; font-size: 13px; background: var(--ink); color: var(--muted); border: 0; padding: 4px 11px; border-radius: 99px; cursor: pointer; }
 .tabs button[aria-pressed=true] { background: var(--ink3); color: var(--paper); }
 .right .screen { height: 250px; border-radius: 12px; }
@@ -296,7 +299,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
           <label class="sw">Tell locked players to wait <input type="checkbox" role="switch" name="lockmsg"></label>
           <h4 class="sub-h">Other</h4>
           <label class="field" id="kickid-field" hidden><span>Kick chatroom ID: only needed if Kick can’t confirm your channel (most people never need this)</span><span class="box"><input name="kickid" inputmode="numeric" autocomplete="off" placeholder="found automatically"></span></label>
-          <label class="sw">Remember scores between streams <input type="checkbox" role="switch" name="remember"></label>
+          <label class="sw">Show all-time leaderboard <input type="checkbox" role="switch" name="remember"></label>
           <label class="sw">Show “Made by TrongatesLegacy.com” <input type="checkbox" role="switch" name="credit"></label>
         </fieldset>
         <fieldset class="card wide chatcard"><legend>Chat</legend>
@@ -304,7 +307,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
             <div class="field"><span class="lab" id="l-block">Never use these words</span><div class="tags" data-tags="block" data-placeholder="Add a word…" aria-labelledby="l-block"></div><p class="note">Type and press Enter. Click × to remove.</p></div>
             <div class="toggles">
               <label class="sw">Show wrong guesses <input type="checkbox" role="switch" name="wrong"></label>
-              <label class="sw">Show top players <input type="checkbox" role="switch" name="top"></label>
+              <label class="sw">Show this game’s top 3 <input type="checkbox" role="switch" name="top"></label>
             </div>
             <p class="note">Right guesses always light up on the board.</p>
           </div><div class="col2">
@@ -316,17 +319,20 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
             <label class="field"><span>Start a game</span><span class="box"><input name="cstart" autocomplete="off" spellcheck="false"></span></label>
             <label class="field"><span>Next level</span><span class="box"><input name="cnext" autocomplete="off" spellcheck="false"></span></label>
             <label class="field"><span>Skip this round</span><span class="box"><input name="cskip" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Reset everything</span><span class="box"><input name="creset" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Restart the game</span><span class="box"><input name="creset" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Show the leaderboard</span><span class="box"><input name="ctop" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Clear all scores (only you)</span><span class="box"><input name="cclear" autocomplete="off" spellcheck="false"></span></label>
           </div>
           <div class="field"><span class="lab" id="l-perm">Who can use them</span><div class="seg" role="radiogroup" aria-labelledby="l-perm"><label><input type="radio" name="perm" value="me"><span>Only me</span></label><label><input type="radio" name="perm" value="mods"><span>Me and mods</span></label><label><input type="radio" name="perm" value="all"><span>Everyone</span></label></div></div>
-          <p class="note">Clash with another bot's commands? Rename them, e.g. <code>!cg start</code> or <code>!newgame</code>. Several names: separate with commas. Reset also clears the all-time scores.</p>
+          <label class="sw">Leaderboard command <input type="checkbox" role="switch" name="lb"></label>
+          <p class="note">The leaderboard shows this stream's and all-time top players for a few seconds; when everyone can use commands, viewers can ask once a minute. Restarting the game keeps the scores; clearing them works for you only. Several names: separate with commas.</p>
         </fieldset>
       </div>
     </details>
   </div>
   <aside class="right" aria-label="Live preview and your OBS link">
     <h3>Live preview <small>pretend chat playing</small></h3>
-    <div class="tabs" role="group" aria-label="Preview screen"><button type="button" data-screen="play" aria-pressed="true">Playing</button><button type="button" data-screen="cleared" aria-pressed="false">Level cleared</button><button type="button" data-screen="over" aria-pressed="false">Game over</button></div>
+    <div class="pvbar"><div class="tabs" role="group" aria-label="Preview screen"><button type="button" data-screen="play" aria-pressed="true">Playing</button><button type="button" data-screen="cleared" aria-pressed="false">Level cleared</button><button type="button" data-screen="over" aria-pressed="false">Game over</button></div><button type="button" class="lbbtn" id="lbshow">Show leaderboard</button></div>
     <div class="screen" id="pv-screen"><img class="poster" id="pv-poster" src="assets/themes/chatagram-full.webp" alt="" loading="lazy"><iframe id="pv" title="Preview of your Chatagram overlay" width="960" height="540" tabindex="-1"></iframe></div>
     <button type="button" class="btn" id="copy">Copy OBS link</button>
     <p class="need" id="need">Add your Twitch or Kick channel first (step 1).</p>
@@ -342,8 +348,9 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   <details open><summary>Is it really free?</summary><p>Yes. No account, no login, no catch. It's a web page you add to OBS as a browser source. The small “Made by” line can be turned off in Advanced settings.</p></details>
   <details><summary>Does it need my Twitch or Kick password?</summary><p>No. It only reads your public chat, the way a viewer does, and never posts anything.</p></details>
   <details><summary>Can I use it with just Kick, or just Twitch?</summary><p>Yes: fill in one channel or both. Streaming to both at once? Everyone plays on the same board, and the summary shows which chat found more.</p></details>
-  <details><summary>My other bot already uses !start</summary><p>Rename Chatagram's commands in Advanced settings, e.g. <code>!cg start</code>. Bots like Botrix and Nightbot are ignored as players out of the box.</p></details>
-  <details><summary>What happens if OBS refreshes mid-game?</summary><p>It carries on where it was: the game is saved in OBS's browser as it goes. Scores are kept between streams too (you can turn that off).</p></details>
+  <details><summary>Will its commands clash with my other bots?</summary><p>They all start with <code>!cg</code> (<code>!cg start</code>, <code>!cg top</code>…), so they rarely do, and you can rename them in Advanced settings. Bots like Botrix and Nightbot are ignored as players out of the box.</p></details>
+  <details><summary>How do the leaderboards work?</summary><p>Type <code>!cg top</code> (or just <code>!cg</code>) to show this stream's and all-time top players for a few seconds. This stream starts fresh each time you go live: Chatagram asks Twitch or Kick whether you're live, so a crash and a quick restart still count as one stream. All time is kept for good. You can hide it in Advanced settings, or wipe both with <code>!cg clearscores</code> (only you can).</p></details>
+  <details><summary>What happens if OBS refreshes mid-game?</summary><p>It carries on where it was: the game and the leaderboards are saved in OBS's browser as it goes.</p></details>
   <details><summary>Does it work in Streamlabs, Meld or XSplit?</summary><p>Anything with a browser source works.</p></details>
   <details><summary>Where do the words come from?</summary><p>The SCOWL English word lists (by how common each word is), with rude words taken out using SCOWL's own tags, the LDNOOBW list and our own. You can add words to leave out in Advanced settings.</p></details>
 </div>

@@ -224,3 +224,10 @@ test('Chatagram: its address is recognised, and settings can be read back out of
   const s = M.fromUrls([HOST + 'chatagram?twitch=pixelpanda&kick=gridrunner&noveado=1']);
   assert.deepEqual(plain(M.chatagramPairs(s.chatagram)), [['twitch', 'pixelpanda'], ['kick', 'gridrunner']]);
 });
+
+test('every Chatagram setting a link can carry passes through /obs/chatagram (theme and accent come from the form)', () => {
+  const cg = vm.createContext({ URLSearchParams }); cg.window = cg;
+  vm.runInContext(read('public/chatagram/settings.js'), cg);
+  const want = Object.keys(cg.Chatagram.settings.SCHEMA).filter((k) => k !== 'theme' && k !== 'accent').sort();
+  assert.deepEqual([...M.CHATAGRAM_KEYS].filter((k) => k !== 'seed').sort(), want);
+});
