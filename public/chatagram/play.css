@@ -1,17 +1,20 @@
 /* Chatagram's overlay (play.html). Drawn only from the theme's variables (../widgets/lib/themes.css), so every theme
-   works without its own rules here, apart from a few touches at the end. Two layouts: full (900 × 470) and compact
+   works without its own rules here, apart from a few touches at the end. Two layouts: full (960 × 540, 16:9) and compact
    (560 × 230); the board is scaled to fit if the browser source is another size. Animations only move and fade
    (transform, opacity) so OBS stays light; .rm (reduced motion) turns them all off. docs/widgets.md, "The overlay". */
 html, body { margin: 0; background: transparent; overflow: hidden; }
 * { box-sizing: border-box; }
 .stage { position: fixed; left: 0; top: 0; transform-origin: 0 0; }
-.board { position: relative; width: 900px; height: 470px; perspective: 1600px; color: var(--text); font-family: var(--font); }
+.board { position: relative; width: 960px; height: 540px; color: var(--text); font-family: var(--font); }
 .board.compact { width: 560px; height: 230px; }
-.card { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.45,.05,.3,1); }
-.flipped .card { transform: rotateY(180deg); }
+.card { position: absolute; inset: 0; }
+/* the summary replaces the board with a fade (after the end card), never a flip */
+.face { transition: opacity .45s ease, transform .45s ease; }
+.back { opacity: 0; visibility: hidden; transform: scale(.97); }
+.summary .front { opacity: 0; transform: scale(.97); }
+.summary .back { opacity: 1; visibility: visible; transform: none; }
 .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: calc(var(--radius) * 1.6);
   background: var(--bg); box-shadow: var(--edge); padding: 16px 20px 12px; display: flex; flex-direction: column; gap: 11px; overflow: hidden; }
-.back { transform: rotateY(180deg); }
 .compact .face { padding: 11px 14px 9px; gap: 8px; }
 [data-theme=neon] .face { clip-path: polygon(22px 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 22px); }
 .disp { font-family: var(--display); font-weight: var(--display-weight); }
@@ -69,16 +72,20 @@ header { display: grid; grid-template-columns: 150px 1fr auto; gap: 14px; align-
 /* ---- the words (full layout): columns by length ------------------------------------------------------------------ */
 .words { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; gap: 8px; }
 .compact .words { display: none; }
-.col { background: var(--panel); border-radius: var(--radius); padding: 6px 8px; display: flex; flex-direction: column; gap: 3px; min-width: 0; overflow: hidden; }
+.col { background: var(--panel); border-radius: var(--radius); padding: 6px 8px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.col h4, .w .by { overflow: hidden; }
 .col h4 { margin: 0 0 1px; height: 13px; font-size: 10px; letter-spacing: .14em; color: var(--muted); font-weight: 700; display: flex; justify-content: space-between; white-space: nowrap; }
 .w { display: flex; align-items: center; gap: 5px; height: var(--rh, 20px); min-width: 0; }
 .w .l { display: flex; gap: 2px; flex: none; }
 .w .l i { width: var(--cw, 16px); height: calc(var(--rh, 20px) - 1px); border-radius: 3px; background: var(--slot); font-style: normal; display: grid; place-items: center;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--text) 34%, transparent);
   font-family: var(--display); font-weight: var(--display-weight); font-size: calc(var(--cw, 16px) * .72); text-transform: uppercase; }
-.w.got .l i { background: var(--tile); color: var(--tile-text); }
+.w.got .l i { background: var(--tile); color: var(--tile-text); box-shadow: none; }
 [data-theme=neon] .w.got .l i { background: color-mix(in srgb, var(--accent) 24%, transparent); color: var(--text); border-radius: 0; }
-.w.new .l i { background: var(--gold); color: #2a1a00; }
-.w .by { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; gap: 4px; align-items: center; min-width: 0; }
+.w.new { position: relative; z-index: 2; }
+.w.new .l i { background: var(--gold); color: #2a1a00; box-shadow: 0 0 10px color-mix(in srgb, var(--gold) 70%, transparent); }
+.w.new .by { color: var(--text); font-weight: 700; }
+.w .by { font-size: calc(var(--rh, 20px) * .52); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; gap: 4px; align-items: center; min-width: 0; }
 .w .by span { overflow: hidden; text-overflow: ellipsis; }
 
 /* ---- compact: the last finds -------------------------------------------------------------------------------------- */
@@ -92,7 +99,7 @@ header { display: grid; grid-template-columns: 150px 1fr auto; gap: 14px; align-
 /* ---- footer ---------------------------------------------------------------------------------------------------------- */
 footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); height: 16px; white-space: nowrap; }
 footer .top { display: flex; gap: 12px; overflow: hidden; } footer .top b { color: var(--text); font-weight: 600; }
-footer .credit b { color: var(--text); }
+footer .credit { letter-spacing: .02em; }
 footer .conn { display: flex; gap: 10px; }
 footer .conn span { display: inline-flex; gap: 5px; align-items: center; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: #f5b43c; }
@@ -108,7 +115,7 @@ footer .conn span { display: inline-flex; gap: 5px; align-items: center; }
 
 /* ---- guess bubbles, confetti ------------------------------------------------------------------------------------------ */
 .bubbles { position: absolute; left: 0; right: 0; pointer-events: none; z-index: 3; }
-.bubble { position: absolute; transform: translateX(-50%); background: var(--text); color: var(--bg); font-weight: 700; font-size: 13px; padding: 4px 10px; border-radius: 10px;
+.bubble { position: absolute; transform: translateX(-50%); background: var(--text); color: var(--bg); font-weight: 700; font-size: 17px; padding: 6px 14px; border-radius: 12px;
   display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
 [data-theme=candy] .bubble, [data-theme=deep] .bubble, [data-theme=chatagram] .bubble { color: #16122b; }
 .bubble.no { opacity: .75; text-decoration: line-through; }
@@ -163,3 +170,15 @@ footer .conn span { display: inline-flex; gap: 5px; align-items: center; }
 
 /* reduced motion: every change is instant */
 .rm *, .rm *::before, .rm *::after { transition: none !important; animation: none !important; }
+
+/* ---- the end card: "Cleared!" / "Time's up!" over the board before the summary fades in ------------------------ */
+.endcard { position: absolute; inset: 0; z-index: 6; display: none; place-items: center; pointer-events: none; text-align: center; border-radius: calc(var(--radius) * 1.6); }
+.endcard.on { display: grid; }
+.endcard .shade { position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--bg) 70%, transparent); }
+.endcard .txt { position: relative; font-family: var(--display); font-weight: var(--display-weight); font-size: 84px; line-height: 1; color: var(--accent);
+  text-transform: uppercase; text-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 35%, #000), 0 0 30px color-mix(in srgb, var(--accent) 50%, transparent); white-space: nowrap; }
+.endcard .txt span { display: inline-block; }
+.endcard .sub { position: relative; margin-top: 10px; font-size: 22px; font-weight: 700; color: var(--text); }
+.endcard.bad .txt { color: var(--bad); text-shadow: 0 6px 0 color-mix(in srgb, var(--bad) 35%, #000), 0 0 30px color-mix(in srgb, var(--bad) 50%, transparent); }
+[data-theme=cozy] .endcard .txt, [data-theme=royal] .endcard .txt { text-transform: none; }
+.compact .endcard .txt { font-size: 52px; } .compact .endcard .sub { font-size: 16px; }

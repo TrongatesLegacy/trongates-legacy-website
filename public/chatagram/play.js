@@ -19,7 +19,8 @@
   W.theme.listen(board);
   board.classList.toggle('compact', cfg.layout === 'compact');
   const [BW, BH] = C.settings.SIZES[cfg.layout];
-  const fit = () => { const k = Math.min(innerWidth / BW, innerHeight / BH) || 1; stage.style.transform = `scale(${k})`; };
+  // fill the browser source; any other shape than the layout's is centred (e.g. 960 × 540 fills 1920 × 1080 at exactly 2×)
+  const fit = () => { const k = Math.min(innerWidth / BW, innerHeight / BH) || 1; stage.style.transform = `translate(${(innerWidth - BW * k) / 2}px, ${(innerHeight - BH * k) / 2}px) scale(${k})`; };
   addEventListener('resize', fit); fit();
 
   const channels = { twitch: W.platforms.twitch.channel(cfg.twitch), kick: W.platforms.kick.channel(cfg.kick) };
@@ -128,14 +129,14 @@
     // the largest rows that fit every word in at most 5 columns
     const H = wordsEl.clientHeight - 30;
     let rowH = 20, maxRows = 0, cols = [];
-    for (rowH of [20, 18, 16, 14, 12]) {
+    for (rowH of [28, 25, 22, 20, 18, 16, 14, 12]) {
       maxRows = Math.max(3, Math.floor(H / (rowH + 3)));
       cols = [];
       for (const [len, idx] of groups) for (let c = 0; c * maxRows < idx.length; c++) cols.push({ len, idx: idx.slice(c * maxRows, (c + 1) * maxRows), first: c === 0, all: idx });
       if (cols.length <= 5) break;
     }
     wordsEl.style.setProperty('--rh', rowH + 'px');
-    wordsEl.style.gridTemplateColumns = cols.map((c) => `${Math.max(...c.idx.map((i) => r.answers[i].word.length)) + 5}fr`).join(' ');
+    wordsEl.style.gridTemplateColumns = cols.map((c) => `${Math.max(...c.idx.map((i) => r.answers[i].word.length)) + 8}fr`).join(' ');
     for (const c of cols) {
       const got = c.all.filter((i) => r.answers[i].by).length;
       const col = document.createElement('div'); col.className = 'col';
@@ -143,8 +144,9 @@
         c.idx.map((i) => `<div class="w" data-a="${i}"></div>`).join('');
       wordsEl.appendChild(col);
       const maxLen = Math.max(...c.idx.map((i) => r.answers[i].word.length)), avail = col.clientWidth - 16;
-      let cw = Math.min(16, Math.floor((avail - 60) / maxLen) - 2), names = true;
-      if (cw < 11) { names = false; cw = Math.min(16, Math.floor(avail / maxLen) - 2); }
+      const cap = rowH - 3;                                         // letter boxes as big as the rows allow
+      let cw = Math.min(cap, Math.floor((avail - 100) / maxLen) - 2), names = true;
+      if (cw < 11) { names = false; cw = Math.min(cap, Math.floor(avail / maxLen) - 2); }
       col.style.setProperty('--cw', cw + 'px');
       col.classList.toggle('nonames', !names);
       for (const i of c.idx) drawAnswer(i);
@@ -156,8 +158,10 @@
     const named = a.by && !el.parentElement.classList.contains('nonames');
     el.innerHTML = `<span class="l">${[...a.word].map((ch) => `<i>${a.by ? esc(ch) : ''}</i>`).join('')}</span>` + (named ? `<span class="by">${badge(a.by.platform)}<span>${esc(a.by.name)}</span></span>` : '');
     if (fresh) {
-      [...el.querySelectorAll('.l i')].forEach((b, n) => anim(b, [{ transform: 'rotateX(90deg)' }, { transform: 'none' }], { duration: 260, delay: n * 55, easing: 'ease-out', fill: 'backwards' }));
-      setTimeout(() => el.classList.remove('new'), 2200);
+      // the find lights up where it lands: it pops out big and gold, letter by letter, then settles and stays gold a while
+      anim(el, [{ transform: 'scale(1.7)', transformOrigin: 'left center' }, { transform: 'scale(1.7)', offset: 0.55 }, { transform: 'none' }], { duration: 1300, easing: 'cubic-bezier(.3,.7,.3,1)' });
+      [...el.querySelectorAll('.l i')].forEach((b, n) => anim(b, [{ transform: 'translateY(-10px) scale(1.4)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 300, delay: n * 60, easing: 'cubic-bezier(.3,.7,.4,1.3)', fill: 'backwards' }));
+      setTimeout(() => el.classList.remove('new'), 3500);
       const count = wordsEl.querySelector(`[data-count="${Math.min(a.word.length, 7)}"]`);
       if (count) { const all = round().answers.filter((x) => Math.min(x.word.length, 7) === Math.min(a.word.length, 7)); count.textContent = `${all.filter((x) => x.by).length}/${all.length}`; }
     }
@@ -192,8 +196,10 @@
     }, 28);
   }
   const recent = [];
-  function drawRecent() {
+  function drawRecent(fresh = false) {
     $('#recent').innerHTML = `<span class="rl">Recent</span>` + recent.map((f) => `<span class="rf"><b>${esc(f.word)}</b>${badge(f.by.platform)}${esc(f.by.name)}</span>`).join('');
+    const first = $('#recent .rf');
+    if (fresh && first) anim(first, [{ transform: 'scale(1.5)', background: 'var(--gold)' }, { transform: 'none' }], { duration: 900, easing: 'cubic-bezier(.3,.7,.3,1)' });
   }
   function drawConn(all) {
     $('#conn').innerHTML = shownPlatforms.map((p) => {
@@ -205,7 +211,7 @@
   // ---- bubbles and confetti -----------------------------------------------------------------------------------------------
   const bubblesEl = $('#bubbles'), fx = $('#fx');
   function bubble(html, cls = '') {
-    if (cfg.bubbles === 'off' || still) return;
+    if (still) return;
     const b = document.createElement('div'); b.className = 'bubble ' + cls; b.innerHTML = html;
     b.style.left = `${14 + Math.random() * 72}%`;
     bubblesEl.appendChild(b);
@@ -238,7 +244,8 @@
   function splitBox(split) {
     if (shownPlatforms.length < 2) return '';
     const t = split.twitch || 0, k = split.kick || 0, all = t + k || 1;
-    return `<h4><span>TWITCH VS KICK</span></h4><div class="splitl"><span>${badge('twitch')} <b>${t} words</b></span><span><b>${k} words</b> ${badge('kick')}</span></div><div class="split"><span class="twitch" style="width:${(t / all) * 100}%"></span><span class="kick" style="width:${(k / all) * 100}%"></span></div>`;
+    const words = (n) => `${n} word${n === 1 ? '' : 's'}`;
+    return `<h4><span>TWITCH VS KICK</span></h4><div class="splitl"><span>${badge('twitch')} <b>${words(t)}</b></span><span><b>${words(k)}</b> ${badge('kick')}</span></div><div class="split"><span class="twitch" style="width:${(t / all) * 100}%"></span><span class="kick" style="width:${(k / all) * 100}%"></span></div>`;
   }
   function highlights(h) {
     const rows = [h.fastest && ['Fastest find', `${esc(h.fastest.name)} · ${esc(h.fastest.word.toUpperCase())} in ${h.fastest.secs} s`], h.streak && ['Longest streak', `${esc(h.streak.name)} · ${h.streak.n} in a row`], h.save && ['Last-second save', `${esc(h.save.name)} · ${esc(h.save.word.toUpperCase())}`]].filter(Boolean);
@@ -271,6 +278,20 @@
   let sumTimer = null;
   const runSummaryClock = (on) => { clearInterval(sumTimer); sumTimer = on && !still ? setInterval(() => { if (game.state.nextAt) drawSummary(); }, 1000) : null; };
 
+  // ---- the end card: big text over the board, then the summary fades in (no flip: it's calmer on stream) ----------------
+  const endEl = $('#endcard');
+  let ending = false;
+  function showEnd([text, sub, bad]) {
+    if (rm) return;
+    ending = true; board.classList.remove('summary');
+    endEl.className = 'endcard on' + (bad ? ' bad' : '');
+    endEl.innerHTML = `<div class="shade"></div><div><div class="txt">${[...text].map((c) => `<span>${c === ' ' ? '&nbsp;' : esc(c)}</span>`).join('')}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>`;
+    anim(endEl.querySelector('.shade'), [{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: 'both' });
+    [...endEl.querySelectorAll('.txt span')].forEach((c, i) => anim(c, [{ transform: 'translateY(40px) scale(.4)', opacity: 0 }, { transform: 'translateY(-8px) scale(1.15)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }], { duration: 480, delay: 120 + i * 45, easing: 'ease-out', fill: 'both' }));
+    const subEl = endEl.querySelector('.sub'); if (subEl) anim(subEl, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 350, delay: 700, fill: 'both' });
+  }
+  function hideEnd() { ending = false; endEl.className = 'endcard'; endEl.innerHTML = ''; }
+
   // ---- the message over the board -------------------------------------------------------------------------------------------
   const msg = $('#msg');
   function message(h, p) { msg.innerHTML = h ? `<div><h2>${h}</h2><p>${p}</p></div>` : ''; msg.classList.toggle('on', !!h); }
@@ -278,7 +299,7 @@
   // ---- events → drawing -------------------------------------------------------------------------------------------------------
   function drawAll() {
     const s = game.state;
-    board.classList.toggle('flipped', s.phase === 'cleared' || s.phase === 'over');
+    if (!ending) board.classList.toggle('summary', s.phase === 'cleared' || s.phase === 'over');
     if (s.phase === 'idle') {
       drawTiles('chatagram'.split('')); whoEl.textContent = 'Chatagram'; whatEl.innerHTML = '<span class="hint">Waiting to start</span>';
       message('Waiting to start', `Type <code>${esc(game.commandName('start'))}</code> in chat to play`);
@@ -293,7 +314,7 @@
     switch (e.type) {
       case 'round':
         recent.length = 0; drawRecent();
-        board.classList.remove('flipped', 'low');
+        board.classList.remove('summary', 'low'); hideEnd();
         drawAll(); bannerIdle(); dropTiles(); anim(wordsEl, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
         break;
       case 'found': {
@@ -302,15 +323,14 @@
         scramble(whatEl, e.word, pts);
         lightTiles(e.tiles);
         drawAnswer(e.index, true);
-        recent.unshift({ word: e.word, by: e.by }); recent.length = Math.min(recent.length, 3); drawRecent();
+        recent.unshift({ word: e.word, by: e.by }); recent.length = Math.min(recent.length, 3); drawRecent(true);
         const before = goalEl.parentElement.classList.contains('met');
         drawStats();
         if (!before && goalEl.parentElement.classList.contains('met')) anim(goalEl.parentElement, [{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 500 });
-        if (cfg.bubbles !== 'off') bubble(`${shownPlatforms.length > 1 ? badge(e.by.platform) : ''}${esc(e.by.name)}: ${esc(e.word)} <span class="ok">✓</span>`);
         if (e.longest) confetti();
         break;
       }
-      case 'bonus': bubble(`${esc(e.by.name)}: ${esc(e.word)} <span class="ok">+1 bonus</span>`); drawStats(); break;
+      case 'bonus': whoEl.innerHTML = `${shownPlatforms.length > 1 ? badge(e.by.platform) : ''} ${esc(e.by.name)} found a bonus word`; whatEl.innerHTML = `${esc(e.word)} <small>+1</small>`; drawStats(); break;
       case 'shuffle': rollTiles([...tilesEl.children].map((t) => t.querySelector('.reel b').textContent), round().letters.map(shows)); break;
       case 'reveal': {
         const t = tilesEl.children[e.index]; if (!t) break;
@@ -329,9 +349,10 @@
       case 'unlock': drawTimer(); { const l = locksEl.children[e.index]; anim(l, [{ transform: 'scale(1)' }, { transform: 'scale(1.5) rotate(-12deg)' }, { transform: 'scale(1)' }], { duration: 500 }); } break;
       case 'end':
         drawStats(); runClock(false); board.classList.remove('low');
-        setTimeout(() => { drawSummary(); board.classList.add('flipped'); runSummaryClock(true); }, rm ? 0 : 900);
+        showEnd(e.phase === 'cleared' ? ['Cleared!', `${e.result.found} of ${e.result.total} words`, false] : [e.result.timeLeft > 0 ? 'Game over' : 'Time’s up!', `${e.result.found} of ${e.result.goal} needed`, true]);
+        setTimeout(() => { drawSummary(); hideEnd(); board.classList.add('summary'); runSummaryClock(true); }, rm ? 0 : 2200);
         break;
-      case 'skip': bubble('Skipped: new letters'); break;
+      case 'skip': break;
       case 'reset': case 'game': case 'phase': case 'resume': drawAll(); break;
     }
   }
@@ -350,7 +371,7 @@
   function hear(m) {
     const r = game.handle(m);
     if (r.kind === 'locked' && cfg.lockmsg) bubble(`🔒 ${esc(m.name)}: wait for the padlock`, 'no');
-    else if (cfg.bubbles === 'all' && (r.kind === 'dup' || (r.kind === 'wrong' && dict.tierOf.has(r.word)))) bubble(`${esc(m.name)}: ${esc(r.word)}`, 'no');
+    else if (cfg.wrong && (r.kind === 'dup' || (r.kind === 'wrong' && dict.tierOf.has(r.word)))) bubble(`${esc(m.name)}: ${esc(r.word)}`, 'no');
     flush(); schedule();
     return r;
   }
@@ -373,8 +394,8 @@
     queue.length = 0;
     drawAll();
     if (screen === 'play') { const f = r.answers.filter((a) => a.by).sort((a, b) => b.at - a.at); if (f[0]) { whoEl.innerHTML = `${shownPlatforms.length > 1 ? badge(f[0].by.platform) : ''} ${esc(f[0].by.name)} found`; whatEl.innerHTML = `${esc(f[0].word)} <small>+${f[0].pts}</small>`; recent.push(...f.slice(0, 3).map((a) => ({ word: a.word, by: a.by }))); drawRecent(); } }
-    board.classList.toggle('flipped', screen !== 'play');
-    if (screen !== 'play') { $('.card').style.transition = 'none'; }
+    board.classList.toggle('summary', screen !== 'play');
+    if (screen !== 'play') for (const f of document.querySelectorAll('.face')) f.style.transition = 'none';
   } else if (!demo && !platforms.length) {
     drawTiles('chatagram'.split('')); whoEl.textContent = 'Chatagram'; runClock(false);
     message('Add your channel', 'Set Chatagram up at <code>trongateslegacy.com/chatagram</code>, then paste the link it gives you');

@@ -34,7 +34,7 @@
     creset: { type: 'list', def: ['!reset'] },
     perm: { type: 'enum', def: 'mods', values: ['me', 'mods', 'all'] },
     // advanced: chat
-    bubbles: { type: 'enum', def: 'right', values: ['all', 'right', 'off'] },
+    wrong: { type: 'bool', def: false },                              // show wrong guesses (right ones light up on the board)
     ignore: { type: 'list', def: ['botrix', 'botrixoficial', 'nightbot', 'streamelements', 'moobot', 'fossabot', 'streamlabs', 'kicklet', 'kickbot', 'sery_bot', 'wizebot'] },
     block: { type: 'list', def: [] },
     top: { type: 'bool', def: true },
@@ -43,6 +43,7 @@
     credit: { type: 'bool', def: true },
   };
   const MAIN = ['twitch', 'kick', 'layout', 'theme', 'accent', 'time', 'diff', 'next', 'restart'];
-  const SIZES = { full: [900, 470], compact: [560, 230] };
+  // full is 16:9, exactly half of 1920 × 1080, so it can fill the whole screen at a clean 2×
+  const SIZES = { full: [960, 540], compact: [560, 230] };
   C.settings = { SCHEMA, MAIN, THEMES, SIZES };
 })();
