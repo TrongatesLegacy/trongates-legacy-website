@@ -175,7 +175,7 @@ test('a live theme message restyles the board without restarting the game; bad o
 test('the OBS wrapper follows the form: Tron in his armour colour, Princess Trina royal, the Blobfish deep, the Form looks too', async () => {
   const tab = await chrome.open(site.origin + '/obs/chatagram?noveado=1&demo=1&form=red&layout=compact', { width: 560, height: 230 });
   const inner = (js) => tab.eval(`(() => { const d = document.getElementById('game').contentDocument; const w = document.getElementById('game').contentWindow; return ${js}; })()`);
-  await tab.until(`document.getElementById('game').contentDocument?.documentElement.dataset.ready === '1'`, 8000);
+  await tab.until(`document.getElementById('game').contentDocument?.documentElement?.dataset.ready === '1'`, 8000);
   const theme = () => inner(`[d.getElementById('board').dataset.theme, getComputedStyle(d.getElementById('board')).getPropertyValue('--accent').trim()]`);
   assert.deepEqual(await theme(), ['neon', '#ff4155']);
   const round = await inner('w.chatagram.game.state.round.id');
@@ -187,7 +187,7 @@ test('the OBS wrapper follows the form: Tron in his armour colour, Princess Trin
   assert.equal(await inner('w.chatagram.cfg.layout'), 'compact', 'the game\'s own options pass through');
   await tab.close();
   const looks = await chrome.open(site.origin + '/obs/chatagram?noveado=1&demo=1&form=princess&looks=princess:tron', { width: 960, height: 540 });
-  await looks.until(`document.getElementById('game').contentDocument?.documentElement.dataset.ready === '1'`, 8000);
+  await looks.until(`document.getElementById('game').contentDocument?.documentElement?.dataset.ready === '1'`, 8000);
   assert.equal(await looks.eval(`document.getElementById('game').contentDocument.getElementById('board').dataset.theme`), 'neon', 'Form looks: Princess Trina in Tron\'s look');
   await looks.close();
 });
@@ -261,7 +261,7 @@ test('reduced motion: no animations run, the letters still change', async () => 
 // showed at once (it looked like a new game stacked on top of the old one). Once the game has drawn, the picture goes.
 async function pictureGoneOnceLive(server) {
   const tab = await chrome.open(server.origin + '/chatagram/', { width: 1354, height: 860 });
-  await tab.until('document.getElementById("hero-frame").contentDocument?.documentElement.dataset.ready === "1"', 10000, 'the hero game');
+  await tab.until('document.getElementById("hero-frame").contentDocument?.documentElement?.dataset.ready === "1"', 10000, 'the hero game');
   await sleep(900);
   const shown = await tab.eval('[...document.querySelectorAll("#hero-screen .poster, #pv-screen .poster")].map((p) => +getComputedStyle(p).opacity)');
   await tab.close();
@@ -309,11 +309,30 @@ test('the banner always ends on the newest find, however close together finds ar
 // board jumped when the game took over. They must cover exactly the same pixels.
 test('the placeholder picture sits exactly where the live game appears', async () => {
   const tab = await chrome.open(site.origin + '/chatagram/', { width: 1354, height: 860 });
-  await tab.until('document.getElementById("pv").contentDocument?.documentElement.dataset.ready === "1" && document.getElementById("hero-frame").contentDocument?.documentElement.dataset.ready === "1"', 10000);
+  await tab.until('document.getElementById("pv").contentDocument?.documentElement?.dataset.ready === "1" && document.getElementById("hero-frame").contentDocument?.documentElement?.dataset.ready === "1"', 10000);
   const off = await tab.eval(`['hero', 'pv'].map((id) => {
     const box = document.getElementById(id + '-screen'), f = box.querySelector('iframe'), p = box.querySelector('.poster').getBoundingClientRect(), fr = f.getBoundingClientRect();
     return Math.max(Math.abs(p.left - fr.left), Math.abs(p.top - fr.top), Math.abs(p.width - fr.width), Math.abs(p.height - fr.height));
   })`);
   for (const o of off) assert.ok(o < 1, `picture and game differ by ${o} px`);
+  await tab.close();
+});
+
+// The longest lengths share one "N+" column when they only have a few boxes (owner, 2026-09-28): fewer, roomier columns.
+test('a board of mostly short words groups its few long-word boxes into one "N+" column', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/play.html?demo=1', { width: 960, height: 540 });
+  await ready(tab);
+  let seen = null;
+  for (let i = 0; i < 60 && !seen; i++) {
+    const heads = await tab.eval('[...document.querySelectorAll("#words h4 span:first-child")].map((s) => s.textContent)');
+    const lens = await tab.eval('[...new Set(chatagram.game.state.round.answers.map((a) => a.word.length))].length');
+    if (lens >= 4 && heads.length < lens) seen = heads;
+    else await tab.eval('chatagram.hear({ platform: "twitch", user: "o", name: "O", owner: true, mod: true, text: "!skip" }); 1');
+  }
+  assert.ok(seen, 'a board with merged columns came up');
+  assert.ok(seen.some((h) => /^\d\+/.test(h)), `an N+ heading: ${seen}`);
+  assert.ok(seen.length >= 3, 'never fewer than three columns');
+  // every box is still on the board, and the N+ count covers all its lengths
+  assert.equal(await tab.eval('document.querySelectorAll("#words .w").length'), await tab.eval('chatagram.game.state.round.answers.length'));
   await tab.close();
 });

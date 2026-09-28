@@ -121,10 +121,30 @@
 
   // ---- drawing: the words (full layout) ---------------------------------------------------------------------------------
   const wordsEl = $('#words');
+  // Columns by length, but the longest lengths share one "N+" column when they only have a few boxes, so a board of
+  // mostly short words isn't split into thin, near-empty columns. Merges from the longest end while there are more than
+  // three columns and the merged column stays small (6 boxes or fewer); 3- and 4-letter words always keep their own.
+  let groupStart = 99;
+  function planGroups() {
+    const r = round(), count = new Map();
+    for (const a of r.answers) count.set(a.word.length, (count.get(a.word.length) || 0) + 1);
+    const lens = [...count.keys()].sort((a, b) => a - b);
+    groupStart = 99;
+    // try "5+", "6+"…: the lowest start whose merged column stays small, as long as that still leaves 3+ columns
+    for (const start of lens.filter((l) => l >= 5)) {
+      const merged = lens.filter((l) => l >= start).reduce((n, l) => n + count.get(l), 0);
+      const cols = lens.filter((l) => l < start).length + 1;
+      if (merged <= 6 && cols >= 3 && cols < lens.length) { groupStart = start; break; }
+    }
+  }
+  const groupOf = (len) => (len >= groupStart ? groupStart : Math.min(len, 7));
+  const groupLabel = (g, short) => (g === groupStart || g === 7 ? `${g}+` : `${g}`) + (short ? '' : ' LETTERS');
   function drawWords() {
     const r = round(); if (!r || cfg.layout === 'compact') return;
+    planGroups();
     const groups = new Map();
-    for (const [i, a] of r.answers.entries()) { const k = Math.min(a.word.length, 7); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); }
+    for (const [i, a] of r.answers.entries()) { const k = groupOf(a.word.length); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); }
+    for (const idx of groups.values()) idx.sort((x, y) => r.answers[x].word.length - r.answers[y].word.length);
     wordsEl.innerHTML = '';
     // The biggest letter boxes where every column really fits the board's width: names beside the words if at all possible,
     // otherwise without names. Each column's width is measured (letters + name), not guessed, so a big puzzle never ends
@@ -153,7 +173,7 @@
     for (const c of cols) {
       const got = c.all.filter((i) => r.answers[i].by).length;
       const col = document.createElement('div'); col.className = 'col' + (names ? '' : ' nonames');
-      const label = c.width >= 125 ? (c.len === 7 ? '7+ LETTERS' : `${c.len} LETTERS`) : (c.len === 7 ? '7+' : `${c.len}`);   // narrow columns: just the length
+      const label = groupLabel(c.len, c.width < 125);   // narrow columns: just the length
       col.innerHTML = `<h4>${c.first ? `<span>${label}</span><span data-count="${c.len}">${got}/${c.all.length}</span>` : ''}</h4>` +
         c.idx.map((i) => `<div class="w" data-a="${i}"></div>`).join('');
       wordsEl.appendChild(col);
@@ -170,8 +190,8 @@
       // one animation on the whole word (the letters never move on their own, so they can't overlap)
       anim(el, [{ transform: 'scale(1)' }, { transform: 'scale(1.6)', offset: 0.18 }, { transform: 'scale(1.6)', offset: 0.6 }, { transform: 'scale(1)' }], { duration: 1400, easing: 'cubic-bezier(.3,.7,.3,1)' });
       setTimeout(() => el.classList.remove('new'), 3500);
-      const count = wordsEl.querySelector(`[data-count="${Math.min(a.word.length, 7)}"]`);
-      if (count) { const all = round().answers.filter((x) => Math.min(x.word.length, 7) === Math.min(a.word.length, 7)); count.textContent = `${all.filter((x) => x.by).length}/${all.length}`; }
+      const count = wordsEl.querySelector(`[data-count="${groupOf(a.word.length)}"]`);
+      if (count) { const all = round().answers.filter((x) => groupOf(x.word.length) === groupOf(a.word.length)); count.textContent = `${all.filter((x) => x.by).length}/${all.length}`; }
     }
   }
 

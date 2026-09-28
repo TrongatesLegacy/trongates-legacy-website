@@ -126,6 +126,8 @@ round highlights (fastest find, longest streak, last-second save).
   word boxes, 16–50), spread over the lengths in proportion, the longest word always among them. A box belongs to a
   length, not a word: any real word of that length fills the next open box, and once a length's boxes are full, more words
   of that length don't count ("full"). The goal is 65% of the boxes. Unfilled boxes' words are the "missed" ones.
+- **Columns**: one per length, but the longest lengths share one "N+" column (e.g. "5+ LETTERS") when together they
+  have 6 boxes or fewer and at least three columns remain; 3- and 4-letter words always keep their own column.
 - **The banner** runs one scramble at a time; a new find cancels the last, so it always ends on the newest word (test).
 - **Empty slots** have a clear outline in every theme, so they read on any background and when the source is small.
 - **Performance**: one timer drives the game (set for `nextWake()`), one updates the clock once a second; animations
