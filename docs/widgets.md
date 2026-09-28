@@ -134,7 +134,7 @@ round highlights (fastest find, longest streak, last-second save).
 - **Performance**: one timer drives the game (set for `nextWake()`), one updates the clock once a second; animations
   are Web Animations on `transform` and `opacity` only. **Reduced motion** (`.rm`): everything changes at once. As in
   the OBS scenes, inside OBS the streaming PC's system setting is ignored unless the link says `motion=reduce`.
-- **Other modes**: `demo=1` (the pretend chat plays; the set-up preview, the hero), `still=1&screen=play|cleared|over`
+- **Other modes**: `seed=word` makes the first puzzle that word, if it's a real seed (the trailer uses it), `demo=1` (the pretend chat plays; the set-up preview, the hero), `still=1&screen=play|cleared|over`
   (a frozen, seeded moment: the set-up page's summary tabs, the theme gallery, screenshots). No channel in the link:
   it says "Add your channel" and connects to nothing.
 

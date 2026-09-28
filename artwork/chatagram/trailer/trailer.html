@@ -36,8 +36,24 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 .plus { font: 130px "Lilita One", sans-serif; color: var(--sun); }
 #b h2 { font: 92px "Lilita One", sans-serif; margin: 70px 0 0; } #b h2 em { font-style: normal; color: var(--coral); }
 /* C/D: gameplay */
-#c .frame { position: absolute; left: 240px; top: 180px; width: 1440px; height: 810px; }
-#c iframe { width: 1440px; height: 810px; border: 0; background: transparent; }
+#c .frame { position: absolute; left: 50px; top: 200px; width: 1280px; height: 720px; }
+#c iframe { width: 1280px; height: 720px; border: 0; background: transparent; }
+/* the combined stream chat beside the game: the same messages the game reads */
+.chat { position: absolute; left: 1360px; top: 200px; width: 510px; height: 720px; background: #0f0c20; border-radius: 26px; box-shadow: 0 0 0 3px var(--ink3), 0 24px 50px #0008;
+  display: flex; flex-direction: column; overflow: hidden; }
+.chat .head { display: flex; align-items: center; gap: 12px; padding: 18px 22px; background: var(--ink2); font: 30px "Lilita One", sans-serif; }
+.chat .head .ic { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; }
+.chat .head .ic svg { width: 24px; height: 24px; } .chat .head .ic.t { background: #9146ff; color: #fff; } .chat .head .ic.k { background: #53fc18; color: #0b0b0b; }
+.chat .head small { margin-left: auto; font: 600 18px "Chakra Petch", sans-serif; color: var(--muted); }
+.chat .list { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; padding: 16px 18px; overflow: hidden; }
+.msg { display: flex; align-items: center; gap: 10px; font-size: 26px; line-height: 1.25; padding: 7px 10px; border-radius: 12px; animation: msgIn .25s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes msgIn { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.msg .pf { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; flex: none; } .msg .pf svg { width: 20px; height: 20px; }
+.msg .pf.twitch { background: #9146ff; color: #fff; } .msg .pf.kick { background: #53fc18; color: #0b0b0b; }
+.msg .nm { font-weight: 600; white-space: nowrap; } .msg .tx { color: var(--paper); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.msg .ok { margin-left: auto; font: 30px "Lilita One", sans-serif; color: #0f0c20; background: var(--sun); border-radius: 50%; width: 38px; height: 38px; display: grid; place-items: center; flex: none;
+  animation: pop .4s cubic-bezier(.3,1.6,.5,1) both; }
+.msg.hit { background: #ffc93c26; box-shadow: inset 0 0 0 2px #ffc93c88; } .msg.hit .tx { color: var(--sun); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .cap { position: absolute; left: 0; right: 0; top: 50px; text-align: center; font: 84px "Lilita One", sans-serif; }
 .cap span { display: inline-block; opacity: 0; transform: translateY(40px); transition: opacity .35s, transform .35s cubic-bezier(.2,.9,.3,1.3); }
 .cap span.show { opacity: 1; transform: none; }
@@ -68,9 +84,9 @@ br.vb { display: none; } .v br.vb { display: inline; }
 .v #a .logo { font-size: 150px; } .v #a h1 { font-size: 100px; padding: 0 70px; margin-top: 60px; }
 .v #b .row { flex-direction: column; gap: 50px; } .v .plat { font-size: 140px; } .v .plus { font-size: 150px; }
 .v #b h2 { font-size: 110px; padding: 0 60px; margin-top: 90px; line-height: 1.05; }
-.v .cap { top: 400px; font-size: 96px; padding: 0 60px; line-height: 1.05; }
-.v #c .frame { left: 20px; top: 740px; width: 1040px; height: 585px; } .v #c iframe { width: 1040px; height: 585px; }
-.v #c .under { display: flex; }
+.v .cap { top: 330px; font-size: 96px; padding: 0 60px; line-height: 1.05; }
+.v #c .frame { left: 20px; top: 640px; width: 1040px; height: 585px; } .v #c iframe { width: 1040px; height: 585px; }
+.v .chat { left: 40px; top: 1260px; width: 1000px; height: 470px; }
 #c .under { display: none; position: absolute; left: 0; right: 0; top: 1430px; justify-content: center; gap: 30px; }
 #c .under span { display: inline-flex; align-items: center; gap: 14px; font: 64px "Lilita One", sans-serif; padding: 14px 34px; border-radius: 26px; }
 #c .under svg { width: 60px; height: 60px; }
@@ -108,6 +124,7 @@ br.vb { display: none; } .v br.vb { display: inline; }
 <section class="scene" id="c">
   <div class="cap" id="cap"></div>
   <div class="frame"><iframe id="game" allowtransparency="true"></iframe></div>
+  <div class="chat"><div class="head"><span class="ic t"><svg><use href="#i-twitch"/></svg></span><span class="ic k"><svg><use href="#i-kick"/></svg></span>Stream chat<small>Twitch + Kick</small></div><div class="list" id="chatlist"></div></div>
   <div class="under"><span class="plat t"><svg><use href="#i-twitch"/></svg>Twitch</span><span class="plat k"><svg><use href="#i-kick"/></svg>Kick</span></div>
 </section>
 
@@ -152,23 +169,42 @@ const caption = (html) => {
   requestAnimationFrame(() => requestAnimationFrame(() => c.firstChild.classList.add('show')));
 };
 const game = () => document.getElementById('game').contentWindow.chatagram;
-const NAMES = [['PixelPanda', 'twitch'], ['NeonNacho', 'kick'], ['SleepyWaffle', 'twitch'], ['GridRunner', 'kick'], ['LunaLlama', 'twitch'], ['TurboTofu', 'kick']];
-let n = 0;
-function find(count) {
-  const g = game(); if (!g) return;
-  const open = g.game.state.round.answers.filter((a) => !a.by).sort((x, y) => x.word.length - y.word.length);
-  for (const a of open.slice(0, count)) { const [name, platform] = NAMES[n++ % NAMES.length]; g.hear({ platform, user: name.toLowerCase(), name, text: a.word }); }
+const PEOPLE = [['PixelPanda', 'twitch', '#b98cff'], ['NeonNacho', 'kick', '#53fc18'], ['SleepyWaffle', 'twitch', '#ff9f5a'], ['GridRunner', 'kick', '#4fd1ff'],
+  ['LunaLlama', 'twitch', '#ff7eb6'], ['TurboTofu', 'kick', '#ffd23f'], ['MossyMoose', 'twitch', '#7ee08a'], ['ByteSizeBea', 'kick', '#ff6b6b']];
+const CHATTER = ['lets gooo', 'this is so fun', 'ooh I see one', 'chat focus up', 'hype!!', 'wait what', 'too fast lol', 'gg', 'no way', 'one more!'];
+let p = 0, c = 0;
+const esc = (t) => String(t).replace(/[&<>]/g, (x) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[x]);
+// one chat message: shown in the chat panel and sent to the game over its Twitch or Kick connection; a right guess gets a tick
+function say(text, who = PEOPLE[p++ % PEOPLE.length]) {
+  const [name, platform, colour] = who, list = document.getElementById('chatlist');
+  const m = document.createElement('div'); m.className = 'msg';
+  m.innerHTML = `<span class="pf ${platform}"><svg><use href="#i-${platform}"/></svg></span><span class="nm" style="color:${colour}">${esc(name)}</span><span class="tx">${esc(text)}</span>`;
+  list.appendChild(m);
+  while (list.children.length > 14) list.firstElementChild.remove();
+  const chat = document.getElementById('game').contentWindow.__chat;
+  if (chat) chat[platform](name, text);
+  setTimeout(() => {
+    const g = game(); if (!g) return;
+    const a = g.game.state.round.answers.find((x) => x.word === text.toLowerCase() && x.by && x.by.name === name);
+    if (a) { m.classList.add('hit'); m.insertAdjacentHTML('beforeend', '<span class="ok">✓</span>'); }
+  }, 60);
 }
+const open = () => { const g = game(); return g ? g.game.state.round.answers.filter((a) => !a.by).sort((x, y) => x.word.length - y.word.length).map((a) => a.word) : []; };
+const guess = () => { const w = open()[0]; if (w) say(w); };
+const chatter = () => say(CHATTER[c++ % CHATTER.length]);
+const miss = () => say(['dragon', 'orange', 'tread', 'north'][c++ % 4]);   // real words that aren't on this board
 function at(bars, fn) { setTimeout(fn, bars * BAR * 1000); }
 window.start = () => {
   // a fresh game when the trailer starts, so the pretend chat can't clear the board before its moment
-  document.getElementById('game').src = '/chatagram/play.html?demo=1&shuffle=4&time=60';
+  document.getElementById('game').src = '/chatagram/play.html?twitch=streamer&kick=streamer&kickid=1&shuffle=4&time=60&seed=garden';
   for (const [id, b] of SCENES) at(b, () => show(id));
   at(4, () => caption('Chat types <em>words</em>'));
-  for (let i = 0; i < 5; i++) at(4.4 + i * 0.45, () => find(1));
+  // the chat: a steady mix of chatter, misses and right guesses (each shown in the panel and read by the game)
+  const beats = ['chatter', 'guess', 'chatter', 'guess', 'miss', 'guess', 'chatter', 'guess', 'guess', 'chatter', 'guess', 'miss', 'guess', 'chatter', 'guess', 'guess'];
+  beats.forEach((k, i) => at(4.15 + i * 0.24, () => (k === 'guess' ? guess() : k === 'miss' ? miss() : chatter())));
   at(6.5, () => caption('First to find<br class="vb"> one <em>scores</em>'));
-  at(6.7, () => find(1)); at(7.1, () => find(1));
-  at(7.9, () => { caption('Beat the goal.<br class="vb"> <em>Clear the level!</em>'); find(99); });
+  at(7.9, () => { caption('Beat the goal.<br class="vb"> <em>Clear the level!</em>'); for (let i = 0; i < 12; i++) setTimeout(guess, i * 110); });
+  at(8.6, () => say('WE DID IT', PEOPLE[1])); at(8.9, () => say('gg chat!!', PEOPLE[4]));
   window.started = performance.now();
 };
 window.ready = () => document.fonts.status === 'loaded' && [...document.images].every((i) => i.complete);

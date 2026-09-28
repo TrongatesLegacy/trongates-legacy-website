@@ -398,3 +398,13 @@ test('every platform badge\'s icon is centred in its badge (footer, banner, summ
   for (const [where, dx, dy] of off) assert.ok(dx < 0.5 && dy < 0.5, `${where}: icon off-centre by ${dx} × ${dy} px`);
   await tab.close();
 });
+
+test('seed= in the link sets the first puzzle (the trailer uses it); anything else is ignored', async () => {
+  for (const [q, want] of [['seed=garden', 'garden'], ['seed=zzzqqq', null], ['seed=<b>', null]]) {
+    const tab = await chrome.open(site.origin + '/chatagram/play.html?demo=1&' + q, { width: 960, height: 540 });
+    await ready(tab);
+    const seed = await tab.eval('chatagram.game.state.round.seed');
+    if (want) assert.equal(seed, want); else assert.match(seed, /^[a-z]{6}$/, `${q}: a normal random puzzle`);
+    await tab.close();
+  }
+});

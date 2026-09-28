@@ -47,7 +47,7 @@
   const queue = [];
   // still pictures (the site's previews, the share image) always show a hand-checked, friendly puzzle
   const STILL_SEEDS = { easy: 'heart', normal: 'garden', hard: 'clovers' };
-  const game = C.game(cfg, { dict, seeds, now, random: still ? seeded : Math.random, emit: (e) => queue.push(e), firstSeed: still ? STILL_SEEDS[cfg.diff] : null });
+  const game = C.game(cfg, { dict, seeds, now, random: still ? seeded : Math.random, emit: (e) => queue.push(e), firstSeed: /^[a-z]{3,9}$/.test(q.get('seed') || '') ? q.get('seed') : still ? STILL_SEEDS[cfg.diff] : null });   // seed=: the first puzzle's word (the trailer), if it's a real seed
   const SAVE = `chatagram:v1:${channels.twitch}|${channels.kick}`;
   let saved = null;
   if (!demo && !still) try { saved = JSON.parse(localStorage.getItem(SAVE) || 'null'); } catch {}
