@@ -86,24 +86,29 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .tgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0; margin: 0; list-style: none; }
 .tgrid .screen { height: 128px; border-radius: 12px; }
 .tgrid h3 { font-size: 18px; margin: 8px 0 0; }
+.thm { all: unset; display: block; width: 100%; cursor: pointer; border-radius: 12px; }
+.thm:hover .screen { box-shadow: 0 0 0 4px var(--coral); }
+.thm:focus-visible { outline: 3px solid var(--sun); outline-offset: 4px; }
 
 /* set-up */
 .cols { display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 24px; align-items: start; }
-.left { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.left { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; min-width: 0; }
 .card { background: var(--ink2); border-radius: 18px; padding: 20px; display: grid; gap: 14px; align-content: start; border: 0; margin: 0; min-width: 0; }
 .card legend, .card h3 { float: left; width: 100%; margin: 0 0 2px; padding: 0; font: 20px "Lilita One", sans-serif; color: var(--sun); }
 .card legend + * { clear: both; }
 .game, .adv { grid-column: 1 / -1; }
-.game { grid-template-columns: 1fr 1fr; column-gap: 22px; }
+.game { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 22px; }
 .game legend { grid-column: 1 / -1; }
 .field { display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
 .field > span:first-child, .lab { display: inline-flex; gap: 6px; align-items: center; }
 .box { display: flex; align-items: center; gap: 2px; background: var(--ink); border-radius: 10px; padding: 0 12px; color: var(--paper); font-size: 16px; }
 .box:focus-within { outline: 3px solid var(--sun); outline-offset: 1px; }
 .box .pre { color: var(--muted); }
-.box input, .box select { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--paper); font: inherit; padding: 10px 0; outline: none; }
+.box input, .box select { flex: 1; width: 100%; min-width: 0; background: transparent; border: 0; color: var(--paper); font: inherit; padding: 10px 0; outline: none; }
 .box select option { background: var(--ink); }
-.st { margin-left: auto; font-size: 13px; white-space: nowrap; } .st.ok { color: var(--mint); } .st.bad { color: #ff8a8e; } .st.wait { color: var(--muted); }
+.st { margin: -2px 0 0; font-size: 13px; min-height: 20px; color: var(--muted); display: flex; gap: 6px; align-items: flex-start; }
+.st.ok { color: var(--mint); } .st.bad { color: #ff9ea2; } .st.wait { color: var(--muted); }
+.st::before { flex: none; } .st.ok::before { content: '✓'; } .st.bad::before { content: '!'; font-weight: 700; } .st.wait::before { content: '…'; }
 .note { font-size: 13px; color: var(--muted); margin: 0; }
 .seg { display: flex; background: var(--ink); border-radius: 10px; padding: 3px; gap: 2px; }
 .seg label { flex: 1; text-align: center; position: relative; }
@@ -122,14 +127,17 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .themes span { display: block; height: 30px; border-radius: 7px; }
 .themes input:checked + span { box-shadow: 0 0 0 2px var(--ink2), 0 0 0 4px var(--paper); }
 .themes input:focus-visible + span { outline: 3px solid var(--sun); outline-offset: 3px; }
-.accents { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.accents { display: flex; gap: 7px; align-items: center; }
 .accents label { position: relative; cursor: pointer; }
 .accents input[type=radio] { position: absolute; opacity: 0; }
-.accents span { display: block; width: 26px; height: 26px; border-radius: 50%; }
+.accents span { display: block; width: 25px; height: 25px; border-radius: 50%; }
 .accents input:checked + span { box-shadow: 0 0 0 2px var(--ink2), 0 0 0 4px var(--paper); }
 .accents input:focus-visible + span { outline: 3px solid var(--sun); outline-offset: 3px; }
-.accents .custom { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); border: 1px dashed var(--ink3); border-radius: 99px; padding: 2px 10px 2px 4px; white-space: nowrap; }
-.accents input[type=color] { width: 22px; height: 22px; border: 0; padding: 0; background: none; border-radius: 50%; cursor: pointer; }
+.accents .custom { position: relative; width: 25px; height: 25px; border-radius: 50%; flex: none; background: conic-gradient(#ff5a5f, #ffc93c, #2ee6a8, #22e5ff, #b48cff, #ff63b8, #ff5a5f); cursor: pointer; display: grid; place-items: center; }
+.accents .custom::after { content: '+'; color: #fff; font: 700 15px/1 system-ui; text-shadow: 0 1px 2px #0008; }
+.accents .custom.on { box-shadow: 0 0 0 2px var(--ink2), 0 0 0 4px var(--paper); }
+.accents .custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
+.accents .custom:focus-within { outline: 3px solid var(--sun); outline-offset: 3px; }
 .adv { background: #1c1636; border-radius: 18px; padding: 14px 18px 18px; }
 .adv summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .adv summary::-webkit-details-marker { display: none; }
@@ -138,9 +146,9 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .adv .chg { font-size: 13px; background: var(--coral); color: var(--ink); padding: 2px 10px; border-radius: 99px; font-weight: 700; }
 .adv .chg[hidden] { display: none; }
 .adv .hint { font-size: 14px; color: var(--muted); }
-.agrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.agrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 16px; }
 .agrid .wide { grid-column: 1 / -1; }
-.cmds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.cmds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .cmds .box input { font-family: ui-monospace, Menlo, monospace; color: var(--sun); font-size: 15px; }
 .right { position: sticky; top: calc(var(--nav) + 16px); background: var(--ink2); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
 .right h3 { margin: 0; font-size: 19px; color: var(--sun); display: flex; justify-content: space-between; align-items: baseline; }
@@ -156,6 +164,19 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .link[hidden] { display: none; }
 .how { font-size: 13px; color: var(--muted); border-top: 1px solid var(--ink3); padding-top: 10px; margin: 0; }
 #copy { width: 100%; font-size: 22px; }
+.btn[disabled] { background: var(--ink3); color: var(--muted); box-shadow: 0 5px 0 #120e24; cursor: not-allowed; }
+.meta [aria-disabled=true] { opacity: .45; pointer-events: none; }
+.need { margin: 0; font-size: 13px; color: var(--sun); }
+.need[hidden] { display: none; }
+/* tag fields: each name or word is a chip with a ×; type and press Enter (or a comma) to add */
+.tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--ink); border-radius: 10px; padding: 7px 8px; min-height: 44px; cursor: text; }
+.tags:focus-within { outline: 3px solid var(--sun); outline-offset: 1px; }
+.tag { display: inline-flex; align-items: center; gap: 4px; background: var(--ink3); color: var(--paper); border-radius: 99px; padding: 3px 4px 3px 11px; font-size: 14px; }
+.tag button { border: 0; background: none; color: var(--muted); font: 700 15px/1 system-ui; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; }
+.tag button:hover, .tag button:focus-visible { background: var(--coral); color: var(--ink); }
+.tags input { flex: 1; min-width: 110px; background: transparent; border: 0; color: var(--paper); font: inherit; padding: 4px 4px; outline: none; }
+.poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.screen iframe { opacity: 0; transition: opacity .4s; } .screen iframe.ready { opacity: 1; }
 
 /* FAQ, footer */
 .faq { display: grid; gap: 10px; max-width: 860px; }
@@ -190,7 +211,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <symbol id="i-kick" viewBox="0 0 10 10"><path d="M1 1h2.4v2.2h1.2V2.1h1.2V1H8.2v2.4H7v1.2H5.8v.8H7v1.2h1.2V9H5.8V7.9H4.6V6.8H3.4V9H1z" fill="currentColor"/></symbol>
+  <symbol id="i-kick" viewBox="0 0 10 10"><path transform="translate(.4 0)" d="M1 1h2.4v2.2h1.2V2.1h1.2V1H8.2v2.4H7v1.2H5.8v.8H7v1.2h1.2V9H5.8V7.9H4.6V6.8H3.4V9H1z" fill="currentColor"/></symbol>
   <symbol id="i-twitch" viewBox="0 0 10 10"><path d="M2 1 1.2 2.8v5.4h2V9.3h1.1l1.1-1.1h1.7L9 6.3V1zm6.2 4.9-1.3 1.3H5.1L4 8.3V7.2H2.4V1.8h5.8zM6.9 3v2.2h-.8V3zm-2 0v2.2h-.8V3z" fill="currentColor"/></symbol>
 </defs></svg>
 
@@ -210,7 +231,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
       <li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>8 themes</li><li>Leaderboards</li><li>Free</li>
     </ul>
   </div>
-  <div class="screen" id="hero-screen"><iframe id="hero-frame" title="Chatagram playing with a pretend chat" width="900" height="470" style="transform: translate(-50%,-50%) scale(.6)" tabindex="-1"></iframe></div>
+  <div class="screen" id="hero-screen"><img class="poster" src="assets/themes/chatagram-full.webp" alt="" width="960" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chatagram playing with a pretend chat" width="960" height="540" style="transform: translate(-50%,-50%) scale(.55)" tabindex="-1"></iframe></div>
 </section>
 
 <section class="wrap sec" id="how"><h2>How it <span>works</span></h2>
@@ -230,14 +251,16 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   <div class="left">
     <fieldset class="card"><legend>1 · Your channels</legend>
       <label class="field"><span><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</span><span class="box"><span class="pre">twitch.tv/</span><input name="twitch" autocomplete="off" spellcheck="false" placeholder="your_channel"></span></label>
-      <label class="field"><span><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</span><span class="box"><span class="pre">kick.com/</span><input name="kick" autocomplete="off" spellcheck="false" placeholder="your_channel"><span class="st" id="kick-st" aria-live="polite"></span></span></label>
+      <p class="st" id="twitch-st" aria-live="polite"></p>
+      <label class="field"><span><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</span><span class="box"><span class="pre">kick.com/</span><input name="kick" autocomplete="off" spellcheck="false" placeholder="your_channel"></span></label>
+      <p class="st" id="kick-st" aria-live="polite"></p>
       <p class="note">One or both. With one, the platform badges disappear.</p>
     </fieldset>
     <fieldset class="card"><legend>2 · Look</legend>
       <div class="field"><span class="lab" id="l-layout">Layout</span><div class="seg" role="radiogroup" aria-labelledby="l-layout">
-        <label><input type="radio" name="layout" value="full"><span>Full 900×470</span></label><label><input type="radio" name="layout" value="compact"><span>Compact 560×230</span></label></div></div>
+        <label><input type="radio" name="layout" value="full"><span>Full 960×540</span></label><label><input type="radio" name="layout" value="compact"><span>Compact 560×230</span></label></div></div>
       <div class="field"><span class="lab" id="l-theme">Theme: <b id="theme-name" style="color:var(--paper);font-weight:600"></b></span><div class="themes" id="theme-pick" role="radiogroup" aria-labelledby="l-theme"></div></div>
-      <div class="field"><span class="lab" id="l-accent">Accent colour</span><div class="accents" id="accents" role="radiogroup" aria-labelledby="l-accent"></div><p class="note" id="accent-note"></p></div>
+      <div class="field"><span class="lab" id="l-accent">Accent colour</span><div class="accents" id="accents" role="radiogroup" aria-labelledby="l-accent"></div><p class="note" id="accent-note">The first colour is the theme’s own.</p></div>
     </fieldset>
     <fieldset class="card game"><legend>3 · Game</legend>
       <div class="field"><span class="lab" id="l-time">Round length</span><div class="seg" role="radiogroup" aria-labelledby="l-time">
@@ -267,9 +290,10 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
           <label class="field"><span>After game over</span><span class="box"><select name="restart"><option value="10">New game in 10 seconds</option><option value="15">New game in 15 seconds</option><option value="30">New game in 30 seconds</option><option value="60">New game in 60 seconds</option><option value="0">Wait for the start command</option></select></span></label>
         </fieldset>
         <fieldset class="card"><legend>Chat</legend>
-          <div class="field"><span class="lab" id="l-bub">Guess bubbles</span><div class="seg" role="radiogroup" aria-labelledby="l-bub"><label><input type="radio" name="bubbles" value="all"><span>All</span></label><label><input type="radio" name="bubbles" value="right"><span>Right only</span></label><label><input type="radio" name="bubbles" value="off"><span>Off</span></label></div></div>
-          <label class="field"><span>Ignore these users (bots)</span><span class="box"><input name="ignore" autocomplete="off" spellcheck="false"></span></label>
-          <label class="field"><span>Never use these words</span><span class="box"><input name="block" autocomplete="off" spellcheck="false" placeholder="word, word"></span></label>
+          <label class="sw">Show wrong guesses <input type="checkbox" role="switch" name="wrong"></label>
+          <p class="note">Right guesses always light up on the board.</p>
+          <div class="field"><span class="lab" id="l-ignore">Ignore these users (bots)</span><div class="tags" data-tags="ignore" data-placeholder="Add a name…" aria-labelledby="l-ignore"></div></div>
+          <div class="field"><span class="lab" id="l-block">Never use these words</span><div class="tags" data-tags="block" data-placeholder="Add a word…" aria-labelledby="l-block"></div><p class="note">Type and press Enter. Click × to remove.</p></div>
           <label class="sw">Show top players <input type="checkbox" role="switch" name="top"></label>
         </fieldset>
         <fieldset class="card wide"><legend>Chat commands</legend>
@@ -283,9 +307,9 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
           <p class="note">Clash with another bot's commands? Rename them, e.g. <code>!cg start</code> or <code>!newgame</code>. Several names: separate with commas. Reset also clears the all-time scores.</p>
         </fieldset>
         <fieldset class="card wide"><legend>Other</legend>
-          <label class="field"><span>Kick chatroom ID (if Kick won't say)</span><span class="box"><input name="kickid" inputmode="numeric" autocomplete="off" placeholder="found automatically"></span></label>
+          <label class="field" id="kickid-field" hidden><span>Kick chatroom ID: only needed if Kick can’t confirm your channel (most people never need this)</span><span class="box"><input name="kickid" inputmode="numeric" autocomplete="off" placeholder="found automatically"></span></label>
           <label class="sw">Remember scores between streams <input type="checkbox" role="switch" name="remember"></label>
-          <label class="sw">Show “made by trongateslegacy.com” <input type="checkbox" role="switch" name="credit"></label>
+          <label class="sw">Show “Made by TrongatesLegacy.com” <input type="checkbox" role="switch" name="credit"></label>
         </fieldset>
       </div>
     </details>
@@ -293,9 +317,10 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   <aside class="right" aria-label="Live preview and your OBS link">
     <h3>Live preview <small>pretend chat playing</small></h3>
     <div class="tabs" role="group" aria-label="Preview screen"><button type="button" data-screen="play" aria-pressed="true">Playing</button><button type="button" data-screen="cleared" aria-pressed="false">Level cleared</button><button type="button" data-screen="over" aria-pressed="false">Game over</button></div>
-    <div class="screen" id="pv-screen"><iframe id="pv" title="Preview of your Chatagram overlay" width="900" height="470" tabindex="-1"></iframe></div>
+    <div class="screen" id="pv-screen"><img class="poster" id="pv-poster" src="assets/themes/chatagram.webp" alt="" loading="lazy"><iframe id="pv" title="Preview of your Chatagram overlay" width="960" height="540" tabindex="-1"></iframe></div>
     <button type="button" class="btn" id="copy">Copy OBS link</button>
-    <div class="meta"><span>Browser source <b id="size">900 × 470</b></span><span><button type="button" id="show" aria-expanded="false" aria-controls="link">Show link</button> · <a id="open" href="play" target="_blank" rel="noopener">Open in new tab</a></span></div>
+    <p class="need" id="need">Add your Twitch or Kick channel first (step 1).</p>
+    <div class="meta"><span>Browser source <b id="size">960 × 540</b></span><span><button type="button" id="show" aria-expanded="false" aria-controls="link">Show link</button> · <a id="open" href="play" target="_blank" rel="noopener">Open in new tab</a></span></div>
     <p class="link" id="link" hidden></p>
     <p class="how">In OBS: Sources → + → Browser, paste the link, set the size above. Changed a setting? Copy again and paste over the old link.</p>
   </aside>
@@ -304,7 +329,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
 
 <section class="wrap sec" id="faq"><h2>FAQ</h2>
 <div class="faq">
-  <details open><summary>Is it really free?</summary><p>Yes. No account, no login, no catch. It's a web page you add to OBS as a browser source. The small “made by” line can be turned off in Advanced settings.</p></details>
+  <details open><summary>Is it really free?</summary><p>Yes. No account, no login, no catch. It's a web page you add to OBS as a browser source. The small “Made by” line can be turned off in Advanced settings.</p></details>
   <details><summary>Does it need my Twitch or Kick password?</summary><p>No. It only reads your public chat, the way a viewer does, and never posts anything.</p></details>
   <details><summary>Can I use it with just Kick, or just Twitch?</summary><p>Yes: fill in one channel or both. Streaming to both at once? Everyone plays on the same board, and the summary shows which chat found more.</p></details>
   <details><summary>My other bot already uses !start</summary><p>Rename Chatagram's commands in Advanced settings, e.g. <code>!cg start</code>. Bots like Botrix and Nightbot are ignored as players out of the box.</p></details>

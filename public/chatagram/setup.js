@@ -1,15 +1,16 @@
-// The Chatagram page's set-up: the form ⇄ the settings ⇄ the OBS link, the live preview, the Kick channel check, the
-// theme gallery and the hero's demo. docs/widgets.md, "The Chatagram page". Settings come from the page's own link
+// The Chatagram page's set-up: the form ⇄ the settings ⇄ the OBS link, the live preview, the channel checks, the tag
+// fields, the theme gallery and the hero. docs/widgets.md, "The Chatagram page". Settings come from the page's own link
 // (open /chatagram/?kick=name… to edit an existing overlay link's settings) or what this browser used last.
 (() => {
   const W = window.Widgets, C = window.Chatagram, SCHEMA = C.settings.SCHEMA;
   const $ = (s, el = document) => el.querySelector(s), $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const esc = (t) => String(t).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
   const form = $('#form');
   const KEY = 'chatagram:setup';
   const THEME_NAMES = { chatagram: 'Chatagram', neutral: 'Neutral', light: 'Light', neon: 'Neon', candy: 'Candy', royal: 'Royal', deep: 'Deep', cozy: 'Cozy' };
   const THEME_BG = { chatagram: '#16122b', neutral: '#1b1e26', light: '#f4f5f8', neon: '#03060d', candy: '#6b2fd6', royal: '#0a0510', deep: '#020b11', cozy: '#f3e6cf' };
   const ACCENTS = [['ffc93c', 'Sun'], ['ff5a5f', 'Coral'], ['2ee6a8', 'Mint'], ['22e5ff', 'Cyan'], ['4f8cff', 'Blue'], ['b48cff', 'Lilac'], ['ff63b8', 'Pink']];
-  const ADVANCED = ['shuffle', 'minlen', 'goal', 'tricky', 'longbonus', 'bonus', 'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'perm', 'bubbles', 'ignore', 'block', 'top', 'remember', 'credit'];
+  const ADVANCED = ['shuffle', 'minlen', 'goal', 'tricky', 'longbonus', 'bonus', 'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'perm', 'wrong', 'ignore', 'block', 'top', 'remember', 'credit'];
 
   let saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
   const fromLink = location.search.length > 1;
@@ -20,13 +21,41 @@
   $('#theme-pick').innerHTML = W.theme.THEMES.map((t) => `<label title="${THEME_NAMES[t]}"><input type="radio" name="theme" value="${t}" aria-label="${THEME_NAMES[t]}"><span style="background:linear-gradient(90deg, ${THEME_BG[t]} 58%, #${W.theme.ACCENTS[t]} 0)${t === 'light' || t === 'cozy' ? ';box-shadow:inset 0 0 0 1px #0003' : ''}"></span></label>`).join('');
   function drawAccents() {
     const def = W.theme.ACCENTS[s.theme];
-    const list = [[def, 'Theme default'], ...ACCENTS.filter(([c]) => c !== def)].slice(0, 7);
+    const list = [[def, 'The theme’s own colour'], ...ACCENTS.filter(([c]) => c !== def)].slice(0, 7);
     const custom = s.accent && !list.some(([c]) => c === s.accent) ? s.accent : '';
     $('#accents').innerHTML = list.map(([c, n], i) => `<label title="${n}"><input type="radio" name="accentpick" value="${i ? c : ''}" aria-label="${n}"><span style="background:#${c}"></span></label>`).join('') +
-      `<label class="custom"><input type="color" id="accent-custom" value="#${custom || def}" aria-label="Custom accent colour">${custom ? '#' + custom : 'custom'}</label>`;
-    const pick = s.accent && list.slice(1).some(([c]) => c === s.accent) ? s.accent : custom ? null : '';
+      `<label class="custom${custom ? ' on' : ''}" title="Any colour"${custom ? ` style="background:#${custom}"` : ''}><input type="color" id="accent-custom" value="#${custom || def}" aria-label="Pick any colour"></label>`;
+    const pick = custom ? null : s.accent && list.slice(1).some(([c]) => c === s.accent) ? s.accent : '';
     for (const r of $$('input[name=accentpick]')) r.checked = pick !== null && r.value === pick;
-    $('#accent-note').textContent = `Theme default: ${ACCENTS.find(([c]) => c === def)?.[1] || '#' + def}`;
+  }
+
+  // ---- tag fields (ignored users, blocked words): chips with a ×; Enter, comma or leaving the box adds -------------------------
+  function drawTags(box) {
+    const k = box.dataset.tags, input = box.querySelector('input'), typed = input ? input.value : '', focused = input && document.activeElement === input;
+    box.innerHTML = s[k].map((t) => `<span class="tag">${esc(t)}<button type="button" data-remove="${esc(t)}" aria-label="Remove ${esc(t)}">×</button></span>`).join('') +
+      `<input type="text" autocomplete="off" spellcheck="false" enterkeyhint="done" placeholder="${esc(box.dataset.placeholder)}" aria-label="${esc(box.dataset.placeholder)}">`;
+    const inp = box.querySelector('input'); inp.value = typed; if (focused) inp.focus();
+  }
+  function addTags(box, text) {
+    const k = box.dataset.tags, add = text.split(/[,\s]+/).map((x) => x.trim().toLowerCase().replace(/^@/, '')).filter(Boolean);
+    const before = s[k].length;
+    for (const t of add) if (!s[k].includes(t)) s[k] = [...s[k], t];
+    box.querySelector('input').value = '';
+    if (s[k].length !== before || add.length) { drawTags(box); update({ fill: false }); }
+  }
+  for (const box of $$('[data-tags]')) {
+    box.addEventListener('click', (e) => {
+      const rm = e.target.closest('[data-remove]');
+      if (rm) { s[box.dataset.tags] = s[box.dataset.tags].filter((t) => t !== rm.dataset.remove); drawTags(box); box.querySelector('input').focus(); update({ fill: false }); }
+      else box.querySelector('input').focus();
+    });
+    box.addEventListener('keydown', (e) => {
+      const inp = e.target; if (inp.tagName !== 'INPUT') return;
+      if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTags(box, inp.value); }
+      else if (e.key === 'Backspace' && !inp.value && s[box.dataset.tags].length) { s[box.dataset.tags] = s[box.dataset.tags].slice(0, -1); drawTags(box); update({ fill: false }); }
+    });
+    box.addEventListener('focusout', (e) => { if (e.target.tagName === 'INPUT' && e.target.value.trim()) addTags(box, e.target.value); });
+    box.addEventListener('paste', (e) => { const t = (e.clipboardData || window.clipboardData).getData('text'); if (/[,\s]/.test(t)) { e.preventDefault(); addTags(box, t); } });
   }
 
   // ---- form ⇄ settings -------------------------------------------------------------------------------------------------
@@ -41,6 +70,7 @@
         else el.value = s[k];
       }
     }
+    for (const box of $$('[data-tags]')) drawTags(box);
     $('#auto').checked = s.next > 0 && s.restart > 0;
     $('#theme-name').textContent = THEME_NAMES[s.theme];
     for (const r of $$('input[name=lockmsg]')) r.disabled = !s.locks;
@@ -59,10 +89,16 @@
   }
   form.addEventListener('input', (e) => {
     const el = e.target;
+    if (el.closest('[data-tags]')) return;
     if (el.id === 'auto') { if (el.checked) { s.next = SCHEMA.next.def; s.restart = SCHEMA.restart.def; } else { s.next = 0; s.restart = 0; } }
     else if (el.name === 'accentpick') s.accent = el.value;
-    else if (el.id === 'accent-custom') s.accent = el.value.replace('#', '');
-    else if (el.type === 'text' || el.tagName === 'INPUT' && !['radio', 'checkbox'].includes(el.type)) { read(el); if (el.name === 'kick') checkKick(); update({ fill: false }); return; }
+    else if (el.id === 'accent-custom') { s.accent = el.value.replace('#', ''); const c = el.closest('.custom'); c.classList.add('on'); c.style.background = el.value; for (const r of $$('input[name=accentpick]')) r.checked = false; update({ fill: false }); return; }
+    else if (el.type === 'text' || el.tagName === 'INPUT' && !['radio', 'checkbox'].includes(el.type)) {
+      read(el);
+      if (el.name === 'kick' || el.name === 'kickid') check('kick');
+      if (el.name === 'twitch') check('twitch');
+      update({ fill: false }); return;
+    }
     else read(el);
     if (el.name === 'theme') s.accent = '';
     update();
@@ -72,43 +108,92 @@
     const el = e.target;
     if (el.name === 'twitch') { s.twitch = W.platforms.twitch.channel(el.value); el.value = s.twitch; }
     if (el.name === 'kick') { s.kick = W.platforms.kick.channel(el.value); el.value = s.kick; }
+    if (el.id === 'accent-custom') drawAccents();
     update({ fill: false });
   });
 
-  // ---- Kick channel check ------------------------------------------------------------------------------------------------
-  let kickTimer = null, kickAsk = 0;
-  function checkKick() {
-    clearTimeout(kickTimer);
-    const slug = W.platforms.kick.channel(s.kick), st = $('#kick-st');
-    if (!manualKickId) s.kickid = 0;
-    if (!slug) { st.textContent = ''; st.className = 'st'; return; }
-    st.textContent = 'checking…'; st.className = 'st wait';
-    kickTimer = setTimeout(async () => {
-      const ask = ++kickAsk, id = await W.platforms.kick.chatroom(slug);
-      if (ask !== kickAsk) return;
-      if (id) { st.textContent = '● found'; st.className = 'st ok'; if (!manualKickId) { s.kickid = id; update({ fill: false }); } }
-      else { st.textContent = '● not confirmed'; st.className = 'st bad'; st.title = 'Kick didn’t confirm this channel. Check the spelling; the overlay will try again itself.'; }
-    }, 600);
+  // ---- channel checks: say under each box whether the channel exists ---------------------------------------------------------
+  // Twitch: its public web API (the same one twitch.tv uses; no key). Kick: its channel API, which also gives the chatroom
+  // id the overlay needs. Only the set-up page asks; the overlay never does (for Twitch) or only if the link has no id (Kick).
+  async function twitchUser(login) {
+    try {
+      const r = await fetch('https://gql.twitch.tv/gql', { method: 'POST', headers: { 'Client-Id': 'kimne78kx3ncx6brgo4mv6wki5h1ko', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: `query{user(login:${JSON.stringify(login)}){login displayName}}` }) });
+      if (!r.ok) return undefined;
+      const j = await r.json();
+      return j && j.data ? j.data.user : undefined;                        // null: no such channel; undefined: couldn't ask
+    } catch { return undefined; }
+  }
+  const timers = {}, asks = { twitch: 0, kick: 0 }, found = { twitch: null, kick: null };
+  function status(p, cls, text) { const el = $(`#${p}-st`); el.className = 'st' + (cls ? ' ' + cls : ''); el.textContent = text; }
+  function check(p) {
+    clearTimeout(timers[p]);
+    const name = W.platforms[p].channel(s[p]);
+    found[p] = null;
+    if (p === 'kick' && !manualKickId) s.kickid = 0;
+    if (!name) { status(p, '', ''); kickIdField(); readyToCopy(); return; }
+    status(p, 'wait', 'Checking…');
+    timers[p] = setTimeout(async () => {
+      const ask = ++asks[p];
+      if (p === 'twitch') {
+        const u = await twitchUser(name);
+        if (ask !== asks[p]) return;
+        if (u) { found.twitch = true; status(p, 'ok', `Found ${u.displayName || u.login} on Twitch`); }
+        else if (u === null) { found.twitch = false; status(p, 'bad', `No Twitch channel called “${name}”. Check the spelling.`); }
+        else status(p, '', 'Couldn’t check with Twitch just now. If the name is right, it will work.');
+      } else {
+        const id = await W.platforms.kick.chatroom(name);
+        if (ask !== asks[p]) return;
+        if (id) { found.kick = true; status(p, 'ok', `Found ${name} on Kick, chat ready`); if (!manualKickId) { s.kickid = id; update({ fill: false }); } }
+        else if (manualKickId && s.kickid) status(p, 'ok', 'Using the chatroom ID you entered');
+        else { found.kick = false; status(p, 'bad', `Kick didn’t confirm “${name}”. Check the spelling.`); }
+      }
+      kickIdField();
+    }, 500);
+    kickIdField(); readyToCopy();
+  }
+  // the chatroom ID box only appears when Kick couldn't confirm the channel (or one was typed in before)
+  function kickIdField() { $('#kickid-field').hidden = !(manualKickId || (s.kick && found.kick === false)); }
+
+  // ---- copy only once a channel is in -----------------------------------------------------------------------------------------
+  const hasChannel = () => !!(W.platforms.twitch.channel(s.twitch) || W.platforms.kick.channel(s.kick));
+  function readyToCopy() {
+    const ok = hasChannel();
+    for (const b of [$('#copy'), $('#copy2')]) b.disabled = !ok;
+    for (const a of [$('#show'), $('#open')]) { a.setAttribute('aria-disabled', String(!ok)); a.tabIndex = ok ? 0 : -1; }
+    $('#need').hidden = ok;
+    if (!ok) $('#link').hidden = true;
   }
 
   // ---- the link, the badge, the preview ------------------------------------------------------------------------------------
   const pv = $('#pv'), pvScreen = $('#pv-screen');
-  let screen = 'play', lastPv = '', pvTimer = null;
+  let screen = 'play', lastPv = '', pvTimer = null, loaded = false;
   const query = () => W.settings.encode(SCHEMA, s);
   const link = () => `${location.origin}/chatagram/play${query() ? '?' + query() : ''}`;
   function fitFrame(frame, box) {
-    const [w, h] = C.settings.SIZES[s.layout];
+    const [w, h] = C.settings.SIZES[frame === pv ? s.layout : 'full'];
     frame.width = w; frame.height = h;
     const k = Math.min((box.clientWidth - 16) / w, (box.clientHeight - 16) / h);
     frame.style.transform = `translate(-50%,-50%) scale(${k})`;
+  }
+  // a preview fades in over its picture once the game inside has drawn
+  function showWhenReady(frame) {
+    frame.classList.remove('ready');
+    const poll = setInterval(() => {
+      let ok = false; try { ok = frame.contentDocument.documentElement.dataset.ready === '1'; } catch {}
+      if (ok) { clearInterval(poll); requestAnimationFrame(() => frame.classList.add('ready')); }
+    }, 100);
+    setTimeout(() => clearInterval(poll), 15000);
   }
   function preview() {
     const shown = { ...s, theme: SCHEMA.theme.def, accent: '' };             // theme and accent go by message (no reload)
     const src = `play.html?${W.settings.encode(SCHEMA, shown)}&${screen === 'play' ? 'demo=1' : 'still=1&screen=' + screen}`;
     fitFrame(pv, pvScreen);
+    const poster = $('#pv-poster');
+    poster.src = `assets/themes/${s.theme}${s.layout === 'full' ? '-full' : ''}.webp`;
     if (!loaded) return;                                                      // starts after the page has loaded
     if (src !== lastPv) {
-      lastPv = src; pv.src = src;
+      lastPv = src; pv.src = src; showWhenReady(pv);
       pv.onload = () => themePreview();
     } else themePreview();
   }
@@ -122,6 +207,7 @@
     const n = W.settings.changed(SCHEMA, s, keys) + (manualKickId && s.kickid ? 1 : 0);
     $('#chg').hidden = !n; $('#chg').textContent = `${n} changed`;
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
+    readyToCopy();
     themePreview();
     clearTimeout(pvTimer); pvTimer = setTimeout(preview, 350);
   }
@@ -130,6 +216,7 @@
 
   // ---- copy -----------------------------------------------------------------------------------------------------------------------
   async function copy(btn) {
+    if (!hasChannel()) return;
     const l = link();
     try { await navigator.clipboard.writeText(l); btn.textContent = 'Copied!'; }
     catch { $('#link').hidden = false; $('#show').setAttribute('aria-expanded', 'true'); getSelection().selectAllChildren($('#link')); btn.textContent = 'Press Ctrl+C to copy'; }
@@ -137,25 +224,23 @@
   }
   $('#copy').addEventListener('click', (e) => copy(e.currentTarget));
   $('#copy2').addEventListener('click', (e) => copy(e.currentTarget));
-  $('#show').addEventListener('click', (e) => { const l = $('#link'); l.hidden = !l.hidden; e.currentTarget.setAttribute('aria-expanded', String(!l.hidden)); e.currentTarget.textContent = l.hidden ? 'Show link' : 'Hide link'; });
+  $('#open').addEventListener('click', (e) => { if (!hasChannel()) e.preventDefault(); });
+  $('#show').addEventListener('click', (e) => { if (!hasChannel()) return; const l = $('#link'); l.hidden = !l.hidden; e.currentTarget.setAttribute('aria-expanded', String(!l.hidden)); e.currentTarget.textContent = l.hidden ? 'Show link' : 'Hide link'; });
   if (fromLink && W.settings.changed(SCHEMA, s, ADVANCED)) $('#adv').open = true;   // coming back with advanced settings: show them
 
-  // ---- theme gallery (loads as it scrolls into view) and the hero's demo (after the page has loaded) -----------------------------
-  // every preview on this page runs the real overlay (its script and word lists), so none starts before the page has
-  // loaded, and the gallery's only when it's near the screen: they never compete with the first paint (docs/website.md)
-  $('#tgrid').innerHTML = W.theme.THEMES.map((t) => `<li><div class="screen"><iframe tabindex="-1" title="${THEME_NAMES[t]} theme" width="560" height="230" data-src="play.html?theme=${t}&layout=compact&still=1"></iframe></div><h3>${THEME_NAMES[t]}</h3></li>`).join('');
-  const fitGallery = () => $$('#tgrid .screen').forEach((box) => { const f = box.firstElementChild, k = Math.min((box.clientWidth - 12) / 560, (box.clientHeight - 12) / 230); f.style.transform = `translate(-50%,-50%) scale(${k})`; });
+  // ---- theme gallery (pictures, made by artwork/chatagram/render.mjs) and the hero ----------------------------------------------
+  // The hero shows a picture straight away; the live game (its script and word lists) starts after the page has loaded and
+  // fades in over it once it has drawn, so nothing competes with the first paint (docs/website.md).
+  $('#tgrid').innerHTML = W.theme.THEMES.map((t) => `<li><button type="button" class="thm" data-theme-pick="${t}" aria-label="Use the ${THEME_NAMES[t]} theme"><div class="screen"><img class="poster" src="assets/themes/${t}.webp" alt="" width="560" height="230" loading="lazy"></div><h3>${THEME_NAMES[t]}</h3></button></li>`).join('');
+  for (const b of $$('[data-theme-pick]')) b.addEventListener('click', () => { s.theme = b.dataset.themePick; s.accent = ''; update(); $('#setup').scrollIntoView(); });
   const hero = $('#hero-frame');
-  const fitHero = () => { const box = $('#hero-screen'), k = Math.min((box.clientWidth - 20) / 900, (box.clientHeight - 20) / 470); hero.style.transform = `translate(-50%,-50%) scale(${k})`; fitGallery(); };
+  const fitHero = () => fitFrame(hero, $('#hero-screen'));
   fitHero();
-  let loaded = false;
   const afterLoad = () => setTimeout(() => {
     loaded = true;
-    hero.src = 'play.html?demo=1';
+    hero.src = 'play.html?demo=1'; showWhenReady(hero);
     preview();
-    const near = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) { const f = e.target.querySelector('iframe[data-src]'); if (f) { f.src = f.dataset.src; f.removeAttribute('data-src'); } near.unobserve(e.target); } }, { rootMargin: '300px' });
-    for (const box of $$('#tgrid .screen')) near.observe(box);
-  }, 900);
+  }, 300);
   if (document.readyState === 'complete') afterLoad(); else addEventListener('load', afterLoad);
 
   // ---- the menu shows where you are -------------------------------------------------------------------------------------------------
@@ -164,6 +249,7 @@
   for (const id of ['how', 'themes', 'setup', 'faq']) io.observe(document.getElementById(id));
 
   fill(); update();
-  if (s.kick) checkKick();
-  window.chatagramSetup = { get settings() { return s; }, link, query };
+  if (s.twitch) check('twitch');
+  if (s.kick) check('kick');
+  window.chatagramSetup = { get settings() { return s; }, link, query, found };
 })();
