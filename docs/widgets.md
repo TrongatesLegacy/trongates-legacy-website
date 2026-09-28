@@ -118,6 +118,8 @@ round highlights (fastest find, longest streak, last-second save).
   "Show wrong guesses" is on (off by default); the hidden letter turns over; the fake letter tips away; the last 10 s
   go red; the longest word gets confetti. **Round end**: an end card ("Cleared!", "Time's up!", with the count) springs
   in letter by letter over the dimmed board, then the summary fades in (it never flips the widget: too jarring on stream).
+- **Countdowns** to the next level or game: the ring drains smoothly (one linear animation to the moment it starts); only
+  the number inside changes each second. Reduced motion: the ring steps once a second.
 - **Empty slots** have a clear outline in every theme, so they read on any background and when the source is small.
 - **Performance**: one timer drives the game (set for `nextWake()`), one updates the clock once a second; animations
   are Web Animations on `transform` and `opacity` only. **Reduced motion** (`.rm`): everything changes at once. As in

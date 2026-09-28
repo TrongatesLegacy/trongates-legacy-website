@@ -110,6 +110,10 @@ test('game over, then a new game after the restart delay; the round survives a r
   await tab.eval('window.chatagram.advance(90000); 1');
   await tab.until('window.chatagram.game.state.phase === "over"', 3000);
   await tab.until('/Game over/.test(document.querySelector(".back").textContent)', 5000);
+  // the countdown ring drains smoothly (it moves within a second, not once a second)
+  const ring = 'parseFloat(getComputedStyle(document.querySelector(".back .ring .fg")).strokeDashoffset)';
+  const r1 = await tab.eval(ring); await sleep(300); const r2 = await tab.eval(ring);
+  assert.ok(r2 > r1, `the ring didn't move in 300 ms (${r1} → ${r2})`);
   await tab.eval('window.chatagram.advance(15000); 1');
   await tab.until('window.chatagram.game.state.phase === "playing"', 3000);
   await tab.eval('localStorage.clear(); 1');

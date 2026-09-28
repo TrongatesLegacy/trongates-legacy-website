@@ -238,7 +238,7 @@
     const s = game.state;
     if (!s.nextAt) return `<div class="next">Type <b>${esc(game.commandName(s.phase === 'cleared' ? 'next' : 'start'))}</b> ${s.phase === 'cleared' ? 'for the next level' : 'to play again'}</div>`;
     const total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, left = Math.max(0, Math.ceil((s.nextAt - now()) / 1000)), c = 2 * Math.PI * 15;
-    return `<div class="next"><svg class="ring" viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15"/><circle class="fg" cx="18" cy="18" r="15" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - (left * 1000) / total)}"/><text x="18" y="18">${left}</text></svg>${label.replace('{s}', left)}</div>`;
+    return `<div class="next"><svg class="ring" viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15"/><circle class="fg" cx="18" cy="18" r="15" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.max(0, s.nextAt - now()) / total)}"/><text x="18" y="18">${left}</text></svg>${label.replace('{s}', `<span class="secs">${left}</span>`)}</div>`;
   };
   const ranks = (list) => list.map((p, i) => `<div class="rank"><span class="n">${i + 1}</span>${shownPlatforms.length > 1 ? badge(p.platform) : '<span></span>'}<span class="nm">${esc(p.name)}</span><span class="ws">${p.words} word${p.words === 1 ? '' : 's'}</span><span class="pts">${p.pts}</span></div>`).join('') || '<div class="hl">Nobody scored this time</div>';
   function splitBox(split) {
@@ -276,7 +276,23 @@
     }
   }
   let sumTimer = null;
-  const runSummaryClock = (on) => { clearInterval(sumTimer); sumTimer = on && !still ? setInterval(() => { if (game.state.nextAt) drawSummary(); }, 1000) : null; };
+  // the countdown ring drains smoothly to the moment the next level / game starts (one animation, no ticking); only the
+  // number inside changes each second. Reduced motion: the ring steps once a second instead.
+  let ringAnim = null;
+  function runRing() {
+    if (ringAnim) { ringAnim.cancel(); ringAnim = null; }
+    const fg = back.querySelector('.ring .fg'), s = game.state; if (!fg || !s.nextAt || still) return;
+    const c = +fg.getAttribute('stroke-dasharray'), total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, left = Math.max(0, s.nextAt - now());
+    if (!rm && fg.animate) ringAnim = fg.animate([{ strokeDashoffset: c * (1 - left / total) }, { strokeDashoffset: c }], { duration: left, easing: 'linear', fill: 'forwards' });
+  }
+  function tickRing() {
+    const s = game.state, t = back.querySelector('.ring text'), fg = back.querySelector('.ring .fg'); if (!t || !s.nextAt) return;
+    const total = (s.phase === 'cleared' ? cfg.next : cfg.restart) * 1000, leftMs = Math.max(0, s.nextAt - now()), left = Math.ceil(leftMs / 1000);
+    t.textContent = left;
+    const label = back.querySelector('.next .secs'); if (label) label.textContent = left;
+    if (rm && fg) fg.setAttribute('stroke-dashoffset', String(+fg.getAttribute('stroke-dasharray') * (1 - leftMs / total)));
+  }
+  const runSummaryClock = (on) => { clearInterval(sumTimer); sumTimer = on && !still ? setInterval(tickRing, 250) : null; if (on) runRing(); };
 
   // ---- the end card: big text over the board, then the summary fades in (no flip: it's calmer on stream) ----------------
   const endEl = $('#endcard');
