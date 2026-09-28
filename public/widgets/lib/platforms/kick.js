@@ -20,6 +20,23 @@
     } catch { return null; }
   }
 
+  /** Kick's channel answer → { state: 'live', id, started } | { state: 'offline' } | { state: 'unknown' } (times are UTC, "2026-09-28 19:30:28") */
+  function streamFrom(j) {
+    if (!j || typeof j !== 'object' || !('livestream' in j)) return { state: 'unknown' };
+    const l = j.livestream;
+    if (!l) return { state: 'offline' };
+    if (l.id == null) return { state: 'unknown' };
+    const started = Date.parse(String(l.start_time || l.created_at || '').replace(' ', 'T') + 'Z');
+    return { state: 'live', id: String(l.id), started: Number.isFinite(started) ? started : undefined };
+  }
+  /** is the channel live? (the same channel API as chatroom()) */
+  async function stream(slug, fetch_ = fetch) {
+    try {
+      const r = await fetch_(`https://kick.com/api/v2/channels/${encodeURIComponent(channel(slug))}`, { headers: { Accept: 'application/json' } });
+      return r.ok ? streamFrom(await r.json()) : { state: 'unknown' };
+    } catch { return { state: 'unknown' }; }
+  }
+
   /** one Pusher frame → a message, a ping, subscribed, or null */
   function parse(raw, chan) {
     let f; try { f = JSON.parse(raw); } catch { return null; }
@@ -60,5 +77,5 @@
     }, onStatus);
   }
 
-  (W.platforms = W.platforms || {}).kick = { channel, chatroom, parse, connect, KEY, label: 'Kick', color: '#53fc18' };
+  (W.platforms = W.platforms || {}).kick = { channel, chatroom, stream, streamFrom, parse, connect, KEY, label: 'Kick', color: '#53fc18' };
 })();

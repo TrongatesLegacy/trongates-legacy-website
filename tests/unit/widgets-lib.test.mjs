@@ -104,6 +104,25 @@ test('Kick: the chatroom id comes from Kick\'s channel API, and a missing channe
   assert.equal(await P.kick.chatroom('x', async () => { throw new Error('offline'); }), null);
 });
 
+test('is the channel live: Twitch\'s and Kick\'s answers (shapes captured 2026-09-28) become live, offline or unknown', async () => {
+  // Twitch (gql.twitch.tv): a live channel, an offline one, a channel that doesn't exist, an error
+  assert.deepEqual(plain(P.twitch.streamFrom({ data: { user: { stream: { id: '317546287863', createdAt: '2026-09-28T16:59:52Z' } } } })), { state: 'live', id: '317546287863', started: Date.parse('2026-09-28T16:59:52Z') });
+  assert.deepEqual(plain(P.twitch.streamFrom({ data: { user: { stream: null } } })), { state: 'offline' });
+  assert.deepEqual(plain(P.twitch.streamFrom({ data: { user: null } })), { state: 'unknown' });
+  assert.deepEqual(plain(P.twitch.streamFrom({ errors: [{ message: 'nope' }] })), { state: 'unknown' });
+  // Kick (kick.com/api/v2/channels/…): times are UTC without a zone
+  assert.deepEqual(plain(P.kick.streamFrom({ livestream: { id: 129599997, created_at: '2026-09-28 19:30:28', start_time: '2026-09-28 19:30:24', is_live: true } })), { state: 'live', id: '129599997', started: Date.parse('2026-09-28T19:30:24Z') });
+  assert.deepEqual(plain(P.kick.streamFrom({ livestream: null, chatroom: { id: 1 } })), { state: 'offline' });
+  assert.deepEqual(plain(P.kick.streamFrom({ message: 'Not found' })), { state: 'unknown' });
+  // the requests themselves: a failed or thrown fetch is unknown, never offline
+  const ok = (j) => async () => ({ ok: true, json: async () => j });
+  assert.equal((await P.twitch.stream('GridRunner', ok({ data: { user: { stream: null } } }))).state, 'offline');
+  assert.equal((await P.kick.stream('gridrunner', async () => ({ ok: false }))).state, 'unknown');
+  assert.equal((await P.kick.stream('gridrunner', async () => { throw new Error('blocked'); })).state, 'unknown');
+  let asked = ''; await P.kick.stream('kick.com/GridRunner', async (u) => { asked = u; return { ok: false }; });
+  assert.equal(asked, 'https://kick.com/api/v2/channels/gridrunner');
+});
+
 test('themes: eight themes, each with its own accent; bad colours are ignored', () => {
   assert.deepEqual([...T.THEMES], ['chatagram', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy']);
   for (const t of T.THEMES) assert.match(T.ACCENTS[t], /^[0-9a-f]{6}$/, t);

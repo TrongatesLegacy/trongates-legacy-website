@@ -30,6 +30,25 @@
     };
   }
 
+  // Is the channel live? Twitch's public web API (the one twitch.tv itself uses; no key, and it lets other sites ask)
+  // gives the stream's id and when it started. Unofficial, like Kick's: if it ever stops answering, callers get 'unknown'.
+  const GQL_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
+  /** Twitch's answer → { state: 'live', id, started } | { state: 'offline' } | { state: 'unknown' } (no such channel, or a reply we don't recognise) */
+  function streamFrom(j) {
+    const u = j && j.data && j.data.user;
+    if (!u || typeof u !== 'object') return { state: 'unknown' };
+    if (!u.stream) return u.stream === null ? { state: 'offline' } : { state: 'unknown' };
+    const started = Date.parse(u.stream.createdAt);
+    return u.stream.id ? { state: 'live', id: String(u.stream.id), started: Number.isFinite(started) ? started : undefined } : { state: 'unknown' };
+  }
+  async function stream(login, fetch_ = fetch) {
+    try {
+      const r = await fetch_('https://gql.twitch.tv/gql', { method: 'POST', headers: { 'Client-Id': GQL_ID, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: `query{user(login:${JSON.stringify(channel(login))}){stream{id createdAt}}}` }) });
+      return r.ok ? streamFrom(await r.json()) : { state: 'unknown' };
+    } catch { return { state: 'unknown' }; }
+  }
+
   /** @param {{ channel: string, socket: Function }} o  socket: chat.js's reconnecting socket */
   function connect(o, onMessage, onStatus) {
     const chan = channel(o.channel);
@@ -50,5 +69,5 @@
     }, onStatus);
   }
 
-  (W.platforms = W.platforms || {}).twitch = { channel, parse, connect, label: 'Twitch', color: '#9146ff' };
+  (W.platforms = W.platforms || {}).twitch = { channel, parse, connect, stream, streamFrom, GQL_ID, label: 'Twitch', color: '#9146ff' };
 })();
