@@ -13,3 +13,15 @@ JPG. Re-render it when the brand or the overlay's look changes, and look at the 
 
 `render-previews.mjs` renders the theme pictures the pages show before a live game starts (every theme, compact and
 full) into `public/chatagram/assets/themes/`. Re-run it after any change to the overlay's look.
+
+## Trailer
+
+`trailer/` makes a 30-second 1080p trailer: `trailer.html` (the scenes, cut to the music's bars), `music.mjs` (an
+original 128 BPM track synthesised in Node, nothing licensed) and `record.mjs` (records the page with headless Chrome's
+screencast and muxes the music with ffmpeg). The gameplay is the real overlay with a scripted, made-up chat.
+
+```
+node --experimental-websocket artwork/chatagram/trailer/record.mjs ~/Downloads/chatagram-trailer.mp4
+```
+
+Re-record after the overlay's look changes, and watch the result before sharing it.

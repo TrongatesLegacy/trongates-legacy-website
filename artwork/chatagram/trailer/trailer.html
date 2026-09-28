@@ -1,0 +1,149 @@
+<!doctype html>
+<!-- Chatagram's 30-second trailer (1920 × 1080), recorded by record.mjs. Scenes change on the music's bars (128 BPM:
+     one bar = 1.875 s). The gameplay is the real overlay (play.html) with a scripted, made-up chat. -->
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: "Lilita One"; src: url(/assets/fonts/lilita-one.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; src: url(/assets/fonts/chakra-petch-600.woff2) format("woff2"); font-weight: 600; }
+:root { --ink: #16122b; --ink2: #221b40; --ink3: #2f2656; --coral: #ff5a5f; --sun: #ffc93c; --mint: #2ee6a8; --paper: #fff7ec; --muted: #bcb4dc; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); color: var(--paper); font-family: "Chakra Petch", sans-serif; }
+.bg { position: absolute; inset: 0; background: radial-gradient(circle at 15% 10%, #ff5a5f33, transparent 45%), radial-gradient(circle at 90% 90%, #ffc93c26, transparent 45%), var(--ink); }
+.bg::after { content: ''; position: absolute; inset: -200px; background-image: radial-gradient(#ffffff14 2px, transparent 2px); background-size: 48px 48px; animation: drift 30s linear infinite; }
+@keyframes drift { to { transform: translate(-96px, -96px); } }
+.scene { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; visibility: hidden; }
+.scene.on { opacity: 1; visibility: visible; }
+.lil { font-family: "Lilita One", sans-serif; }
+.logo { display: inline-flex; align-items: center; gap: .3em; line-height: 1; }
+.logo img { width: 1.3em; height: 1.3em; } .logo b { color: var(--sun); font-weight: 400; }
+.center { text-align: center; }
+/* entrances (run when the scene turns on) */
+.on .pop { animation: pop .55s cubic-bezier(.3,1.6,.5,1) both; }
+.on .up { animation: up .5s cubic-bezier(.2,.8,.3,1) both; }
+.on .slamL { animation: slamL .45s cubic-bezier(.2,.9,.3,1.2) both; }
+.on .slamR { animation: slamR .45s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes pop { from { transform: scale(.2) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes up { from { transform: translateY(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slamL { from { transform: translateX(-900px) rotate(-10deg); } to { transform: none; } }
+@keyframes slamR { from { transform: translateX(900px) rotate(10deg); } to { transform: none; } }
+.d1 { animation-delay: .12s !important; } .d2 { animation-delay: .24s !important; } .d3 { animation-delay: .36s !important; } .d4 { animation-delay: .48s !important; } .d5 { animation-delay: .6s !important; } .d6 { animation-delay: .72s !important; } .d7 { animation-delay: .84s !important; } .d8 { animation-delay: .96s !important; }
+/* A: intro */
+#a .logo { font-size: 190px; }
+#a h1 { font: 88px/1.05 "Lilita One", sans-serif; margin: 40px 0 0; } #a h1 em { font-style: normal; color: var(--sun); }
+/* B: both platforms */
+#b .row { display: flex; gap: 60px; align-items: center; justify-content: center; }
+.plat { display: inline-flex; align-items: center; gap: 28px; font: 120px "Lilita One", sans-serif; padding: 26px 56px; border-radius: 40px; }
+.plat svg { width: 110px; height: 110px; }
+.plat.t { background: #9146ff; color: #fff; } .plat.k { background: #53fc18; color: #0b0b0b; }
+.plus { font: 130px "Lilita One", sans-serif; color: var(--sun); }
+#b h2 { font: 92px "Lilita One", sans-serif; margin: 70px 0 0; } #b h2 em { font-style: normal; color: var(--coral); }
+/* C/D: gameplay */
+#c .frame { position: absolute; left: 240px; top: 180px; width: 1440px; height: 810px; }
+#c iframe { width: 1440px; height: 810px; border: 0; background: transparent; }
+.cap { position: absolute; left: 0; right: 0; top: 50px; text-align: center; font: 84px "Lilita One", sans-serif; }
+.cap span { display: inline-block; opacity: 0; transform: translateY(40px); transition: opacity .35s, transform .35s cubic-bezier(.2,.9,.3,1.3); }
+.cap span.show { opacity: 1; transform: none; }
+.cap em { font-style: normal; color: var(--sun); }
+/* E: themes */
+#e h2 { position: absolute; top: 70px; left: 0; right: 0; text-align: center; font: 96px "Lilita One", sans-serif; margin: 0; } #e h2 em { font-style: normal; color: var(--sun); }
+#e .grid { position: absolute; left: 90px; right: 90px; top: 330px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 44px 36px; }
+#e .grid img { width: 100%; display: block; filter: drop-shadow(0 16px 30px #0008); }
+/* F: set up */
+#f h2 { font: 104px "Lilita One", sans-serif; margin: 0 0 70px; } #f h2 em { font-style: normal; color: var(--coral); }
+#f .steps { display: flex; gap: 50px; }
+#f .step { width: 460px; background: var(--ink2); border-radius: 36px; padding: 44px 40px; text-align: left; }
+#f .step i { display: grid; place-items: center; width: 90px; height: 90px; border-radius: 24px; background: var(--sun); color: var(--ink); font: 64px "Lilita One", sans-serif; font-style: normal; box-shadow: 0 8px 0 #c9921a; }
+#f .step b { display: block; font: 56px/1.05 "Lilita One", sans-serif; margin: 30px 0 10px; }
+#f .step p { font-size: 32px; color: var(--muted); margin: 0; }
+#f .free { margin-top: 64px; font-size: 44px; color: var(--mint); }
+/* G: outro */
+#g .logo { font-size: 150px; }
+#g .url { margin-top: 44px; font: 76px "Lilita One", sans-serif; background: var(--coral); color: var(--ink); padding: 18px 50px 22px; border-radius: 30px; box-shadow: 0 10px 0 #c73a40; display: inline-block; }
+#g .by { margin-top: 48px; font-size: 46px; color: var(--muted); } #g .by b { color: var(--paper); }
+#g .kick { margin-top: 26px; font-size: 42px; display: inline-flex; gap: 16px; align-items: center; color: var(--paper); }
+#g .kick span { background: #53fc18; color: #0b0b0b; border-radius: 12px; padding: 4px 16px; font: 40px "Lilita One", sans-serif; }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 10; }
+.flash.go { animation: flash .35s ease-out; } @keyframes flash { from { opacity: .55; } to { opacity: 0; } }
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="i-kick" viewBox="0 0 10 10"><path transform="translate(.4 0)" d="M1 1h2.4v2.2h1.2V2.1h1.2V1H8.2v2.4H7v1.2H5.8v.8H7v1.2h1.2V9H5.8V7.9H4.6V6.8H3.4V9H1z" fill="currentColor"/></symbol>
+  <symbol id="i-twitch" viewBox="0 0 10 10"><path d="M2 1 1.2 2.8v5.4h2V9.3h1.1l1.1-1.1h1.7L9 6.3V1zm6.2 4.9-1.3 1.3H5.1L4 8.3V7.2H2.4V1.8h5.8zM6.9 3v2.2h-.8V3zm-2 0v2.2h-.8V3z" fill="currentColor"/></symbol>
+</defs></svg>
+<div class="bg"></div>
+
+<section class="scene" id="a"><div class="center">
+  <div class="logo lil pop"><img src="/chatagram/assets/icon.svg" alt=""><span>chat<b>agram</b></span></div>
+  <h1 class="up d4">The word game your <em>whole chat</em> plays.</h1>
+</div></section>
+
+<section class="scene" id="b"><div class="center">
+  <div class="row"><span class="plat t slamL"><svg><use href="#i-twitch"/></svg>Twitch</span><span class="plus pop d3">+</span><span class="plat k slamR d2"><svg><use href="#i-kick"/></svg>Kick</span></div>
+  <h2 class="up d5">Both chats. <em>One board.</em></h2>
+</div></section>
+
+<section class="scene" id="c">
+  <div class="cap" id="cap"></div>
+  <div class="frame"><iframe id="game" allowtransparency="true"></iframe></div>
+</section>
+
+<section class="scene" id="e">
+  <h2 class="up">8 themes. <em>Any colour.</em></h2>
+  <div class="grid">
+    <img class="pop" src="/chatagram/assets/themes/chatagram-full.webp" alt=""><img class="pop d1" src="/chatagram/assets/themes/neon-full.webp" alt="">
+    <img class="pop d2" src="/chatagram/assets/themes/light-full.webp" alt=""><img class="pop d3" src="/chatagram/assets/themes/candy-full.webp" alt="">
+    <img class="pop d4" src="/chatagram/assets/themes/royal-full.webp" alt=""><img class="pop d5" src="/chatagram/assets/themes/deep-full.webp" alt="">
+    <img class="pop d6" src="/chatagram/assets/themes/cozy-full.webp" alt=""><img class="pop d7" src="/chatagram/assets/themes/neutral-full.webp" alt="">
+  </div>
+</section>
+
+<section class="scene" id="f"><div class="center">
+  <h2 class="up">Set up <em>in a minute</em></h2>
+  <div class="steps">
+    <div class="step pop d1"><i>1</i><b>Type your channel</b><p>Twitch, Kick, or both.</p></div>
+    <div class="step pop d3"><i>2</i><b>Pick a look</b><p>A theme and any colour.</p></div>
+    <div class="step pop d5"><i>3</i><b>Paste into OBS</b><p>One link. That’s it.</p></div>
+  </div>
+  <div class="free up d7">Free · no login · nothing to install</div>
+</div></section>
+
+<section class="scene" id="g"><div class="center">
+  <div class="logo lil pop"><img src="/chatagram/assets/icon.svg" alt=""><span>chat<b>agram</b></span></div>
+  <div><span class="url up d2">trongateslegacy.com/chatagram</span></div>
+  <div class="by up d4">Made by <b>TrongatesLegacy</b></div>
+  <div class="kick up d6">Catch me live <span>kick.com/trongateslegacy</span></div>
+</div></section>
+<div class="flash" id="flash"></div>
+
+<script>
+// the timeline, in bars (1.875 s each)
+const BAR = 1.875;
+const SCENES = [['a', 0], ['b', 2], ['c', 4], ['e', 11], ['f', 13], ['g', 14.5]];
+const show = (id) => {
+  for (const s of document.querySelectorAll('.scene')) s.classList.toggle('on', s.id === id);
+  const f = document.getElementById('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+};
+const caption = (html) => {
+  const c = document.getElementById('cap'); c.innerHTML = `<span>${html}</span>`;
+  requestAnimationFrame(() => requestAnimationFrame(() => c.firstChild.classList.add('show')));
+};
+const game = () => document.getElementById('game').contentWindow.chatagram;
+const NAMES = [['PixelPanda', 'twitch'], ['NeonNacho', 'kick'], ['SleepyWaffle', 'twitch'], ['GridRunner', 'kick'], ['LunaLlama', 'twitch'], ['TurboTofu', 'kick']];
+let n = 0;
+function find(count) {
+  const g = game(); if (!g) return;
+  const open = g.game.state.round.answers.filter((a) => !a.by).sort((x, y) => x.word.length - y.word.length);
+  for (const a of open.slice(0, count)) { const [name, platform] = NAMES[n++ % NAMES.length]; g.hear({ platform, user: name.toLowerCase(), name, text: a.word }); }
+}
+function at(bars, fn) { setTimeout(fn, bars * BAR * 1000); }
+window.start = () => {
+  // a fresh game when the trailer starts, so the pretend chat can't clear the board before its moment
+  document.getElementById('game').src = '/chatagram/play.html?demo=1&shuffle=4&time=60';
+  for (const [id, b] of SCENES) at(b, () => show(id));
+  at(4, () => caption('Chat types <em>words</em>'));
+  for (let i = 0; i < 5; i++) at(4.4 + i * 0.45, () => find(1));
+  at(6.5, () => caption('First to find one <em>scores</em>'));
+  at(6.7, () => find(1)); at(7.1, () => find(1));
+  at(7.9, () => { caption('Beat the goal. <em>Clear the level!</em>'); find(99); });
+  window.started = performance.now();
+};
+window.ready = () => document.fonts.status === 'loaded' && [...document.images].every((i) => i.complete);
+</script>
+</body></html>
