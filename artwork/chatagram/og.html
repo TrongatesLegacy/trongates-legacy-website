@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- Chatagram's link-preview image (1200 × 630): rendered by render.mjs, served next to public/ so the overlay inside is real. -->
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: "Lilita One"; src: url(/assets/fonts/lilita-one.woff2) format("woff2"); }
+@font-face { font-family: "Chakra Petch"; src: url(/assets/fonts/chakra-petch-600.woff2) format("woff2"); font-weight: 600; }
+html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+body { background: #16122b; color: #fff7ec; font-family: "Chakra Petch", sans-serif;
+  background-image: radial-gradient(circle at 8% 0, #ff5a5f33, transparent 40%), radial-gradient(circle at 100% 100%, #ffc93c22, transparent 40%); position: relative; }
+.logo { position: absolute; left: 64px; top: 56px; display: flex; align-items: center; gap: 18px; font: 64px "Lilita One"; line-height: 1; }
+.logo img { width: 84px; height: 84px; } .logo b { color: #ffc93c; font-weight: 400; }
+.by { position: absolute; left: 168px; top: 132px; font-size: 22px; color: #bcb4dc; }
+h1 { position: absolute; left: 64px; top: 196px; width: 520px; margin: 0; font: 56px/1.02 "Lilita One"; } h1 em { font-style: normal; color: #ffc93c; }
+.chips { position: absolute; left: 64px; bottom: 60px; display: flex; gap: 12px; }
+.chips span { display: inline-flex; gap: 8px; align-items: center; background: #221b40; border-radius: 99px; padding: 8px 16px; font-size: 22px; }
+.chips i { width: 22px; height: 22px; border-radius: 5px; display: inline-block; }
+.screen { position: absolute; right: 48px; top: 60px; width: 560px; height: 460px; border-radius: 22px; overflow: hidden; box-shadow: 0 0 0 5px #2f2656;
+  background: radial-gradient(circle at 25% 30%, #3b5d3a, transparent 45%), radial-gradient(circle at 80% 75%, #6b3d1f, transparent 45%), linear-gradient(135deg, #1d2b36, #2a1b14); }
+.screen iframe { position: absolute; left: 50%; top: 50%; width: 900px; height: 470px; border: 0; transform: translate(-50%, -50%) scale(.6); }
+.url { position: absolute; right: 48px; bottom: 60px; font-size: 22px; color: #bcb4dc; } .url b { color: #fff7ec; }
+</style></head><body>
+<div class="logo"><img src="/chatagram/assets/icon.svg" alt=""><span>chat<b>agram</b></span></div>
+<div class="by">by Trongates Legacy</div>
+<h1>The word game your <em>whole chat</em> plays.</h1>
+<div class="chips"><span><i style="background:#9146ff"></i>Twitch</span><span><i style="background:#53fc18"></i>Kick</span><span>Free</span></div>
+<div class="screen"><iframe src="/chatagram/play.html?still=1&diff=easy&layout=compact" style="width:560px;height:230px;transform:translate(-50%,-50%) scale(.96)"></iframe></div>
+<div class="url"><b>trongateslegacy.com</b>/chatagram</div>
+</body></html>
