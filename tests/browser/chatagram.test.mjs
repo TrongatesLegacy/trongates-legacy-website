@@ -573,14 +573,16 @@ test('reduced motion: the leaderboard just appears and goes, with nothing animat
   await tab.close();
 });
 
-test('backgrounds are solid in every theme by default; Advanced → Background makes them see-through (the owner, 2026-09-28)', async () => {
+test('backgrounds: every theme 95% opaque by default, solid at bgo=100, see-through as set (the owner, 2026-09-28)', async () => {
   const alpha = (tab) => tab.eval(`(() => { const cs = getComputedStyle(document.querySelector('.front')); const all = (cs.backgroundColor + ' ' + cs.backgroundImage).match(/rgba?\\([^)]*\\)/g) || []; return all.filter((c) => c !== 'rgba(0, 0, 0, 0)').map((c) => { const p = c.match(/[\\d.]+/g).map(Number); return p.length > 3 ? p[3] : 1; }); })()`);
   for (const theme of ['chatagram', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy']) {
-    const tab = await chrome.open(site.origin + `/chatagram/play.html?still=1&theme=${theme}`, { width: 960, height: 540 });
-    await ready(tab);
-    const a = await alpha(tab);
-    assert.ok(a.length && a.every((x) => x === 1), `${theme}: solid (${a})`);
-    await tab.close();
+    for (const [q, want] of [['', 0.95], ['&bgo=100', 1]]) {
+      const tab = await chrome.open(site.origin + `/chatagram/play.html?still=1&theme=${theme}${q}`, { width: 960, height: 540 });
+      await ready(tab);
+      const a = await alpha(tab);
+      assert.ok(a.length && a.every((x) => Math.abs(x - want) < 0.01), `${theme}${q}: ${a}, want ${want}`);
+      await tab.close();
+    }
   }
   for (const theme of ['chatagram', 'candy']) {
     const tab = await chrome.open(site.origin + `/chatagram/play.html?still=1&theme=${theme}&bgo=70`, { width: 960, height: 540 });

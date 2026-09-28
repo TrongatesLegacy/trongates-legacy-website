@@ -46,7 +46,7 @@
     // advanced: other. remember: show the All time leaderboard (it's always recorded; the name is from when this switch
     // decided whether it was kept, so old links still mean the same thing to their streamer)
     remember: { type: 'bool', def: true },
-    bgo: { type: 'int', def: 100, min: 50, max: 100 },               // the background's opacity, % (100: solid; less lets the game show through)
+    bgo: { type: 'int', def: 95, min: 50, max: 100 },                // the background's opacity, % (default a hint of the game behind; 100: solid)
     credit: { type: 'bool', def: true },
   };
   const MAIN = ['twitch', 'kick', 'layout', 'theme', 'accent', 'time', 'diff', 'next', 'restart'];

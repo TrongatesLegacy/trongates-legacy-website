@@ -67,10 +67,11 @@ Eight themes, each only CSS variables in `themes.css` (backgrounds, panels, tile
 (`accent=`). `theme.js` has the same list and each theme's own accent (a test checks they agree). A new theme is one
 block in `themes.css` plus its name and accent in `theme.js`, and every widget gets it.
 
-**Backgrounds are solid** (the owner, 2026-09-28; they used to be 93–97% opaque). Each theme's `--bg` colour carries
-`/ var(--bgo, 1)`, so a widget makes it see-through by setting `--bgo` on the same element: Chatagram's Advanced →
-Background (`bgo=`, 50–100%, default 100: solid). Frames and edges stay as they are. A new theme's `--bg` must do the same
-(a browser test checks every theme is solid by default and follows the setting).
+**Backgrounds**: each theme's `--bg` is solid on its own (they used to be 93–97% opaque, differing by theme) and carries
+`/ var(--bgo, 1)`, so a widget sets how see-through it is by setting `--bgo` on the same element. Chatagram's Advanced →
+Background (`bgo=`, 50–100%) defaults to **95%**, a hint of the game behind, the same for every theme (the owner,
+2026-09-28); Solid is 100. Frames and edges stay as they are. A new theme's `--bg` must do the same (a browser test checks
+every theme follows the setting: 95% by default, solid at 100).
 
 **Live theme message**: the page a widget is embedded in can change its look without a reload (a reload would
 restart the game):
