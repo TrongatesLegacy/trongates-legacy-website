@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free stream widgets for Twitch and Kick · Trongates Legacy</title>
+<meta name="description" content="Free chat games and overlays for streamers that work with Twitch and Kick at the same time. Type your channel names, paste one link into OBS. Made by Trongates Legacy.">
+<link rel="canonical" href="https://www.trongateslegacy.com/widgets/">
+<meta name="theme-color" content="#03060d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Trongates Legacy">
+<meta property="og:title" content="Free stream widgets for Twitch and Kick">
+<meta property="og:description" content="Chat games and overlays for Twitch and Kick at the same time. Paste one link into OBS.">
+<meta property="og:url" content="https://www.trongateslegacy.com/widgets/">
+<meta property="og:image" content="https://www.trongateslegacy.com/chatagram/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/orbitron.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/chakra-petch-400.woff2" crossorigin>
+<style>
+/* The main site's look (docs/design-system.md): neon on a dark grid, Orbitron titles, cut corners. */
+@font-face { font-family: Orbitron; src: url(/assets/fonts/orbitron.woff2) format("woff2"); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: "Chakra Petch"; src: url(/assets/fonts/chakra-petch-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Chakra Petch"; src: url(/assets/fonts/chakra-petch-600.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+:root { --bg: #03060d; --panel: #070d18; --line: #12233a; --text: #e8f4ff; --muted: #8ba3bd; --accent: #22e5ff; --kick: #53fc18; --twitch: #9146ff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 "Chakra Petch", system-ui, sans-serif; }
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 56px 56px; opacity: .55;
+  mask-image: radial-gradient(ellipse at 50% 0, #000 20%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse at 50% 0, #000 20%, transparent 75%); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+.nav { border-bottom: 1px solid var(--line); background: rgba(3,6,13,.85); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 5; }
+.nav .wrap { display: flex; align-items: center; gap: 24px; height: 62px; }
+.brand { font: 900 15px Orbitron, sans-serif; letter-spacing: .12em; text-decoration: none; white-space: nowrap; }
+.brand span { color: transparent; -webkit-text-stroke: 1px var(--accent); }
+.links { display: flex; gap: 1.6rem; margin-left: auto; font-size: .82rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.links a { text-decoration: none; } .links a:hover, .links a[aria-current] { color: var(--text); }
+.links a[aria-current] { box-shadow: 0 1px 0 var(--accent); }
+.pill { font: 700 11px Orbitron, sans-serif; letter-spacing: .12em; padding: 9px 16px; background: var(--kick); color: #03060d; text-decoration: none; white-space: nowrap; clip-path: polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px); }
+main.wrap { padding-top: 46px; padding-bottom: 40px; }
+.eyebrow { font: 700 12px Orbitron, sans-serif; letter-spacing: .3em; color: var(--accent); }
+h1 { font: 900 50px/1.05 Orbitron, sans-serif; letter-spacing: .03em; margin: 12px 0 14px; text-transform: uppercase; }
+h1 .o { color: transparent; -webkit-text-stroke: 1.5px var(--accent); }
+h1 .s { background: linear-gradient(180deg, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { color: var(--muted); font-size: 18px; max-width: 680px; margin: 0 0 34px; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; padding: 0; margin: 0; list-style: none; }
+.card { background: var(--panel); border: 1px solid var(--line); clip-path: polygon(20px 0,100% 0,100% calc(100% - 20px),calc(100% - 20px) 100%,0 100%,0 20px); display: flex; flex-direction: column; height: 100%; }
+.thumb { height: 190px; position: relative; overflow: hidden; background: radial-gradient(circle at 25% 30%, #3b5d3a, transparent 45%), radial-gradient(circle at 80% 75%, #6b3d1f, transparent 45%), linear-gradient(135deg, #1d2b36, #2a1b14); }
+.thumb iframe { position: absolute; left: 50%; top: 50%; width: 560px; height: 230px; border: 0; transform: translate(-50%,-50%) scale(.6); }
+.body { padding: 18px 22px 22px; display: flex; flex-direction: column; flex: 1; }
+.card h2 { font: 700 19px Orbitron, sans-serif; letter-spacing: .06em; margin: 0 0 8px; text-transform: uppercase; }
+.card p { color: var(--muted); margin: 0 0 14px; }
+.tags { display: flex; gap: 8px; margin: 0 0 18px; flex-wrap: wrap; padding: 0; list-style: none; }
+.tags li { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; padding: 3px 9px; border: 1px solid var(--line); color: var(--muted); }
+.pf { width: 16px; height: 16px; border-radius: 3px; display: inline-grid; place-items: center; } .pf svg { width: 11px; height: 11px; }
+.pf.kick { background: var(--kick); color: #000; } .pf.twitch { background: var(--twitch); color: #fff; }
+.btn { margin-top: auto; align-self: flex-start; font: 700 12px Orbitron, sans-serif; letter-spacing: .14em; padding: 13px 22px; text-transform: uppercase; background: var(--accent); color: #03060d; text-decoration: none;
+  clip-path: polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px); }
+.soon .thumb { display: grid; place-items: center; font: 900 64px Orbitron, sans-serif; color: var(--line); background: repeating-linear-gradient(45deg, #060b15, #060b15 12px, #08101d 12px, #08101d 24px); }
+.soon h2 { color: var(--muted); }
+.why { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; padding: 0; list-style: none; }
+.why li { border-left: 2px solid var(--accent); padding: 4px 0 4px 16px; color: var(--muted); }
+.why b { display: block; color: var(--text); font: 700 13px Orbitron, sans-serif; letter-spacing: .1em; margin-bottom: 4px; }
+footer { text-align: center; color: var(--muted); font-size: 14px; padding: 20px 0 50px; }
+@media (max-width: 900px) { .grid, .why { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .brand { font-size: 12px; letter-spacing: .08em; } .pill { padding: 8px 12px; } .links { display: none; } .pill { margin-left: auto; } h1 { font-size: 34px; } .grid, .why { grid-template-columns: 1fr; } .wrap { padding: 0 18px; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-kick" viewBox="0 0 10 10"><path d="M1 1h2.4v2.2h1.2V2.1h1.2V1H8.2v2.4H7v1.2H5.8v.8H7v1.2h1.2V9H5.8V7.9H4.6V6.8H3.4V9H1z" fill="currentColor"/></symbol>
+  <symbol id="i-twitch" viewBox="0 0 10 10"><path d="M2 1 1.2 2.8v5.4h2V9.3h1.1l1.1-1.1h1.7L9 6.3V1zm6.2 4.9-1.3 1.3H5.1L4 8.3V7.2H2.4V1.8h5.8zM6.9 3v2.2h-.8V3zm-2 0v2.2h-.8V3z" fill="currentColor"/></symbol>
+</defs></svg>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="/"><span>TRONGATES</span> LEGACY</a>
+  <nav class="links" aria-label="Site"><a href="/#stream">Stream</a><a href="/#roster">Roster</a><a href="/#videos">Videos</a><a href="/#socials">Socials</a><a href="/widgets/" aria-current="page">Widgets</a></nav>
+  <a class="pill" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener">Watch on Kick</a>
+</div></header>
+<main class="wrap">
+  <div class="eyebrow">Free stream widgets</div>
+  <h1><span class="o">Stream</span> <span class="s">Widgets</span></h1>
+  <p class="lede">Chat games and overlays that work with Twitch and Kick at the same time. Pick one, type your channel names, paste the link into OBS. Made by Trongates Legacy.</p>
+  <ul class="grid">
+    <li><article class="card">
+      <div class="thumb"><iframe src="/chatagram/play.html?layout=compact&still=1" title="Chatagram preview" tabindex="-1" loading="lazy"></iframe></div>
+      <div class="body"><h2>Chatagram</h2><p>The word game your whole chat plays: unscramble the letters together and beat the goal to clear the level.</p>
+        <ul class="tags"><li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>8 themes</li></ul>
+        <a class="btn" href="/chatagram/">Set up Chatagram</a></div>
+    </article></li>
+    <li><article class="card soon" aria-label="Coming soon"><div class="thumb" aria-hidden="true">?</div><div class="body"><h2>Coming soon</h2><p>More chat games and overlays for Twitch and Kick are on the way.</p></div></article></li>
+    <li><article class="card soon" aria-label="Coming soon"><div class="thumb" aria-hidden="true">?</div><div class="body"><h2>Coming soon</h2><p>Got an idea for a widget? Say hi on Kick.</p></div></article></li>
+  </ul>
+  <ul class="why">
+    <li><b>BOTH CHATS, ONE GAME</b>Twitch and Kick viewers play together. Multistreaming finally counts everyone.</li>
+    <li><b>NO LOGIN, NOTHING STORED</b>Widgets only read public chat. Your settings live in your OBS link.</li>
+    <li><b>FREE</b>No accounts, no catch. Say hi on Kick if you use one.</li>
+  </ul>
+</main>
+<footer class="wrap">Made by <a href="/">Trongates Legacy</a> · <a href="https://kick.com/trongateslegacy">kick.com/trongateslegacy</a></footer>
+</body></html>
