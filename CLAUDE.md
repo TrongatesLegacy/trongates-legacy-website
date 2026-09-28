@@ -107,6 +107,7 @@ node --experimental-websocket scripts/shot.mjs                # screenshot; opti
 node --experimental-websocket scripts/presize-art.mjs          # pre-size the character art (--measure, --bounds)
 node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image
 node --experimental-websocket artwork/chatagram/render.mjs     # re-render Chatagram's link-preview image
+node --experimental-websocket artwork/chatagram/render-previews.mjs  # re-render Chatagram's theme pictures (after any overlay look change)
 node scripts/build-words.mjs --scowl /tmp/scowl                # rebuild Chatagram's word lists (docs/widgets.md, "Words")
 python3 obs/build-scenes.py                                    # regenerate the OBS scene overlays
 scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running; +Princess/Blobfish when their theme changed, --forms to force)

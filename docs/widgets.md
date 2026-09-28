@@ -103,8 +103,8 @@ passed in, so the tests replay any game exactly.
 
 ## Chatagram: the overlay
 
-`play.html` is the OBS browser source: **full** 900 × 470 (every word slot, in columns by length, fitted into at most
-five columns) or **compact** 560 × 230 (bigger tiles, the last three finds, the count). The board scales to fit if the
+`play.html` is the OBS browser source: **full** 960 × 540 (16:9, exactly half of 1920 × 1080, so a full-screen source
+shows it at a clean 2×; every word slot, in columns by length, fitted into at most five columns, rows as big as fit) or **compact** 560 × 230 (bigger tiles, the last three finds, the count). The board scales to fit if the
 source is another size. With one platform the badges beside names go, and the summary's "Twitch vs Kick" box becomes
 round highlights (fastest find, longest streak, last-second save).
 
@@ -113,9 +113,12 @@ round highlights (fastest find, longest streak, last-second save).
   soft stop), and fixed shading over the window (darker top and bottom) that makes it read as a drum. Letters that
   don't change stay still.
 - **Other moments**: tiles drop in at the start of a round; the letters of a find light up in order; the banner
-  scrambles into the word; the slot flips in letter by letter in gold; guess bubbles (right guesses by default, or all,
-  or off); the hidden letter turns over; the fake letter tips away; the last 10 s go red; the longest word gets
-  confetti; the whole board flips over to the summary on its back, then back for the next level.
+  scrambles into the word; **the find lights up where it lands on the board** (it pops out big and gold, letter by letter,
+  and stays gold a few seconds; in compact, the newest "recent" chip pops); wrong guesses only as large bubbles when
+  "Show wrong guesses" is on (off by default); the hidden letter turns over; the fake letter tips away; the last 10 s
+  go red; the longest word gets confetti. **Round end**: an end card ("Cleared!", "Time's up!", with the count) springs
+  in letter by letter over the dimmed board, then the summary fades in (it never flips the widget: too jarring on stream).
+- **Empty slots** have a clear outline in every theme, so they read on any background and when the source is small.
 - **Performance**: one timer drives the game (set for `nextWake()`), one updates the clock once a second; animations
   are Web Animations on `transform` and `opacity` only. **Reduced motion** (`.rm`): everything changes at once. As in
   the OBS scenes, inside OBS the streaming PC's system setting is ignored unless the link says `motion=reduce`.
@@ -150,16 +153,28 @@ node scripts/build-words.mjs --scowl /tmp/scowl
 Its own brand, not the site's: lowercase wordmark **chat**agram in Lilita One (Chakra Petch for text, both already
 self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, coral `#ff5a5f`, sun `#ffc93c`, mint
 `#2ee6a8`, paper `#fff7ec`. The header says **by Trongates Legacy**; the overlay's footer credit
-`chatagram · made by trongateslegacy.com` is on by default and can be turned off (Advanced → Other).
+`Made by TrongatesLegacy.com` (the owner's choice of spelling for the credit) is on by default and can be turned off
+(Advanced → Other).
 
 - Sections: hero (the pretend chat playing), how it works, the eight themes live, set up, FAQ. Sticky header with a
   pill menu that shows where you are.
-- **Set-up**: channels, look (layout, theme, accent), game (round length up to 5 min, difficulty, keep playing); the
+- **Set-up**: channels, each checked as it's typed with a line under the box (Twitch through its public web API,
+  `gql.twitch.tv`, no key; Kick through its channel API, which also gives the chatroom id; the overlay itself never asks
+  Twitch); look (layout, theme, accent: the first swatch is the theme's own, the rainbow one any colour); game (round
+  length up to 5 min, difficulty, keep playing). **Copy OBS link**, Show link and Open stay disabled until a channel is
+  in. Ignored users and blocked words are **tag fields** (type, Enter or comma adds, × removes, Backspace removes the
+  last). The Kick chatroom ID box only appears when Kick couldn't confirm the channel. The
   rest under **Advanced settings** (closed; a badge counts what's changed; opens itself when a link with advanced
   settings is opened). The **live preview** stays in view beside the settings with tabs for playing / level cleared /
   game over; **Copy OBS link** sits under it; the full link hides behind "Show link". On phones the preview goes first
   and a Copy bar stays at the bottom. The preview is re-themed by message, so changing theme or accent never reloads it.
 - Indexed (in `sitemap.xml`) with its own title, description, canonical, share image and JSON-LD. The overlay isn't.
+- **Pictures before live games**: the hero and the set-up preview show a picture at once and the live game fades in
+  over it when it has drawn; the theme gallery and the widgets page only ever show pictures (click a theme to use it).
+  They're the real overlay, rendered per theme and layout by
+  `node --experimental-websocket artwork/chatagram/render-previews.mjs` into `public/chatagram/assets/themes/`; re-run it
+  whenever the overlay's look changes (a test checks every theme has both). `/chatagram/words/*` and `/chatagram/assets/*`
+  are cached for a day (netlify.toml).
 - The link-preview image: `node --experimental-websocket artwork/chatagram/render.mjs` (renders `artwork/chatagram/og.html`
   with the real overlay inside, into `public/chatagram/assets/og.jpg`). Re-render it when the brand or overlay changes.
 

@@ -44,26 +44,33 @@ test('the widgets pages and the overlay load without errors', async () => {
 });
 
 test('with no channel the overlay asks to be set up, and connects to nothing', async () => {
-  const tab = await chrome.open(site.origin + '/chatagram/play.html', { width: 900, height: 470, init: FAKE_CHAT });
+  const tab = await chrome.open(site.origin + '/chatagram/play.html', { width: 960, height: 540, init: FAKE_CHAT });
   await ready(tab);
   assert.match(await tab.eval('document.getElementById("msg").textContent'), /Add your channel/);
   assert.equal(await tab.eval('window.chatagram.game.state.phase'), 'idle');
   await tab.close();
 });
 
-test('a whole game from Twitch and Kick chat: finds score, the round ends, the summary flips in and credits both chats', async () => {
-  const tab = await chrome.open(site.origin + '/chatagram/play.html?twitch=gridrunner&kick=gridrunner&kickid=715&next=5', { width: 900, height: 470, init: FAKE_CHAT });
+test('a whole game from Twitch and Kick chat: finds score, the round ends, the end card then the summary, crediting both chats', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/play.html?twitch=gridrunner&kick=gridrunner&kickid=715&next=5', { width: 960, height: 540, init: FAKE_CHAT });
   await ready(tab);
   await tab.until('document.querySelectorAll("#conn .dot.live").length === 2', 5000, 'both chats live');
   const words = await tab.eval('window.chatagram.game.state.round.answers.map((a) => a.word)');
   for (const [i, w] of words.entries()) await tab.eval(`__chat.${i % 2 ? 'kick' : 'twitch'}(${JSON.stringify(i % 3 ? 'PixelPanda' : 'NeonNacho')}, ${JSON.stringify(w.toUpperCase())}); 1`);
   await tab.until('window.chatagram.game.state.phase === "cleared"', 3000);
-  await tab.until('document.getElementById("board").classList.contains("flipped")', 3000, 'the summary to flip in');
+  // the end card first ("Cleared!" over the board), then the summary fades in; the board never flips
+  await tab.until('/Cleared!/i.test(document.getElementById("endcard").textContent)', 2000, 'the end card');
+  assert.equal(await tab.eval('document.getElementById("board").classList.contains("summary")'), false, 'no summary under the end card');
+  await tab.until('document.getElementById("board").classList.contains("summary")', 5000, 'the summary to fade in');
+  assert.equal(await tab.eval('document.getElementById("endcard").classList.contains("on")'), false);
+  // nothing turns over: every transform is 'none' or a plain scale (no rotation terms)
+  const transforms = await tab.eval('[...document.querySelectorAll(".card, .face")].map((el) => getComputedStyle(el).transform)');
+  for (const t of transforms) assert.ok(t === 'none' || /^matrix\([\d.]+, 0, 0, [\d.]+, /.test(t), `rotated: ${t}`);
   const back = await tab.eval('document.querySelector(".back").textContent');
   assert.match(back, /Cleared!/); assert.match(back, /TWITCH VS KICK/); assert.match(back, /PixelPanda/);
   // moves on by itself
   await tab.eval('window.chatagram.advance(5000); 1');
-  await tab.until('window.chatagram.game.state.level === 2 && !document.getElementById("board").classList.contains("flipped")', 3000);
+  await tab.until('window.chatagram.game.state.level === 2 && !document.getElementById("board").classList.contains("summary")', 3000);
   // a regular viewer's !reset does nothing; a mod's works
   await tab.eval('__chat.twitch("PixelPanda", "!reset"); 1');
   assert.equal(await tab.eval('window.chatagram.game.state.level'), 2);
@@ -73,9 +80,25 @@ test('a whole game from Twitch and Kick chat: finds score, the round ends, the s
   await tab.close();
 });
 
+test('a right guess lights up its slot on the board (no bubble); wrong guesses show only when switched on', async () => {
+  for (const wrong of [0, 1]) {
+    const tab = await chrome.open(site.origin + `/chatagram/play.html?twitch=gridrunner${wrong ? '&wrong=1' : ''}`, { width: 960, height: 540, init: FAKE_CHAT });
+    await ready(tab);
+    await tab.until('document.querySelectorAll("#conn .dot.live").length === 1', 5000);
+    const w = await tab.eval('chatagram.game.state.round.answers[0].word');
+    await tab.eval(`__chat.twitch("PixelPanda", "${w}"); 1`);
+    assert.ok(await tab.eval('!!document.querySelector("#words .w.new.got")'), 'the found word is highlighted on the board');
+    assert.equal(await tab.eval('document.querySelectorAll(".bubble").length'), 0, 'no bubble for a right guess');
+    await tab.eval(`__chat.twitch("NeonNacho", "${w}"); 1`);                // already found: a wrong guess
+    assert.equal(await tab.eval('document.querySelectorAll(".bubble").length'), wrong, wrong ? 'wrong guesses shown' : 'wrong guesses hidden');
+    await tab.eval('localStorage.clear(); 1');
+    await tab.close();
+  }
+});
+
 test('game over, then a new game after the restart delay; the round survives a refresh', async () => {
   const url = site.origin + '/chatagram/play.html?twitch=gridrunner';
-  const tab = await chrome.open(url, { width: 900, height: 470, init: FAKE_CHAT });
+  const tab = await chrome.open(url, { width: 960, height: 540, init: FAKE_CHAT });
   await ready(tab);
   const first = await tab.eval('window.chatagram.game.state.round.answers[0].word');
   await tab.eval(`__chat.twitch("PixelPanda", "${first}"); 1`);
@@ -86,7 +109,7 @@ test('game over, then a new game after the restart delay; the round survives a r
   assert.equal(await tab.eval(`window.chatagram.game.state.round.answers[0].by.name`), 'PixelPanda');
   await tab.eval('window.chatagram.advance(90000); 1');
   await tab.until('window.chatagram.game.state.phase === "over"', 3000);
-  await tab.until('/Game over/.test(document.querySelector(".back").textContent)', 3000);
+  await tab.until('/Game over/.test(document.querySelector(".back").textContent)', 5000);
   await tab.eval('window.chatagram.advance(15000); 1');
   await tab.until('window.chatagram.game.state.phase === "playing"', 3000);
   await tab.eval('localStorage.clear(); 1');
@@ -95,7 +118,7 @@ test('game over, then a new game after the restart delay; the round survives a r
 
 test('both layouts fit their size in every theme, with one platform or two', async () => {
   const themes = ['chatagram', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy'];
-  for (const [layout, w, h] of [['full', 900, 470], ['compact', 560, 230]]) {
+  for (const [layout, w, h] of [['full', 960, 540], ['compact', 560, 230]]) {
     const tab = await chrome.open(`${site.origin}/chatagram/play.html?still=1&layout=${layout}`, { width: w, height: h });
     await ready(tab);
     for (const theme of themes) {
@@ -117,7 +140,7 @@ test('both layouts fit their size in every theme, with one platform or two', asy
     await tab.close();
   }
   // summaries in both layouts
-  for (const [layout, w, h] of [['full', 900, 470], ['compact', 560, 230]]) for (const screen of ['cleared', 'over']) for (const one of ['', '&kick=a']) {
+  for (const [layout, w, h] of [['full', 960, 540], ['compact', 560, 230]]) for (const screen of ['cleared', 'over']) for (const one of ['', '&kick=a']) {
     const tab = await chrome.open(`${site.origin}/chatagram/play.html?still=1&layout=${layout}&screen=${screen}${one}`, { width: w, height: h });
     await ready(tab); await tab.eval('document.fonts.ready.then(() => 1)');
     const over = await tab.eval(`(() => { const b = document.querySelector('.back'); return [b.scrollHeight - b.clientHeight, b.scrollWidth - b.clientWidth]; })()`);
@@ -128,7 +151,7 @@ test('both layouts fit their size in every theme, with one platform or two', asy
 });
 
 test('a live theme message restyles the board without restarting the game; bad ones are ignored', async () => {
-  const tab = await chrome.open(site.origin + '/chatagram/play.html?demo=1', { width: 900, height: 470 });
+  const tab = await chrome.open(site.origin + '/chatagram/play.html?demo=1', { width: 960, height: 540 });
   await ready(tab);
   const before = await tab.eval('[window.chatagram.game.state.round.id, window.chatagram.game.state.round.seed]');
   await tab.eval(`window.postMessage({ type: 'widget-theme', theme: 'neon', accent: 'ff4155' }, '*'); new Promise((r) => setTimeout(r, 50))`);
@@ -158,7 +181,7 @@ test('the OBS wrapper follows the form: Tron in his armour colour, Princess Trin
   assert.equal(await inner('w.chatagram.game.state.round.id'), round, 'switching form never restarts the game');
   assert.equal(await inner('w.chatagram.cfg.layout'), 'compact', 'the game\'s own options pass through');
   await tab.close();
-  const looks = await chrome.open(site.origin + '/obs/chatagram?noveado=1&demo=1&form=princess&looks=princess:tron', { width: 900, height: 470 });
+  const looks = await chrome.open(site.origin + '/obs/chatagram?noveado=1&demo=1&form=princess&looks=princess:tron', { width: 960, height: 540 });
   await looks.until(`document.getElementById('game').contentDocument?.documentElement.dataset.ready === '1'`, 8000);
   assert.equal(await looks.eval(`document.getElementById('game').contentDocument.getElementById('board').dataset.theme`), 'neon', 'Form looks: Princess Trina in Tron\'s look');
   await looks.close();
@@ -170,9 +193,12 @@ test('the set-up page: defaults make a short link, changes are written, the adva
   await tab.eval('localStorage.clear(); 1');
   await tab.send('Page.reload'); await sleep(400); await tab.until('window.chatagramSetup', 5000);
   assert.equal(await tab.eval('chatagramSetup.query()'), '');
+  assert.deepEqual(await tab.eval('[document.getElementById("copy").disabled, document.getElementById("copy2").disabled, document.getElementById("open").getAttribute("aria-disabled"), document.getElementById("need").hidden]'), [true, true, 'true', false], 'nothing to copy without a channel');
+  assert.equal(await tab.eval('document.getElementById("kickid-field").hidden'), true, 'the chatroom ID box only shows when Kick can\'t confirm');
   const type = (name, value) => tab.eval(`(() => { const el = document.querySelector('[name="${name}"]'); el.value = ${JSON.stringify(value)}; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
   await type('twitch', 'https://www.twitch.tv/PixelPanda');
   await type('kick', 'kick.com/Grid_Runner');
+  assert.deepEqual(await tab.eval('[document.getElementById("copy").disabled, document.getElementById("need").hidden]'), [false, true], 'a channel: copy is ready');
   await tab.click('input[name=layout][value=compact]');
   await tab.click('input[name=theme][value=cozy]');
   await tab.click('input[name=time][value="300"]');
@@ -188,6 +214,14 @@ test('the set-up page: defaults make a short link, changes are written, the adva
   q = await tab.eval('chatagramSetup.query()');
   assert.match(q, /locks=3/); assert.match(q, /cstart=!cg\+start,!newgame|cstart=!cg%20start,!newgame/); assert.match(q, /perm=all/);
   assert.equal(await tab.eval('document.getElementById("chg").textContent'), '3 changed');
+  // tag fields: Enter adds, × removes, straight into the link
+  const tagInput = (k) => `document.querySelector('[data-tags=${k}] input')`;
+  await tab.eval(`(() => { const i = ${tagInput('block')}; i.value = 'Moist'; i.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); return 1; })()`);
+  assert.match(await tab.eval('chatagramSetup.query()'), /block=moist/);
+  await tab.eval(`document.querySelector('[data-tags=ignore] [data-remove=nightbot]').click(); 1`);
+  assert.ok(!(await tab.eval('chatagramSetup.settings.ignore.includes("nightbot")')));
+  await tab.eval(`(() => { const i = ${tagInput('ignore')}; i.value = '@MyBot'; i.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); return 1; })()`);
+  assert.ok(await tab.eval('chatagramSetup.settings.ignore.includes("mybot")'));
   // keep playing off: both flow settings wait for commands
   await tab.click('#auto');
   assert.match(await tab.eval('chatagramSetup.query()'), /next=0&restart=0/);
@@ -204,7 +238,7 @@ test('the set-up page: defaults make a short link, changes are written, the adva
 });
 
 test('reduced motion: no animations run, the letters still change', async () => {
-  const tab = await chrome.open(site.origin + '/chatagram/play.html?demo=1', { width: 900, height: 470, reducedMotion: true });
+  const tab = await chrome.open(site.origin + '/chatagram/play.html?demo=1', { width: 960, height: 540, reducedMotion: true });
   await ready(tab);
   assert.ok(await tab.eval('document.documentElement.classList.contains("rm")'));
   const before = await tab.eval('[...document.querySelectorAll("#tiles .reel b")].map((b) => b.textContent).join("")');
@@ -212,7 +246,7 @@ test('reduced motion: no animations run, the letters still change', async () => 
   assert.equal(await tab.eval('document.getAnimations().filter((a) => a.playState === "running").length'), 0);
   assert.notEqual(await tab.eval('[...document.querySelectorAll("#tiles .reel b")].map((b) => b.textContent).join("")'), before);
   // in OBS the streaming PC's setting is ignored unless motion=reduce says so
-  const obs = await chrome.open(site.origin + '/chatagram/play.html?demo=1', { width: 900, height: 470, reducedMotion: true, init: 'window.obsstudio = {};' });
+  const obs = await chrome.open(site.origin + '/chatagram/play.html?demo=1', { width: 960, height: 540, reducedMotion: true, init: 'window.obsstudio = {};' });
   await ready(obs);
   assert.ok(!(await obs.eval('document.documentElement.classList.contains("rm")')));
   await obs.close(); await tab.close();

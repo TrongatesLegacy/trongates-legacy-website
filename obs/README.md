@@ -542,7 +542,7 @@ The dock's **Form looks** (`looks=`) are followed too: a form given Tron's look 
 **Adding it in OBS** (it isn't in the dock's Sources tab):
 1. Set it up on the Chatagram page (channels, layout, game), **Copy OBS link**.
 2. Change `/chatagram/play?` in the link to `/obs/chatagram?` (keep everything after the `?`).
-3. Sources → **+** → Browser: paste it; width `900`, height `470` (`560` × `230` for the compact layout); tick
+3. Sources → **+** → Browser: paste it; width `960`, height `540`, or `1920` × `1080` to fill the screen (`560` × `230` for the compact layout); tick
    **Use custom frame rate**, FPS `30`.
 
 Any `theme=` or `accent=` in the link is replaced by the form's. It needs the hosted address (it loads `/chatagram/`), so
