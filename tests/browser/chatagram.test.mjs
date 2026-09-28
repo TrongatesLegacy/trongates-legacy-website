@@ -4,7 +4,7 @@
 // outside requests are blocked and the chat sockets are faked in the page.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { launch } from '../helpers/chrome.mjs';
+import { launch, TIMERS } from '../helpers/chrome.mjs';
 import { siteServer } from '../helpers/server.mjs';
 import { readAt } from '../helpers/sim.mjs';
 
@@ -201,12 +201,12 @@ test('the set-up page: defaults make a short link, changes are written, the adva
   await tab.eval('localStorage.clear(); 1');
   await tab.send('Page.reload'); await sleep(400); await tab.until('window.chatagramSetup', 5000);
   assert.equal(await tab.eval('chatagramSetup.query()'), '');
-  assert.deepEqual(await tab.eval('[document.getElementById("copy").disabled, document.getElementById("copy2").disabled, document.getElementById("open").getAttribute("aria-disabled"), document.getElementById("need").hidden]'), [true, true, 'true', false], 'nothing to copy without a channel');
-  assert.equal(await tab.eval('document.getElementById("kickid-field").hidden'), true, 'the chatroom ID box only shows when Kick can\'t confirm');
+  assert.deepEqual(await tab.eval('[document.getElementById("copy").disabled, getComputedStyle(document.getElementById("links")).display, document.getElementById("need").hidden]'), [true, 'none', false], 'nothing to copy without a channel: the links are hidden');
+  assert.equal(await tab.eval('getComputedStyle(document.getElementById("kickid-field")).display'), 'none', 'the chatroom ID box only shows when Kick can\'t confirm');
   const type = (name, value) => tab.eval(`(() => { const el = document.querySelector('[name="${name}"]'); el.value = ${JSON.stringify(value)}; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
   await type('twitch', 'https://www.twitch.tv/PixelPanda');
   await type('kick', 'kick.com/Grid_Runner');
-  assert.deepEqual(await tab.eval('[document.getElementById("copy").disabled, document.getElementById("need").hidden]'), [false, true], 'a channel: copy is ready');
+  assert.deepEqual(await tab.eval('[document.getElementById("copy").disabled, document.getElementById("need").hidden, getComputedStyle(document.getElementById("links")).display !== "none"]'), [false, true, true], 'a channel: copy and the links are ready');
   await tab.click('input[name=layout][value=compact]');
   await tab.click('input[name=theme][value=cozy]');
   await tab.click('input[name=time][value="300"]');
@@ -275,7 +275,8 @@ test('the placeholder picture fades out once the live game has drawn (no two boa
   // proof: on the code before the fix the picture stays up
   const old = readAt('d7bb30b', 'public/chatagram/setup.js');
   if (!old) return;
-  const before = await siteServer({ files: { '/chatagram/setup.js': old } });
+  // the page and its script as they were then (today's page has changed around the old script)
+  const before = await siteServer({ files: { '/chatagram/setup.js': old, '/chatagram/': readAt('d7bb30b', 'public/chatagram/index.html') } });
   try { assert.notDeepEqual(await pictureGoneOnceLive(before), [0, 0], 'the test should fail on the old code'); } finally { await before.close(); }
 });
 
@@ -337,5 +338,49 @@ test('a board of mostly short words groups its few long-word boxes into one "N+"
   assert.ok(seen.length >= 3, 'never fewer than three columns');
   // every box is still on the board, and the N+ count covers all its lengths
   assert.equal(await tab.eval('document.querySelectorAll("#words .w").length'), await tab.eval('chatagram.game.state.round.answers.length'));
+  await tab.close();
+});
+
+// A very busy chat (owner, 2026-09-28): many viewers sending the same words in the same instant, over both platforms.
+// Each word goes to whoever's message arrived first, once; the page keeps up; timers don't churn per message; the banner
+// ends on the newest find.
+test('a flood of the same words from many viewers at once: first message wins each word, once; nothing piles up', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/play.html?twitch=gridrunner&kick=gridrunner&kickid=715', { width: 960, height: 540, init: TIMERS + FAKE_CHAT });
+  await ready(tab);
+  await tab.until('document.querySelectorAll("#conn .dot.live").length === 2', 5000);
+  const r = await tab.eval(`(async () => {
+    const words = chatagram.game.state.round.answers.map((a) => a.word).slice(0, 6), first = {};
+    const made = __timers.made, t0 = performance.now();
+    // 400 messages in one go: every word from 60 viewers, alternating platforms, plus junk
+    let n = 0;
+    for (let v = 0; v < 60; v++) for (const w of words) {
+      const who = 'Viewer' + v, kick = (v + n) % 2;
+      if (!(w in first)) first[w] = who;
+      if (kick) __chat.kick(who, w); else __chat.twitch(who, w);
+      n++;
+    }
+    for (let j = 0; j < 40; j++) __chat.twitch('Chatter' + j, 'lol');
+    const ms = performance.now() - t0;
+    await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+    const a = chatagram.game.state.round.answers;
+    return { ms, timers: __timers.made - made, n: n + 40,
+      credited: words.map((w) => { const x = a.find((y) => y.word === w); return [w, x && x.by && x.by.name, first[w]]; }),
+      scores: Object.values(chatagram.game.state.players).map((p) => p.words).reduce((s, x) => s + x, 0),
+      banner: document.getElementById('who').textContent };
+  })()`);
+  for (const [w, got, want] of r.credited) assert.equal(got, want, `${w} went to the first sender`);
+  assert.equal(r.scores, 6, 'six words found, six credited: no double scoring');
+  assert.ok(r.ms < 500, `handled ${r.n} messages in ${Math.round(r.ms)} ms`);
+  assert.ok(r.timers < 60, `${r.timers} timers made for ${r.n} messages (should not churn per message)`);
+  assert.match(r.banner, new RegExp(r.credited.at(-1)[2]), 'the banner ends on the newest find');
+  noErrors(tab, 'flood');
+  await tab.eval('localStorage.clear(); 1');
+  await tab.close();
+});
+
+test('phones have no sticky Copy bar (the owner removed it)', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/', { width: 390, height: 844, mobile: true });
+  assert.equal(await tab.eval('document.querySelectorAll(".copybar, #copy2").length'), 0);
+  noErrors(tab, 'phone');
   await tab.close();
 });

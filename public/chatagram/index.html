@@ -35,6 +35,7 @@ body { margin: 0; background: var(--ink); color: var(--paper); font: 16px/1.5 "C
 a { color: inherit; }
 h1, h2, h3, .lil { font-family: "Lilita One", system-ui, sans-serif; font-weight: 400; }
 .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+[hidden] { display: none !important; }   /* the page's own display rules must never un-hide something */
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* logo: a speech-bubble tile mid-roll, then the wordmark */
@@ -150,6 +151,7 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .adv .hint { font-size: 14px; color: var(--muted); }
 .agrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 16px; }
 .agrid .wide { grid-column: 1 / -1; }
+.sub-h { margin: 8px 0 0; padding-top: 12px; border-top: 1px solid var(--ink3); font: 17px "Lilita One", sans-serif; color: var(--sun); }
 .cmds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .cmds .box input { font-family: ui-monospace, Menlo, monospace; color: var(--sun); font-size: 15px; }
 .right { position: sticky; top: calc(var(--nav) + 16px); background: var(--ink2); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
@@ -188,16 +190,12 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .faq p { color: var(--muted); margin: 8px 0 0; }
 footer.site { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 20px 50px; }
 footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin: 6px 0; }
-.copybar { display: none; }
 
 /* phones and narrow windows: one column, the preview first, a Copy bar on the bottom */
 @media (max-width: 1020px) {
   .menu { display: none; }
   .hero { grid-template-columns: 1fr; } .hero .screen { max-width: 540px; width: 100%; }
   .cols { grid-template-columns: 1fr; } .right { position: static; order: -1; }
-  .copybar { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; padding: 10px 16px; background: rgba(22,18,43,.95); border-top: 1px solid var(--ink3); }
-  .copybar .btn { width: 100%; }
-  footer.site { padding-bottom: 100px; }
 }
 @media (max-width: 720px) {
   .wrap { padding: 0 16px; }
@@ -285,14 +283,13 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
           <label class="sw">Bonus for the longest word <input type="checkbox" role="switch" name="longbonus"></label>
           <label class="sw">Rarer real words score a little <input type="checkbox" role="switch" name="bonus"></label>
         </fieldset>
-        <fieldset class="card"><legend>Padlocks</legend>
+        <fieldset class="card"><legend>Between rounds and padlocks</legend>
+          <label class="field"><span>After a level is cleared</span><span class="box"><select name="next"><option value="5">Next level in 5 seconds</option><option value="10">Next level in 10 seconds</option><option value="15">Next level in 15 seconds</option><option value="20">Next level in 20 seconds</option><option value="30">Next level in 30 seconds</option><option value="0">Wait for the next command</option></select></span></label>
+          <label class="field"><span>After game over</span><span class="box"><select name="restart"><option value="10">New game in 10 seconds</option><option value="15">New game in 15 seconds</option><option value="30">New game in 30 seconds</option><option value="60">New game in 60 seconds</option><option value="0">Wait for the start command</option></select></span></label>
+          <h4 class="sub-h">Padlocks</h4>
           <p class="note">Stops one fast typer taking every word: after a find, that player waits until the timer passes the next padlock.</p>
           <div class="field"><span class="lab" id="l-locks">Padlocks per round</span><div class="seg" role="radiogroup" aria-labelledby="l-locks"><label><input type="radio" name="locks" value="0"><span>Off</span></label><label><input type="radio" name="locks" value="2"><span>2</span></label><label><input type="radio" name="locks" value="3"><span>3</span></label><label><input type="radio" name="locks" value="4"><span>4</span></label></div></div>
           <label class="sw">Tell locked players to wait <input type="checkbox" role="switch" name="lockmsg"></label>
-        </fieldset>
-        <fieldset class="card"><legend>Flow</legend>
-          <label class="field"><span>After a level is cleared</span><span class="box"><select name="next"><option value="5">Next level in 5 seconds</option><option value="10">Next level in 10 seconds</option><option value="15">Next level in 15 seconds</option><option value="20">Next level in 20 seconds</option><option value="30">Next level in 30 seconds</option><option value="0">Wait for the next command</option></select></span></label>
-          <label class="field"><span>After game over</span><span class="box"><select name="restart"><option value="10">New game in 10 seconds</option><option value="15">New game in 15 seconds</option><option value="30">New game in 30 seconds</option><option value="60">New game in 60 seconds</option><option value="0">Wait for the start command</option></select></span></label>
         </fieldset>
         <fieldset class="card"><legend>Chat</legend>
           <label class="sw">Show wrong guesses <input type="checkbox" role="switch" name="wrong"></label>
@@ -300,6 +297,11 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
           <div class="field"><span class="lab" id="l-ignore">Ignore these users (bots)</span><div class="tags" data-tags="ignore" data-placeholder="Add a name…" aria-labelledby="l-ignore"></div></div>
           <div class="field"><span class="lab" id="l-block">Never use these words</span><div class="tags" data-tags="block" data-placeholder="Add a word…" aria-labelledby="l-block"></div><p class="note">Type and press Enter. Click × to remove.</p></div>
           <label class="sw">Show top players <input type="checkbox" role="switch" name="top"></label>
+        </fieldset>
+        <fieldset class="card"><legend>Other</legend>
+          <label class="field" id="kickid-field" hidden><span>Kick chatroom ID: only needed if Kick can’t confirm your channel (most people never need this)</span><span class="box"><input name="kickid" inputmode="numeric" autocomplete="off" placeholder="found automatically"></span></label>
+          <label class="sw">Remember scores between streams <input type="checkbox" role="switch" name="remember"></label>
+          <label class="sw">Show “Made by TrongatesLegacy.com” <input type="checkbox" role="switch" name="credit"></label>
         </fieldset>
         <fieldset class="card wide"><legend>Chat commands</legend>
           <div class="cmds">
@@ -311,11 +313,6 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
           <div class="field"><span class="lab" id="l-perm">Who can use them</span><div class="seg" role="radiogroup" aria-labelledby="l-perm"><label><input type="radio" name="perm" value="me"><span>Only me</span></label><label><input type="radio" name="perm" value="mods"><span>Me and mods</span></label><label><input type="radio" name="perm" value="all"><span>Everyone</span></label></div></div>
           <p class="note">Clash with another bot's commands? Rename them, e.g. <code>!cg start</code> or <code>!newgame</code>. Several names: separate with commas. Reset also clears the all-time scores.</p>
         </fieldset>
-        <fieldset class="card wide"><legend>Other</legend>
-          <label class="field" id="kickid-field" hidden><span>Kick chatroom ID: only needed if Kick can’t confirm your channel (most people never need this)</span><span class="box"><input name="kickid" inputmode="numeric" autocomplete="off" placeholder="found automatically"></span></label>
-          <label class="sw">Remember scores between streams <input type="checkbox" role="switch" name="remember"></label>
-          <label class="sw">Show “Made by TrongatesLegacy.com” <input type="checkbox" role="switch" name="credit"></label>
-        </fieldset>
       </div>
     </details>
   </div>
@@ -325,7 +322,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
     <div class="screen" id="pv-screen"><img class="poster" id="pv-poster" src="assets/themes/chatagram-full.webp" alt="" loading="lazy"><iframe id="pv" title="Preview of your Chatagram overlay" width="960" height="540" tabindex="-1"></iframe></div>
     <button type="button" class="btn" id="copy">Copy OBS link</button>
     <p class="need" id="need">Add your Twitch or Kick channel first (step 1).</p>
-    <div class="meta"><span>Browser source <b id="size">960 × 540</b></span><span><button type="button" id="show" aria-expanded="false" aria-controls="link">Show link</button> · <a id="open" href="play" target="_blank" rel="noopener">Open in new tab</a></span></div>
+    <div class="meta"><span>Browser source <b id="size">960 × 540</b></span><span id="links" hidden><button type="button" id="show" aria-expanded="false" aria-controls="link">Show link</button> · <a id="open" href="play" target="_blank" rel="noopener">Open in new tab</a></span></div>
     <p class="link" id="link" hidden></p>
     <p class="how">In OBS: Sources → + → Browser, paste the link, set the size above. Changed a setting? Copy again and paste over the old link.</p>
   </aside>
@@ -349,7 +346,6 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   <p>Chatagram is free, made by <b>Trongates Legacy</b> · <a href="/">trongateslegacy.com</a> · <a href="https://kick.com/trongateslegacy">Say hi on Kick</a> · <a href="/widgets/">More widgets</a></p>
   <p>Word lists: <a href="https://github.com/en-wl/wordlist">SCOWL</a> © Kevin Atkinson; filtered with <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">LDNOOBW</a> (CC BY 4.0). <a href="words/LICENSE.txt">Details</a></p>
 </footer>
-<div class="copybar"><button type="button" class="btn" id="copy2">Copy OBS link</button></div>
 
 <script src="../widgets/lib/settings.js"></script>
 <script src="../widgets/lib/theme.js"></script>

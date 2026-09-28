@@ -36,7 +36,7 @@
     perm: { type: 'enum', def: 'mods', values: ['me', 'mods', 'all'] },
     // advanced: chat
     wrong: { type: 'bool', def: false },                              // show wrong guesses (right ones light up on the board)
-    ignore: { type: 'list', def: ['botrix', 'botrixoficial', 'nightbot', 'streamelements', 'moobot', 'fossabot', 'streamlabs', 'kicklet', 'kickbot', 'sery_bot', 'wizebot'] },
+    ignore: { type: 'list', def: ['botrix', 'botrixoficial', 'nightbot', 'streamelements', 'moobot', 'fossabot', 'streamlabs', 'kicklet', 'kickbot', 'sery_bot', 'wizebot', 'missxss'] },
     block: { type: 'list', def: [] },
     top: { type: 'bool', def: true },
     // advanced: other

@@ -173,13 +173,13 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
 - **Set-up**: channels, each checked as it's typed with a line under the box (Twitch through its public web API,
   `gql.twitch.tv`, no key; Kick through its channel API, which also gives the chatroom id; the overlay itself never asks
   Twitch); look (layout, theme, accent: the first swatch is the theme's own, the rainbow one any colour); game (round
-  length up to 5 min, difficulty, keep playing). **Copy OBS link**, Show link and Open stay disabled until a channel is
-  in. Ignored users and blocked words are **tag fields** (type, Enter or comma adds, × removes, Backspace removes the
+  length up to 5 min, difficulty, keep playing). **Copy OBS link** stays disabled, and Show link / Open in new tab hidden,
+  until a channel is in. Ignored users and blocked words are **tag fields** (type, Enter or comma adds, × removes, Backspace removes the
   last). The Kick chatroom ID box only appears when Kick couldn't confirm the channel. The
   rest under **Advanced settings** (closed; a badge counts what's changed; opens itself when a link with advanced
   settings is opened). The **live preview** stays in view beside the settings with tabs for playing / level cleared /
-  game over; **Copy OBS link** sits under it; the full link hides behind "Show link". On phones the preview goes first
-  and a Copy bar stays at the bottom. The preview is re-themed by message, so changing theme or accent never reloads it.
+  game over; **Copy OBS link** sits under it; the full link hides behind "Show link". On phones the preview goes first (no
+  sticky Copy bar: the owner removed it). The preview is re-themed by message, so changing theme or accent never reloads it.
 - Indexed (in `sitemap.xml`) with its own title, description, canonical, share image and JSON-LD. The overlay isn't.
 - **Pictures before live games**: the hero and the set-up preview show a picture at once (sized exactly like the live
   board, no backdrop or frame around it) and the live game fades in over it when it has drawn, while the picture fades out (both showing at once looked

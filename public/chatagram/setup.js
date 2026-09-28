@@ -159,7 +159,8 @@
   const hasChannel = () => !!(W.platforms.twitch.channel(s.twitch) || W.platforms.kick.channel(s.kick));
   function readyToCopy() {
     const ok = hasChannel();
-    for (const b of [$('#copy'), $('#copy2')]) b.disabled = !ok;
+    $('#copy').disabled = !ok;
+    $('#links').hidden = !ok;                         // Show link · Open in new tab: only once there's a link
     for (const a of [$('#show'), $('#open')]) { a.setAttribute('aria-disabled', String(!ok)); a.tabIndex = ok ? 0 : -1; }
     $('#need').hidden = ok;
     if (!ok) $('#link').hidden = true;
@@ -242,7 +243,6 @@
     setTimeout(() => { btn.textContent = 'Copy OBS link'; }, 1800);
   }
   $('#copy').addEventListener('click', (e) => copy(e.currentTarget));
-  $('#copy2').addEventListener('click', (e) => copy(e.currentTarget));
   $('#open').addEventListener('click', (e) => { if (!hasChannel()) e.preventDefault(); });
   $('#show').addEventListener('click', (e) => { if (!hasChannel()) return; const l = $('#link'); l.hidden = !l.hidden; e.currentTarget.setAttribute('aria-expanded', String(!l.hidden)); e.currentTarget.textContent = l.hidden ? 'Show link' : 'Hide link'; });
   if (fromLink && W.settings.changed(SCHEMA, s, ADVANCED)) $('#adv').open = true;   // coming back with advanced settings: show them
