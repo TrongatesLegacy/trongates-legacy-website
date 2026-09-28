@@ -49,10 +49,10 @@ test('hours of play: no runaway, rounds keep coming, summaries always lead on', 
 
 test('with "keep playing" off, the game stops after game over and the clock runs dry', () => {
   const { clock, g, schedule } = run({ next: 5, restart: 0 }, 7, 0);
-  assert.equal(g.state.phase, 'idle', 'waits for !start');
+  assert.equal(g.state.phase, 'idle', 'waits for !cg start');
   // the owner starts it; no chat after that, so nobody finds anything and level 1 ends in game over
   clock.q = clock.q.filter((t) => t.label !== 'chat');
-  g.handle({ platform: 'twitch', user: 'captainquack', name: 'CaptainQuack', text: '!start', mod: true, owner: true }); schedule();
+  g.handle({ platform: 'twitch', user: 'captainquack', name: 'CaptainQuack', text: '!cg start', mod: true, owner: true }); schedule();
   const r = clock.run({ until: clock.now + 3600000, maxSteps: 10000 });
   assert.ok(!r.runaway);
   assert.equal(g.state.phase, 'over');
@@ -65,5 +65,21 @@ test('padlocks and tricky letters from level 1: still no runaway', () => {
     const { r, events } = run({ locks: 4, tricky: 1, shuffle: 5 }, seed, 0.5);
     assert.ok(!r.runaway, `seed ${seed}`);
     assert.ok(events.includes('unlock') && events.includes('reveal'), `seed ${seed}: padlocks and reveals happened`);
+  }
+});
+
+test('the leaderboard holding the game every so often (compact, !cg top): never stuck, never runaway', () => {
+  for (let seed = 1; seed <= Math.ceil(SEEDS / 4); seed++) {
+    const { clock, g, schedule } = run({}, seed, 0);
+    let holds = 0;
+    // every 20–70 s the leaderboard shows for 8 s (hold, then release, as play.js does)
+    const show = () => { if (g.hold(true)) { holds++; schedule(); clock.at(8000, () => { g.hold(false); schedule(); }, 'lb'); } clock.at(rng(seed + holds).int(20000, 70000), show, 'lb'); };
+    clock.at(15000, show, 'lb');
+    const r = clock.run({ until: clock.now + 3600000, maxSteps: 400000 });
+    assert.ok(!r.runaway, `seed ${seed}: runaway`);
+    assert.ok(holds > 40, `seed ${seed}: ${holds} holds`);
+    g.hold(false);
+    assert.ok(['playing', 'cleared', 'over'].includes(g.state.phase) && g.nextWake() !== Infinity, `seed ${seed}: something is always due`);
+    assert.ok(g.state.gameId >= 2 || g.state.level >= 3, `seed ${seed}: the game kept moving`);
   }
 });

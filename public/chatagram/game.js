@@ -3,12 +3,18 @@
 // messages to handle() and calls tick() when nextWake() says something is due; everything that happens comes back as
 // events for the overlay to animate. The clock and the randomness are passed in, so a test can replay any game.
 //
-//   const g = Chatagram.game(settings, { dict, seeds, now: () => Date.now(), random: Math.random, emit: (e) => … });
+//   const g = Chatagram.game(settings, { dict, seeds, now: () => Date.now(), random: Math.random, emit: (e) => …, award: (m, pts, words) => … });
 //   g.boot(savedSnapshot?)   g.handle({ platform, user, name, text, mod, owner })   g.tick()   g.nextWake()   g.snapshot()
+//   g.hold(true|false): stop every timer (the leaderboard covering the board) and carry on from where they stopped
+//
+// Points go to the leaderboards (scores.js) through deps.award as they're scored; the game itself only keeps this
+// game's players. state.allTime is still in the save, filled in by the overlay, so an older overlay reading it sees them.
 (() => {
   const C = (window.Chatagram = window.Chatagram || {});
   const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
   const STALE = 10 * 60000;             // a saved game older than this (OBS was closed) starts over instead of resuming
+  const COOLDOWN = 60000;               // the leaderboard command, when everyone can use commands (mods and the owner never wait)
+  const HOLD_MAX = 12000;               // a hold saved mid-way (OBS refreshed under the leaderboard) gives back at most this
   const LONG_BONUS = 5;
   /** points for a board word: 3 letters 2, 4 → 4, 5 → 6… */
   const points = (word) => Math.max(2, word.length * 2 - 4);
@@ -21,14 +27,17 @@
     const Wd = C.words, now = deps.now, rnd = deps.random, emit = deps.emit || (() => {});
     const block = new Set(cfg.block || []);
     const ignore = new Set(cfg.ignore || []);
-    const cmds = { start: cfg.cstart, next: cfg.cnext, skip: cfg.cskip, reset: cfg.creset };
+    const cmds = { start: cfg.cstart, next: cfg.cnext, skip: cfg.cskip, reset: cfg.creset, top: cfg.lb ? cfg.ctop || [] : [], clear: cfg.cclear || [] };
     const key = (m) => `${m.platform}:${m.user}`;
     /** @type {any} */
     let s = fresh();
 
-    function fresh(allTime = {}) {
-      return { v: 1, phase: 'idle', gameId: 0, level: 0, round: null, players: {}, allTime, recent: [], result: null, gameResult: null, nextAt: 0, savedAt: 0 };
+    function fresh() {
+      return { v: 1, phase: 'idle', gameId: 0, level: 0, round: null, players: {}, allTime: {}, recent: [], result: null, gameResult: null, nextAt: 0, savedAt: 0, heldAt: 0, lbAt: 0 };
     }
+    // the game's own time: stands still while held (see hold())
+    const clock = () => s.heldAt || now();
+    const award = deps.award || (() => {});
     const pick = (xs) => xs[Math.floor(rnd() * xs.length)];
     function shuffled(xs) { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
@@ -76,7 +85,7 @@
       }
       let order = shuffled(letters);
       for (let i = 0; i < 5 && order.map((l) => l.ch).join('') === seed; i++) order = shuffled(letters);
-      const t = now(), dur = cfg.time * 1000;
+      const t = clock(), dur = cfg.time * 1000;
       const hidden = tricky ? pick(order.filter((l) => !l.fake)).id : -1;
       s.round = {
         id: (s.round ? s.round.id : 0) + 1, seed, letters: order, hidden, revealed: !tricky, fakeGone: !tricky,
@@ -132,12 +141,13 @@
         if (a.by) return { kind: 'dup', word, by: a.by };
         const k = key(m);
         if (r.locks.length && r.locked[k] !== undefined && r.locked[k] >= r.opened) return { kind: 'locked', word };
-        const t = now(), p = player(m);
+        const t = clock(), p = player(m);
         let pts = points(word);
         const longest = word.length === r.seed.length;
         if (longest && cfg.longbonus) pts += LONG_BONUS;
         Object.assign(a, { by: { platform: m.platform, user: m.user, name: p.name }, at: t, pts });
         p.score += pts; p.words++; p.roundScore += pts; p.roundWords++;
+        award(m, pts, 1);
         r.order.push(k);
         s.gameStats.words++; s.gameStats.split[m.platform] = (s.gameStats.split[m.platform] || 0) + 1;
         if (!s.gameStats.best || word.length > s.gameStats.best.word.length) s.gameStats.best = { word, name: p.name, platform: m.platform };
@@ -158,6 +168,7 @@
         if (r.bonusFound.includes(word)) return { kind: 'dup', word };
         r.bonusFound.push(word);
         const p = player(m); p.score += 1; p.roundScore += 1;
+        award(m, 1, 0);
         const res = { kind: 'bonus', word, by: { platform: m.platform, user: m.user, name: p.name }, pts: 1 };
         emit({ type: 'bonus', ...res });
         return res;
@@ -167,12 +178,22 @@
 
     // ---- commands ------------------------------------------------------------------------------------------------------
     const allowed = (m) => cfg.perm === 'all' || m.owner || (cfg.perm === 'mods' && m.mod);
-    function command(name) {
+    function command(name, m, text) {
+      if (name === 'top') {
+        // everyone can ask when commands are open to everyone, once a minute; mods and the owner whenever they like
+        const t = now();
+        if (cfg.perm === 'all' && !m.mod && !m.owner && t - (s.lbAt || 0) < COOLDOWN) return false;
+        if (cfg.perm === 'all' && !m.mod && !m.owner) s.lbAt = t;
+        emit({ type: 'leaderboard', by: m.name, text });
+        return true;
+      }
+      if (name === 'clear') { emit({ type: 'clearscores' }); return true; }
       if (name === 'start') { if (s.phase === 'idle' || s.phase === 'over') { startGame(); return true; } return false; }
       if (name === 'next') { if (s.phase === 'cleared') { s.level++; newRound(); return true; } return false; }
       if (name === 'skip') { if (s.phase === 'playing') { emit({ type: 'skip' }); newRound(); return true; } return false; }
-      if (name === 'reset') {
-        s = fresh(); s.gameStats = { words: 0, best: null, split: {} };
+      if (name === 'reset') {                          // the game only: the leaderboards stay
+        const lbAt = s.lbAt;
+        s = fresh(); s.lbAt = lbAt; s.gameStats = { words: 0, best: null, split: {} };
         emit({ type: 'reset' });
         if (cfg.restart > 0) startGame(); else emit({ type: 'phase', phase: 'idle' });
         return true;
@@ -187,8 +208,8 @@
       const text = m.text.trim().toLowerCase().replace(/\s+/g, ' ');
       for (const [name, list] of Object.entries(cmds)) {
         if (!list.includes(text)) continue;
-        if (!allowed(m)) return { kind: 'denied', command: name };
-        return { kind: 'command', command: name, done: command(name) };
+        if (name === 'clear' ? !m.owner : !allowed(m)) return { kind: 'denied', command: name };
+        return { kind: 'command', command: name, done: command(name, m, text) };
       }
       if (s.phase !== 'playing') return { kind: 'ignored' };
       const word = text.replace(/[!?.,]+$/, '');
@@ -199,7 +220,7 @@
     // ---- time ---------------------------------------------------------------------------------------------------------
     function stars(found, total, goal) { if (found < goal) return 0; if (found >= total) return 3; return found >= goal + (total - goal) / 2 ? 2 : 1; }
     function endRound() {
-      const r = s.round, t = now(), found = r.answers.filter((a) => a.by);
+      const r = s.round, t = clock(), found = r.answers.filter((a) => a.by);
       const cleared = found.length >= r.goal;
       const players = Object.values(s.players);
       const mvps = players.filter((p) => p.roundScore > 0).sort((a, b) => b.roundScore - a.roundScore).slice(0, 7)
@@ -220,11 +241,6 @@
           save: lastSave && { name: lastSave.by.name, word: lastSave.word, left: Math.max(0, Math.round((r.endsAt - lastSave.at) / 1000)) },
         },
       };
-      for (const p of players) {
-        if (!p.roundScore) continue;
-        const k = `${p.platform}:${p.user}`, at = s.allTime[k] || (s.allTime[k] = { name: p.name, platform: p.platform, score: 0, words: 0 });
-        at.name = p.name; at.score += p.roundScore; at.words += p.roundWords;
-      }
       if (cleared) {
         s.phase = 'cleared';
         s.nextAt = cfg.next > 0 ? t + cfg.next * 1000 : 0;
@@ -242,6 +258,7 @@
 
     /** do whatever is due now */
     function tick() {
+      if (s.heldAt) return;
       const t = now();
       if (s.phase === 'playing') {
         const r = s.round;
@@ -263,6 +280,7 @@
     }
     /** when tick() next has something to do (Infinity: waiting for chat) */
     function nextWake() {
+      if (s.heldAt) return Infinity;
       if (s.phase === 'playing') {
         const r = s.round, due = [r.endsAt];
         if (r.opened < r.locks.length) due.push(r.locks[r.opened]);
@@ -273,25 +291,50 @@
       return s.nextAt || Infinity;
     }
 
+    /**
+     * Hold: every timer stops (the round's end, padlocks, the half-time reveal, shuffles, the countdown to the next level
+     * or game) and carries on from where it stopped when released. Guesses still count while held, at the moment the hold
+     * began. @returns {boolean} whether anything changed
+     */
+    function hold(on) {
+      if (on) { if (s.heldAt) return false; s.heldAt = now(); return true; }
+      if (!s.heldAt) return false;
+      shift(now() - s.heldAt); s.heldAt = 0;
+      return true;
+    }
+    /** move every timer on by ms (the time spent held) */
+    function shift(ms) {
+      if (!(ms > 0)) return;
+      const r = s.round;
+      if (s.phase === 'playing' && r) {
+        r.startedAt += ms; r.endsAt += ms; r.locks = r.locks.map((x) => x + ms);
+        if (r.nextShuffle) r.nextShuffle += ms;
+        for (const a of r.answers) if (a.by) a.at += ms;           // so "fastest find" and "last-second save" stay true
+      }
+      if (s.nextAt) s.nextAt += ms;
+    }
+
     /** start up: resume a saved game if it's recent, otherwise start (or wait for the start command) */
     function boot(saved) {
       const t = now();
-      const keepAllTime = cfg.remember && saved && saved.allTime ? saved.allTime : {};
       if (saved && saved.v === 1 && saved.phase !== 'idle' && t - (saved.savedAt || 0) < STALE) {
         s = saved;
+        for (const [k, v] of Object.entries({ allTime: {}, heldAt: 0, lbAt: 0 })) if (s[k] === undefined) s[k] = v;   // a save from an older version
+        if (s.heldAt) { shift(Math.min(t - s.heldAt, HOLD_MAX)); s.heldAt = 0; }   // refreshed under the leaderboard: carry on
         emit({ type: 'resume', phase: s.phase });
         return;
       }
-      s = fresh(keepAllTime); s.gameStats = { words: 0, best: null, split: {} };
+      const lbAt = saved && saved.lbAt || 0;
+      s = fresh(); s.lbAt = lbAt; s.gameStats = { words: 0, best: null, split: {} };
       if (cfg.restart > 0) startGame(); else emit({ type: 'phase', phase: 'idle' });
     }
     function snapshot() { s.savedAt = now(); return JSON.parse(JSON.stringify(s)); }
 
     return {
-      boot, handle, tick, nextWake, snapshot, points,
+      boot, handle, tick, nextWake, snapshot, points, hold, clock,
       get state() { return s; },
-      top(n = 3) { return Object.values(s.players).filter((p) => p.score > 0).sort((a, b) => b.score - a.score).slice(0, n); },
-      allTimeTop(n = 7) { return Object.values(s.allTime).sort((a, b) => b.score - a.score).slice(0, n); },
+      get held() { return !!s.heldAt; },
+      top(n = 3) { return Object.values(s.players).filter((p) => p.score > 0).sort((a, b) => b.score - a.score || b.words - a.words).slice(0, n); },
       /** the command a player would type (the first name) */
       commandName: (name) => cmds[name][0],
     };

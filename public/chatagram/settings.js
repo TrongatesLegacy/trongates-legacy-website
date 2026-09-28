@@ -28,18 +28,23 @@
     // advanced: flow (0 = wait for the command)
     next: { type: 'int', def: 10, min: 0, max: 60 },
     restart: { type: 'int', def: 15, min: 0, max: 120 },
-    // advanced: chat commands (several names: comma separated) and who can use them
-    cstart: { type: 'list', def: ['!start'] },
-    cnext: { type: 'list', def: ['!next'] },
-    cskip: { type: 'list', def: ['!skip'] },
-    creset: { type: 'list', def: ['!reset'] },
+    // advanced: chat commands (several names: comma separated) and who can use them. All start "!cg" so they don't clash
+    // with other bots (changed from !start… on 2026-09-28: a link that set its own names keeps them)
+    cstart: { type: 'list', def: ['!cg start'] },
+    cnext: { type: 'list', def: ['!cg next'] },
+    cskip: { type: 'list', def: ['!cg skip'] },
+    creset: { type: 'list', def: ['!cg reset'] },
+    ctop: { type: 'list', def: ['!cg top', '!cg'] },                  // show the leaderboard for a few seconds
+    cclear: { type: 'list', def: ['!cg clearscores'] },               // wipe both leaderboards: the broadcaster only
     perm: { type: 'enum', def: 'mods', values: ['me', 'mods', 'all'] },
+    lb: { type: 'bool', def: true },                                  // the leaderboard command is on
     // advanced: chat
     wrong: { type: 'bool', def: false },                              // show wrong guesses (right ones light up on the board)
     ignore: { type: 'list', def: ['botrix', 'botrixoficial', 'nightbot', 'streamelements', 'moobot', 'fossabot', 'streamlabs', 'kicklet', 'kickbot', 'sery_bot', 'wizebot', 'missxss'] },
     block: { type: 'list', def: [] },
     top: { type: 'bool', def: true },
-    // advanced: other
+    // advanced: other. remember: show the All time leaderboard (it's always recorded; the name is from when this switch
+    // decided whether it was kept, so old links still mean the same thing to their streamer)
     remember: { type: 'bool', def: true },
     credit: { type: 'bool', def: true },
   };

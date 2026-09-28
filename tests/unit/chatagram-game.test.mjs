@@ -14,8 +14,8 @@ const plain = (o) => JSON.parse(JSON.stringify(o));
 /** a game on a hand-driven clock: t.at, t.advance(ms) (ticks whatever falls due on the way), events */
 function setup(over = {}, seed = 1) {
   const cfg = { ...S.defaults(C.settings.SCHEMA), ...over };
-  const t = { at: 1_000_000, events: [] };
-  const g = C.game(cfg, { dict, seeds, now: () => t.at, random: rng(seed), emit: (e) => t.events.push(e) });
+  const t = { at: 1_000_000, events: [], awards: [] };
+  const g = C.game(cfg, { dict, seeds, now: () => t.at, random: rng(seed), emit: (e) => t.events.push(e), award: (m, pts, words) => t.awards.push([m.name, pts, words]) });
   t.g = g; t.cfg = cfg;
   t.advance = (ms) => { const end = t.at + ms; for (let n = 0; n < 10000; n++) { const w = g.nextWake(); if (w > end) break; t.at = Math.max(t.at, w); g.tick(); } t.at = end; };
   t.say = (text, who = {}) => g.handle({ platform: 'twitch', user: 'pixelpanda', name: 'PixelPanda', text, mod: false, owner: false, ...who });
@@ -45,9 +45,9 @@ test('booting starts level 1 with a real puzzle: every board word fits the seed,
 test('with "keep playing" off it waits for the start command; only mods and the owner can start', () => {
   const t = setup({ restart: 0, next: 0 }); t.g.boot();
   assert.equal(t.g.state.phase, 'idle');
-  assert.equal(t.say('!start').kind, 'denied');
+  assert.equal(t.say('!cg start').kind, 'denied');
   assert.equal(t.g.state.phase, 'idle');
-  assert.equal(t.say('!start', MOD).done, true);
+  assert.equal(t.say('!cg start', MOD).done, true);
   assert.equal(t.g.state.phase, 'playing');
 });
 
@@ -116,13 +116,13 @@ test('goal reached by time up: cleared, next level after 10 s, and levels length
   assert.equal(t.g.state.level, 3); assert.equal(t.round().seed.length, 7);
 });
 
-test('with the next level set to wait, !next moves on (mods only)', () => {
+test('with the next level set to wait, !cg next moves on (mods only)', () => {
   const t = setup({ next: 0 }); t.g.boot();
   for (const w of t.words()) t.say(w);
   t.advance(600000);
   assert.equal(t.g.state.phase, 'cleared', 'still waiting');
-  assert.equal(t.say('!next').kind, 'denied');
-  assert.ok(t.say('!next', MOD).done);
+  assert.equal(t.say('!cg next').kind, 'denied');
+  assert.ok(t.say('!cg next', MOD).done);
   assert.equal(t.g.state.level, 2);
 });
 
@@ -194,7 +194,7 @@ test('commands: renamed, several names, any capitals; who can use them', () => {
   assert.ok(t.say('!cg start', OWNER).done);
   assert.equal(t.g.commandName('start'), '!cg start');
   const all = setup({ restart: 0, perm: 'all' }); all.g.boot();
-  assert.ok(all.say('!start').done, 'perm=all: anyone');
+  assert.ok(all.say('!cg start').done, 'perm=all: anyone');
 });
 
 test('ignored users (bots) and blocked words do nothing', () => {
@@ -206,14 +206,14 @@ test('ignored users (bots) and blocked words do nothing', () => {
   if (b.round().seed === seed) { assert.ok(!b.words().includes(w)); assert.equal(b.say(w).kind, 'wrong'); }
 });
 
-test('!skip swaps the puzzle at the same level; !reset clears everything and starts again', () => {
+test('!cg skip swaps the puzzle at the same level; !cg reset restarts the game (the leaderboards live in scores.js)', () => {
   const t = setup(); t.g.boot();
   t.say(t.words()[0]);
   const seed = t.round().seed;
-  assert.ok(t.say('!skip', MOD).done);
+  assert.ok(t.say('!cg skip', MOD).done);
   assert.notEqual(t.round().seed, seed); assert.equal(t.g.state.level, 1);
-  assert.ok(t.say('!reset', OWNER).done);
-  assert.equal(t.g.top().length, 0); assert.deepEqual(plain(t.g.state.allTime), {});
+  assert.ok(t.say('!cg reset', OWNER).done);
+  assert.equal(t.g.top().length, 0);
   assert.equal(t.g.state.phase, 'playing');
 });
 
@@ -228,14 +228,11 @@ test('a saved game resumes mid-round after a refresh; an old save starts over bu
   // a round that ran out while OBS was closed ends when it resumes
   const late = setup(); late.at = t.at + 80000; late.g.boot(plain(snap)); late.g.tick();
   assert.equal(late.g.state.phase, 'over');
-  // over 10 minutes: a fresh game, all-time scores kept
+  // over 10 minutes: a fresh game (the leaderboards are kept apart, in scores.js)
   for (const x of t.words()) t.say(x);
   const done = plain(t.g.snapshot());
   const old = setup(); old.at = t.at + 11 * 60000; old.g.boot(done);
   assert.equal(old.g.state.gameId, 1); assert.equal(old.g.state.level, 1);
-  assert.ok(old.g.allTimeTop()[0].score > 0);
-  const forget = setup({ remember: false }); forget.at = t.at + 11 * 60000; forget.g.boot(done);
-  assert.equal(forget.g.allTimeTop().length, 0);
 });
 
 test('summary highlights: fastest find, longest streak and a last-second save', () => {
@@ -256,7 +253,7 @@ test('summary highlights: fastest find, longest streak and a last-second save', 
 test('the same seed never comes up twice in a row across many rounds', () => {
   const t = setup(); t.g.boot();
   const seen = [];
-  for (let i = 0; i < 40; i++) { seen.push(t.round().seed); t.say('!skip', MOD); }
+  for (let i = 0; i < 40; i++) { seen.push(t.round().seed); t.say('!cg skip', MOD); }
   assert.equal(new Set(seen).size, seen.length);
 });
 
@@ -274,7 +271,7 @@ test('the board shows 12 boxes at level 1, 3 more a level up to the setting; box
   for (const len of new Set(all.map((w) => w.length))) assert.ok(r.answers.some((a) => a.word.length === len), `a ${len}-letter box`);
   assert.equal(r.goal, Math.ceil(12 * 0.65));
   for (const [level, want] of [[2, 15], [5, 24], [9, 36], [12, 40], [20, 40]]) {
-    const g = setup({}, 3); g.g.boot(); g.g.state.level = level; g.say('!skip', MOD);
+    const g = setup({}, 3); g.g.boot(); g.g.state.level = level; g.say('!cg skip', MOD);
     assert.ok(g.round().answers.length <= want, `level ${level}: ${g.round().answers.length} boxes`);
     if (g.round().valid.length >= want) assert.equal(g.round().answers.length, want, `level ${level}`);
   }
@@ -307,10 +304,114 @@ test('a caller can choose the first puzzle (the site\'s still pictures use hand-
   const cfg = { ...S.defaults(C.settings.SCHEMA) };
   const g = C.game(cfg, { dict, seeds, now: () => 1e6, random: rng(1), firstSeed: 'garden' }); g.boot();
   assert.equal(g.state.round.seed, 'garden');
-  g.handle({ platform: 'twitch', user: 'o', name: 'O', owner: true, mod: true, text: '!skip' });
+  g.handle({ platform: 'twitch', user: 'o', name: 'O', owner: true, mod: true, text: '!cg skip' });
   assert.notEqual(g.state.round.seed, 'garden', 'only the first puzzle');
   for (const [d, w] of [['easy', 'heart'], ['normal', 'garden'], ['hard', 'clovers']]) {
     const len = Wd.seedLength(d, 1);
     assert.ok(seeds[d][len].includes(w), `${w} is a ${d} seed, so the pictures really use it`);
   }
+});
+
+test('every point scored goes to the leaderboards as it happens (board words and bonus words); none on !cg reset', () => {
+  const t = setup(); t.g.boot();
+  const w = t.words().find((x) => x.length === 4);
+  t.say(w);
+  const b = t.round().bonus.find((x) => x.length >= 3); t.say(b, NACHO);
+  assert.deepEqual(plain(t.awards), [['PixelPanda', 4, 1], ['NeonNacho', 1, 0]]);
+  t.say('!cg reset', OWNER);
+  assert.equal(t.awards.length, 2);
+});
+
+test('the leaderboard command: !cg top or just !cg, following "who can use commands"', () => {
+  const t = setup(); t.g.boot();
+  assert.equal(t.say('!cg top').kind, 'denied', 'perm=mods (the default): a viewer can\'t');
+  assert.ok(t.say('!cg', MOD).done);
+  assert.ok(t.say('!CG TOP', OWNER).done);
+  assert.deepEqual(t.of('leaderboard').map((e) => [e.by, e.text]), [['GridRunner', '!cg'], ['CaptainQuack', '!cg top']]);
+  const off = setup({ lb: false }); off.g.boot();
+  assert.equal(off.say('!cg top', OWNER).kind, 'ignored', 'switched off: just chat');
+  const me = setup({ perm: 'me' }); me.g.boot();
+  assert.equal(me.say('!cg top', MOD).kind, 'denied');
+});
+
+test('with everyone allowed, viewers share a 60-second cooldown; mods and the owner never wait', () => {
+  const t = setup({ perm: 'all' }); t.g.boot();
+  assert.ok(t.say('!cg top').done);
+  assert.equal(t.say('!cg top', NACHO).done, false, 'within the minute: ignored');
+  assert.ok(t.say('!cg top', MOD).done, 'mods skip it');
+  assert.ok(t.say('!cg', OWNER).done);
+  t.advance(59000); assert.equal(t.say('!cg top', NACHO).done, false);
+  t.advance(1000); assert.ok(t.say('!cg top', NACHO).done);
+  assert.equal(t.of('leaderboard').length, 4);
+  // it survives a refresh (saved with the game)
+  const again = setup({ perm: 'all' }); again.at = t.at + 1000; again.g.boot(plain(t.g.snapshot()));
+  assert.equal(again.say('!cg top').done, false);
+});
+
+test('!cg clearscores is the broadcaster\'s only, whatever "who can use commands" says', () => {
+  const t = setup({ perm: 'all' }); t.g.boot();
+  assert.equal(t.say('!cg clearscores').kind, 'denied');
+  assert.equal(t.say('!cg clearscores', MOD).kind, 'denied');
+  assert.ok(t.say('!cg clearscores', OWNER).done);
+  assert.equal(t.of('clearscores').length, 1);
+});
+
+test('the new defaults all start !cg; the old words are just chat now', () => {
+  const t = setup({ restart: 0 }); t.g.boot();
+  for (const old of ['!start', '!next', '!skip', '!reset']) assert.equal(t.say(old, OWNER).kind, 'ignored', old);
+  assert.ok(t.say('!cg start', OWNER).done);
+  assert.deepEqual(['start', 'next', 'skip', 'reset', 'top', 'clear'].map((c) => t.g.commandName(c)), ['!cg start', '!cg next', '!cg skip', '!cg reset', '!cg top', '!cg clearscores']);
+});
+
+test('holding stops every timer and they carry on from where they stopped: the round, padlocks, reveal, shuffles', () => {
+  const t = setup({ locks: 3, tricky: 1 }); t.g.boot();
+  const r = t.round(), before = { ends: r.endsAt, locks: [...r.locks], shuffle: r.nextShuffle };
+  t.advance(5000);
+  assert.ok(t.g.hold(true)); assert.equal(t.g.hold(true), false, 'already held');
+  const clock = t.g.clock();
+  t.advance(8000);
+  assert.equal(t.g.clock(), clock, 'the game\'s time stands still');
+  assert.equal(t.g.nextWake(), Infinity);
+  assert.equal(t.of('shuffle').length, 0, 'no shuffle while held');
+  assert.ok(t.g.hold(false));
+  assert.equal(r.endsAt - before.ends, 8000);
+  assert.deepEqual([...r.locks].map((x, i) => x - before.locks[i]), [8000, 8000, 8000]);
+  assert.equal(r.nextShuffle - before.shuffle, 8000);
+  t.advance(4999); assert.equal(t.of('shuffle').length, 0);
+  t.advance(1); assert.equal(t.of('shuffle').length, 1, 'the shuffle comes 10 s of play after the start');
+  t.advance(r.endsAt - t.at - 1); assert.equal(t.g.state.phase, 'playing');
+  t.advance(1); assert.notEqual(t.g.state.phase, 'playing', 'the round lasted its 90 s of play');
+});
+
+test('guesses still count while held, as if made the moment it began ("fastest find" stays true)', () => {
+  const t = setup(); t.g.boot();
+  t.advance(3000); t.g.hold(true); t.advance(6000);
+  const w = t.words()[0];
+  assert.equal(t.say(w).kind, 'found');
+  t.g.hold(false);
+  const a = t.round().answers.find((x) => x.word === w);
+  assert.equal(a.at - t.round().startedAt, 3000);
+  for (const x of t.words()) t.say(x);
+  assert.equal(t.g.state.result.highlights.fastest.secs, 3);
+});
+
+test('holding on a card pauses the countdown to the next level', () => {
+  const t = setup(); t.g.boot();
+  for (const w of t.words()) t.say(w);
+  assert.equal(t.g.state.phase, 'cleared');
+  const next = t.g.state.nextAt;
+  t.advance(4000); t.g.hold(true); t.advance(8000); t.g.hold(false);
+  assert.equal(t.g.state.nextAt, next + 8000);
+  t.advance(5999); assert.equal(t.g.state.phase, 'cleared');
+  t.advance(1); assert.equal(t.g.state.phase, 'playing');
+});
+
+test('a refresh while held carries on (giving back at most 12 s), never stuck', () => {
+  const t = setup(); t.g.boot();
+  t.advance(10000); t.g.hold(true);
+  const snap = plain(t.g.snapshot()), ends = t.round().endsAt;
+  const again = setup(); again.at = t.at + 60000; again.g.boot(snap);
+  assert.equal(again.g.held, false);
+  assert.equal(again.round().endsAt - ends, 12000);
+  assert.notEqual(again.g.nextWake(), Infinity);
 });
