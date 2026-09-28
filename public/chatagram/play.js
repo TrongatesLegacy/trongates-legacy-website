@@ -125,10 +125,16 @@
     const groups = new Map();
     for (const [i, a] of r.answers.entries()) { const k = Math.min(a.word.length, 7); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); }
     wordsEl.innerHTML = '';
-    const rowH = r.answers.length > 36 ? 17 : 20, maxRows = Math.max(3, Math.floor((wordsEl.clientHeight - 30) / (rowH + 3)));
+    // the largest rows that fit every word in at most 5 columns
+    const H = wordsEl.clientHeight - 30;
+    let rowH = 20, maxRows = 0, cols = [];
+    for (rowH of [20, 18, 16, 14, 12]) {
+      maxRows = Math.max(3, Math.floor(H / (rowH + 3)));
+      cols = [];
+      for (const [len, idx] of groups) for (let c = 0; c * maxRows < idx.length; c++) cols.push({ len, idx: idx.slice(c * maxRows, (c + 1) * maxRows), first: c === 0, all: idx });
+      if (cols.length <= 5) break;
+    }
     wordsEl.style.setProperty('--rh', rowH + 'px');
-    const cols = [];
-    for (const [len, idx] of groups) for (let c = 0; c * maxRows < idx.length; c++) cols.push({ len, idx: idx.slice(c * maxRows, (c + 1) * maxRows), first: c === 0, all: idx });
     wordsEl.style.gridTemplateColumns = cols.map((c) => `${Math.max(...c.idx.map((i) => r.answers[i].word.length)) + 5}fr`).join(' ');
     for (const c of cols) {
       const got = c.all.filter((i) => r.answers[i].by).length;

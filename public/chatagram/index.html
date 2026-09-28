@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chatagram: free Twitch and Kick chat word game for OBS · Trongates Legacy</title>
+<meta name="description" content="Chatagram is a free anagram game for streamers: chat unscrambles the letters by typing words. Twitch and Kick at the same time, or just one. No login, nothing to install: paste one link into OBS.">
+<link rel="canonical" href="https://www.trongateslegacy.com/chatagram/">
+<meta name="theme-color" content="#16122b">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Trongates Legacy">
+<meta property="og:title" content="Chatagram: the word game your whole chat plays">
+<meta property="og:description" content="Free anagram game for Twitch and Kick chat, at the same time. Paste one link into OBS.">
+<meta property="og:url" content="https://www.trongateslegacy.com/chatagram/">
+<meta property="og:image" content="https://www.trongateslegacy.com/chatagram/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="/assets/fonts/lilita-one.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/chakra-petch-400.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Chatagram","url":"https://www.trongateslegacy.com/chatagram/",
+ "applicationCategory":"GameApplication","operatingSystem":"Any (OBS browser source)","description":"A free anagram game for Twitch and Kick chat, played on stream through an OBS browser source.",
+ "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+ "author":{"@type":"Person","name":"Trongates Legacy","url":"https://www.trongateslegacy.com/"}}
+</script>
+<style>
+@font-face { font-family: "Lilita One"; src: url(/assets/fonts/lilita-one.woff2) format("woff2"); font-display: swap; }
+@font-face { font-family: "Chakra Petch"; src: url(/assets/fonts/chakra-petch-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Chakra Petch"; src: url(/assets/fonts/chakra-petch-600.woff2) format("woff2"); font-weight: 600 700; font-display: swap; }
+:root { --ink: #16122b; --ink2: #221b40; --ink3: #2f2656; --coral: #ff5a5f; --coral-d: #c73a40; --sun: #ffc93c; --mint: #2ee6a8; --paper: #fff7ec; --muted: #bcb4dc; --nav: 64px; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav) + 12px); }
+body { margin: 0; background: var(--ink); color: var(--paper); font: 16px/1.5 "Chakra Petch", system-ui, sans-serif;
+  background-image: radial-gradient(circle at 12% 0, #ff5a5f1f, transparent 38%), radial-gradient(circle at 92% 18%, #ffc93c14, transparent 32%); }
+a { color: inherit; }
+h1, h2, h3, .lil { font-family: "Lilita One", system-ui, sans-serif; font-weight: 400; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* logo: a speech-bubble tile mid-roll, then the wordmark */
+.logo { display: inline-flex; align-items: center; gap: .32em; font-family: "Lilita One", sans-serif; line-height: 1; text-decoration: none; color: var(--paper); }
+.logo img { width: 1.3em; height: 1.3em; }
+.logo .g { color: var(--sun); }
+
+/* header */
+.nav { position: sticky; top: 0; z-index: 10; background: rgba(22,18,43,.88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--ink3); }
+.nav .in { height: var(--nav); display: flex; align-items: center; gap: 22px; }
+.brandlock { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brandlock .logo { font-size: 27px; }
+.by { font-size: 13px; color: var(--muted); border-left: 1px solid var(--ink3); padding-left: 12px; line-height: 1.2; }
+.by b { color: var(--paper); font-weight: 600; display: block; font-size: 14px; }
+.menu { display: flex; gap: 4px; margin: 0 auto; background: var(--ink2); padding: 4px; border-radius: 99px; }
+.menu a { font: 16px "Lilita One", sans-serif; color: var(--muted); padding: 7px 15px; border-radius: 99px; text-decoration: none; }
+.menu a:hover { color: var(--paper); }
+.menu a.on { background: var(--ink3); color: var(--sun); box-shadow: inset 0 -2px 0 var(--coral); }
+.navr { display: flex; align-items: center; gap: 16px; }
+.more { font-size: 14px; color: var(--muted); text-decoration: none; } .more:hover { color: var(--paper); }
+.btn { display: inline-block; font: 20px "Lilita One", sans-serif; background: var(--coral); color: var(--ink); padding: 12px 22px; border-radius: 14px; box-shadow: 0 5px 0 var(--coral-d); text-decoration: none; border: 0; cursor: pointer; }
+.btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--coral-d); }
+.btn.small { font-size: 17px; padding: 8px 15px; box-shadow: 0 4px 0 var(--coral-d); }
+.btn.ghost { background: transparent; color: var(--paper); box-shadow: inset 0 0 0 2px var(--ink3); }
+:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1fr 540px; gap: 44px; align-items: center; padding-top: 48px; padding-bottom: 30px; }
+h1 { font-size: 62px; line-height: 1.02; margin: 0 0 16px; } h1 em { font-style: normal; color: var(--sun); }
+.lede { font-size: 19px; color: var(--muted); margin: 0 0 26px; max-width: 560px; }
+.ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.chips { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; padding: 0; list-style: none; }
+.chips li { background: var(--ink2); border-radius: 99px; padding: 5px 12px; font-size: 14px; display: inline-flex; gap: 6px; align-items: center; }
+.pf { width: 16px; height: 16px; border-radius: 4px; display: inline-grid; place-items: center; flex: none; }
+.pf svg { width: 11px; height: 11px; } .pf.kick { background: #53fc18; color: #000; } .pf.twitch { background: #9146ff; color: #fff; }
+.screen { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 0 0 4px var(--ink3);
+  background: radial-gradient(circle at 25% 30%, #3b5d3a, transparent 45%), radial-gradient(circle at 80% 75%, #6b3d1f, transparent 45%), linear-gradient(135deg, #1d2b36, #2a1b14); }
+.screen iframe { position: absolute; left: 50%; top: 50%; border: 0; background: transparent; transform-origin: 50% 50%; }
+.hero .screen { height: 300px; }
+
+/* sections */
+section.sec { padding-top: 40px; padding-bottom: 10px; }
+h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
+.sub { color: var(--muted); margin: -8px 0 18px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 0; margin: 0; list-style: none; }
+.steps li { background: var(--ink2); border-radius: 18px; padding: 20px; }
+.steps i { font: 28px "Lilita One", sans-serif; font-style: normal; color: var(--ink); background: var(--sun); width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; box-shadow: 0 4px 0 #c9921a; }
+.steps h3 { font-size: 22px; margin: 14px 0 6px; } .steps p { color: var(--muted); margin: 0; }
+.tgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0; margin: 0; list-style: none; }
+.tgrid .screen { height: 128px; border-radius: 12px; }
+.tgrid h3 { font-size: 18px; margin: 8px 0 0; }
+
+/* set-up */
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 24px; align-items: start; }
+.left { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.card { background: var(--ink2); border-radius: 18px; padding: 20px; display: grid; gap: 14px; align-content: start; border: 0; margin: 0; min-width: 0; }
+.card legend, .card h3 { float: left; width: 100%; margin: 0 0 2px; padding: 0; font: 20px "Lilita One", sans-serif; color: var(--sun); }
+.card legend + * { clear: both; }
+.game, .adv { grid-column: 1 / -1; }
+.game { grid-template-columns: 1fr 1fr; column-gap: 22px; }
+.game legend { grid-column: 1 / -1; }
+.field { display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
+.field > span:first-child, .lab { display: inline-flex; gap: 6px; align-items: center; }
+.box { display: flex; align-items: center; gap: 2px; background: var(--ink); border-radius: 10px; padding: 0 12px; color: var(--paper); font-size: 16px; }
+.box:focus-within { outline: 3px solid var(--sun); outline-offset: 1px; }
+.box .pre { color: var(--muted); }
+.box input, .box select { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--paper); font: inherit; padding: 10px 0; outline: none; }
+.box select option { background: var(--ink); }
+.st { margin-left: auto; font-size: 13px; white-space: nowrap; } .st.ok { color: var(--mint); } .st.bad { color: #ff8a8e; } .st.wait { color: var(--muted); }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.seg { display: flex; background: var(--ink); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg label { flex: 1; text-align: center; position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 7px 4px; border-radius: 8px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.seg input:checked + span { background: var(--coral); color: var(--ink); font-weight: 700; }
+.seg input:focus-visible + span { outline: 3px solid var(--sun); }
+.seg input:disabled + span { opacity: .45; }
+.sw { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: var(--paper); cursor: pointer; }
+.sw input { appearance: none; width: 40px; height: 23px; border-radius: 99px; background: var(--ink3); position: relative; margin: 0; flex: none; cursor: pointer; }
+.sw input::after { content: ''; position: absolute; left: 3px; top: 3px; width: 17px; height: 17px; border-radius: 50%; background: var(--muted); transition: transform .15s; }
+.sw input:checked { background: var(--mint); } .sw input:checked::after { transform: translateX(17px); background: var(--ink); }
+.themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.themes label { position: relative; cursor: pointer; }
+.themes input { position: absolute; opacity: 0; }
+.themes span { display: block; height: 30px; border-radius: 7px; }
+.themes input:checked + span { box-shadow: 0 0 0 2px var(--ink2), 0 0 0 4px var(--paper); }
+.themes input:focus-visible + span { outline: 3px solid var(--sun); outline-offset: 3px; }
+.accents { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.accents label { position: relative; cursor: pointer; }
+.accents input[type=radio] { position: absolute; opacity: 0; }
+.accents span { display: block; width: 26px; height: 26px; border-radius: 50%; }
+.accents input:checked + span { box-shadow: 0 0 0 2px var(--ink2), 0 0 0 4px var(--paper); }
+.accents input:focus-visible + span { outline: 3px solid var(--sun); outline-offset: 3px; }
+.accents .custom { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); border: 1px dashed var(--ink3); border-radius: 99px; padding: 2px 10px 2px 4px; white-space: nowrap; }
+.accents input[type=color] { width: 22px; height: 22px; border: 0; padding: 0; background: none; border-radius: 50%; cursor: pointer; }
+.adv { background: #1c1636; border-radius: 18px; padding: 14px 18px 18px; }
+.adv summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.adv summary::-webkit-details-marker { display: none; }
+.adv .abtn { font: 19px "Lilita One", sans-serif; background: var(--ink3); padding: 9px 16px; border-radius: 12px; box-shadow: 0 4px 0 #120e24; }
+.adv .abtn::after { content: ' ▾'; color: var(--sun); } .adv[open] .abtn::after { content: ' ▴'; }
+.adv .chg { font-size: 13px; background: var(--coral); color: var(--ink); padding: 2px 10px; border-radius: 99px; font-weight: 700; }
+.adv .chg[hidden] { display: none; }
+.adv .hint { font-size: 14px; color: var(--muted); }
+.agrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.agrid .wide { grid-column: 1 / -1; }
+.cmds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.cmds .box input { font-family: ui-monospace, Menlo, monospace; color: var(--sun); font-size: 15px; }
+.right { position: sticky; top: calc(var(--nav) + 16px); background: var(--ink2); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
+.right h3 { margin: 0; font-size: 19px; color: var(--sun); display: flex; justify-content: space-between; align-items: baseline; }
+.right h3 small { font: 12px "Chakra Petch", sans-serif; color: var(--muted); }
+.tabs { display: flex; gap: 6px; }
+.tabs button { font: inherit; font-size: 13px; background: var(--ink); color: var(--muted); border: 0; padding: 4px 11px; border-radius: 99px; cursor: pointer; }
+.tabs button[aria-pressed=true] { background: var(--ink3); color: var(--paper); }
+.right .screen { height: 250px; border-radius: 12px; }
+.meta { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.meta b { color: var(--paper); font-weight: 600; }
+.meta button, .meta a { font: inherit; background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; }
+.link { font: 13px ui-monospace, Menlo, monospace; background: var(--ink); padding: 10px 12px; border-radius: 10px; word-break: break-all; color: var(--paper); margin: 0; }
+.link[hidden] { display: none; }
+.how { font-size: 13px; color: var(--muted); border-top: 1px solid var(--ink3); padding-top: 10px; margin: 0; }
+#copy { width: 100%; font-size: 22px; }
+
+/* FAQ, footer */
+.faq { display: grid; gap: 10px; max-width: 860px; }
+.faq details { background: var(--ink2); border-radius: 14px; padding: 14px 18px; }
+.faq summary { font: 19px "Lilita One", sans-serif; cursor: pointer; }
+.faq p { color: var(--muted); margin: 8px 0 0; }
+footer.site { text-align: center; color: var(--muted); font-size: 14px; padding: 40px 20px 50px; }
+footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin: 6px 0; }
+.copybar { display: none; }
+
+/* phones and narrow windows: one column, the preview first, a Copy bar on the bottom */
+@media (max-width: 1020px) {
+  .menu { display: none; }
+  .hero { grid-template-columns: 1fr; } .hero .screen { max-width: 540px; width: 100%; }
+  .cols { grid-template-columns: 1fr; } .right { position: static; order: -1; }
+  .copybar { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; padding: 10px 16px; background: rgba(22,18,43,.95); border-top: 1px solid var(--ink3); }
+  .copybar .btn { width: 100%; }
+  footer.site { padding-bottom: 100px; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 0 16px; }
+  .by, .more { display: none; }
+  h1 { font-size: 42px; }
+  .steps, .tgrid { grid-template-columns: 1fr 1fr; }
+  .left, .game, .agrid { grid-template-columns: 1fr; }
+  .cmds { grid-template-columns: 1fr 1fr; }
+  .hero .screen, .right .screen { height: 190px; }
+}
+@media (max-width: 460px) { .steps, .tgrid { grid-template-columns: 1fr; } .navr .btn { display: none; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-kick" viewBox="0 0 10 10"><path d="M1 1h2.4v2.2h1.2V2.1h1.2V1H8.2v2.4H7v1.2H5.8v.8H7v1.2h1.2V9H5.8V7.9H4.6V6.8H3.4V9H1z" fill="currentColor"/></symbol>
+  <symbol id="i-twitch" viewBox="0 0 10 10"><path d="M2 1 1.2 2.8v5.4h2V9.3h1.1l1.1-1.1h1.7L9 6.3V1zm6.2 4.9-1.3 1.3H5.1L4 8.3V7.2H2.4V1.8h5.8zM6.9 3v2.2h-.8V3zm-2 0v2.2h-.8V3z" fill="currentColor"/></symbol>
+</defs></svg>
+
+<header class="nav"><div class="wrap in">
+  <a class="brandlock" href="#top" aria-label="Chatagram by Trongates Legacy"><span class="logo"><img src="assets/icon.svg" alt="" width="35" height="35"><span>chat<span class="g">agram</span></span></span><span class="by">by <b>Trongates Legacy</b></span></a>
+  <nav class="menu" aria-label="Sections"><a href="#how">How it works</a><a href="#themes">Themes</a><a href="#setup">Set up</a><a href="#faq">FAQ</a></nav>
+  <div class="navr"><a class="more" href="/widgets/">More widgets ↗</a><a class="btn small" href="#setup">Set it up free</a></div>
+</div></header>
+
+<main id="top">
+<section class="wrap hero">
+  <div>
+    <h1>The word game your <em>whole chat</em> plays.</h1>
+    <p class="lede">Unscramble the letters together, live on stream. Twitch and Kick at the same time, or just one. Free, no login, nothing to install: paste one link into OBS.</p>
+    <div class="ctas"><a class="btn" href="#setup">Set it up free</a><a class="btn ghost" href="#themes">See the themes</a></div>
+    <ul class="chips" aria-label="Features">
+      <li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>8 themes</li><li>Leaderboards</li><li>Free</li>
+    </ul>
+  </div>
+  <div class="screen" id="hero-screen"><iframe id="hero-frame" title="Chatagram playing with a pretend chat" width="900" height="470" style="transform: translate(-50%,-50%) scale(.6)" tabindex="-1"></iframe></div>
+</section>
+
+<section class="wrap sec" id="how"><h2>How it <span>works</span></h2>
+  <ol class="steps">
+    <li><i>1</i><h3>Letters appear</h3><p>A scrambled word shows on stream and reshuffles every few seconds.</p></li>
+    <li><i>2</i><h3>Chat types words</h3><p>Anyone on Twitch or Kick types words they can make from the letters. First to find one gets the points.</p></li>
+    <li><i>3</i><h3>Beat the goal</h3><p>Find enough words before time runs out to clear the level. Longer words, trickier letters, bigger scores.</p></li>
+  </ol>
+</section>
+
+<section class="wrap sec" id="themes"><h2>8 <span>themes</span></h2><p class="sub">Pick one, then any accent colour. Your viewers see it exactly like this.</p>
+  <ul class="tgrid" id="tgrid"></ul>
+</section>
+
+<section class="wrap sec" id="setup"><h2>Set up <span>in a minute</span></h2>
+<form class="cols" id="form" onsubmit="return false">
+  <div class="left">
+    <fieldset class="card"><legend>1 · Your channels</legend>
+      <label class="field"><span><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</span><span class="box"><span class="pre">twitch.tv/</span><input name="twitch" autocomplete="off" spellcheck="false" placeholder="your_channel"></span></label>
+      <label class="field"><span><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</span><span class="box"><span class="pre">kick.com/</span><input name="kick" autocomplete="off" spellcheck="false" placeholder="your_channel"><span class="st" id="kick-st" aria-live="polite"></span></span></label>
+      <p class="note">One or both. With one, the platform badges disappear.</p>
+    </fieldset>
+    <fieldset class="card"><legend>2 · Look</legend>
+      <div class="field"><span class="lab" id="l-layout">Layout</span><div class="seg" role="radiogroup" aria-labelledby="l-layout">
+        <label><input type="radio" name="layout" value="full"><span>Full 900×470</span></label><label><input type="radio" name="layout" value="compact"><span>Compact 560×230</span></label></div></div>
+      <div class="field"><span class="lab" id="l-theme">Theme: <b id="theme-name" style="color:var(--paper);font-weight:600"></b></span><div class="themes" id="theme-pick" role="radiogroup" aria-labelledby="l-theme"></div></div>
+      <div class="field"><span class="lab" id="l-accent">Accent colour</span><div class="accents" id="accents" role="radiogroup" aria-labelledby="l-accent"></div><p class="note" id="accent-note"></p></div>
+    </fieldset>
+    <fieldset class="card game"><legend>3 · Game</legend>
+      <div class="field"><span class="lab" id="l-time">Round length</span><div class="seg" role="radiogroup" aria-labelledby="l-time">
+        <label><input type="radio" name="time" value="60"><span>1 min</span></label><label><input type="radio" name="time" value="90"><span>1½ min</span></label><label><input type="radio" name="time" value="120"><span>2 min</span></label><label><input type="radio" name="time" value="180"><span>3 min</span></label><label><input type="radio" name="time" value="300"><span>5 min</span></label></div></div>
+      <div class="field"><span class="lab" id="l-diff">Difficulty</span><div class="seg" role="radiogroup" aria-labelledby="l-diff">
+        <label><input type="radio" name="diff" value="easy"><span>Easy</span></label><label><input type="radio" name="diff" value="normal"><span>Normal</span></label><label><input type="radio" name="diff" value="hard"><span>Hard</span></label></div></div>
+      <label class="sw" style="align-self:end">Keep playing by itself <input type="checkbox" role="switch" id="auto"></label>
+      <p class="note" style="align-self:start">Next level and new games start on their own. Turn off to run them with chat commands.</p>
+    </fieldset>
+    <details class="adv" id="adv"><summary><span class="abtn">⚙ Advanced settings</span><span class="chg" id="chg" hidden></span><span class="hint">rules, padlocks, commands, credit…</span></summary>
+      <div class="agrid">
+        <fieldset class="card"><legend>Rules</legend>
+          <label class="field"><span>Shuffle the letters</span><span class="box"><select name="shuffle"><option value="0">Never</option><option value="5">Every 5 seconds</option><option value="10">Every 10 seconds</option><option value="15">Every 15 seconds</option><option value="20">Every 20 seconds</option><option value="30">Every 30 seconds</option></select></span></label>
+          <div class="field"><span class="lab" id="l-min">Shortest word</span><div class="seg" role="radiogroup" aria-labelledby="l-min"><label><input type="radio" name="minlen" value="3"><span>3 letters</span></label><label><input type="radio" name="minlen" value="4"><span>4 letters</span></label></div></div>
+          <label class="field"><span>Goal</span><span class="box"><select name="goal"><option value="50">50% of the words</option><option value="55">55% of the words</option><option value="60">60% of the words</option><option value="65">65% of the words</option><option value="70">70% of the words</option><option value="75">75% of the words</option><option value="80">80% of the words</option><option value="90">90% of the words</option><option value="100">Every word</option></select></span></label>
+          <label class="field"><span>Hidden and fake letters</span><span class="box"><select name="tricky"><option value="0">Never</option><option value="1">From level 1</option><option value="2">From level 2</option><option value="3">From level 3</option><option value="4">From level 4</option><option value="5">From level 5</option><option value="6">From level 6</option></select></span></label>
+          <label class="sw">Bonus for the longest word <input type="checkbox" role="switch" name="longbonus"></label>
+          <label class="sw">Rarer real words score a little <input type="checkbox" role="switch" name="bonus"></label>
+        </fieldset>
+        <fieldset class="card"><legend>Padlocks</legend>
+          <p class="note">Stops one fast typer taking every word: after a find, that player waits until the timer passes the next padlock.</p>
+          <div class="field"><span class="lab" id="l-locks">Padlocks per round</span><div class="seg" role="radiogroup" aria-labelledby="l-locks"><label><input type="radio" name="locks" value="0"><span>Off</span></label><label><input type="radio" name="locks" value="2"><span>2</span></label><label><input type="radio" name="locks" value="3"><span>3</span></label><label><input type="radio" name="locks" value="4"><span>4</span></label></div></div>
+          <label class="sw">Tell locked players to wait <input type="checkbox" role="switch" name="lockmsg"></label>
+        </fieldset>
+        <fieldset class="card"><legend>Flow</legend>
+          <label class="field"><span>After a level is cleared</span><span class="box"><select name="next"><option value="5">Next level in 5 seconds</option><option value="10">Next level in 10 seconds</option><option value="15">Next level in 15 seconds</option><option value="20">Next level in 20 seconds</option><option value="30">Next level in 30 seconds</option><option value="0">Wait for the next command</option></select></span></label>
+          <label class="field"><span>After game over</span><span class="box"><select name="restart"><option value="10">New game in 10 seconds</option><option value="15">New game in 15 seconds</option><option value="30">New game in 30 seconds</option><option value="60">New game in 60 seconds</option><option value="0">Wait for the start command</option></select></span></label>
+        </fieldset>
+        <fieldset class="card"><legend>Chat</legend>
+          <div class="field"><span class="lab" id="l-bub">Guess bubbles</span><div class="seg" role="radiogroup" aria-labelledby="l-bub"><label><input type="radio" name="bubbles" value="all"><span>All</span></label><label><input type="radio" name="bubbles" value="right"><span>Right only</span></label><label><input type="radio" name="bubbles" value="off"><span>Off</span></label></div></div>
+          <label class="field"><span>Ignore these users (bots)</span><span class="box"><input name="ignore" autocomplete="off" spellcheck="false"></span></label>
+          <label class="field"><span>Never use these words</span><span class="box"><input name="block" autocomplete="off" spellcheck="false" placeholder="word, word"></span></label>
+          <label class="sw">Show top players <input type="checkbox" role="switch" name="top"></label>
+        </fieldset>
+        <fieldset class="card wide"><legend>Chat commands</legend>
+          <div class="cmds">
+            <label class="field"><span>Start a game</span><span class="box"><input name="cstart" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Next level</span><span class="box"><input name="cnext" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Skip this round</span><span class="box"><input name="cskip" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Reset everything</span><span class="box"><input name="creset" autocomplete="off" spellcheck="false"></span></label>
+          </div>
+          <div class="field"><span class="lab" id="l-perm">Who can use them</span><div class="seg" role="radiogroup" aria-labelledby="l-perm"><label><input type="radio" name="perm" value="me"><span>Only me</span></label><label><input type="radio" name="perm" value="mods"><span>Me and mods</span></label><label><input type="radio" name="perm" value="all"><span>Everyone</span></label></div></div>
+          <p class="note">Clash with another bot's commands? Rename them, e.g. <code>!cg start</code> or <code>!newgame</code>. Several names: separate with commas. Reset also clears the all-time scores.</p>
+        </fieldset>
+        <fieldset class="card wide"><legend>Other</legend>
+          <label class="field"><span>Kick chatroom ID (if Kick won't say)</span><span class="box"><input name="kickid" inputmode="numeric" autocomplete="off" placeholder="found automatically"></span></label>
+          <label class="sw">Remember scores between streams <input type="checkbox" role="switch" name="remember"></label>
+          <label class="sw">Show “made by trongateslegacy.com” <input type="checkbox" role="switch" name="credit"></label>
+        </fieldset>
+      </div>
+    </details>
+  </div>
+  <aside class="right" aria-label="Live preview and your OBS link">
+    <h3>Live preview <small>pretend chat playing</small></h3>
+    <div class="tabs" role="group" aria-label="Preview screen"><button type="button" data-screen="play" aria-pressed="true">Playing</button><button type="button" data-screen="cleared" aria-pressed="false">Level cleared</button><button type="button" data-screen="over" aria-pressed="false">Game over</button></div>
+    <div class="screen" id="pv-screen"><iframe id="pv" title="Preview of your Chatagram overlay" width="900" height="470" loading="lazy" tabindex="-1"></iframe></div>
+    <button type="button" class="btn" id="copy">Copy OBS link</button>
+    <div class="meta"><span>Browser source <b id="size">900 × 470</b></span><span><button type="button" id="show" aria-expanded="false" aria-controls="link">Show link</button> · <a id="open" href="play" target="_blank" rel="noopener">Open in new tab</a></span></div>
+    <p class="link" id="link" hidden></p>
+    <p class="how">In OBS: Sources → + → Browser, paste the link, set the size above. Changed a setting? Copy again and paste over the old link.</p>
+  </aside>
+</form>
+</section>
+
+<section class="wrap sec" id="faq"><h2>FAQ</h2>
+<div class="faq">
+  <details open><summary>Is it really free?</summary><p>Yes. No account, no login, no catch. It's a web page you add to OBS as a browser source. The small “made by” line can be turned off in Advanced settings.</p></details>
+  <details><summary>Does it need my Twitch or Kick password?</summary><p>No. It only reads your public chat, the way a viewer does, and never posts anything.</p></details>
+  <details><summary>Can I use it with just Kick, or just Twitch?</summary><p>Yes: fill in one channel or both. Streaming to both at once? Everyone plays on the same board, and the summary shows which chat found more.</p></details>
+  <details><summary>My other bot already uses !start</summary><p>Rename Chatagram's commands in Advanced settings, e.g. <code>!cg start</code>. Bots like Botrix and Nightbot are ignored as players out of the box.</p></details>
+  <details><summary>What happens if OBS refreshes mid-game?</summary><p>It carries on where it was: the game is saved in OBS's browser as it goes. Scores are kept between streams too (you can turn that off).</p></details>
+  <details><summary>Does it work in Streamlabs, Meld or XSplit?</summary><p>Anything with a browser source works.</p></details>
+  <details><summary>Where do the words come from?</summary><p>The SCOWL English word lists (by how common each word is), with rude words taken out using SCOWL's own tags, the LDNOOBW list and our own. You can add words to leave out in Advanced settings.</p></details>
+</div>
+</section>
+</main>
+
+<footer class="site">
+  <p>Chatagram is free, made by <b>Trongates Legacy</b> · <a href="/">trongateslegacy.com</a> · <a href="https://kick.com/trongateslegacy">Say hi on Kick</a> · <a href="/widgets/">More widgets</a></p>
+  <p>Word lists: <a href="https://github.com/en-wl/wordlist">SCOWL</a> © Kevin Atkinson; filtered with <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">LDNOOBW</a> (CC BY 4.0). <a href="words/LICENSE.txt">Details</a></p>
+</footer>
+<div class="copybar"><button type="button" class="btn" id="copy2">Copy OBS link</button></div>
+
+<script src="../widgets/lib/settings.js"></script>
+<script src="../widgets/lib/theme.js"></script>
+<script src="../widgets/lib/platforms/twitch.js"></script>
+<script src="../widgets/lib/platforms/kick.js"></script>
+<script src="settings.js"></script>
+<script src="setup.js"></script>
+</body></html>
