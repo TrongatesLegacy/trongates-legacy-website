@@ -122,6 +122,11 @@ round highlights (fastest find, longest streak, last-second save).
   in letter by letter over the dimmed board, then the summary fades in (it never flips the widget: too jarring on stream).
 - **Countdowns** to the next level or game: the ring drains smoothly (one linear animation to the moment it starts); only
   the number inside changes each second. Reduced motion: the ring steps once a second.
+- **Boxes, not every answer**: the board shows 12 word boxes at level 1, 3 more each level up to 24 (Advanced → Most
+  word boxes, 16–50), spread over the lengths in proportion, the longest word always among them. A box belongs to a
+  length, not a word: any real word of that length fills the next open box, and once a length's boxes are full, more words
+  of that length don't count ("full"). The goal is 65% of the boxes. Unfilled boxes' words are the "missed" ones.
+- **The banner** runs one scramble at a time; a new find cancels the last, so it always ends on the newest word (test).
 - **Empty slots** have a clear outline in every theme, so they read on any background and when the source is small.
 - **Performance**: one timer drives the game (set for `nextWake()`), one updates the clock once a second; animations
   are Web Animations on `transform` and `opacity` only. **Reduced motion** (`.rm`): everything changes at once. As in
@@ -174,7 +179,7 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
   and a Copy bar stays at the bottom. The preview is re-themed by message, so changing theme or accent never reloads it.
 - Indexed (in `sitemap.xml`) with its own title, description, canonical, share image and JSON-LD. The overlay isn't.
 - **Pictures before live games**: the hero and the set-up preview show a picture at once (sized exactly like the live
-  board) and the live game fades in over it when it has drawn, while the picture fades out (both showing at once looked
+  board, no backdrop or frame around it) and the live game fades in over it when it has drawn, while the picture fades out (both showing at once looked
   like two games stacked; a browser test guards it); the theme gallery and the widgets page only ever show pictures (click a theme to use it).
   They're the real overlay, rendered per theme and layout by
   `node --experimental-websocket artwork/chatagram/render-previews.mjs` into `public/chatagram/assets/themes/`; re-run it
