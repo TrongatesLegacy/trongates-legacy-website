@@ -24,13 +24,16 @@ function world() {
       this.sent.push(d);
       if (this.which === 'twitch' && /^JOIN/.test(d)) clock.at(5, () => this.recv(':justinfan1.tmi.twitch.tv 366 justinfan1 #gridrunner :End of /NAMES list'));
       if (this.which === 'kick' && d.includes('pusher:subscribe')) clock.at(5, () => this.recv({ event: 'pusher_internal:subscription_succeeded', data: '{}' }));
+      // like the real servers, they answer pings (unless the test has made this connection go silent)
+      if (!this.silent && this.which === 'twitch' && /^PING/.test(d)) clock.at(5, () => this.recv(':tmi.twitch.tv PONG tmi.twitch.tv :tmi.twitch.tv'));
+      if (!this.silent && this.which === 'kick' && d.includes('pusher:ping')) clock.at(5, () => this.recv({ event: 'pusher:pong', data: {} }));
     }
-    recv(m) { if (this.readyState === 1) this.onmessage && this.onmessage({ data: typeof m === 'string' ? m : JSON.stringify(m) }); }
+    recv(m) { if (this.readyState === 1 && !this.silent) this.onmessage && this.onmessage({ data: typeof m === 'string' ? m : JSON.stringify(m) }); }
     drop() { if (this.readyState !== 1) return; this.readyState = 3; sockets.delete(this); this.onclose && this.onclose({}); }
     close() { this.readyState = 3; sockets.delete(this); }
   }
   const env = {
-    WebSocket: FakeWebSocket,
+    WebSocket: FakeWebSocket, now: () => clock.now,
     setTimeout: (fn, ms) => clock.at(ms, fn, 'timeout'), clearTimeout: (id) => clock.cancel(id),
     setInterval: (fn, ms) => { const box = {}; const tick = () => { box.id = clock.at(ms, tick, 'interval'); fn(); }; box.id = clock.at(ms, tick, 'interval'); return box; },
     clearInterval: (box) => box && clock.cancel(box.id),
@@ -122,4 +125,28 @@ test('no channels, no connections', () => {
   const chat = w.W.chat({ twitch: '', kick: '  ', env: w.env }, () => {});
   assert.deepEqual([...chat.platforms], []);
   assert.equal(w.clock.pending, 0);
+});
+
+test('a connection that goes silent without closing (Wi-Fi drop, laptop sleep) is noticed and replaced', async () => {
+  const w = world();
+  const chat = w.W.chat({ twitch: 'gridrunner', kick: 'gridrunner', env: w.env }, () => {});
+  await runFor(w, 5 * 60000);
+  assert.equal(w.opened.length, 2, 'a healthy connection is left alone for minutes (pings keep it alive)');
+  for (const sock of w.sockets) sock.silent = true;                     // both go dead, but never close
+  await runFor(w, w.W.chat.SILENT + 30000);
+  assert.equal(w.opened.length, 4, 'each dead connection was replaced once');
+  assert.deepEqual(JSON.parse(JSON.stringify(chat.status)), { twitch: { state: 'live' }, kick: { state: 'live' } });
+  chat.close();
+});
+
+test('Twitch saying it is about to restart (RECONNECT) reconnects straight away', async () => {
+  const w = world();
+  const chat = w.W.chat({ twitch: 'gridrunner', env: w.env }, () => {});
+  await runFor(w, 1000);
+  const [sock] = [...w.sockets];
+  sock.recv(':tmi.twitch.tv RECONNECT');
+  await runFor(w, 3000);
+  assert.equal(w.opened.length, 2);
+  assert.equal(chat.status.twitch.state, 'live');
+  chat.close();
 });

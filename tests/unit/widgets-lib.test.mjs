@@ -67,6 +67,7 @@ test('Twitch: a chat line becomes a message with name, text and roles', () => {
 test('Twitch: PING is answered, other lines are ignored', () => {
   assert.deepEqual(plain(P.twitch.parse('PING :tmi.twitch.tv')), { type: 'ping', payload: ':tmi.twitch.tv' });
   assert.equal(P.twitch.parse(':tmi.twitch.tv 001 justinfan123 :Welcome, GLHF!'), null);
+  assert.equal(P.twitch.parse(':tmi.twitch.tv RECONNECT').type, 'reconnect');
   assert.equal(P.twitch.parse(':justinfan1!justinfan1@justinfan1.tmi.twitch.tv JOIN #gridrunner'), null);
 });
 

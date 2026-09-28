@@ -13,6 +13,7 @@
   function parse(line, chan) {
     line = String(line).replace(/\r$/, '');
     if (line.startsWith('PING')) return { type: 'ping', payload: line.slice(5) };
+    if (/^:\S+ RECONNECT\b/.test(line) || line === 'RECONNECT') return { type: 'reconnect' };   // Twitch is about to restart this server
     let tags = {}, rest = line;
     if (rest[0] === '@') {
       const sp = rest.indexOf(' ');
@@ -33,15 +34,17 @@
   function connect(o, onMessage, onStatus) {
     const chan = channel(o.channel);
     return o.socket({
-      url: URL_, name: 'twitch',
+      url: URL_, name: 'twitch', keepalive: 60000, ping: () => 'PING :tmi.twitch.tv',
       open(send) { send('CAP REQ :twitch.tv/tags'); send('NICK justinfan' + (10000 + Math.floor(Math.random() * 89999))); send('JOIN #' + chan); },
-      message(data, send, live) {
+      message(data, send, live, restart) {
         for (const line of String(data).split('\n')) {
           if (!line) continue;
           if (/ 366 /.test(line)) live();                        // end of the channel's name list: joined
           const p = parse(line, chan);
           if (!p) continue;
-          if (p.type === 'ping') send('PONG ' + p.payload); else onMessage(p);
+          if (p.type === 'ping') send('PONG ' + p.payload);
+          else if (p.type === 'reconnect') return restart();
+          else onMessage(p);
         }
       },
     }, onStatus);

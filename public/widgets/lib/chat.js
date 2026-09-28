@@ -10,15 +10,19 @@
 (() => {
   const W = (window.Widgets = window.Widgets || {});
   const DELAYS = [1000, 2000, 5000, 10000, 30000], ERROR_DELAY = 60000, STEADY = 30000;
+  // Watchdog: a connection can die without closing (Wi-Fi drop, laptop sleep). Each platform pings every minute and the
+  // server answers, so hearing nothing at all for SILENT means it's dead: drop it and reconnect.
+  const SILENT = 150000, CHECK = 15000;
 
   function socketMaker(env) {
     /** keeps one platform's socket connected @returns {{ close(): void }} */
     return function socket(spec, onStatus) {
-      let ws = null, tries = 0, closed = false, timer = null, keep = null, steady = null;
+      let ws = null, tries = 0, closed = false, timer = null, keep = null, steady = null, watch = null, heard = 0;
+      const now = env.now || Date.now;
       const status = (s, detail) => onStatus(spec.name, s, detail);
       const retry = (delay) => {
         if (closed) return;
-        env.clearInterval(keep); keep = null; env.clearTimeout(steady); steady = null;
+        env.clearInterval(keep); keep = null; env.clearTimeout(steady); steady = null; env.clearInterval(watch); watch = null;
         timer = env.setTimeout(attempt, delay);
       };
       async function attempt() {
@@ -36,11 +40,21 @@
           status('live');
           env.clearTimeout(steady); steady = env.setTimeout(() => { tries = 0; }, STEADY);   // live for a while: back to quick retries
         };
+        // give up on this socket and reconnect (a dead connection, or the server asked us to)
+        const restart = () => {
+          if (ws !== sock) return;
+          ws = null; try { sock.close(); } catch {}
+          if (closed) return;
+          status('retrying');
+          retry(DELAYS[Math.min(tries++, DELAYS.length - 1)]);
+        };
         sock.onopen = () => {
+          heard = now();
           spec.open(send);
           if (spec.keepalive && spec.ping) keep = env.setInterval(() => send(spec.ping()), spec.keepalive);
+          watch = env.setInterval(() => { if (now() - heard > SILENT) restart(); }, CHECK);
         };
-        sock.onmessage = (e) => { try { spec.message(e.data, send, live); } catch {} };
+        sock.onmessage = (e) => { heard = now(); try { spec.message(e.data, send, live, restart); } catch {} };
         sock.onclose = () => {
           if (ws !== sock) return;
           ws = null;
@@ -53,7 +67,7 @@
       attempt();
       return {
         close() {
-          closed = true; env.clearTimeout(timer); env.clearInterval(keep); env.clearTimeout(steady);
+          closed = true; env.clearTimeout(timer); env.clearInterval(keep); env.clearTimeout(steady); env.clearInterval(watch);
           if (ws) { const s = ws; ws = null; try { s.close(); } catch {} }
         },
       };
@@ -75,4 +89,5 @@
 
   W.chat = chat;
   W.chat.DELAYS = DELAYS;
+  W.chat.SILENT = SILENT;
 })();
