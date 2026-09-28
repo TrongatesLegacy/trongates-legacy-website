@@ -289,3 +289,18 @@ test('the set-up preview shows the saved theme and layout\'s picture from the fi
   assert.match(await fresh.eval('document.getElementById("pv-poster").getAttribute("src")'), /themes\/chatagram-full\.webp$/, 'the default (full layout) picture');
   await fresh.close();
 });
+
+// Bug (2026-09-28): the banner's letter-scramble ran on its own timer per find, so with finds close together an older,
+// longer word could finish last and overwrite the newest one ("found an extra word: RUNWAY" for someone else's word).
+test('the banner always ends on the newest find, however close together finds are', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/play.html?twitch=x', { width: 960, height: 540, init: FAKE_CHAT });
+  await ready(tab);
+  const words = await tab.eval('chatagram.game.state.round.answers.map((a) => a.word).sort((a, b) => b.length - a.length)');
+  // the longest first (its scramble runs longest), then a short one straight after
+  await tab.eval(`chatagram.hear({ platform: 'twitch', user: 'a', name: 'NeonNacho', text: '${words[0]}' }); chatagram.hear({ platform: 'twitch', user: 'b', name: 'LunaLlama', text: '${words.at(-1)}' }); 1`);
+  await sleep(900);
+  assert.match(await tab.eval('document.getElementById("what").textContent'), new RegExp('^' + words.at(-1), 'i'));
+  assert.match(await tab.eval('document.getElementById("who").textContent'), /LunaLlama/);
+  await tab.eval('localStorage.clear(); 1');
+  await tab.close();
+});

@@ -194,10 +194,13 @@
     whoEl.innerHTML = `Level ${game.state.level}`;
     whatEl.innerHTML = `<span class="hint">${cfg.layout === 'compact' ? 'Type words in chat!' : `Find words with these letters · the longest has ${r.seed.length}`}</span>`;
   }
+  // one scramble at a time: a new find cancels the one before, so the banner always ends on the newest word
+  let scrambleTimer = null;
   function scramble(el, word, suffix) {
+    clearInterval(scrambleTimer);
     if (rm) { el.innerHTML = esc(word) + suffix; return; }
     let n = 0; const L = 'abcdefghijklmnopqrstuvwxyz';
-    const iv = setInterval(() => {
+    const iv = scrambleTimer = setInterval(() => {
       n++;
       el.innerHTML = esc([...word].map((c, i) => (i < n / 2 ? c : L[Math.floor(Math.random() * 26)])).join('')) + suffix;
       if (n / 2 >= word.length) { clearInterval(iv); el.innerHTML = esc(word) + suffix; }
@@ -355,7 +358,7 @@
         if (e.longest) confetti();
         break;
       }
-      case 'bonus': whoEl.innerHTML = `${shownPlatforms.length > 1 ? badge(e.by.platform) : ''} ${esc(e.by.name)} found a bonus word`; whatEl.innerHTML = `${esc(e.word)} <small>+1</small>`; drawStats(); break;
+      case 'bonus': clearInterval(scrambleTimer); whoEl.innerHTML = `${shownPlatforms.length > 1 ? badge(e.by.platform) : ''} ${esc(e.by.name)} found a bonus word`; whatEl.innerHTML = `${esc(e.word)} <small>+1</small>`; drawStats(); break;
       case 'shuffle': rollTiles([...tilesEl.children].map((t) => t.querySelector('.reel b').textContent), round().letters.map(shows)); break;
       case 'reveal': {
         const t = tilesEl.children[e.index]; if (!t) break;
