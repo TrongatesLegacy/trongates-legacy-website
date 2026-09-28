@@ -106,6 +106,7 @@
     const shown = { ...s, theme: SCHEMA.theme.def, accent: '' };             // theme and accent go by message (no reload)
     const src = `play.html?${W.settings.encode(SCHEMA, shown)}&${screen === 'play' ? 'demo=1' : 'still=1&screen=' + screen}`;
     fitFrame(pv, pvScreen);
+    if (!loaded) return;                                                      // starts after the page has loaded
     if (src !== lastPv) {
       lastPv = src; pv.src = src;
       pv.onload = () => themePreview();
@@ -140,13 +141,22 @@
   if (fromLink && W.settings.changed(SCHEMA, s, ADVANCED)) $('#adv').open = true;   // coming back with advanced settings: show them
 
   // ---- theme gallery (loads as it scrolls into view) and the hero's demo (after the page has loaded) -----------------------------
-  $('#tgrid').innerHTML = W.theme.THEMES.map((t) => `<li><div class="screen"><iframe loading="lazy" tabindex="-1" title="${THEME_NAMES[t]} theme" width="560" height="230" src="play.html?theme=${t}&layout=compact&still=1"></iframe></div><h3>${THEME_NAMES[t]}</h3></li>`).join('');
+  // every preview on this page runs the real overlay (its script and word lists), so none starts before the page has
+  // loaded, and the gallery's only when it's near the screen: they never compete with the first paint (docs/website.md)
+  $('#tgrid').innerHTML = W.theme.THEMES.map((t) => `<li><div class="screen"><iframe tabindex="-1" title="${THEME_NAMES[t]} theme" width="560" height="230" data-src="play.html?theme=${t}&layout=compact&still=1"></iframe></div><h3>${THEME_NAMES[t]}</h3></li>`).join('');
   const fitGallery = () => $$('#tgrid .screen').forEach((box) => { const f = box.firstElementChild, k = Math.min((box.clientWidth - 12) / 560, (box.clientHeight - 12) / 230); f.style.transform = `translate(-50%,-50%) scale(${k})`; });
   const hero = $('#hero-frame');
   const fitHero = () => { const box = $('#hero-screen'), k = Math.min((box.clientWidth - 20) / 900, (box.clientHeight - 20) / 470); hero.style.transform = `translate(-50%,-50%) scale(${k})`; fitGallery(); };
   fitHero();
-  const startHero = () => setTimeout(() => { hero.src = 'play.html?demo=1'; }, 1200);
-  if (document.readyState === 'complete') startHero(); else addEventListener('load', startHero);
+  let loaded = false;
+  const afterLoad = () => setTimeout(() => {
+    loaded = true;
+    hero.src = 'play.html?demo=1';
+    preview();
+    const near = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) { const f = e.target.querySelector('iframe[data-src]'); if (f) { f.src = f.dataset.src; f.removeAttribute('data-src'); } near.unobserve(e.target); } }, { rootMargin: '300px' });
+    for (const box of $$('#tgrid .screen')) near.observe(box);
+  }, 900);
+  if (document.readyState === 'complete') afterLoad(); else addEventListener('load', afterLoad);
 
   // ---- the menu shows where you are -------------------------------------------------------------------------------------------------
   const links = $$('.menu a');

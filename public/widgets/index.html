@@ -82,7 +82,7 @@ footer { text-align: center; color: var(--muted); font-size: 14px; padding: 20px
   <p class="lede">Chat games and overlays that work with Twitch and Kick at the same time. Pick one, type your channel names, paste the link into OBS. Made by Trongates Legacy.</p>
   <ul class="grid">
     <li><article class="card">
-      <div class="thumb"><iframe src="/chatagram/play.html?layout=compact&still=1" title="Chatagram preview" tabindex="-1" loading="lazy"></iframe></div>
+      <div class="thumb"><iframe data-src="/chatagram/play.html?layout=compact&still=1" title="Chatagram preview" tabindex="-1"></iframe></div>
       <div class="body"><h2>Chatagram</h2><p>The word game your whole chat plays: unscramble the letters together and beat the goal to clear the level.</p>
         <ul class="tags"><li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>8 themes</li></ul>
         <a class="btn" href="/chatagram/">Set up Chatagram</a></div>
@@ -97,4 +97,8 @@ footer { text-align: center; color: var(--muted); font-size: 14px; padding: 20px
   </ul>
 </main>
 <footer class="wrap">Made by <a href="/">Trongates Legacy</a> · <a href="https://kick.com/trongateslegacy">kick.com/trongateslegacy</a></footer>
+<script>
+// the previews start after the page has loaded, so they never hold up its first paint (docs/website.md, Performance)
+addEventListener('load', () => setTimeout(() => { for (const f of document.querySelectorAll('iframe[data-src]')) f.src = f.dataset.src; }, 600));
+</script>
 </body></html>
