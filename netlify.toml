@@ -20,6 +20,18 @@
     Cache-Control = "public, max-age=2592000"
 
 [[headers]]
+  # Chatagram's word lists and preview pictures: large, and they rarely change (a rebuild shows within a day). Every
+  # preview on the Chatagram page and every overlay load reuses them instead of asking the server again.
+  for = "/chatagram/words/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/chatagram/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
   # OBS browser sources load Botrix widgets from botrix.live; the injected CSS (public/obs/botrix/) pulls
   # these fonts cross-origin, which browsers only allow with this header.
   for = "/assets/fonts/*"
