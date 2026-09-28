@@ -34,7 +34,9 @@ test('booting starts level 1 with a real puzzle: every board word fits the seed,
   assert.equal(s.phase, 'playing'); assert.equal(s.level, 1);
   assert.equal(r.seed.length, 6);
   assert.ok(seeds.normal[6].includes(r.seed));
-  assert.deepEqual([...t.words()], [...Wd.solve(r.seed, dict, { tier: 35, minLen: 3 }).board]);
+  const all = [...Wd.solve(r.seed, dict, { tier: 35, minLen: 3 }).board];
+  assert.deepEqual([...r.valid], all, 'every real word is accepted');
+  assert.ok(t.words().every((w) => all.includes(w)) && t.words().length === Math.min(12, all.length), 'the boxes are a pick of them');
   assert.equal(r.goal, Math.ceil(r.answers.length * 0.65));
   assert.equal(r.endsAt - r.startedAt, 90000);
   assert.equal(r.letters.map((l) => l.ch).sort().join(''), r.seed.split('').sort().join(''));
@@ -256,4 +258,47 @@ test('the same seed never comes up twice in a row across many rounds', () => {
   const seen = [];
   for (let i = 0; i < 40; i++) { seen.push(t.round().seed); t.say('!skip', MOD); }
   assert.equal(new Set(seen).size, seen.length);
+});
+
+test('the board shows 12 boxes at level 1, 3 more a level up to the setting; boxes are per length, the longest word always shown', () => {
+  let t, all;
+  for (let seed = 1; seed < 200; seed++) {
+    t = setup({}, seed); t.g.boot();
+    all = t.round().valid;
+    if (all.length > 20) break;
+  }
+  const r = t.round();
+  assert.ok(all.length > 20, 'found a big puzzle');
+  assert.equal(r.answers.length, 12);
+  assert.ok(r.answers.some((a) => a.word === r.seed));
+  for (const len of new Set(all.map((w) => w.length))) assert.ok(r.answers.some((a) => a.word.length === len), `a ${len}-letter box`);
+  assert.equal(r.goal, Math.ceil(12 * 0.65));
+  for (const [level, want] of [[2, 15], [5, 24], [9, 24]]) {
+    const g = setup({}, 3); g.g.boot(); g.g.state.level = level; g.say('!skip', MOD);
+    assert.ok(g.round().answers.length <= want, `level ${level}: ${g.round().answers.length} boxes`);
+    if (g.round().valid.length >= want) assert.equal(g.round().answers.length, want, `level ${level}`);
+  }
+});
+
+test('any real word fills the next open box of its length; when that length is full, more of it don\'t count', () => {
+  let t;
+  for (let seed = 1; seed < 400; seed++) {
+    t = setup({}, seed); t.g.boot();
+    const r = t.round(), three = r.valid.filter((w) => w.length === 3);
+    if (three.length > r.answers.filter((a) => a.word.length === 3).length + 1) break;
+  }
+  const r = t.round(), boxes = r.answers.filter((a) => a.word.length === 3).length;
+  const offBoard = r.valid.filter((w) => w.length === 3 && !r.answers.some((a) => a.word === w));
+  assert.ok(offBoard.length >= 2, 'a puzzle with 3-letter words not on the board');
+  const res = t.say(offBoard[0]);
+  assert.equal(res.kind, 'found', 'a real word not shown still fills a box');
+  assert.ok(r.answers.some((a) => a.word === offBoard[0] && a.by));
+  // fill the rest of the 3-letter boxes, then one more 3-letter word is refused
+  const rest = r.valid.filter((w) => w.length === 3 && w !== offBoard[0]);
+  let filled = 1;
+  for (const w of rest) { if (filled >= boxes) break; if (t.say(w, NACHO).kind === 'found') filled++; }
+  assert.equal(r.answers.filter((a) => a.word.length === 3 && a.by).length, boxes);
+  const spare = r.valid.find((w) => w.length === 3 && !r.answers.some((a) => a.word === w));
+  if (spare) assert.equal(t.say(spare).kind, 'full');
+  assert.equal(r.answers.length, 12, 'no boxes added');
 });

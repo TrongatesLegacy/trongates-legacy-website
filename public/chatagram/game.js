@@ -33,13 +33,39 @@
     function shuffled(xs) { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
     // ---- puzzles ---------------------------------------------------------------------------------------------------
+    // The board shows a limited number of boxes, growing slowly with the level (12 at level 1, +3 a level, up to cfg.slots),
+    // spread over the lengths in proportion (at least one each, the longest word always). A box is for a length, not a
+    // fixed word: any real word of that length fills the next open box, and once a length's boxes are full, more words of
+    // that length don't count. The words picked here are only what's shown as "missed" if boxes stay empty.
+    const slotsFor = (level) => Math.min(cfg.slots, 12 + 3 * (level - 1));
+    function pickSlots(words, seed) {
+      const max = slotsFor(s.level);
+      if (words.length <= max) return { shown: words };
+      const byLen = new Map();
+      for (const w of words) { if (!byLen.has(w.length)) byLen.set(w.length, []); byLen.get(w.length).push(w); }
+      const keep = new Set([seed]);
+      const lens = [...byLen.keys()].sort((a, b) => b - a);
+      for (const len of lens) {
+        const pool = shuffled(byLen.get(len).filter((w) => !keep.has(w)));
+        const share = Math.max(1, Math.round((max * byLen.get(len).length) / words.length));
+        for (const w of pool.slice(0, Math.max(0, share - (len === seed.length ? 1 : 0)))) keep.add(w);
+      }
+      // trim or top up to exactly cfg.slots (shortest first to trim, then any left over to fill)
+      let shown = words.filter((w) => keep.has(w));
+      while (shown.length > max) { const i = shown.findIndex((w) => w !== seed); shown.splice(i, 1); }
+      for (const w of shuffled(words.filter((x) => !keep.has(x)))) { if (shown.length >= max) break; shown.push(w); }
+      shown.sort((a, b) => a.length - b.length || (a < b ? -1 : 1));
+      return { shown };
+    }
+
     function newRound() {
       const d = Wd.DIFFICULTY[cfg.diff], len = Wd.seedLength(cfg.diff, s.level);
       const all = (deps.seeds[cfg.diff] && deps.seeds[cfg.diff][len]) || [];
       let pool = all.filter((w) => !block.has(w) && !s.recent.includes(w));
       if (!pool.length) pool = all.filter((w) => !block.has(w));
       const seed = pick(pool);
-      const { board, bonus } = Wd.solve(seed, deps.dict, { tier: d.tier, minLen: cfg.minlen, block });
+      const { board: every, bonus } = Wd.solve(seed, deps.dict, { tier: d.tier, minLen: cfg.minlen, block });
+      const { shown: board } = pickSlots(every, seed);
       s.recent = [seed, ...s.recent].slice(0, 60);
       const tricky = cfg.tricky > 0 && s.level >= cfg.tricky;
       let letters = seed.split('').map((ch, i) => ({ ch, id: i }));
@@ -53,7 +79,7 @@
       const hidden = tricky ? pick(order.filter((l) => !l.fake)).id : -1;
       s.round = {
         id: (s.round ? s.round.id : 0) + 1, seed, letters: order, hidden, revealed: !tricky, fakeGone: !tricky,
-        answers: board.map((word) => ({ word, by: null, at: 0, pts: 0 })), bonus, bonusFound: [],
+        answers: board.map((word) => ({ word, by: null, at: 0, pts: 0 })), valid: every, bonus, bonusFound: [],
         goal: Math.max(1, Math.ceil(board.length * cfg.goal / 100)),
         startedAt: t, endsAt: t + dur,
         locks: Array.from({ length: cfg.locks }, (_, i) => t + Math.round(dur * (i + 1) / (cfg.locks + 1))), opened: 0, locked: {},
@@ -93,7 +119,14 @@
     const lockedUntil = (t) => { const i = s.round.locks.findIndex((x) => x > t); return i < 0 ? s.round.locks.length : i; };
 
     function guess(m, word) {
-      const r = s.round, a = r.answers.find((x) => x.word === word);
+      const r = s.round;
+      let a = r.answers.find((x) => x.word === word);
+      if (!a && (r.valid || []).includes(word)) {
+        // a real word that isn't the one picked for a box: it takes the next open box of its length, if there is one
+        a = r.answers.find((x) => !x.by && x.word.length === word.length);
+        if (!a) return { kind: 'full', word };
+        a.word = word;
+      }
       if (a) {
         if (a.by) return { kind: 'dup', word, by: a.by };
         const k = key(m);

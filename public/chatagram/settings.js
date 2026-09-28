@@ -17,6 +17,7 @@
     // advanced: rules
     shuffle: { type: 'int', def: 10, min: 0, max: 60 },               // seconds between shuffles, 0 = never
     minlen: { type: 'int', def: 3, min: 3, max: 4 },
+    slots: { type: 'int', def: 24, min: 12, max: 50 },               // most boxes on the board (12 at level 1, +3 a level up to this)
     goal: { type: 'int', def: 65, min: 30, max: 100 },                // % of the words
     tricky: { type: 'int', def: 3, min: 0, max: 20 },                 // hidden and fake letters from this level, 0 = never
     longbonus: { type: 'bool', def: true },
