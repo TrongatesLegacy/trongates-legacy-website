@@ -44,7 +44,7 @@
       const clean = read(f, write(f, v));
       if (clean !== undefined && !same(clean, f.def)) q.set(k, write(f, clean));
     }
-    return q.toString().replace(/%2C/g, ',');
+    return q.toString().replace(/%2C/g, ',').replace(/%21/g, '!');
   }
   /** how many settings differ from their default, among these keys (the set-up page's "changed" badge) */
   const changed = (schema, values, keys = Object.keys(schema)) => keys.filter((k) => !same(values[k], schema[k].def)).length;

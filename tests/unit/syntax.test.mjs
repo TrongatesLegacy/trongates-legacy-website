@@ -6,8 +6,11 @@ import vm from 'node:vm';
 import { readdirSync } from 'node:fs';
 import { ROOT, read } from '../helpers/sim.mjs';
 
-const pages = ['public/index.html', ...readdirSync(ROOT + 'public/obs').filter((f) => f.endsWith('.html')).map((f) => 'public/obs/' + f)];
-const shared = readdirSync(ROOT + 'public/obs/shared').filter((f) => f.endsWith('.js')).map((f) => 'public/obs/shared/' + f);
+const html = (dir) => readdirSync(ROOT + dir).filter((f) => f.endsWith('.html')).map((f) => dir + '/' + f);
+const pages = ['public/index.html', ...html('public/obs'), ...html('public/widgets'), ...html('public/chatagram')];
+const js = (dir) => readdirSync(ROOT + dir).filter((f) => f.endsWith('.js')).map((f) => dir + '/' + f);
+const shared = js('public/obs/shared');
+const widgets = [...js('public/widgets/lib'), ...js('public/widgets/lib/platforms'), ...js('public/chatagram')];
 
 test('inline scripts in every page parse', () => {
   for (const page of pages) {
@@ -25,6 +28,15 @@ test('the JSON-LD in the website parses', () => {
 test('the shared OBS scripts parse', () => {
   assert.ok(shared.length >= 6);
   for (const f of shared) assert.doesNotThrow(() => new vm.Script(read(f), { filename: f }), f);
+});
+
+test('the widgets\' and Chatagram\'s scripts parse', () => {
+  assert.ok(widgets.length >= 10);
+  for (const f of widgets) assert.doesNotThrow(() => new vm.Script(read(f), { filename: f }), f);
+});
+
+test('the JSON-LD in the Chatagram page parses', () => {
+  for (const m of read('public/chatagram/index.html').matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) assert.doesNotThrow(() => JSON.parse(m[1]));
 });
 
 test('every script a page loads exists', () => {
