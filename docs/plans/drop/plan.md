@@ -5,7 +5,8 @@ slots. Status: **planning** (2026-09-29). The working name is "drop"; see "Open 
 
 Mockups (`mockup.html`, drawn with the real `themes.css`; `?v=<name>` shows one at its real size). Board source:
 [classic](classic.png), [pachinko](pachinko.png), [tower](tower.png), [jackpot](jackpot.png),
-[transparent](clear.png), [themes and accents](accents.png). Leaderboard source: [panel](panel.png), [strip](strip.png).
+[transparent](clear.png), [themes and accents](accents.png). Leaderboard source: [panel](panel.png), [strip](strip.png),
+[transparent](lbclear.png).
 Both on a stream: [scene](scene.png).
 
 ## What the owner asked for (2026-09-29)
@@ -18,7 +19,8 @@ Both on a stream: [scene](scene.png).
   scored 100").
 - Set up and configured the way Chatagram is.
 - **The leaderboard is a separate browser source**, placed wherever the streamer likes, not part of the board.
-- **A fully transparent board** is an option: pegs, slots and balls straight over the game.
+- **Fully transparent** is an option for both the board (pegs, slots and balls straight over the game) and the
+  leaderboard.
 
 ## What it reuses from Chatagram
 
@@ -73,7 +75,10 @@ its own.
 
 - **panel** 320 × 540: tabs, top 8, "Biggest drop this stream", the commands (mockup: panel).
 - **strip** 960 × 72: This stream's top 3 in a row, for the top or bottom of the screen (mockup: strip).
-- Its own theme, accent, background (transparent too) and credit, so it can match the board or not.
+- Its own theme, accent, background and credit, so it can match the board or not.
+- **Background** 0–100%, default 95%, with **Transparent** (0) one click away, as on the board: no background, frame,
+  panels or pill boxes, only the text and the active tab, with a text shadow so it reads over any game. The inactive tab
+  becomes an outline (mockup: transparent leaderboard).
 - **Which list**: This stream / All time / take turns every 15 s (default).
 - **How it gets the scores**: OBS browser sources on the same site share storage, and the board saves its scores there as
   they change. The board also announces each change on a `BroadcastChannel` named after the channels, so the leaderboard
