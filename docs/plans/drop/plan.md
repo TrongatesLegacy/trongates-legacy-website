@@ -3,9 +3,10 @@
 A second free widget beside Chatagram (docs/widgets.md): chat types `!drop` and balls fall through pegs into scoring
 slots. Status: **planning** (2026-09-29). The working name is "drop"; see "Open questions".
 
-Mockups (`mockup.html`, drawn with the real `themes.css`; `?v=classic|pachinko|tower|jackpot|top|accents` shows one at
-its real size): [classic](classic.png), [pachinko](pachinko.png), [tower](tower.png), [jackpot](jackpot.png),
-[`!drop top`](top.png), [themes and accents](accents.png).
+Mockups (`mockup.html`, drawn with the real `themes.css`; `?v=<name>` shows one at its real size). Board source:
+[classic](classic.png), [pachinko](pachinko.png), [tower](tower.png), [jackpot](jackpot.png),
+[transparent](clear.png), [themes and accents](accents.png). Leaderboard source: [panel](panel.png), [strip](strip.png).
+Both on a stream: [scene](scene.png).
 
 ## What the owner asked for (2026-09-29)
 
@@ -16,6 +17,8 @@ its real size): [classic](classic.png), [pachinko](pachinko.png), [tower](tower.
 - **Balls don't show names.** Names are for the leaderboard, and for a popup when someone hits the top slot ("pixelpriya
   scored 100").
 - Set up and configured the way Chatagram is.
+- **The leaderboard is a separate browser source**, placed wherever the streamer likes, not part of the board.
+- **A fully transparent board** is an option: pegs, slots and balls straight over the game.
 
 ## What it reuses from Chatagram
 
@@ -27,6 +30,9 @@ its real size): [classic](classic.png), [pachinko](pachinko.png), [tower](tower.
 | `chatagram/scores.js` | All time and This stream, and the check for which stream is on. **Moves to `widgets/lib/scores.js`** first, with a storage prefix per widget. Chatagram's saved keys don't change, and its tests must pass unchanged. |
 | Chatagram's set-up page | the same structure: channels (checked as typed), look, board, Advanced, live preview with a pretend chat, Copy OBS link |
 | `/obs/chatagram` | `/obs/drop` follows Tron's forms through the live theme message in the same way |
+
+The leaderboard source is built so it isn't tied to the drop game: once the scores are shared, the same page could show
+Chatagram's leaderboards too (`game=chatagram|drop`). That's for later, if the owner wants it.
 
 ## The board
 
@@ -47,15 +53,38 @@ The **board** setting picks the layout of the pegs; everything else (colours, fo
 - **Top prize**: the highest slot value. Hitting it shows the card (below). Advanced → "Big win card for": top slot /
   top two / off.
 
-## Layouts
+## Two browser sources
 
-- **full** 960 × 540: the board on the left and the leaderboard panel on the right (This stream / All time tabs, top 6,
-  "Biggest drop this stream", the commands). Mockups: classic, pachinko.
-- **board** 640 × 540: the board only, for streamers who already have a busy screen. Mockup: accents.
-- **tall** 360 × 640: for the side of the screen, with a This stream top 3 above the board. Its natural board is Tower,
-  but any board can be used. Mockup: tower.
+The streamer adds **two OBS browser sources** with two links from the set-up page. Both links carry the channels, which
+is how they find each other's data, and each has its own look settings. The leaderboard is optional: the board works on
+its own.
 
-As in Chatagram, the widget scales to fit if the OBS source is another size.
+### The board source
+
+- **board** 640 × 540 (Classic and Pachinko) or **tall** 360 × 640 (Tower's natural shape, for the side of the screen;
+  any board can use it). As in Chatagram, the board scales to fit if the OBS source is another size.
+- **Background**: 0–100% (Chatagram's `bgo`, but going down to 0), default 95%. **Transparent** (0) also drops the
+  theme's frame and gives pegs, slots, balls and the `+N` numbers a soft dark shadow so they read over any game (mockup:
+  transparent). The big win card keeps its own panel and dims the board only as a soft glow behind the card, not the
+  whole source. Transparent is one click on the set-up page, beside the theme.
+- The big win card is drawn here, over the board.
+
+### The leaderboard source
+
+- **panel** 320 × 540: tabs, top 8, "Biggest drop this stream", the commands (mockup: panel).
+- **strip** 960 × 72: This stream's top 3 in a row, for the top or bottom of the screen (mockup: strip).
+- Its own theme, accent, background (transparent too) and credit, so it can match the board or not.
+- **Which list**: This stream / All time / take turns every 15 s (default).
+- **How it gets the scores**: OBS browser sources on the same site share storage, and the board saves its scores there as
+  they change. The board also announces each change on a `BroadcastChannel` named after the channels, so the leaderboard
+  updates as soon as a ball lands; the leaderboard also re-reads the save every 5 s in case a message is missed. The
+  board is the only one that writes; the leaderboard only reads.
+  - **To prove in real OBS before building on it**: that two browser sources share `localStorage` and `BroadcastChannel`
+    (they run in one browser, so they should), including with "Shutdown source when not visible" on. The first step of
+    the build is a two-page test in the owner's OBS. If it fails, the fallback is for the leaderboard to read chat too
+    and have the board announce each landing in a form nobody sees, which is worse; so this decides the design.
+  - If the board isn't running, the leaderboard still shows the last saved scores (it's just not updating).
+  - The stream check (which stream is on) stays in the board, so only one source asks Twitch or Kick.
 
 ## Chat commands
 
@@ -66,7 +95,8 @@ As in Chatagram, the widget scales to fit if the OBS source is another size.
 - **Most balls on screen**: default 40, range 10–100. Beyond that, drops **queue** and fall in turn, spaced out, so a
   raid can't make OBS stutter. The queue has a limit (200) and drops beyond it are ignored.
 - The leaderboard and moderation commands follow Chatagram's pattern, all starting `!drop` and renamable in Advanced:
-  - `!drop top`: both leaderboards for 8 s (mockup: top). Viewers share a 60 s cooldown.
+  - `!drop top`: **off by default**, since the leaderboard is its own source. For streamers without one, it shows both
+    lists over the board for 8 s. Viewers share a 60 s cooldown.
   - `!drop pause` / `!drop resume`: stop and restart new drops. Balls already falling land and score.
   - `!drop clear`: remove every ball and the queue, scoring nothing.
   - `!drop clearscores`: wipe both leaderboards (the owner only).
@@ -99,7 +129,7 @@ safe and means no lookups.
   dropped it.
 - **Leaderboards**: points only, per `platform:user`, as in Chatagram. They also count drops, for "Biggest drop this
   stream".
-- **Big win card** (mockup: jackpot): the board dims, "JACKPOT!" springs in with the name, their platform and the points,
+- **Big win card** (mockup: jackpot, on the board source): the board dims, "JACKPOT!" springs in with the name, their platform and the points,
   a line such as "1 in 512 · the first today", and confetti. It shows for 4 s. Several at once queue. Balls keep falling
   behind the card.
 - **Nothing is money.** It's points and bragging rights only. The set-up page and FAQ say so, and there's no betting
@@ -124,10 +154,11 @@ replay any drop exactly.
 
 ## Settings (Chatagram's model)
 
-Main: Twitch, Kick, layout, board, rows (Classic), theme, accent. Advanced: slot values, big win card, ball colour,
+Main: Twitch, Kick, board, size (board / tall), rows (Classic), theme, accent, background (Transparent is one click).
+The leaderboard source's own settings sit in a separate part: its layout (panel / strip), which list, theme, accent,
+background. Advanced: slot values, big win card, ball colour,
 most balls per command, cooldown, most balls on screen, ball size, gravity (slow / normal / fast), commands and who can
-use them, ignored users, the leaderboard panel on or off, show All time, background opacity (95% default, as in
-Chatagram), the credit.
+use them, ignored users, `!drop top` on or off, show All time, the credit.
 
 Saved: `drop:scores:v1:<twitch>|<kick>` (the shared scores record). Balls in flight aren't saved: after a refresh, the
 queue and balls in the air are gone, and they hadn't scored yet.
@@ -135,28 +166,33 @@ queue and balls in the air are gone, and they hadn't scored yet.
 ## The page
 
 `/drop/` (name to be decided), built the same way as Chatagram's: a hero with a pretend chat dropping balls, the three
-boards as pictures, the themes, set-up with a live preview and the odds table, and an FAQ ("is this gambling?": no). It
+boards as pictures, the themes, set-up with a live preview of both sources and the odds table, **two Copy OBS link
+buttons** (board, leaderboard), and an FAQ ("is this gambling?": no; "how do I add the leaderboard?"). It
 goes on `/widgets/` and in the sitemap, with its own link-preview image.
 
 ## Build order (each step tested and committed on its own)
 
-1. **Shared scores**: move `scores.js` and the stream check to `widgets/lib/`, with Chatagram unchanged (all its tests
+1. **Prove two sources can talk** in the owner's OBS (a two-page test: shared storage and `BroadcastChannel`).
+2. **Shared scores**: move `scores.js` and the stream check to `widgets/lib/`, with Chatagram unchanged (all its tests
    still pass).
-2. **Emotes in chat.js**: Twitch and Kick parsing, with tests from captured messages.
-3. **Physics**: `physics.js` for all three boards, unit tests (drops replay exactly, the board is left-right symmetric,
+3. **Emotes in chat.js**: Twitch and Kick parsing, with tests from captured messages.
+4. **Physics**: `physics.js` for all three boards, unit tests (drops replay exactly, the board is left-right symmetric,
    nothing gets stuck), and the odds table script.
-4. **Overlay**: `play.html/.css/.js`, the three layouts, commands, the queue, the big win card, leaderboards, reduced
+5. **Board source**: `play.html/.css/.js`, both sizes, transparent, commands, the queue, the big win card, saving the scores, reduced
    motion, and browser tests with fake Twitch and Kick sockets.
-5. **Set-up page**, the widgets list entry, the preview pictures, the link-preview image.
-6. **`/obs/drop`** for Trongates Legacy's scenes.
-7. Docs: a "Drop" section in docs/widgets.md, plus testing.md.
+6. **Leaderboard source**: `leaderboard.html`, panel and strip, reading the board's scores live, with a browser test
+   running both pages at once.
+7. **Set-up page**, the widgets list entry, the preview pictures, the link-preview image.
+8. **`/obs/drop`** for Trongates Legacy's scenes.
+9. Docs: a "Drop" section in docs/widgets.md, plus testing.md.
 
 ## Open questions for the owner
 
 1. **Name.** Ideas in Chatagram's spirit: **chatinko** (chat + pachinko), **plinkchat**, **chatdrop**, **droppr**. The
    command stays `!drop` whatever it's called.
-2. **Default board** for the full layout: Classic (the best known) or Pachinko (the most eye-catching)?
+2. **Default board**: Classic (the best known) or Pachinko (the most eye-catching)?
 3. **Cooldown and cap defaults**: 20 s per person and 5 balls per command? A big chat might want 60 s.
-4. **Chatter colour** as the default ball colour instead of the accent? It's livelier but less on-theme.
-5. **Channel point redemptions** later? A Twitch reward with text shows in chat with a reward id, so "Redeem: drop 10
+4. **Leaderboard default**: take turns between This stream and All time, or This stream only?
+5. **Chatter colour** as the default ball colour instead of the accent? It's livelier but less on-theme.
+6. **Channel point redemptions** later? A Twitch reward with text shows in chat with a reward id, so "Redeem: drop 10
    balls" could work without a login. Kick's rewards aren't in its chat feed. Not in the first version.
