@@ -91,6 +91,10 @@ function slotFill(v, max) {
 }
 function slotInk(v, max) { return v === max || v / max > .3 ? 'var(--accent-ink)' : 'var(--text)'; }
 
+// the drop chute at the top of every board, carrying the commands (plan.md, "Chat commands")
+const chute = (cx) => `<rect x="${cx - 132}" y="0" width="264" height="30" rx="8" style="fill:var(--slot)"/>` +
+  `<text x="${cx}" y="15" font-size="12.5" text-anchor="middle" dominant-baseline="central" style="font-family:var(--font);font-weight:700;fill:var(--text)">` +
+  `!drop <tspan style="fill:var(--muted)">·</tspan> !drop 5 <tspan style="fill:var(--muted)">·</tspan> !drop 5 <tspan style="fill:var(--accent)">:emote:</tspan></text>`;
 function svg(w, h, parts) { return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="${NS}">
   <defs>
     <radialGradient id="shine" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/></radialGradient>
@@ -121,7 +125,7 @@ function classic(o = {}) {
   const W = o.w || 640, cx = W / 2, rows = 10, gap = 46, dy = 38, top = 66, vals = [100, 25, 10, 5, 2, 1, 2, 5, 10, 25, 100];
   const p = [];
   // drop chute
-  p.push(`<rect x="${cx - 60}" y="0" width="120" height="30" rx="8" style="fill:var(--slot)"/>`, text(cx, 15, '▼  DROP  ▼', 11, 'fill:var(--muted);letter-spacing:.2em'));
+  p.push(chute(cx));
   for (let r = 0; r < rows; r++) { const n = r + 3; for (let i = 0; i < n; i++) p.push(peg(cx + (i - (n - 1) / 2) * gap, top + r * dy)); }
   const bw = (rows + 1) * gap, sy = top + (rows - 1) * dy + 22;
   p.push(slots(cx - bw / 2, sy, bw, 44, vals));
@@ -150,7 +154,7 @@ function pachinko() {
   const bumper = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 5}" style="fill:var(--accent)" opacity=".25" filter="url(#glow)"/><circle cx="${x}" cy="${y}" r="${r}" style="fill:var(--panel);stroke:var(--accent)" stroke-width="3"/>`;
   p.push(bumper(270, 300, 16), bumper(370, 300, 16), bumper(320, 262, 12));
   p.push(text(320, 340, '★ JACKPOT ★', 11, 'fill:var(--gold);letter-spacing:.15em'));
-  p.push(slots(40, 470, 560, 46, vals, 5));
+  p.push(slots(40, 470, 560, 46, vals, 5), chute(320));
   p.push(ball(120, 90, 8, 20), ball(212, 140, 8), ball(468, 228, 8, 16), ball(330, 236, 8), emote(400, 110, '🐸', 11, 15), emote(540, 380, '🐸', 11, -20), ball(300, 420, 8, 22), ball(88, 440, 8, 14));
   return svg(W, 540, p);
 }
@@ -158,9 +162,10 @@ function pachinko() {
 // Pin tower: tall and narrow (the side of the screen), a staggered wall of pins
 function tower() {
   const W = 360, H = 640, p = [], vals = [50, 10, 3, 1, 3, 10, 50];
-  for (let r = 0; r < 14; r++) { const n = r % 2 ? 7 : 8; for (let i = 0; i < n; i++) p.push(peg(34 + i * 41 + (r % 2) * 20.5, 150 + r * 30, 4)); }
+  for (let r = 0; r < 17; r++) { const n = r % 2 ? 7 : 8; for (let i = 0; i < n; i++) p.push(peg(34 + i * 41 + (r % 2) * 20.5, 62 + r * 30, 4)); }
+  p.push(chute(180));
   p.push(slots(12, 574, 336, 50, vals, 4));
-  p.push(ball(180, 128, 10, 16), ball(98, 212, 10, 22), emote(250, 300, '💜', 12, 10), ball(170, 380, 10, 20), ball(300, 470, 10, 18), emote(116, 520, '💜', 12, -15));
+  p.push(ball(180, 48, 10, 16), ball(98, 212, 10, 22), emote(250, 300, '💜', 12, 10), ball(170, 380, 10, 20), ball(300, 470, 10, 18), emote(116, 520, '💜', 12, -15));
   p.push(text(300, 556, '+10', 15, 'fill:var(--accent)'));
   return svg(W, H, p);
 }
@@ -169,11 +174,9 @@ const PLAYERS = [['lulu_gang_4life', 'kk', 1284], ['pixelpriya', 'tw', 1122], ['
 const rows = (n, list = PLAYERS) => list.slice(0, n).map(([u, pl, s], i) => `<div class="row"><b>${i + 1}</b><span class="dot ${pl}"></span><span class="n">${u}</span><span class="p">${s.toLocaleString()}</span></div>`).join('');
 const ALLTIME = [...PLAYERS].reverse().map(([u, p, s], i) => [u, p, s * (9 - i)]).sort((a, b) => b[2] - a[2]);
 // the leaderboard source: its own OBS browser source, reading the board's scores (plan.md, "The leaderboard source")
-const panel = () => `<div class="lb src"><h2>Leaderboard</h2><div class="tabs"><span class="on">This stream</span><span>All time</span></div>${rows(8)}
-  <div class="best">Biggest drop this stream<br><strong>pixelpriya · 100</strong></div>
-  <div class="how"><code>!drop</code> <code>!drop 5</code> <code>!drop 5 :emote:</code></div></div>`;
+const panel = () => `<div class="lb src"><h2>Leaderboard</h2><div class="tabs"><span class="on">This stream</span><span>All time</span></div>${rows(5)}</div>`;
 const strip = () => `<div class="strip"><span class="st">This stream</span>${PLAYERS.slice(0, 3).map(([u, pl, s], i) =>
-  `<span class="chip"><i>${['🥇', '🥈', '🥉'][i]}</i><span class="dot ${pl}"></span>${u}<b>${s.toLocaleString()}</b></span>`).join('')}<span class="how"><code>!drop 5 :emote:</code></span></div>`;
+  `<span class="chip"><i>${['🥇', '🥈', '🥉'][i]}</i><span class="dot ${pl}"></span>${u}<b>${s.toLocaleString()}</b></span>`).join('')}</div>`;
 const credit = '<div class="credit">Made by TrongatesLegacy.com</div>';
 
 const frame = (theme, w, h, inner, accent, clear) => `<div class="w${clear ? ' clear' : ''}" data-theme="${theme}" style="width:${w}px;height:${h}px;${accent ? `--accent:${accent}` : ''}">${inner}</div>`;
@@ -186,14 +189,14 @@ const V = {
   tower: ['Board source: Pin tower · tall 360×640 · candy theme', () => frame('candy', 360, 640, tower())],
   jackpot: ['Board source: the top prize card · deep theme', () => frame('deep', 640, 540, classic({ balls: false }) + `<div class="dim"></div>` + confetti() +
     `<div class="card"><div class="k">JACKPOT!</div><div class="who"><span class="dot tw"></span>pixelpriya</div><div class="pts">+100</div><div class="sub">1 in 512 · the first today</div></div>`)],
-  panel: ['Leaderboard source: panel · 320×540 · chatagram theme', () => frame('chatagram', 320, 540, panel())],
-  strip: ['Leaderboard source: strip · 960×72 · neon theme', () => frame('neon', 960, 72, strip())],
+  panel: ['Leaderboard source: panel · 300×270 · chatagram theme', () => frame('chatagram', 300, 270, panel())],
+  strip: ['Leaderboard source: strip · 720×72 · neon theme', () => frame('neon', 720, 72, strip())],
   clear: ['Board source, transparent: no background, no frame, pegs and slots shadowed to read over any game · neon theme', () => `<div class="scene" style="width:640px;height:540px">${frame('neon', 640, 540, classic(), '', true)}</div>`],
   lbclear: ['Leaderboard source, transparent: panel and strip straight over the game · chatagram and neon themes', () => `<div class="scene" style="width:960px;height:540px">
-    <div style="position:absolute;left:0;top:0">${frame('chatagram', 320, 450, panel(), '', true)}</div>
-    <div style="position:absolute;left:0;bottom:0">${frame('neon', 960, 72, strip(), '', true)}</div></div>`],
+    <div style="position:absolute;left:0;top:0">${frame('chatagram', 300, 270, panel(), '', true)}</div>
+    <div style="position:absolute;left:0;bottom:0">${frame('neon', 720, 72, strip(), '', true)}</div></div>`],
   scene: ['How a streamer might place them: two sources over their game (1280×720)', () => `<div class="scene">
-    <div class="src-at" style="left:28px;top:28px;width:192px;height:324px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 320, 540, panel())}</div><span class="tag">leaderboard source</span></div>
+    <div class="src-at" style="left:28px;top:28px;width:180px;height:162px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 300, 270, panel())}</div><span class="tag">leaderboard source</span></div>
     <div class="src-at" style="right:28px;bottom:28px;width:384px;height:324px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 640, 540, classic())}</div><span class="tag">board source</span></div></div>`],
   accents: ['The same board, any theme and accent (640×540 each, shown at half size)', () => `<div class="mini">${[['neutral', ''], ['light', ''], ['cozy', ''], ['chatagram', '#2ee6a8'], ['neon', '#ff4155'], ['royal', '#ffd98a'], ['deep', '#45d6c8'], ['candy', '#ff7bd5']]
     .map(([t, a]) => `<div style="width:320px;height:270px;overflow:hidden"><div style="transform:scale(.5);transform-origin:0 0">${frame(t, 640, 540, classic({ w: 640 }), a)}</div></div>`).join('')}</div>`],

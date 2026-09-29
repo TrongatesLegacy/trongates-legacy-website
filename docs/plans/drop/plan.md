@@ -65,6 +65,9 @@ its own.
 
 - **board** 640 × 540 (Classic and Pachinko) or **tall** 360 × 640 (Tower's natural shape, for the side of the screen;
   any board can use it). As in Chatagram, the board scales to fit if the OBS source is another size.
+- **The commands are on the board**, in the drop chute at the top: `!drop · !drop 5 · !drop 5 :emote:` (using the
+  streamer's own command names if they renamed them). This is where viewers look, and it keeps the leaderboard compact.
+  It can be turned off (Advanced → Show the commands).
 - **Background**: 0–100% (Chatagram's `bgo`, but going down to 0), default 95%. **Transparent** (0) also drops the
   theme's frame and gives pegs, slots, balls and the `+N` numbers a soft dark shadow so they read over any game (mockup:
   transparent). The big win card keeps its own panel and dims the board only as a soft glow behind the card, not the
@@ -73,8 +76,12 @@ its own.
 
 ### The leaderboard source
 
-- **panel** 320 × 540: tabs, top 8, "Biggest drop this stream", the commands (mockup: panel).
-- **strip** 960 × 72: This stream's top 3 in a row, for the top or bottom of the screen (mockup: strip).
+**Compact: only the list.** It has no "biggest drop" and no commands (the commands are on the board), so it takes as
+little of the screen as possible (the owner, 2026-09-29).
+
+- **panel** 300 × 270: the title, the This stream / All time tabs, the top 5 (mockup: panel). **How many** is a
+  setting (3–10), and the source's height follows it.
+- **strip** 720 × 72: This stream's top 3 in a row, for the top or bottom of the screen (mockup: strip).
 - Its own theme, accent, background and credit, so it can match the board or not.
 - **Background** 0–100%, default 95%, with **Transparent** (0) one click away, as on the board: no background, frame,
   panels or pill boxes, only the text and the active tab, with a text shadow so it reads over any game. The inactive tab
@@ -132,8 +139,7 @@ safe and means no lookups.
   the emote itself, turning as it rolls.
 - **No names on balls.** When a ball lands, its value rises from the slot (`+10`), and the points go to the person who
   dropped it.
-- **Leaderboards**: points only, per `platform:user`, as in Chatagram. They also count drops, for "Biggest drop this
-  stream".
+- **Leaderboards**: points only, per `platform:user`, as in Chatagram.
 - **Big win card** (mockup: jackpot, on the board source): the board dims, "JACKPOT!" springs in with the name, their platform and the points,
   a line such as "1 in 512 · the first today", and confetti. It shows for 4 s. Several at once queue. Balls keep falling
   behind the card.
@@ -161,7 +167,7 @@ replay any drop exactly.
 
 Main: Twitch, Kick, board, size (board / tall), rows (Classic), theme, accent, background (Transparent is one click).
 The leaderboard source's own settings sit in a separate part: its layout (panel / strip), which list, theme, accent,
-background. Advanced: slot values, big win card, ball colour,
+background. Advanced: slot values, big win card, show the commands, ball colour,
 most balls per command, cooldown, most balls on screen, ball size, gravity (slow / normal / fast), commands and who can
 use them, ignored users, `!drop top` on or off, show All time, the credit.
 
