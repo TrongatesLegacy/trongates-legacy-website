@@ -1,26 +1,35 @@
-# Plan: the drop game (Plinko, Pachinko, Pin tower)
+# Plan: Chaplinko
 
-A second free widget beside Chatagram (docs/widgets.md): chat types `!drop` and balls fall through pegs into scoring
-slots. Status: **planning** (2026-09-29). The working name is "drop"; see "Open questions".
+A second free widget beside Chatagram (docs/widgets.md): chat types `!drop` and balls fall through a Plinko board into
+scoring slots. Status: **planning** (2026-09-29). The first version is **Plinko only**; Pachinko and Pin tower are for
+later (see "Later").
 
 Mockups (`mockup.html`, drawn with the real `themes.css`; `?v=<name>` shows one at its real size). Board source:
-[classic](classic.png), [pachinko](pachinko.png), [tower](tower.png), [jackpot](jackpot.png),
-[transparent](clear.png), [themes and accents](accents.png). Leaderboard source: [panel](panel.png), [strip](strip.png),
-[transparent](lbclear.png).
-Both on a stream: [scene](scene.png).
+[board](classic.png), [big win](jackpot.png), [transparent](clear.png), [themes and accents](accents.png). Leaderboard
+source: [panel](panel.png), [strip](strip.png), [transparent](lbclear.png). Both on a stream: [scene](scene.png).
 
 ## What the owner asked for (2026-09-29)
 
-- Plinko, Pachinko and Pin tower are **one widget with settings**, not three.
-- **Scores at the bottom** feed an **All time / This stream** leaderboard. Nothing more complex than that.
+- **Plinko**: balls fall through pegs, and the **scores are the slots at the bottom**.
+- The scores feed an **All time / This stream** leaderboard. Nothing more complex than that.
 - **Lots of variety in the design**: themes and accent colours.
 - `!drop` drops 1 ball, `!drop 5` drops 5, `!drop 5 <emote>` drops 5 of that emote.
 - **Balls don't show names.** Names are for the leaderboard, and for a popup when someone hits the top slot ("pixelpriya
   scored 100").
 - Set up and configured the way Chatagram is.
-- **The leaderboard is a separate browser source**, placed wherever the streamer likes, not part of the board.
-- **Fully transparent** is an option for both the board (pegs, slots and balls straight over the game) and the
-  leaderboard.
+- **The leaderboard is a separate browser source**, placed wherever the streamer likes, and **compact**: just the list.
+- **Fully transparent** is an option for both the board and the leaderboard.
+- **The commands are shown on the board**, not on the leaderboard.
+- The name is **Chaplinko** (chat + Plinko). The command is `!drop`.
+
+### About the name
+
+Searched 2026-09-29: nothing else is called Chaplinko (the nearest are Chaplinka, a village in Ukraine, and a Plinko
+nickname list). "Chatinko" was already taken by a Twitch/Kick chat game, so it was ruled out. Two things to know:
+
+- It contains **Plinko**, a trademark of The Price Is Right. That's a small risk for a free widget, but if it ever grew
+  large, a rename could be asked for. The page never uses The Price Is Right's look or says it's connected to the show.
+- `!drop` is also used by Coin Pusher Live (a paid Steam game). Streamers who run both can rename our command.
 
 ## What it reuses from Chatagram
 
@@ -31,29 +40,25 @@ Both on a stream: [scene](scene.png).
 | `widgets/lib/themes.css`, `theme.js` | the 8 themes, any accent, background opacity (`bgo`), the live theme message, reduced motion |
 | `chatagram/scores.js` | All time and This stream, and the check for which stream is on. **Moves to `widgets/lib/scores.js`** first, with a storage prefix per widget. Chatagram's saved keys don't change, and its tests must pass unchanged. |
 | Chatagram's set-up page | the same structure: channels (checked as typed), look, board, Advanced, live preview with a pretend chat, Copy OBS link |
-| `/obs/chatagram` | `/obs/drop` follows Tron's forms through the live theme message in the same way |
+| `/obs/chatagram` | `/obs/chaplinko` follows Tron's forms through the live theme message in the same way |
 
-The leaderboard source is built so it isn't tied to the drop game: once the scores are shared, the same page could show
-Chatagram's leaderboards too (`game=chatagram|drop`). That's for later, if the owner wants it.
+The leaderboard source is built so it isn't tied to Chaplinko: once the scores are shared, the same page could show
+Chatagram's leaderboards too (`game=chatagram|chaplinko`). That's for later, if the owner wants it.
 
 ## The board
 
-The **board** setting picks the layout of the pegs; everything else (colours, fonts, frame) comes from the theme.
+A Plinko triangle of pegs over a row of slots. Colours, fonts and frame come from the theme.
 
-| Board | Pegs | Extras | Default slots (points) |
-|---|---|---|---|
-| **Classic** (Plinko) | a triangle, `rows` 8–16 (default 10) | none | 11: `100 25 10 5 2 1 2 5 10 25 100` |
-| **Pachinko** | a dense staggered field inside a rounded cabinet | 2 spinners, 3 bumpers over a centre "jackpot" slot | 9: `2 5 10 25 250 25 10 5 2` |
-| **Tower** | a staggered wall the full width, for the tall layout | none | 7: `50 10 3 1 3 10 50` |
-
-- **Slot values** can be edited as a list of numbers (Advanced), 3–17 slots, each 0–1000. If the list doesn't fit, the
-  board falls back to its default.
-- **Odds are honest and shown.** The chance of each slot comes from simulating the real physics (100,000 drops per board
-  and row count, done by a script and committed as a table), not from a formula. The set-up page shows it beside the
-  values ("100: 1 in 512"). A test checks the physics still matches the table, so a change to the physics can't quietly
-  make the top prize easier or harder.
-- **Top prize**: the highest slot value. Hitting it shows the card (below). Advanced → "Big win card for": top slot /
-  top two / off.
+- **Rows**: 8–16, default 10. More rows means more slots and a rarer top prize.
+- **Slots** (default, 10 rows): 11 slots, `100 25 10 5 2 1 2 5 10 25 100`. Each row count has its own default list.
+- **Slot values** can be edited as a list of numbers (Advanced), each 0–1000. The list must have one more number than
+  there are rows; if it doesn't, the board uses its default.
+- **Odds are honest and shown.** The chance of each slot comes from simulating the real physics (100,000 drops for each
+  row count, done by a script and committed as a table), not from a formula. The set-up page shows it beside the values
+  ("100: 1 in 512"). A test checks the physics still matches the table, so a change to the physics can't quietly make
+  the top prize easier or harder.
+- **Top prize**: the highest slot value. Hitting it shows the big win card (below). Advanced → "Big win card for": top
+  slot / top two / off.
 
 ## Two browser sources
 
@@ -63,8 +68,7 @@ its own.
 
 ### The board source
 
-- **board** 640 × 540 (Classic and Pachinko) or **tall** 360 × 640 (Tower's natural shape, for the side of the screen;
-  any board can use it). As in Chatagram, the board scales to fit if the OBS source is another size.
+- **640 × 540.** As in Chatagram, the board scales to fit if the OBS source is another size.
 - **The commands are on the board**, in the drop chute at the top: `!drop · !drop 5 · !drop 5 :emote:` (using the
   streamer's own command names if they renamed them). This is where viewers look, and it keeps the leaderboard compact.
   It can be turned off (Advanced → Show the commands).
@@ -76,8 +80,7 @@ its own.
 
 ### The leaderboard source
 
-**Compact: only the list.** It has no "biggest drop" and no commands (the commands are on the board), so it takes as
-little of the screen as possible (the owner, 2026-09-29).
+**Compact: only the list.** No commands (they're on the board), so it takes as little of the screen as possible.
 
 - **panel** 300 × 270: the title, the This stream / All time tabs, the top 5 (mockup: panel). **How many** is a
   setting (3–10), and the source's height follows it.
@@ -140,20 +143,20 @@ safe and means no lookups.
 - **No names on balls.** When a ball lands, its value rises from the slot (`+10`), and the points go to the person who
   dropped it.
 - **Leaderboards**: points only, per `platform:user`, as in Chatagram.
-- **Big win card** (mockup: jackpot, on the board source): the board dims, "JACKPOT!" springs in with the name, their platform and the points,
-  a line such as "1 in 512 · the first today", and confetti. It shows for 4 s. Several at once queue. Balls keep falling
-  behind the card.
+- **Big win card** (mockup: big win): the board dims, "JACKPOT!" springs in with the name, their platform and the
+  points, a line such as "1 in 512 · the first today", and confetti. It shows for 4 s. Several at once queue. Balls keep
+  falling behind the card.
 - **Nothing is money.** It's points and bragging rights only. The set-up page and FAQ say so, and there's no betting
   (viewers never stake anything). This matters on Twitch.
 
 ## Physics and performance
 
-Our own code, no library (the no-dependencies rule), in `drop/physics.js`, which only handles rules and movement:
+Our own code, no library (the no-dependencies rule), in `chaplinko/physics.js`, which only handles rules and movement:
 nothing is drawn, and no timers run inside it. As with `game.js`, the clock and randomness are passed in, so the tests
 replay any drop exactly.
 
-- A fixed 120 steps a second. Balls are circles. Pegs and bumpers are circles, the walls and spinner arms are line
-  segments. Balls bounce off each other (a simple grid keeps that cheap), so 5 emotes don't pass through each other.
+- A fixed 120 steps a second. Balls and pegs are circles, the walls and slot dividers are line segments. Balls bounce
+  off each other (a simple grid keeps that cheap), so 5 emotes don't pass through each other.
 - A little randomness when a ball is dropped (its start position and spin) and none after that, so each drop is exactly
   replayable from its seed.
 - One `<canvas>`, scaled for the screen's pixel density. The animation only runs while something is moving: an idle
@@ -165,21 +168,21 @@ replay any drop exactly.
 
 ## Settings (Chatagram's model)
 
-Main: Twitch, Kick, board, size (board / tall), rows (Classic), theme, accent, background (Transparent is one click).
-The leaderboard source's own settings sit in a separate part: its layout (panel / strip), which list, theme, accent,
-background. Advanced: slot values, big win card, show the commands, ball colour,
-most balls per command, cooldown, most balls on screen, ball size, gravity (slow / normal / fast), commands and who can
-use them, ignored users, `!drop top` on or off, show All time, the credit.
+Main: Twitch, Kick, rows, theme, accent, background (Transparent is one click). The leaderboard source's own settings
+sit in a separate part: its layout (panel / strip), how many, which list, theme, accent, background. Advanced: slot
+values, big win card, show the commands, ball colour, most balls per command, cooldown, most balls on screen, ball size,
+gravity (slow / normal / fast), commands and who can use them, ignored users, `!drop top` on or off, show All time, the
+credit.
 
-Saved: `drop:scores:v1:<twitch>|<kick>` (the shared scores record). Balls in flight aren't saved: after a refresh, the
-queue and balls in the air are gone, and they hadn't scored yet.
+Saved: `chaplinko:scores:v1:<twitch>|<kick>` (the shared scores record). Balls in flight aren't saved: after a refresh,
+the queue and balls in the air are gone, and they hadn't scored yet.
 
 ## The page
 
-`/drop/` (name to be decided), built the same way as Chatagram's: a hero with a pretend chat dropping balls, the three
-boards as pictures, the themes, set-up with a live preview of both sources and the odds table, **two Copy OBS link
-buttons** (board, leaderboard), and an FAQ ("is this gambling?": no; "how do I add the leaderboard?"). It
-goes on `/widgets/` and in the sitemap, with its own link-preview image.
+`/chaplinko/`, built the same way as Chatagram's: a hero with a pretend chat dropping balls, the themes, set-up with a
+live preview of both sources and the odds table, **two Copy OBS link buttons** (board, leaderboard), and an FAQ ("is
+this gambling?": no; "how do I add the leaderboard?"). It goes on `/widgets/` and in the sitemap, with its own
+link-preview image.
 
 ## Build order (each step tested and committed on its own)
 
@@ -187,23 +190,29 @@ goes on `/widgets/` and in the sitemap, with its own link-preview image.
 2. **Shared scores**: move `scores.js` and the stream check to `widgets/lib/`, with Chatagram unchanged (all its tests
    still pass).
 3. **Emotes in chat.js**: Twitch and Kick parsing, with tests from captured messages.
-4. **Physics**: `physics.js` for all three boards, unit tests (drops replay exactly, the board is left-right symmetric,
+4. **Physics**: `physics.js` for the Plinko board, unit tests (drops replay exactly, the board is left-right symmetric,
    nothing gets stuck), and the odds table script.
-5. **Board source**: `play.html/.css/.js`, both sizes, transparent, commands, the queue, the big win card, saving the scores, reduced
+5. **Board source**: `play.html/.css/.js`, transparent, commands, the queue, the big win card, saving the scores, reduced
    motion, and browser tests with fake Twitch and Kick sockets.
 6. **Leaderboard source**: `leaderboard.html`, panel and strip, reading the board's scores live, with a browser test
    running both pages at once.
 7. **Set-up page**, the widgets list entry, the preview pictures, the link-preview image.
-8. **`/obs/drop`** for Trongates Legacy's scenes.
-9. Docs: a "Drop" section in docs/widgets.md, plus testing.md.
+8. **`/obs/chaplinko`** for Trongates Legacy's scenes.
+9. Docs: a "Chaplinko" section in docs/widgets.md, plus testing.md.
+
+## Later (not in the first version)
+
+- **Pachinko** (spinners and bumpers over a centre jackpot slot, `2 5 10 25 250 25 10 5 2`) and **Pin tower** (a tall
+  360 × 640 staggered wall for the side of the screen, `50 10 3 1 3 10 50`), as a **board** setting. Mockups:
+  [pachinko](pachinko.png), [tower](tower.png). The physics is built so these only add shapes (bumpers, spinning arms),
+  not a new engine.
+- A **tall** size for the Plinko board.
+- 7TV / BTTV / FFZ emotes.
+- **Channel point redemptions**: a Twitch reward with text shows in chat with a reward id, so "Redeem: drop 10 balls"
+  could work without a login. Kick's rewards aren't in its chat feed.
 
 ## Open questions for the owner
 
-1. **Name.** Ideas in Chatagram's spirit: **chatinko** (chat + pachinko), **plinkchat**, **chatdrop**, **droppr**. The
-   command stays `!drop` whatever it's called.
-2. **Default board**: Classic (the best known) or Pachinko (the most eye-catching)?
-3. **Cooldown and cap defaults**: 20 s per person and 5 balls per command? A big chat might want 60 s.
-4. **Leaderboard default**: take turns between This stream and All time, or This stream only?
-5. **Chatter colour** as the default ball colour instead of the accent? It's livelier but less on-theme.
-6. **Channel point redemptions** later? A Twitch reward with text shows in chat with a reward id, so "Redeem: drop 10
-   balls" could work without a login. Kick's rewards aren't in its chat feed. Not in the first version.
+1. **Cooldown and cap defaults**: 20 s per person and 5 balls per command? A big chat might want 60 s.
+2. **Leaderboard default**: take turns between This stream and All time, or This stream only?
+3. **Chatter colour** as the default ball colour instead of the accent? It's livelier but less on-theme.
