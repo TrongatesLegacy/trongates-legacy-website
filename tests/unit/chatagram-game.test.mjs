@@ -442,3 +442,34 @@ test('a round saved before these changes (a fake letter, one hidden letter as a 
   again.advance(60000);
   assert.equal(again.of('reveal').length, 1, 'still revealed at half time');
 });
+
+test('unplanned words (never planned) fill the next open box when typed, else score as bonus words; never in "missed"', () => {
+  let t;
+  for (let seed = 1; seed < 300; seed++) { t = setup({}, seed); t.g.boot(); if (t.round().fill.length) break; }
+  const r = t.round(), u = r.fill[0];
+  assert.ok(u, 'a puzzle with an unplanned word');
+  assert.ok(!r.answers.some((a) => a.word === u), 'no box was planned for it');
+  if (r.answers.some((a) => a.word.length === u.length)) {
+    const res = t.say(u);
+    assert.equal(res.kind, 'found', `${u} fills a box`);
+    assert.equal(t.say(u, NACHO).kind, 'dup');
+  }
+  // with every box of its length taken, it's a bonus word (a planned word would be "full")
+  const t2 = setup({}, 1); t2.g.boot(); const r2 = t2.round();
+  r2.fill = [...r2.fill, 'zzzzz'];                                        // an unplanned word whose length has no open box
+  for (const a of r2.answers.filter((x) => x.word.length === 5)) t2.say(a.word, NACHO);
+  assert.equal(t2.say('zzzzz').kind, 'bonus');
+  // "missed" only ever lists planned words
+  t.advance(90000);
+  assert.ok(t.g.state.result.missed.every((w) => !r.fill.includes(w) || r.answers.some((a) => a.word === w && a.by)));
+});
+
+test('one-country spellings: colour or color fills a box, but not both in one round', () => {
+  const t = setup(); t.g.boot();
+  const r = t.round();
+  r.fill = [...r.fill, 'colour', 'color'];
+  r.answers.push({ word: 'xxxxxx', by: null, at: 0, pts: 0 }, { word: 'yyyyy', by: null, at: 0, pts: 0 });   // open 6- and 5-letter boxes
+  assert.equal(t.say('colour').kind, 'found');
+  assert.equal(t.say('color', NACHO).kind, 'bonus', 'its pair already has a box');
+  assert.ok(r.answers.some((a) => a.word === 'yyyyy' && !a.by), 'the 5-letter box is still open');
+});

@@ -225,20 +225,30 @@ node scripts/build-words.mjs --scowl /tmp/scowl
 - **Blocked** as well: **LDNOOBW** (CC BY 4.0, `scripts/words/ldnoobw-en.txt`) and our own
   `scripts/words/blocklist.txt` (plus each word's s/es/d/ed/ing forms; other forms, like *cockily* or *bitchier*, are listed
   on their own). To block a word: add it there and rebuild.
-- **Bonus only** (`scripts/words/bonus-only.txt`, about 6,100 words): everyday words most people wouldn't think of: odd
-  plurals, verb forms and comparatives (*acuter, loyaler, timider, drys, geed*), rare short words (*eke, lye, mete, vise*),
-  words that only look common because they're names (*hart, lee, eddy, glen*) and old forms (*doth, hath, unto*). They
-  stay real words: typed in chat they score as bonus words; they never get a box and are never the scrambled word. On
-  Hard, which also uses SCOWL's medium words, only the really rare ones are moved. **Checked** (`scripts/words/checked.txt`,
-  about 4,600): words that are rare in everyday speech but well known (*raccoons, hashtags, logins, edamame*), looked at
-  and kept. Both lists are exact words (each form is judged on its own) and a word is never in both (a test).
+- **Planned, unplanned and bonus words.** Boxes are only ever *planned* for everyday words (medium ones too on Hard),
+  minus two hand-made lists:
+  - **Unplanned** (`scripts/words/unplanned.txt`, about 5,800): everyday words most people wouldn't think of: odd
+    plurals, verb forms and comparatives (*bickered, gargled, acuter, loyaler*), old forms. Never planned for a box, never
+    in "missed", never the scrambled word; but typed in chat they **fill the next open box** of their length like any word
+    (a bonus word if none is open), since they're real (the owner, 2026-09-29: turning down a real word feels broken).
+  - **Bonus only** (`scripts/words/bonus-only.txt`, 270 short words: *eke, lye, col, sic*; names and old forms: *hart,
+    lee, doth, unto*): only ever bonus words, because chat types short letter strings all the time and odd short ones
+    would fill boxes by accident. The owner ticks any that are fine; they move to unplanned.
+  - **One-country spellings** (*colour / color*): never planned (nobody is stuck on the other country's spelling); the
+    everyday ones fill a box when typed, but only one of a pair each round (`words.js` `spellingKey`); rarer ones are bonus
+    words.
+  - **Checked** (`scripts/words/checked.txt`, about 4,600): rare in everyday speech but well known (*raccoons, hashtags,
+    logins, edamame*): looked at and kept as planned box words.
+  All lists are exact words (each form judged on its own); a word is on one list at most (a test). In `words.txt` the
+  unplanned words have their own tiers above all others (80 everyday, 81 medium: Hard only; 82, 83 the one-country
+  spellings), so an older overlay reads them as bonus words.
 - **How they were made (2026-09-28), and reviewing after a rebuild**: every word that can get a box was ranked by how often
   it's said in film and TV subtitles (FrequencyWords' OpenSubtitles list, `en_full.txt` from
   https://github.com/hermitdave/FrequencyWords, CC BY-SA 4.0, so it's never committed): everyday words beyond rank 40,000
-  (short ones beyond 20,000) and medium words beyond 80,000 were each put in one list or the other by hand. Moving words
+  (short ones beyond 20,000) and medium words beyond 80,000 were each sorted by hand onto a list. Moving words
   changes the seeds, which brings new words onto boards, so it was repeated until none were left. To check after a
-  rebuild: `node scripts/build-words.mjs --scowl /tmp/scowl --freq /tmp/en_full.txt` writes the rare words in neither
-  list to `rare-words.txt` in the temp folder; put each in a list, rebuild, repeat until it reports 0. The ranking only
+  rebuild: `node scripts/build-words.mjs --scowl /tmp/scowl --freq /tmp/en_full.txt` writes the rare words on none of the
+  lists to `rare-words.txt` in the temp folder; put each on one, rebuild, repeat until it reports 0. The ranking only
   finds candidates: it misses names (*hart*) and flags words everyone knows (*raccoons*), so the lists are hand-made.
 - **Seeds**: for each difficulty and length, well-known words whose puzzle has 12–50 slots (at least 6 of 4+ letters),
   at most 1,200 per list, spread through the alphabet, plus the still pictures' words (*heart, garden, clovers*: play.js

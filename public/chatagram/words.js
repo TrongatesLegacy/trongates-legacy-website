@@ -2,8 +2,10 @@
 // puzzle is worked out the same way in both. No drawing here. See docs/widgets.md, "Words".
 //
 // words.txt holds every usable word once, grouped by how common it is (SCOWL sizes: 35 everyday, 50 medium, 60 the
-// spell-checker default, 70 large, 71 = a US-only or UK-only spelling). Board words, the slots on screen, come from the
-// difficulty's tier and below; anything else in the file counts as a bonus word. seeds.txt lists the scrambled words
+// spell-checker default, 70 large, 71 a rarer US-only or UK-only spelling) and, above those, words that are never planned
+// but fill a box when typed (80 odd everyday forms, 81 the same for medium words, 82 an everyday one-country spelling,
+// 83 a medium one; see scripts/build-words.mjs). Board words, the slots planned on screen, come from the difficulty's tier
+// and below; unplanned words of that level fill boxes too; anything else in the file counts as a bonus word. seeds.txt lists the scrambled words
 // for each difficulty and length, each already checked to make a good puzzle.
 (() => {
   const W = (window.Chatagram = window.Chatagram || {});
@@ -57,23 +59,31 @@
     return out;
   }
 
+  /** an unplanned word's own level (80, 82 → 35; 81, 83 → 50), or 0 */
+  const UNPLANNED_OF = { 80: 35, 81: 50, 82: 35, 83: 50 };
   /**
    * Every word that can be made from the seed's letters, split into board words (tier ≤ the difficulty's, at least
-   * minLen letters) and bonus words (any other listed word). Board words sorted by length, then A–Z.
+   * minLen letters: the ones boxes are planned for), fill words (never planned, but fill a box when typed: unplanned words
+   * of the difficulty's level) and bonus words (any other listed word). Board words sorted by length, then A–Z.
    * @param {string} seed @param {Dict} dict @param {{ tier: number, minLen: number, block?: Set<string> }} o
    */
   function solve(seed, dict, o) {
-    const have = counts(seed), m = ~mask(seed), board = [], bonus = [];
+    const have = counts(seed), m = ~mask(seed), board = [], fill = [], bonus = [];
     for (const [w, t, wm] of dict.list) {
       if (wm & m || w.length > seed.length || w.length < 3 || (o.block && o.block.has(w)) || !fits(w, have)) continue;
-      if (t <= o.tier && w.length >= o.minLen) board.push(w); else bonus.push(w);
+      if (w.length >= o.minLen && t <= o.tier) board.push(w);
+      else if (w.length >= o.minLen && UNPLANNED_OF[t] && UNPLANNED_OF[t] <= o.tier) fill.push(w);
+      else bonus.push(w);
     }
     board.sort((a, b) => a.length - b.length || (a < b ? -1 : 1));
-    return { board, bonus };
+    return { board, fill, bonus };
   }
+  /** one-country spellings of the same word share a key (colour, color → color; centre, center → center) */
+  const spellingKey = (w) => w.replace(/our/g, 'or').replace(/is(e|ed|es|ing|ation)$/, 'iz$1').replace(/ys(e|ed|es|ing)$/, 'yz$1')
+    .replace(/tre(s?)$/, 'ter$1').replace(/ll(ed|ing|er|ers)$/, 'l$1').replace(/ogue(s?)$/, 'og$1').replace(/ae/g, 'e').replace(/oe/g, 'e').replace(/ence(s?)$/, 'ense$1');
 
   /** the seed length for a level (1-based) */
   const seedLength = (difficulty, level) => { const L = DIFFICULTY[difficulty].lengths; return L[Math.min(level, L.length) - 1]; };
 
-  W.words = { DIFFICULTY, MIN_ANSWERS, MAX_ANSWERS, MIN_ANSWERS_4, counts, fits, mask, index, parseWords, parseSeeds, solve, seedLength };
+  W.words = { DIFFICULTY, MIN_ANSWERS, MAX_ANSWERS, MIN_ANSWERS_4, UNPLANNED_OF, counts, fits, mask, index, parseWords, parseSeeds, solve, spellingKey, seedLength };
 })();

@@ -11,17 +11,21 @@
 // scripts/words/ldnoobw-en.txt), a second bad-word list; scripts/words/blocklist.txt, our own.
 //
 // What it keeps: plain lowercase words of 3–9 letters (no names, abbreviations, contractions, hyphens or accents),
-// none blocked. A word spelt the same in the US and the UK gets the smallest SCOWL size it's in (35, 50, 60 or 70);
-// a US-only or UK-only spelling (color, colour) gets 71, so it's only ever a bonus word and nobody is stuck on the
-// other country's spelling. Seeds: for each difficulty and length, the well-known words whose puzzle has a sensible
+// none blocked. A word spelt the same in the US and the UK gets the smallest SCOWL size it's in (35, 50, 60 or 70). Seeds: for each difficulty and length, the well-known words whose puzzle has a sensible
 // number of board words (public/chatagram/words.js). Only words that fit inside at least one seed are written.
 //
-// Bonus only: scripts/words/bonus-only.txt lists everyday words most people wouldn't think of (odd plurals and verb forms,
-// rare short words: eke, yens, loyaler, timider). They're still real, so they still score as bonus words, but they never
-// get a box and are never the scrambled word. scripts/words/checked.txt lists words that are rare in everyday speech but
-// well known (raccoons, epilepsy): looked at and kept. --freq <file> (a word-frequency list, "word count" per line, e.g.
-// the OpenSubtitles one in docs/widgets.md, "Words"; never committed) writes the rare words that are in neither list to
-// rare-words.txt in the system's temp folder, to review after a rebuild.
+// Words that are never planned (never a planned box, never the scrambled word), in words.txt under their own tiers, all
+// above the others so an older overlay reads them as bonus words:
+//   80  everyday words in scripts/words/unplanned.txt (odd forms: bickered, loyaler; names: hart): typed, they fill a box
+//   81  the same from SCOWL's medium words: fill a box on Hard (the only difficulty with medium boxes), bonus otherwise
+//   82  a US-only or UK-only spelling of an everyday word (color, colour): fills a box, but only one of a pair a round
+//   83  the same for a medium word: on Hard
+//   71  a rarer one-country spelling: bonus only
+// scripts/words/bonus-only.txt: short odd words (eke, lye, col) that only ever score as bonus words, since chat types short
+// letter strings all the time. scripts/words/checked.txt: words that are rare in everyday speech but well known (raccoons,
+// epilepsy): looked at, kept as box words. --freq <file> (a word-frequency list, "word count" per line, e.g.
+// the OpenSubtitles one in docs/widgets.md, "Words"; never committed) writes the rare words that are in none of the lists
+// to rare-words.txt in the system's temp folder, to review after a rebuild.
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -44,9 +48,9 @@ const listFile = (f) => readFileSync(join(ROOT, 'scripts/words', f), 'utf8').spl
 const blockedBase = new Set([...listFile('ldnoobw-en.txt'), ...listFile('blocklist.txt')].filter((w) => /^[a-z]+$/.test(w)));
 const SUFFIXES = ['s', 'es', 'd', 'ed', 'ing'];
 const blocked = (w) => blockedBase.has(w) || SUFFIXES.some((s) => w.endsWith(s) && (blockedBase.has(w.slice(0, -s.length)) || (s === 'ing' && blockedBase.has(w.slice(0, -3) + 'e'))));
-// bonus only (exact words: a plural or verb form is judged on its own) and rare-but-kept
-const bonusOnly = new Set(listFile('bonus-only.txt')), checked = new Set(listFile('checked.txt'));
-const BONUS_TIER = 60;
+// bonus only, unplanned (exact words: a plural or verb form is judged on its own) and rare-but-kept
+const bonusOnly = new Set(listFile('bonus-only.txt')), unplanned = new Set(listFile('unplanned.txt')), checked = new Set(listFile('checked.txt'));
+const BONUS_TIER = 60, UNPLANNED = { 35: 80, 50: 81 }, VARIANT = { 35: 82, 50: 83 };
 
 // ---- SCOWL tiers --------------------------------------------------------------------------------------------------
 const SIZES = [35, 50, 60, 70];
@@ -55,14 +59,16 @@ function list(size, spelling) {
     '--wo-usage-notes=offensive-1,offensive-2,vulgar-1,vulgar-3', '--deaccent'], { cwd: scowl, encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] });
   return new Set(out.split('\n').filter((w) => /^[a-z]{3,9}$/.test(w) && !blocked(w)));
 }
-const tier = new Map();
+const tier = new Map(), oneCountry = new Map();   // one-country spellings: the smallest size they're in
 for (const size of SIZES) {
   const us = list(size, 'A'), uk = list(size, 'B');
   for (const w of us) if (uk.has(w) && !tier.has(w)) tier.set(w, size);
-  if (size === 70) for (const w of new Set([...us, ...uk])) if (!tier.has(w)) tier.set(w, 71);
+  for (const w of new Set([...us, ...uk])) if (!(us.has(w) && uk.has(w)) && !oneCountry.has(w)) oneCountry.set(w, size);
 }
-const unknownBonus = [...bonusOnly].filter((w) => !tier.has(w));
+for (const [w, size] of oneCountry) if (!tier.has(w)) tier.set(w, VARIANT[size] || 71);
+const unknownBonus = [...bonusOnly, ...unplanned].filter((w) => !tier.has(w));
 for (const w of bonusOnly) if (tier.has(w) && tier.get(w) < BONUS_TIER) tier.set(w, BONUS_TIER);
+for (const w of unplanned) if (tier.has(w) && UNPLANNED[tier.get(w)]) tier.set(w, UNPLANNED[tier.get(w)]);
 const dict = Wd.index([...tier].sort((a, b) => a[1] - b[1] || (a[0] < b[0] ? -1 : 1)));
 
 // ---- seeds ----------------------------------------------------------------------------------------------------------
@@ -97,7 +103,7 @@ const playable = dict.list.filter(([w, , wm]) => seedCounts.some((c, i) => !(wm 
 // ---- write ------------------------------------------------------------------------------------------------------------
 mkdirSync(OUT, { recursive: true });
 let words = '';
-for (const t of [...SIZES, 71]) { words += `#${t}\n`; for (const [w, x] of playable) if (x === t) words += w + '\n'; }
+for (const t of [...SIZES, 71, 80, 81, 82, 83]) { words += `#${t}\n`; for (const [w, x] of playable) if (x === t) words += w + '\n'; }
 writeFileSync(join(OUT, 'words.txt'), words);
 let seedText = '';
 for (const [name, byLen] of Object.entries(seeds)) for (const [len, ws] of Object.entries(byLen)) seedText += `#${name} ${len}\n${ws.join('\n')}\n`;
@@ -121,7 +127,7 @@ console.log(`words.txt: ${playable.length} words (of ${dict.list.length}); by ti
 console.log(`seeds.txt: ${used.size} seeds, ${(seedText.length / 1024).toFixed(0)} KB`);
 for (const r of report) console.log('  ' + r);
 console.log(`blocked: ${blockedBase.size} words (+ s/es/d/ed/ing forms)`);
-console.log(`bonus only: ${bonusOnly.size} words (${unknownBonus.length} not in SCOWL${unknownBonus.length ? ': ' + unknownBonus.slice(0, 20).join(' ') : ''}); checked and kept: ${checked.size}`);
+console.log(`bonus only: ${bonusOnly.size}, unplanned: ${unplanned.size} (${unknownBonus.length} not in SCOWL${unknownBonus.length ? ': ' + unknownBonus.slice(0, 20).join(' ') : ''}); checked and kept: ${checked.size}`);
 
 // ---- rare words still getting boxes (--freq) --------------------------------------------------------------------------
 // Rare by the frequency list's rank: everyday words beyond 40,000 (short ones beyond 20,000), medium words (Hard only)
@@ -131,7 +137,7 @@ if (freqFile) {
   const rank = new Map();
   readFileSync(freqFile, 'utf8').split('\n').forEach((l, i) => { const w = l.split(/[\s\t]/)[0]; if (w && !rank.has(w)) rank.set(w, i); });
   const R = (w) => rank.get(w) ?? Infinity;
-  const rare = playable.filter(([w, t]) => t <= 50 && !bonusOnly.has(w) && !checked.has(w) &&
+  const rare = playable.filter(([w, t]) => t <= 50 && !bonusOnly.has(w) && !unplanned.has(w) && !checked.has(w) &&
     (t === 35 ? R(w) > (w.length <= 4 ? 20000 : 40000) : R(w) > 80000));
   const out = join(tmpdir(), 'rare-words.txt');
   writeFileSync(out, rare.map(([w, t]) => `${w}\t${t}\t${R(w) === Infinity ? '-' : R(w)}`).join('\n') + '\n');

@@ -19,7 +19,7 @@ test('words.txt: plain lowercase words of 3–9 letters, each once, in known tie
   assert.equal(dict.tierOf.size, dict.list.length, 'a word is listed twice');
   for (const [w, t] of dict.list) {
     assert.match(w, /^[a-z]{3,9}$/, `bad word: ${w}`);
-    assert.ok([35, 50, 60, 70, 71].includes(t), `${w} has tier ${t}`);
+    assert.ok([35, 50, 60, 70, 71, 80, 81, 82, 83].includes(t), `${w} has tier ${t}`);
   }
 });
 
@@ -71,10 +71,19 @@ test('fits counts repeated letters', () => {
   assert.ok(!Wd.fits('cat', Wd.counts('dog')));
 });
 
-test('US-only and UK-only spellings are bonus words only (tier 71), never on the board', () => {
-  const variants = dict.list.filter(([, t]) => t === 71).map(([w]) => w);
-  assert.ok(variants.length > 50);
-  for (const w of ['colour', 'color', 'honour', 'honor']) if (dict.tierOf.has(w)) assert.equal(dict.tierOf.get(w), 71, w);
+test('US-only and UK-only spellings are never planned, but everyday ones fill a box when typed; rarer ones are bonus words', () => {
+  for (const w of ['colour', 'color', 'honour', 'honor', 'centre', 'center']) if (dict.tierOf.has(w)) assert.equal(dict.tierOf.get(w), 82, w);
+  assert.ok(dict.list.filter(([, t]) => t === 82).length > 100);
+  assert.ok(dict.list.filter(([, t]) => t === 71).length > 50, 'rarer ones stay bonus words');
+  const seed = [...new Set(Object.values(seeds).flatMap((b) => Object.values(b).flat()))].find((x) => Wd.fits('colour', Wd.counts(x)) && Wd.fits('color', Wd.counts(x)));
+  if (seed) {
+    const { board, fill } = Wd.solve(seed, dict, { tier: 35, minLen: 3 });
+    assert.ok(!board.includes('colour') && !board.includes('color') && fill.includes('colour') && fill.includes('color'), seed);
+  }
+  assert.equal(Wd.spellingKey('colour'), Wd.spellingKey('color'));
+  assert.equal(Wd.spellingKey('centre'), Wd.spellingKey('center'));
+  assert.equal(Wd.spellingKey('travelled'), Wd.spellingKey('traveled'));
+  assert.notEqual(Wd.spellingKey('colour'), Wd.spellingKey('honour'));
 });
 
 test('seedLength follows the difficulty table, the last length repeating', () => {
@@ -91,18 +100,19 @@ test('the word lists carry their sources\' licence notices', () => {
   assert.match(lic, /CC BY 4\.0/);
 });
 
-test('bonus-only words (scripts/words/bonus-only.txt) still score as bonus words but never get a box and are never the scrambled word', () => {
-  const bonusOnly = listFile('bonus-only.txt'), checked = new Set(listFile('checked.txt'));
-  assert.ok(bonusOnly.length > 1000, 'the reviewed list is there');
-  assert.deepEqual(bonusOnly.filter((w) => checked.has(w)), [], 'a word is either bonus-only or checked-and-kept, never both');
+test('unplanned words fill a box when typed but are never planned and never the scrambled word; short odd ones are bonus words only', () => {
+  const bonusOnly = listFile('bonus-only.txt'), unplanned = listFile('unplanned.txt'), checked = new Set(listFile('checked.txt'));
+  assert.ok(unplanned.length > 1000 && bonusOnly.length > 100, 'the reviewed lists are there');
+  assert.deepEqual([...bonusOnly, ...unplanned].filter((w) => checked.has(w)), [], 'never both on a list and checked-and-kept');
+  assert.deepEqual(bonusOnly.filter((w) => unplanned.includes(w)), [], 'never both bonus-only and unplanned');
+  assert.deepEqual(bonusOnly.filter((w) => w.length > 4), [], 'bonus-only is for short words');
   const allSeeds = new Set(Object.values(seeds).flatMap((byLen) => Object.values(byLen).flat()));
-  for (const w of bonusOnly) {
-    const t = dict.tierOf.get(w);
-    if (t !== undefined) assert.ok(t >= 60, `${w} is tier ${t}: it could get a box`);
-    assert.ok(!allSeeds.has(w), `${w} is a scrambled word`);
-  }
-  // e.g. eke: made from a seed, it's a bonus word, not a box
-  const seed = [...allSeeds].find((s) => Wd.fits('eke', Wd.counts(s)));
-  const { board, bonus } = Wd.solve(seed, dict, { tier: 50, minLen: 3 });
-  assert.ok(!board.includes('eke') && bonus.includes('eke'), `eke in ${seed}`);
+  for (const w of bonusOnly) { const t = dict.tierOf.get(w); if (t !== undefined) assert.ok(t >= 60 && t < 80, `${w} is tier ${t}`); assert.ok(!allSeeds.has(w), w); }
+  for (const w of unplanned) { const t = dict.tierOf.get(w); if (t !== undefined) assert.ok(t === 80 || t === 81, `${w} is tier ${t}`); assert.ok(!allSeeds.has(w), w); }
+  // eke (bonus only) and an unplanned word, made from real seeds
+  const sortOf = (w, tier = 35) => { const s = [...allSeeds].find((x) => Wd.fits(w, Wd.counts(x))); const r = Wd.solve(s, dict, { tier, minLen: 3 }); return r.board.includes(w) ? 'board' : r.fill.includes(w) ? 'fill' : 'bonus'; };
+  assert.equal(sortOf('eke'), 'bonus');
+  const u35 = unplanned.find((w) => dict.tierOf.get(w) === 80), u50 = unplanned.find((w) => dict.tierOf.get(w) === 81);
+  assert.equal(sortOf(u35), 'fill', u35); assert.equal(sortOf(u35, 50), 'fill', u35);
+  assert.equal(sortOf(u50), 'bonus', `${u50}: a medium word, on Easy and Normal`); assert.equal(sortOf(u50, 50), 'fill', `${u50} on Hard`);
 });

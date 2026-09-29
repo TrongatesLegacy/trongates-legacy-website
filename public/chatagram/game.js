@@ -74,7 +74,7 @@
       // deps.firstSeed: the first puzzle's word, when a caller wants a known one (the pictures on the site)
       const seed = deps.firstSeed && !s.recent.length && all.includes(deps.firstSeed) ? deps.firstSeed : pick(pool);
       s.recent = [seed, ...s.recent].slice(0, 60);
-      const { board: every, bonus } = Wd.solve(seed, deps.dict, { tier: d.tier, minLen: cfg.minlen, block });
+      const { board: every, fill, bonus } = Wd.solve(seed, deps.dict, { tier: d.tier, minLen: cfg.minlen, block });
       const { shown: board } = pickSlots(every, seed);
       // tricky levels hide real letters as ?: one from cfg.tricky (shown at half time), two from 3 levels later (shown at
       // 40% and 70% of the round). (There was also a fake letter, as in WOS, until 2026-09-29: here any real word counts,
@@ -91,6 +91,7 @@
         id: (s.round ? s.round.id : 0) + 1, seed, letters: order,
         hidden, shown: 0, reveals: nHidden === 2 ? [0.4, 0.7] : [0.5],   // the hidden letters' ids, how many are shown, when
         answers: board.map((word) => ({ word, by: null, at: 0, pts: 0 })), valid: every, bonus, bonusFound: [],
+        fill, spelled: {},                                             // never planned but fill a box when typed; one-country pairs used
         goal: Math.max(1, Math.ceil(board.length * cfg.goal / 100)),
         startedAt: t, endsAt: t + dur,
         locks: Array.from({ length: cfg.locks }, (_, i) => t + Math.round(dur * (i + 1) / (cfg.locks + 1))), opened: 0, locked: {},
@@ -132,11 +133,16 @@
     function guess(m, word) {
       const r = s.round;
       let a = r.answers.find((x) => x.word === word);
-      if (!a && (r.valid || []).includes(word)) {
+      // an unplanned word (never planned, but real) fills a box like any other; if none is open it's a bonus word. A
+      // one-country spelling fills one only if its pair (colour / color) hasn't this round.
+      const unplanned = (r.fill || []).includes(word);
+      const spell = unplanned && deps.dict.tierOf.get(word) >= 82 ? Wd.spellingKey(word) : '';
+      const pairTaken = spell && r.spelled && r.spelled[spell] && r.spelled[spell] !== word;
+      if (!a && ((r.valid || []).includes(word) || (unplanned && !pairTaken))) {
         // a real word that isn't the one picked for a box: it takes the next open box of its length, if there is one
         a = r.answers.find((x) => !x.by && x.word.length === word.length);
-        if (!a) return { kind: 'full', word };
-        a.word = word;
+        if (!a && !unplanned) return { kind: 'full', word };
+        if (a) { a.word = word; if (spell) (r.spelled = r.spelled || {})[spell] = word; }
       }
       if (a) {
         if (a.by) return { kind: 'dup', word, by: a.by };
@@ -159,7 +165,7 @@
         if (found === r.answers.length) endRound();
         return res;
       }
-      if (cfg.bonus && r.bonus.includes(word)) {
+      if (cfg.bonus && (r.bonus.includes(word) || unplanned)) {
         if (r.bonusFound.includes(word)) return { kind: 'dup', word };
         r.bonusFound.push(word);
         const p = player(m); p.score += 1; p.roundScore += 1;
