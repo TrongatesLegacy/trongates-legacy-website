@@ -1,0 +1,173 @@
+<!doctype html>
+<!-- A still mockup of the planned drop game (docs/plans/drop/plan.md), drawn with the real widget themes. Not the game:
+     nothing moves. ?v=classic|pachinko|tower|jackpot|top|accents shows one frame at its real size (for screenshots);
+     no ?v shows them all. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Drop game mockup</title>
+<link rel="stylesheet" href="../../../public/widgets/lib/themes.css">
+<style>
+  body { margin: 0; background: #0b0b0f; color: #ddd; font: 14px system-ui; }
+  .page { display: flex; flex-wrap: wrap; gap: 28px; padding: 28px; align-items: flex-start; }
+  .solo .page { padding: 0; gap: 0; }
+  .cap { font: 600 13px system-ui; color: #aaa; margin: 0 0 8px; }
+  .solo .cap { display: none; }
+  .w { position: relative; overflow: hidden; background: var(--bg); box-shadow: var(--edge); border-radius: var(--radius);
+       font-family: var(--font); color: var(--text); }
+  .w svg { position: absolute; inset: 0; }
+  /* leaderboard side panel (full layout) */
+  .lb { position: absolute; top: 18px; right: 18px; bottom: 18px; width: 272px; background: var(--panel);
+        border-radius: calc(var(--radius) * .8); padding: 16px 16px 12px; display: flex; flex-direction: column; }
+  .lb h2 { margin: 0 0 10px; font: var(--display-weight) 22px var(--display); letter-spacing: .02em; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .tabs span { flex: 1; text-align: center; padding: 5px 0; border-radius: 999px; background: var(--slot); color: var(--muted); font-size: 12px; font-weight: 600; }
+  .tabs span.on { background: var(--accent); color: var(--accent-ink); }
+  .row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; font-size: 15px; border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent); }
+  .row b { width: 20px; color: var(--muted); font-weight: 600; }
+  .row .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .p { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .row:first-of-type .p { color: var(--accent); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .tw { background: #9146ff; } .kk { background: #53fc18; }
+  .best { margin-top: auto; background: var(--slot); border-radius: calc(var(--radius) * .6); padding: 8px 10px; font-size: 12px; color: var(--muted); }
+  .best strong { color: var(--gold); font-size: 14px; }
+  .how { margin-top: 8px; font-size: 12px; color: var(--muted); text-align: center; }
+  .how code { font-family: inherit; color: var(--text); font-weight: 700; background: var(--slot); padding: 1px 6px; border-radius: 6px; }
+  .credit { position: absolute; left: 18px; bottom: 8px; font-size: 10px; color: var(--muted); opacity: .7; }
+  /* jackpot card */
+  .dim { position: absolute; inset: 0; background: rgb(0 0 0 / .45); }
+  .card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-2deg); text-align: center;
+          background: var(--panel); border-radius: var(--radius); padding: 18px 34px 20px; box-shadow: var(--edge), 0 20px 60px rgb(0 0 0 / .5);
+          outline: 3px solid var(--gold); outline-offset: -3px; }
+  .card .k { font: var(--display-weight) 44px var(--display); color: var(--gold); letter-spacing: .03em; line-height: 1; }
+  .card .who { margin-top: 10px; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; justify-content: center; }
+  .card .pts { font: var(--display-weight) 30px var(--display); margin-top: 4px; }
+  .card .sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  /* !drop top popup */
+  .pop { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 600px; background: var(--panel);
+         border-radius: var(--radius); box-shadow: var(--edge), 0 20px 60px rgb(0 0 0 / .45); padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .pop h3 { margin: 0 0 8px; font: var(--display-weight) 20px var(--display); }
+  /* tower header */
+  .th { position: absolute; left: 12px; right: 12px; top: 12px; background: var(--panel); border-radius: calc(var(--radius) * .8); padding: 8px 12px; }
+  .th .row { font-size: 13px; padding: 3px 2px; }
+  .th .t { font: var(--display-weight) 13px var(--display); color: var(--muted); display: flex; justify-content: space-between; margin-bottom: 2px; }
+  .mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+</style>
+</head>
+<body>
+<div class="page" id="page"></div>
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+// slot colour: low values the plain slot colour, rising to the accent, the top prize gold
+function slotFill(v, max) {
+  if (v === max) return 'var(--gold)';
+  const t = Math.round(Math.pow(v / max, .45) * 85);
+  return `color-mix(in srgb, var(--accent) ${t}%, var(--slot))`;
+}
+function slotInk(v, max) { return v === max || v / max > .3 ? 'var(--accent-ink)' : 'var(--text)'; }
+
+function svg(w, h, parts) { return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="${NS}">
+  <defs>
+    <radialGradient id="shine" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>${parts.join('')}</svg>`; }
+
+const peg = (x, y, r = 4.5) => `<circle cx="${x}" cy="${y}" r="${r}" style="fill:color-mix(in srgb, var(--text) 85%, var(--accent))"/><circle cx="${x - 1.2}" cy="${y - 1.2}" r="${r * .45}" fill="#fff" opacity=".35"/>`;
+const ball = (x, y, r = 10, trail = 0) =>
+  (trail ? `<line x1="${x}" y1="${y - trail}" x2="${x}" y2="${y}" stroke-width="${r * 1.4}" stroke-linecap="round" style="stroke:var(--accent)" opacity=".18"/>` : '') +
+  `<circle cx="${x}" cy="${y}" r="${r}" style="fill:var(--accent)"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#shine)"/>`;
+// an emote ball: in the game the emote's own image (Twitch/Kick CDN), spinning as it rolls; here an emoji stands in
+const emote = (x, y, e, r = 13, rot = 0) => `<text x="${x}" y="${y}" font-size="${r * 2}" text-anchor="middle" dominant-baseline="central" transform="rotate(${rot} ${x} ${y})">${e}</text>`;
+const text = (x, y, s, size, style = '') => `<text x="${x}" y="${y}" font-size="${size}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--display);font-weight:var(--display-weight);${style}">${s}</text>`;
+
+function slots(x0, y, w, h, vals, gap = 3) {
+  const max = Math.max(...vals), sw = w / vals.length; let s = '';
+  vals.forEach((v, i) => {
+    const x = x0 + i * sw;
+    s += `<rect x="${x + gap / 2}" y="${y}" width="${sw - gap}" height="${h}" rx="6" style="fill:${slotFill(v, max)}"/>`;
+    if (v === max) s += `<rect x="${x + gap / 2}" y="${y}" width="${sw - gap}" height="${h}" rx="6" style="fill:var(--gold)" filter="url(#glow)" opacity=".6"/>`;
+    s += text(x + sw / 2, y + h / 2 + 1, v, sw < 34 ? 12 : 15, `fill:${slotInk(v, max)}`);
+  });
+  return s;
+}
+
+// Classic: a triangle of pegs, rows+2 pegs across the bottom, one slot under each gap
+function classic(o = {}) {
+  const W = o.w || 640, cx = W / 2, rows = 10, gap = 46, dy = 34, top = 64, vals = [100, 25, 10, 5, 2, 1, 2, 5, 10, 25, 100];
+  const p = [];
+  // drop chute
+  p.push(`<rect x="${cx - 60}" y="0" width="120" height="30" rx="8" style="fill:var(--slot)"/>`, text(cx, 15, '▼  DROP  ▼', 11, 'fill:var(--muted);letter-spacing:.2em'));
+  for (let r = 0; r < rows; r++) { const n = r + 3; for (let i = 0; i < n; i++) p.push(peg(cx + (i - (n - 1) / 2) * gap, top + r * dy)); }
+  const bw = (rows + 1) * gap, sy = top + (rows - 1) * dy + 22;
+  p.push(slots(cx - bw / 2, sy, bw, 44, vals));
+  if (o.balls !== false) {
+    p.push(ball(cx - 8, 44, 10, 18), ball(cx + 30, 128, 10, 22), ball(cx - 50, 196, 10, 24), emote(cx + 70, 236, '🔥', 12, 20), emote(cx + 92, 250, '🔥', 12, -30),
+      ball(cx - 118, 300, 10, 26), emote(cx + 18, 320, '😂', 12, 40), ball(cx + 150, 352, 10, 20), ball(cx - 26, sy + 10, 10));
+    // a score floating up from a slot
+    p.push(text(cx - 26, sy - 14, '+1', 14, 'fill:var(--text);opacity:.8'), text(cx + 184, sy - 22, '+10', 16, 'fill:var(--accent)'));
+  }
+  return svg(W, 540, p);
+}
+
+// Pachinko: pins in clusters, two spinners and bumpers over a centre jackpot; scores still at the bottom
+function pachinko() {
+  const W = 640, p = [], vals = [2, 5, 10, 25, 250, 25, 10, 5, 2];
+  p.push(`<rect x="20" y="16" width="600" height="440" rx="200" ry="40" fill="none" stroke-width="2" style="stroke:color-mix(in srgb, var(--accent) 45%, transparent)"/>`);
+  for (let r = 0; r < 12; r++) for (let i = 0; i < 16; i++) {
+    const x = 50 + i * 36 + (r % 2) * 18, y = 58 + r * 30;
+    const d1 = Math.hypot(x - 190, y - 170), d2 = Math.hypot(x - 450, y - 170), d3 = Math.hypot(x - 320, y - 300);
+    if (d1 < 44 || d2 < 44 || d3 < 50 || x > 600) continue;
+    if (rnd() < .18) continue;
+    p.push(peg(x, y, 3.5));
+  }
+  const spinner = (x, y, a) => { let s = `<g transform="rotate(${a} ${x} ${y})">`; for (let k = 0; k < 4; k++) s += `<rect x="${x - 3}" y="${y - 32}" width="6" height="32" rx="3" transform="rotate(${k * 90} ${x} ${y})" style="fill:var(--accent)"/>`; return s + `<circle cx="${x}" cy="${y}" r="7" style="fill:var(--tile)"/></g>`; };
+  p.push(spinner(190, 170, 20), spinner(450, 170, 55));
+  const bumper = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 5}" style="fill:var(--accent)" opacity=".25" filter="url(#glow)"/><circle cx="${x}" cy="${y}" r="${r}" style="fill:var(--panel);stroke:var(--accent)" stroke-width="3"/>`;
+  p.push(bumper(270, 300, 16), bumper(370, 300, 16), bumper(320, 262, 12));
+  p.push(text(320, 340, '★ JACKPOT ★', 11, 'fill:var(--gold);letter-spacing:.15em'));
+  p.push(slots(40, 470, 560, 46, vals, 5));
+  p.push(ball(120, 90, 8, 20), ball(212, 140, 8), ball(468, 228, 8, 16), ball(330, 236, 8), emote(400, 110, '🐸', 11, 15), emote(540, 380, '🐸', 11, -20), ball(300, 420, 8, 22), ball(88, 440, 8, 14));
+  return svg(W, 540, p);
+}
+
+// Pin tower: tall and narrow (the side of the screen), a staggered wall of pins
+function tower() {
+  const W = 360, H = 640, p = [], vals = [50, 10, 3, 1, 3, 10, 50];
+  for (let r = 0; r < 14; r++) { const n = r % 2 ? 7 : 8; for (let i = 0; i < n; i++) p.push(peg(34 + i * 41 + (r % 2) * 20.5, 150 + r * 30, 4)); }
+  p.push(slots(12, 574, 336, 50, vals, 4));
+  p.push(ball(180, 128, 10, 16), ball(98, 212, 10, 22), emote(250, 300, '💜', 12, 10), ball(170, 380, 10, 20), ball(300, 470, 10, 18), emote(116, 520, '💜', 12, -15));
+  p.push(text(300, 556, '+10', 15, 'fill:var(--accent)'));
+  return svg(W, H, p);
+}
+
+const PLAYERS = [['lulu_gang_4life', 'kk', 1284], ['pixelpriya', 'tw', 1122], ['m0ssy', 'kk', 865], ['DrBlobfish', 'tw', 640], ['neon_nana', 'kk', 512], ['kevxd', 'tw', 377], ['sprout', 'kk', 240]];
+const rows = (n, list = PLAYERS) => list.slice(0, n).map(([u, pl, s], i) => `<div class="row"><b>${i + 1}</b><span class="dot ${pl}"></span><span class="n">${u}</span><span class="p">${s.toLocaleString()}</span></div>`).join('');
+const panel = (best = true) => `<div class="lb"><h2>Leaderboard</h2><div class="tabs"><span class="on">This stream</span><span>All time</span></div>${rows(6)}
+  ${best ? `<div class="best">Biggest drop this stream<br><strong>pixelpriya · 100</strong></div>` : ''}
+  <div class="how"><code>!drop</code> <code>!drop 5</code> <code>!drop 5 :emote:</code></div></div>`;
+
+const frame = (theme, w, h, inner, accent) => `<div class="w" data-theme="${theme}" style="width:${w}px;height:${h}px;${accent ? `--accent:${accent}` : ''}">${inner}</div>`;
+
+const confetti = () => { let s = ''; for (let i = 0; i < 70; i++) { const c = ['var(--gold)', 'var(--accent)', 'var(--text)', '#ff5a5f', '#2ee6a8'][i % 5]; s += `<rect x="${rnd() * 960}" y="${rnd() * 540}" width="${6 + rnd() * 6}" height="${3 + rnd() * 4}" transform="rotate(${rnd() * 360})" style="fill:${c}" opacity=".9"/>`; } return svg(960, 540, [s]); };
+
+const V = {
+  classic: ['Classic Plinko · full 960×540 · chatagram theme', () => frame('chatagram', 960, 540, classic() + panel() + `<div class="credit">Made by TrongatesLegacy.com</div>`)],
+  pachinko: ['Pachinko · full 960×540 · neon theme', () => frame('neon', 960, 540, pachinko() + panel() + `<div class="credit">Made by TrongatesLegacy.com</div>`)],
+  tower: ['Pin tower · tall 360×640 · candy theme', () => frame('candy', 360, 640, tower() + `<div class="th"><div class="t"><span>This stream</span><span>!drop 5</span></div>${rows(3)}</div>`)],
+  jackpot: ['The top prize: a card with who scored it · deep theme', () => frame('deep', 960, 540, classic({ balls: false }) + panel() + `<div class="dim"></div>` + confetti() +
+    `<div class="card"><div class="k">JACKPOT!</div><div class="who"><span class="dot tw"></span>pixelpriya</div><div class="pts">+100</div><div class="sub">1 in 512 · the first today</div></div>`)],
+  top: ['!drop top: both leaderboards for 8 s · royal theme', () => frame('royal', 960, 540, pachinko() + `<div class="dim"></div>` +
+    `<div class="pop"><div><h3>This stream</h3>${rows(5)}</div><div><h3>All time</h3>${rows(5, [...PLAYERS].reverse().map(([u, p, s], i) => [u, p, s * (9 - i)]).sort((a, b) => b[2] - a[2]))}</div></div>`)],
+  accents: ['The same board, any theme and accent (board only, no panel: 640×540 each, shown at half size)', () => `<div class="mini">${[['neutral', ''], ['light', ''], ['cozy', ''], ['chatagram', '#2ee6a8'], ['neon', '#ff4155'], ['royal', '#ffd98a'], ['deep', '#45d6c8'], ['candy', '#ff7bd5']]
+    .map(([t, a]) => `<div style="width:320px;height:270px;overflow:hidden"><div style="transform:scale(.5);transform-origin:0 0">${frame(t, 640, 540, classic({ w: 640 }), a)}</div></div>`).join('')}</div>`],
+};
+const q = new URLSearchParams(location.search).get('v');
+if (q) document.body.classList.add('solo');
+document.getElementById('page').innerHTML = Object.entries(V).filter(([k]) => !q || k === q)
+  .map(([, [cap, f]]) => `<div><p class="cap">${cap}</p>${f()}</div>`).join('');
+</script>
+</body>
+</html>
