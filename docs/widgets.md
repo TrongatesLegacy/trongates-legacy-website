@@ -420,7 +420,11 @@ opened; 2 s in Frenzy), so it's always about what just happened. Other moments: 
 the board loads; the commands shine every 30 s after a minute idle; PAUSED / GO! in the chute; `!plinko clear` pops every
 ball. **Motion** (`motion=` in the link, Advanced): auto/full, **calm** (no shake, slow motion, beam, confetti, trails
 or hot pegs), **reduce** (nothing falls: each ball's landing is worked out at once and the `+N` shows; the leaderboard
-changes instantly). As everywhere, OBS ignores the PC's own setting unless the link says so.
+changes instantly). As everywhere, OBS ignores the PC's own setting unless the link says so. Outside OBS a device asking for
+less motion gets **reduce**, which looks broken on the page (a board where nothing falls: the owner hit this on a PC with
+Windows' animation effects off, 2026-09-30), so the page's hero and live preview say why under the board, with **Show them
+falling**: the page's frames then get `animate=1` (`theme.js`: the device's setting is set aside, a link's
+`motion=reduce`/`calm` still counts), remembered in `chaplinko:animate`. The OBS links never carry it.
 
 ### The leaderboard
 

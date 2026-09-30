@@ -33,7 +33,7 @@
   // Reduced motion: the viewer's system setting, except inside OBS, where it's the streaming PC's setting (Windows'
   // "Animation effects" off would otherwise freeze the widget for every viewer). motion=reduce|full in the link forces it.
   const reducedMotion = (q = new URLSearchParams(location.search)) =>
-    q.get('motion') === 'reduce' || (q.get('motion') !== 'full' && !window.obsstudio && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    q.get('motion') === 'reduce' || (q.get('motion') !== 'full' && q.get('animate') !== '1' && !window.obsstudio && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   W.theme = { THEMES, ACCENTS, apply, listen, hex, reducedMotion };
 })();

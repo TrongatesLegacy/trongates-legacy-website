@@ -239,6 +239,31 @@ test('combined: the leaderboard beside the board can have its own theme and its 
   await tab.close();
 });
 
+test('the set-up page under reduced motion: the hero and the preview say why nothing falls, and can show it falling anyway', async () => {
+  const init = `if (window === top) { localStorage.removeItem('chaplinko:setup'); localStorage.removeItem('chaplinko:animate'); }`;   // not in its frames
+  const plain = await chrome.open(site.origin + '/chaplinko/?kick=gridrunner', { width: 1280, height: 900, init });
+  await plain.until('window.chaplinkoSetup', 5000, 'the set-up');
+  assert.equal(await plain.eval('document.getElementById("hero-rm").hidden && document.getElementById("pv-rm").hidden'), true, 'no note when motion is allowed');
+  await plain.close();
+  const tab = await chrome.open(site.origin + '/chaplinko/?kick=gridrunner', { width: 1280, height: 900, init, reducedMotion: true });
+  await tab.until('window.chaplinkoSetup', 5000, 'the set-up');
+  const click = (sel) => tab.eval(`(() => { document.querySelector(${JSON.stringify(sel)}).click(); return 1; })()`);
+  await tab.until('document.getElementById("hero-frame").src && document.getElementById("pv").src', 5000, 'the boards to start');
+  assert.equal(await tab.eval('document.getElementById("hero-rm").hidden || document.getElementById("pv-rm").hidden'), false, 'both say why');
+  assert.doesNotMatch(await tab.eval('document.getElementById("hero-frame").src'), /animate=1/);
+  await click('#hero-rm button');
+  await tab.until('/animate=1/.test(document.getElementById("hero-frame").src) && /animate=1/.test(document.getElementById("pv").src)', 3000, 'both boards to animate');
+  await tab.until('document.getElementById("hero-frame").contentWindow.chaplinko?.world.balls.length > 0', 10000, 'balls falling in the hero');
+  assert.equal(await tab.eval('chaplinkoSetup.boardLink()'), site.origin + '/chaplinko/play?kick=gridrunner', 'the OBS link never carries it');
+  assert.equal(await tab.eval('localStorage.getItem("chaplinko:animate")'), '1', 'remembered');
+  await click('#pv-rm button');
+  await tab.until('!/animate=1/.test(document.getElementById("hero-frame").src) && !/animate=1/.test(document.getElementById("pv").src)', 3000, 'back to reduced motion');
+  await tab.eval(`(() => { const el = document.querySelector('[name=motion]'); el.value = 'reduce'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  assert.equal(await tab.eval('document.getElementById("pv-rm").hidden'), true, 'Minimal chosen: the preview is meant to drop nothing');
+  noErrors(tab, 'reduced motion set-up');
+  await tab.close();
+});
+
 test('the set-up page: the leaderboard\'s own accent; Reset to defaults resets every setting but the channels', async () => {
   const tab = await chrome.open(site.origin + '/chaplinko/?kick=gridrunner&rows=12&lbshow=all&bgo=100&cool=10', { width: 1280, height: 900, init: `localStorage.removeItem('chaplinko:setup');` });
   await tab.until('window.chaplinkoSetup', 5000, 'the set-up');

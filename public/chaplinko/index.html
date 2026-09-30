@@ -188,6 +188,10 @@ fieldset.card { border: 0; margin: 0; display: grid; gap: 14px; align-content: s
 .right h3 small { font: 12px "Space Grotesk", sans-serif; color: var(--mist); }
 .right .screen { border-radius: 14px; overflow: hidden; }
 #pv-screen { height: 330px; } #lb-screen { height: 170px; }
+.stage { min-width: 0; }
+/* reduced motion: why the board beside it drops nothing, and a way to see it anyway */
+.rm { margin: 8px auto 0; max-width: 560px; font-size: 13px; color: var(--mist); text-align: center; }
+.rm button { font: inherit; font-weight: 600; background: none; border: 0; padding: 0; color: var(--tangerine); text-decoration: underline; cursor: pointer; }
 .pvlab { font-size: 12px; color: var(--mist); margin: -4px 0 0; }
 .copies { display: grid; gap: 8px; } .copies .btn { width: 100%; }
 .meta { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--mist); flex-wrap: wrap; }
@@ -238,7 +242,8 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
     <div class="ctas"><a class="btn" href="#setup">SET IT UP</a><a class="btn ghost" href="#looks">SEE THE LOOKS</a></div>
     <p class="free">No sign-up, no download: one link in OBS.</p>
   </div>
-  <div class="screen" id="hero-screen"><img class="poster" id="hero-poster" src="assets/themes/clear.webp" alt="" width="640" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chaplinko playing with a pretend chat" width="640" height="540" tabindex="-1"></iframe><div class="chat" id="chat" aria-hidden="true"></div></div>
+  <div class="stage"><div class="screen" id="hero-screen"><img class="poster" id="hero-poster" src="assets/themes/clear.webp" alt="" width="640" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chaplinko playing with a pretend chat" width="640" height="540" tabindex="-1"></iframe><div class="chat" id="chat" aria-hidden="true"></div></div>
+    <p class="rm" id="hero-rm" hidden></p></div>
 </section>
 
 <section class="wrap sec pegs" id="how"><h2>How it <span>works</span></h2>
@@ -335,6 +340,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
   <aside class="right" aria-label="Live preview and your OBS links">
     <h3>LIVE PREVIEW <small>pretend chat, over a pretend game</small></h3>
     <div class="screen game" id="pv-screen"><img class="poster" id="pv-poster" src="assets/themes/clear.webp" alt="" loading="lazy"><iframe id="pv" title="Preview of your Chaplinko board" width="640" height="540" tabindex="-1"></iframe></div>
+    <p class="rm" id="pv-rm" hidden></p>
     <p class="pvlab" id="lb-lab">The leaderboard, its own source:</p>
     <div class="screen game" id="lb-screen"><iframe id="lbpv" title="Preview of your Chaplinko leaderboard" width="300" height="270" tabindex="-1"></iframe></div>
     <div class="copies"><button type="button" class="btn" id="copy">COPY BOARD LINK</button><button type="button" class="btn ghost" id="copy-lb">COPY LEADERBOARD LINK</button></div>

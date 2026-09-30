@@ -217,10 +217,10 @@
     if (!$('#lb-screen').hidden) fitFrame(lbpv, $('#lb-screen'), lbSize());
   }
   function preview() {
-    layoutPreview();
+    layoutPreview(); rmNotes();
     if (!loaded) return;
     const shown = { ...s, theme: SCHEMA.theme.def, accent: '' };               // theme and accent go by message (no reload)
-    const src = `play.html?${W.settings.encode(SCHEMA, shown)}&demo=1&share=1`;   // share: this pretend board feeds the pretend leaderboard
+    const src = `play.html?${W.settings.encode(SCHEMA, shown)}&demo=1&share=1${s.motion === 'reduce' ? '' : animate()}`;   // share: this pretend board feeds the pretend leaderboard
     if (src !== lastPv) { lastPv = src; pv.src = src; showWhenReady(pv); pv.onload = () => themePreview(); } else themePreview();
     if (!$('#lb-screen').hidden) {
       const v = K.settings.leaderboardSettings(s);
@@ -228,6 +228,28 @@
       if (lsrc !== lastLb) { lastLb = lsrc; lbpv.src = lsrc; showWhenReady(lbpv); lbpv.onload = () => themePreview(); }
     }
   }
+  // Reduced motion (the device's setting): the boards here drop nothing, as asked, so say so; the visitor can choose to see
+  // them fall anyway (remembered, only on this page: the OBS links never carry it, and OBS ignores the device's setting).
+  const rmQuery = matchMedia('(prefers-reduced-motion: reduce)');
+  let watch = localStorage.getItem('chaplinko:animate') === '1';
+  const animate = () => (watch && rmQuery.matches ? '&animate=1' : '');
+  function rmNotes() {
+    const say = watch ? 'Showing the balls falling, though your device asks for less motion. <button type="button">Keep them still</button>'
+      : 'Your device asks for less motion, so the balls here land without falling (in OBS they fall). <button type="button">Show them falling</button>';
+    for (const [id, show] of [['hero-rm', true], ['pv-rm', s.motion !== 'reduce']]) {
+      const el = $('#' + id);
+      el.hidden = !rmQuery.matches || !show;
+      if (el.dataset.watch !== String(watch)) { el.innerHTML = say; el.dataset.watch = String(watch); }
+    }
+  }
+  function heroSrc() { const src = 'play.html?demo=1' + animate(); if (loaded && !hero.src.endsWith(src)) { hero.src = src; showWhenReady(hero); } }
+  for (const id of ['hero-rm', 'pv-rm']) $('#' + id).addEventListener('click', (e) => {
+    if (!e.target.closest('button')) return;
+    watch = !watch;
+    try { watch ? localStorage.setItem('chaplinko:animate', '1') : localStorage.removeItem('chaplinko:animate'); } catch {}
+    rmNotes(); heroSrc(); preview();
+  });
+  rmQuery.addEventListener('change', () => { rmNotes(); heroSrc(); preview(); });
   function themePreview() {
     try { pv.contentWindow.postMessage({ type: 'widget-theme', theme: s.theme, accent: s.accent }, '*'); } catch {}
     const v = K.settings.leaderboardSettings(s);
@@ -235,6 +257,7 @@
   }
   function update({ fill: refill = true } = {}) {
     if (refill) fill();
+    rmNotes();
     const comb = s.layout === 'combined';
     $('#side-field').hidden = !comb;
     $('#layout-note').textContent = comb ? 'One source, 960 × 540: the board with the leaderboard beside it.' : 'Two sources: the board (640 × 540) and the leaderboard, each placed where you like.';
@@ -311,7 +334,7 @@
     while (chat.children.length > 3) chat.firstElementChild.remove();
     if (m.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) m.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 250, easing: 'ease-out' });
   });
-  const afterLoad = () => setTimeout(() => { loaded = true; hero.src = 'play.html?demo=1'; showWhenReady(hero); preview(); }, 300);
+  const afterLoad = () => setTimeout(() => { loaded = true; heroSrc(); preview(); }, 300);
   if (document.readyState === 'complete') afterLoad(); else addEventListener('load', afterLoad);
 
   // ---- the menu shows where you are ---------------------------------------------------------------------------------------------------
