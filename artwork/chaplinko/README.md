@@ -26,3 +26,22 @@ never use a real streamer's emotes on the page.
 ```
 node --experimental-websocket artwork/chaplinko/emotes.mjs
 ```
+
+## Trailer
+
+`trailer/` makes a 30-second 1080p trailer, built the same way as Chatagram's but deliberately unlike it (the owner,
+2026-09-30): a late-night arcade (a neon cobalt grid rolling toward you, scanlines, glowing titles that flicker on, the
+camera pushing on the beat) against Chatagram's cartoon slams and pops, and **synthwave** (96 BPM, F minor: detuned saw
+pads, octave bass, big gated snares, plinks when the ball hits pegs) against Chatagram's 128 BPM house. The music is
+original, synthesised by `music.mjs`: nothing licensed, no attribution needed (a "royalty-free" download would bring its
+own terms to keep).
+
+```
+node --experimental-websocket artwork/chaplinko/trailer/record.mjs ~/Downloads/chaplinko-trailer.mp4
+```
+
+Twelve bars of 2.5 s: one ball falling ("ONE BALL." "YOUR WHOLE CHAT."), `!plinko` typed and the ball dropping into the
+wordmark as its O, the game with chat and emotes, a raid and Frenzy, a jackpot streak and the card exploding, a player
+surging up the leaderboard to #1, quick cuts (the looks, Twitch + Kick, over your game, free), the end card. The board and
+leaderboard are the real pages (`play.html`, `leaderboard.html`) with a scripted, made-up chat; the trailer answers "is it
+live" itself, since recording can't reach Twitch. No vertical cut yet.
