@@ -51,7 +51,9 @@
   const slotAt = (L, x) => Math.max(0, Math.min(L.slots.n - 1, Math.floor((x - L.slots.x0) / L.slots.w)));
 
   /**
-   * @param {{ rows?: number, collide?: boolean }} o
+   * Balls pass through each other: letting them bump made the edge slots 35 times likelier in a busy board (59 in 1,000
+   * balls instead of 1.7), so the odds shown would have been false. Alone, every ball follows the odds table exactly.
+   * @param {{ rows?: number }} o
    */
   function world(o = {}) {
     const L = layout(o.rows);
@@ -59,7 +61,7 @@
     // pegs by row, for finding the few a ball could touch
     const byRow = []; for (const p of L.pegs) (byRow[p.row] = byRow[p.row] || []).push(p);
     let balls = [], ids = 0, t = 0;
-    const self = { layout: L, collide: o.collide !== false, get balls() { return balls; }, get time() { return t; } };
+    const self = { layout: L, get balls() { return balls; }, get time() { return t; } };
 
     /** drop a ball: seed decides where it starts; data rides along (who dropped it, its colour or emote) */
     self.add = (d = {}) => {
@@ -96,27 +98,6 @@
       const vn = b.vx * nx + b.vy * ny;
       if (vn < 0) { const tx = -ny, ty = nx, vt = b.vx * tx + b.vy * ty; b.vx = tx * vt * GRIP - nx * vn * BOUNCE; b.vy = ty * vt * GRIP - ny * vn * BOUNCE; }
     }
-    // balls bump each other (off in Frenzy: a flood pours through instead of jamming)
-    function collideBalls() {
-      const cell = L.ballR * 2.2, grid = new Map();
-      for (const b of balls) { const k = Math.floor(b.x / cell) * 4096 + Math.floor(b.y / cell); (grid.get(k) || grid.set(k, []).get(k)).push(b); }
-      for (const b of balls) {
-        const gx = Math.floor(b.x / cell), gy = Math.floor(b.y / cell);
-        for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
-          const list = grid.get((gx + i) * 4096 + gy + j); if (!list) continue;
-          for (const c of list) {
-            if (c.id <= b.id) continue;
-            const dx = c.x - b.x, dy = c.y - b.y, min = b.r + c.r, d2 = dx * dx + dy * dy;
-            if (d2 >= min * min || d2 === 0) continue;
-            const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, push = (min - d) / 2;
-            b.x -= nx * push; b.y -= ny * push; c.x += nx * push; c.y += ny * push;
-            const rel = (c.vx - b.vx) * nx + (c.vy - b.vy) * ny;
-            if (rel < 0) { const j2 = -(1 + BOUNCE) * rel / 2; b.vx -= j2 * nx; b.vy -= j2 * ny; c.vx += j2 * nx; c.vy += j2 * ny; }
-          }
-        }
-      }
-    }
-
     /** one fixed step (1/120 s) @returns {any[]} what happened */
     self.step = () => {
       const events = [], landed = [];
@@ -142,7 +123,6 @@
         if (b.still > 0.4 || (age > 20 && b.still > 0.05)) { b.vx += (b.x < L.cx ? 1 : -1) * 60; b.vy -= 30; b.still = 0; }   // towards the middle: fair either side
         if (b.y >= L.slots.y || age > 30) landed.push(b);                          // in a slot (or put in the nearest after 30 s)
       }
-      if (self.collide && balls.length > 1) collideBalls();
       for (const b of landed) { balls = balls.filter((x) => x !== b); events.push({ type: 'land', ball: b, slot: slotAt(L, b.x), x: b.x }); }
       return events;
     };
@@ -151,7 +131,7 @@
 
   /** where a single ball dropped with this seed lands (no other balls): the odds script and the tests use this */
   function drop(seed, o = {}) {
-    const w = world({ ...o, collide: false });
+    const w = world(o);
     w.add({ seed, mirror: o.mirror });
     for (let i = 0; i < 120 * 40; i++) { const e = w.step().find((x) => x.type === 'land'); if (e) return { slot: e.slot, time: w.time }; }
     return { slot: -1, time: w.time };

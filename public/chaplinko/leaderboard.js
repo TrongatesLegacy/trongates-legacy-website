@@ -107,7 +107,7 @@
           const gained = p.score - s.target;
           s.start = s.score; s.target = p.score; s.from = now();
           if (o.rm) { s.score = s.target; s.row.querySelector('.p').textContent = fmt(s.score); } else countUp();
-          chip(s, gained);
+          if (gained > 0) chip(s, gained);
           anim(s.row.querySelector('.p'), [{ transform: 'scale(1.18)' }, { transform: 'none' }], { duration: 300, easing: 'ease-out' });
           if (!strip) s.row.classList.remove('sweep'), void s.row.offsetWidth, o.rm || s.row.classList.add('sweep');
         }

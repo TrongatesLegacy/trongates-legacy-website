@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chaplinko: free Plinko chat game for Twitch and Kick (OBS) · Trongates Legacy</title>
+<meta name="description" content="Chaplinko is a free Plinko game for streamers: chat types !drop and balls bounce down the pegs into scoring slots. A leaderboard for this stream and all time. Twitch and Kick at once, no login: paste one link into OBS.">
+<link rel="canonical" href="https://www.trongateslegacy.com/chaplinko/">
+<meta name="theme-color" content="#0a1233">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Trongates Legacy">
+<meta property="og:title" content="Chaplinko: let chat drop">
+<meta property="og:description" content="Free Plinko for Twitch and Kick chat. Type !drop, climb the leaderboard. Paste one link into OBS.">
+<meta property="og:url" content="https://www.trongateslegacy.com/chaplinko/">
+<meta property="og:image" content="https://www.trongateslegacy.com/chaplinko/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="/assets/fonts/bungee.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Chaplinko","url":"https://www.trongateslegacy.com/chaplinko/",
+ "applicationCategory":"GameApplication","operatingSystem":"Any (OBS browser source)","description":"A free Plinko game for Twitch and Kick chat, played on stream through an OBS browser source: chat types !drop and climbs the leaderboard.",
+ "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+ "author":{"@type":"Person","name":"Trongates Legacy","url":"https://www.trongateslegacy.com/"}}
+</script>
+<style>
+@font-face { font-family: Bungee; src: url(/assets/fonts/bungee.woff2) format("woff2"); font-display: swap; }
+@font-face { font-family: "Space Grotesk"; src: url(/assets/fonts/space-grotesk.woff2) format("woff2"); font-weight: 300 700; font-display: swap; }
+/* Chaplinko's brand (docs/widgets.md, "The Chaplinko page"): a late-night arcade. Midnight, cobalt rims and glow, the
+   tangerine ball, jackpot pink; Bungee capitals and Space Grotesk. Deliberately unlike Chatagram's cartoon warmth. */
+:root { --night: #0a1233; --deep: #121d4d; --slot: #1b2a66; --cobalt: #2f5bff; --tangerine: #ff7a1a; --tang-d: #e2600a; --pink: #ff3d8b;
+  --ice: #eef3ff; --mist: #9fb0e0; --line: #2f5bff55; --nav: 64px; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav) + 12px); }
+body { margin: 0; background: var(--night); color: var(--ice); font: 16px/1.55 "Space Grotesk", system-ui, sans-serif; }
+main { overflow-x: clip; }   /* the hero's glow reaches past the edge; the page never scrolls sideways */
+a { color: inherit; }
+h1, h2, h3, .bg { font-family: Bungee, system-ui, sans-serif; font-weight: 400; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+[hidden] { display: none !important; }
+.pegs { background-image: radial-gradient(circle, #eef3ff1f 1.6px, transparent 2px); background-size: 28px 24px; }
+:focus-visible { outline: 3px solid var(--tangerine); outline-offset: 2px; }
+
+/* the wordmark: CHAPLINK + the ball as the O */
+.word { font: 400 26px/1 Bungee, sans-serif; display: inline-flex; align-items: baseline; color: var(--ice); letter-spacing: .01em; }
+.word .o { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-left: .04em; background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--tangerine); box-shadow: 0 .07em 0 -.025em var(--pink); }
+
+/* header */
+.nav { position: sticky; top: 0; z-index: 10; background: rgb(10 18 51 / .86); backdrop-filter: blur(10px); border-bottom: 1px solid #2f5bff33; }
+.nav .in { height: var(--nav); display: flex; align-items: center; gap: 22px; }
+.brandlock { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brandlock img { width: 38px; height: 38px; }
+.menu { display: flex; gap: 4px; margin: 0 auto; }
+.menu a { font: 600 14px "Space Grotesk", sans-serif; color: var(--mist); padding: 7px 14px; border-radius: 999px; text-decoration: none; }
+.menu a:hover { color: var(--ice); }
+.menu a.on { color: var(--ice); background: #ffffff14; box-shadow: inset 0 0 0 1px #ffffff22; }
+.by { font-size: 13px; color: var(--mist); text-decoration: none; } .by b { color: var(--ice); } .by:hover b { color: var(--tangerine); }
+.btn { display: inline-block; font: 400 17px Bungee, sans-serif; letter-spacing: .02em; padding: 14px 22px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
+  background: linear-gradient(180deg, #ff9442, var(--tangerine)); color: #1a0a00; box-shadow: 0 10px 30px #ff7a1a55, inset 0 -3px 0 #0003; }
+.btn:hover { filter: brightness(1.06); } .btn:active { transform: translateY(1px); }
+.btn.small { font-size: 14px; padding: 9px 16px; box-shadow: 0 6px 18px #ff7a1a44, inset 0 -2px 0 #0003; }
+.btn.ghost { background: none; color: var(--ice); box-shadow: inset 0 0 0 2px #ffffff33; }
+.btn[disabled] { background: var(--slot); color: var(--mist); box-shadow: none; cursor: not-allowed; filter: none; }
+
+/* hero */
+.hero { position: relative; display: grid; grid-template-columns: 1fr 600px; gap: 20px; align-items: center; padding-top: 40px; padding-bottom: 20px; }
+.hero::before { content: ''; position: absolute; width: 900px; height: 900px; right: -260px; top: -260px; border-radius: 50%; background: radial-gradient(circle, #2f5bff4d, transparent 60%); pointer-events: none; z-index: -1; }
+.eyebrow { display: inline-flex; gap: 8px; align-items: center; font: 700 12px "Space Grotesk", sans-serif; letter-spacing: .16em; text-transform: uppercase; background: #ffffff10; box-shadow: inset 0 0 0 1px #ffffff22; padding: 7px 12px; border-radius: 999px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+h1 { font-size: 84px; line-height: .95; margin: 22px 0 18px; }
+h1 em { font-style: normal; color: var(--tangerine); text-shadow: 0 0 30px #ff7a1a66; }
+.lede { font-size: 19px; color: var(--mist); max-width: 520px; margin: 0; }
+.lede code, p code, li code { font: 700 .95em "Space Grotesk", sans-serif; color: var(--ice); background: var(--slot); padding: 1px 7px; border-radius: 7px; }
+.ctas { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+.free { margin-top: 16px; font-size: 14px; color: var(--mist); }
+.screen { position: relative; }
+.screen iframe { position: absolute; left: 50%; top: 50%; border: 0; background: transparent; transform-origin: 50% 50%; opacity: 0; transition: opacity .4s; }
+.screen iframe.ready { opacity: 1; }
+.poster { position: absolute; object-fit: contain; transition: opacity .4s; }
+.poster.gone { opacity: 0; }
+.hero .screen { height: 500px; }
+.chat { position: absolute; left: -30px; top: 140px; width: 210px; display: flex; flex-direction: column; gap: 8px; z-index: 2; pointer-events: none; }
+.msg { background: #0e1740; box-shadow: inset 0 0 0 1px #ffffff1f, 0 8px 20px #0006; border-radius: 14px; padding: 7px 12px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg b { margin-right: 6px; }
+
+/* sections */
+section.sec { position: relative; padding-top: 48px; padding-bottom: 8px; }
+h2 { font-size: 36px; margin: 0 0 14px; } h2 span { color: var(--tangerine); }
+.sub { color: var(--mist); margin: -6px 0 20px; max-width: 760px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 0; margin: 0; list-style: none; }
+.steps li, .card { background: linear-gradient(180deg, #16235c, #0f1a47); border-radius: 22px; padding: 22px; box-shadow: inset 0 0 0 1px var(--line), 0 0 40px #2f5bff14; }
+.ball { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font: 400 18px Bungee, sans-serif; color: #1a0a00; background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--tangerine); }
+.steps h3 { font-size: 19px; margin: 14px 0 6px; } .steps p { color: var(--mist); margin: 0; }
+.tgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 0; margin: 0; list-style: none; }
+.thm { all: unset; display: block; width: 100%; cursor: pointer; border-radius: 16px; }
+.thm img { display: block; width: 100%; height: auto; border-radius: 16px; transition: transform .2s; }
+.thm:hover img { transform: translateY(-3px); }
+.thm:focus-visible { outline: 3px solid var(--tangerine); outline-offset: 4px; }
+.thm h3 { font-size: 16px; margin: 10px 0 0; }
+.clearnote { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: center; margin-top: 22px; }
+.game { background: radial-gradient(circle at 60% 40%, #3b6b4a, #1d3326 60%, #0e1a13); border-radius: 16px; position: relative; overflow: hidden; }
+.clearnote .game { height: 200px; } .clearnote img { position: absolute; inset: 8px; width: calc(100% - 16px); height: calc(100% - 16px); object-fit: contain; }
+.clearnote p { color: var(--mist); margin: 0; }
+
+/* set-up */
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 24px; align-items: start; }
+.left { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; min-width: 0; }
+fieldset.card { border: 0; margin: 0; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.card legend { float: left; width: 100%; padding: 0; margin: 0 0 2px; font: 400 17px Bungee, sans-serif; color: var(--tangerine); }
+.card legend + * { clear: both; }
+.wide { grid-column: 1 / -1; }
+.field { display: grid; gap: 6px; font-size: 14px; color: var(--mist); }
+.lab { display: inline-flex; gap: 6px; align-items: center; }
+.box { display: flex; align-items: center; gap: 2px; background: var(--night); border-radius: 12px; padding: 0 12px; color: var(--ice); font-size: 16px; box-shadow: inset 0 0 0 1px #ffffff14; }
+.box:focus-within { outline: 3px solid var(--tangerine); outline-offset: 1px; }
+.box .pre { color: var(--mist); }
+.box input, .box select { flex: 1; width: 100%; min-width: 0; background: transparent; border: 0; color: var(--ice); font: inherit; padding: 10px 0; outline: none; }
+.box select option { background: var(--night); }
+.st { margin: -2px 0 0; font-size: 13px; min-height: 20px; color: var(--mist); display: flex; gap: 6px; }
+.st.ok { color: #2ee6a8; } .st.bad { color: #ff9ea2; }
+.st.ok::before { content: '✓'; } .st.bad::before { content: '!'; font-weight: 700; } .st.wait::before { content: '…'; }
+.note { font-size: 13px; color: var(--mist); margin: 0; }
+.seg { display: flex; background: var(--night); border-radius: 12px; padding: 3px; gap: 2px; box-shadow: inset 0 0 0 1px #ffffff14; }
+.seg label { flex: 1; text-align: center; position: relative; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 7px 4px; border-radius: 9px; font-size: 13px; color: var(--mist); white-space: nowrap; }
+.seg input:checked + span { background: var(--tangerine); color: #1a0a00; font-weight: 700; }
+.seg input:focus-visible + span { outline: 3px solid var(--ice); }
+.sw { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: var(--ice); cursor: pointer; }
+.sw input { appearance: none; width: 40px; height: 23px; border-radius: 99px; background: var(--slot); position: relative; margin: 0; flex: none; cursor: pointer; }
+.sw input::after { content: ''; position: absolute; left: 3px; top: 3px; width: 17px; height: 17px; border-radius: 50%; background: var(--mist); transition: transform .15s; }
+.sw input:checked { background: var(--tangerine); } .sw input:checked::after { transform: translateX(17px); background: var(--night); }
+.themes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.themes label { position: relative; cursor: pointer; } .themes input { position: absolute; opacity: 0; }
+.themes span { display: block; height: 28px; border-radius: 8px; }
+.themes input:checked + span { box-shadow: 0 0 0 2px var(--deep), 0 0 0 4px var(--ice); }
+.themes input:focus-visible + span { outline: 3px solid var(--tangerine); outline-offset: 3px; }
+.accents { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.accents label { position: relative; cursor: pointer; } .accents input[type=radio] { position: absolute; opacity: 0; }
+.accents span { display: block; width: 25px; height: 25px; border-radius: 50%; }
+.accents input:checked + span { box-shadow: 0 0 0 2px var(--deep), 0 0 0 4px var(--ice); }
+.accents .custom { position: relative; width: 25px; height: 25px; border-radius: 50%; background: conic-gradient(#ff5a5f, #ffc93c, #2ee6a8, #22e5ff, #b48cff, #ff63b8, #ff5a5f); display: grid; place-items: center; }
+.accents .custom::after { content: '+'; color: #fff; font: 700 15px/1 system-ui; text-shadow: 0 1px 2px #0008; }
+.accents .custom.on { box-shadow: 0 0 0 2px var(--deep), 0 0 0 4px var(--ice); }
+.accents .custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
+.odds { display: flex; gap: 3px; }
+.odds div { flex: 1; min-width: 0; text-align: center; border-radius: 8px; padding: 6px 0 5px; background: var(--slot); font-size: 10px; color: var(--mist); line-height: 1.3; white-space: nowrap; }
+.odds b { display: block; font: 400 12px Bungee, sans-serif; color: var(--ice); }
+.odds .top { background: #ff3d8b33; box-shadow: inset 0 0 0 1px var(--pink); }
+.adv { grid-column: 1 / -1; background: #0d1640; border-radius: 22px; padding: 16px 18px 18px; box-shadow: inset 0 0 0 1px #2f5bff33; }
+.adv summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.adv summary::-webkit-details-marker { display: none; }
+.adv .abtn { font: 400 15px Bungee, sans-serif; background: var(--slot); padding: 9px 16px; border-radius: 999px; }
+.adv .abtn::after { content: ' ▾'; color: var(--tangerine); } .adv[open] .abtn::after { content: ' ▴'; }
+.chg { font-size: 13px; background: var(--tangerine); color: #1a0a00; padding: 2px 10px; border-radius: 99px; font-weight: 700; }
+.adv .hint { font-size: 14px; color: var(--mist); }
+.agrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 16px; }
+.cmds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.cmds .box input { color: var(--tangerine); font-weight: 700; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--night); border-radius: 12px; padding: 7px 8px; min-height: 44px; cursor: text; box-shadow: inset 0 0 0 1px #ffffff14; }
+.tags:focus-within { outline: 3px solid var(--tangerine); outline-offset: 1px; }
+.tag { display: inline-flex; align-items: center; gap: 4px; background: var(--slot); border-radius: 99px; padding: 3px 4px 3px 11px; font-size: 14px; }
+.tag button { border: 0; background: none; color: var(--mist); font: 700 15px/1 system-ui; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; }
+.tag button:hover, .tag button:focus-visible { background: var(--tangerine); color: #1a0a00; }
+.tags input { flex: 1; min-width: 110px; background: transparent; border: 0; color: var(--ice); font: inherit; padding: 4px; outline: none; }
+.right { position: sticky; top: calc(var(--nav) + 16px); background: linear-gradient(180deg, #16235c, #0f1a47); border-radius: 22px; padding: 16px; display: grid; gap: 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.right h3 { margin: 0; font-size: 17px; display: flex; justify-content: space-between; align-items: baseline; }
+.right h3 small { font: 12px "Space Grotesk", sans-serif; color: var(--mist); }
+.right .screen { border-radius: 14px; overflow: hidden; }
+#pv-screen { height: 330px; } #lb-screen { height: 170px; }
+.pvlab { font-size: 12px; color: var(--mist); margin: -4px 0 0; }
+.copies { display: grid; gap: 8px; } .copies .btn { width: 100%; }
+.meta { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--mist); flex-wrap: wrap; }
+.meta b { color: var(--ice); font-weight: 600; }
+.meta button, .meta a { font: inherit; background: none; border: 0; padding: 0; color: var(--mist); text-decoration: underline; cursor: pointer; }
+.link { font: 12px ui-monospace, Menlo, monospace; background: var(--night); padding: 10px 12px; border-radius: 10px; word-break: break-all; margin: 0; }
+.need { margin: 0; font-size: 13px; color: var(--tangerine); }
+.how { font-size: 13px; color: var(--mist); border-top: 1px solid #2f5bff33; padding-top: 10px; margin: 0; }
+
+/* FAQ, footer */
+.faq { display: grid; gap: 10px; max-width: 860px; }
+.faq details { background: var(--deep); border-radius: 16px; padding: 14px 18px; box-shadow: inset 0 0 0 1px #2f5bff33; }
+.faq summary { font: 400 16px Bungee, sans-serif; cursor: pointer; }
+.faq p { color: var(--mist); margin: 8px 0 0; }
+footer.site { text-align: center; color: var(--mist); font-size: 14px; padding: 48px 20px 56px; }
+footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6px 0; }
+
+@media (max-width: 1080px) {
+  .menu { display: none; }
+  .hero { grid-template-columns: 1fr; } .hero .screen { height: 440px; max-width: 600px; width: 100%; } .chat { left: 0; top: auto; bottom: 10px; }
+  .cols { grid-template-columns: 1fr; } .right { position: static; order: -1; }
+}
+@media (max-width: 720px) {
+  .wrap { padding: 0 16px; } .by { display: none; }
+  h1 { font-size: 54px; }
+  .steps, .tgrid { grid-template-columns: 1fr 1fr; } .left, .agrid { grid-template-columns: 1fr; } .cmds { grid-template-columns: 1fr 1fr; }
+  .clearnote { grid-template-columns: 1fr; }
+  .hero .screen { height: 320px; } #pv-screen { height: 260px; } .chat { display: none; }
+}
+@media (max-width: 460px) { .steps, .tgrid { grid-template-columns: 1fr; } .nav .btn { display: none; } h1 { font-size: 46px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap in">
+  <a class="brandlock" href="#top" aria-label="Chaplinko"><img src="assets/icon.svg" alt="" width="38" height="38"><span class="word">CHAPLINK<span class="o"></span></span></a>
+  <nav class="menu" aria-label="Sections"><a href="#how">How it works</a><a href="#looks">Looks</a><a href="#setup">Set up</a><a href="#faq">FAQ</a></nav>
+  <a class="by" href="/">made by <b>TrongatesLegacy</b></a>
+  <a class="btn small" href="#setup">Set it up</a>
+</div></header>
+
+<main id="top">
+<section class="wrap hero">
+  <div>
+    <span class="eyebrow"><span class="dot" style="background:#9146ff"></span><span class="dot" style="background:#53fc18"></span>Free for Twitch and Kick</span>
+    <h1>LET CHAT<br><em>DROP.</em></h1>
+    <p class="lede">Chat types <code>!drop</code>. Balls bounce down the pegs, in each chatter’s own colour, and the slots keep score. A leaderboard for this stream and all time, straight over your game.</p>
+    <div class="ctas"><a class="btn" href="#setup">SET IT UP</a><a class="btn ghost" href="#looks">SEE THE LOOKS</a></div>
+    <p class="free">No sign-up, no download: one link in OBS.</p>
+  </div>
+  <div class="screen" id="hero-screen"><img class="poster" id="hero-poster" src="assets/themes/clear.webp" alt="" width="640" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chaplinko playing with a pretend chat" width="640" height="540" tabindex="-1"></iframe><div class="chat" id="chat" aria-hidden="true"></div></div>
+</section>
+
+<section class="wrap sec pegs" id="how"><h2>How it <span>works</span></h2>
+  <ol class="steps">
+    <li><div class="ball">1</div><h3>TYPE YOUR CHANNEL</h3><p>Twitch, Kick or both. Pick a look, or keep it see-through over your game.</p></li>
+    <li><div class="ball">2</div><h3>ADD IT TO OBS</h3><p>Paste the link into a browser source. The leaderboard can be its own source, or sit beside the board.</p></li>
+    <li><div class="ball">3</div><h3>CHAT DROPS</h3><p>Every <code>!drop</code> scores. Spam it, climb the leaderboard, and land the jackpot for the whole stream to see.</p></li>
+  </ol>
+</section>
+
+<section class="wrap sec" id="looks"><h2>9 <span>looks</span></h2><p class="sub">Transparent over your game by default. Or give it a background in any of these, with any accent colour. Click one to use it.</p>
+  <ul class="tgrid" id="tgrid"></ul>
+  <div class="clearnote"><div class="game"><img src="assets/themes/clear.webp" alt="The board, transparent over a game" width="640" height="540" loading="lazy"></div><p><b>Transparent is the default</b>: the pegs, slots and balls sit straight over your game, each with a soft shadow so they read over anything. The leaderboard can be transparent too.</p></div>
+</section>
+
+<section class="wrap sec" id="setup"><h2>Set up <span>in a minute</span></h2>
+<form class="cols" id="form" onsubmit="return false">
+  <div class="left">
+    <fieldset class="card"><legend>1 · Your channels</legend>
+      <label class="field"><span class="lab"><span class="dot" style="background:#9146ff"></span>Twitch</span><span class="box"><span class="pre">twitch.tv/</span><input name="twitch" autocomplete="off" spellcheck="false" placeholder="your_channel"></span></label>
+      <p class="st" id="twitch-st" aria-live="polite"></p>
+      <label class="field"><span class="lab"><span class="dot" style="background:#53fc18"></span>Kick</span><span class="box"><span class="pre">kick.com/</span><input name="kick" autocomplete="off" spellcheck="false" placeholder="your_channel"></span></label>
+      <p class="st" id="kick-st" aria-live="polite"></p>
+      <label class="field" id="kickid-field" hidden><span>Kick chatroom ID (only if Kick can’t confirm your channel)</span><span class="box"><input name="kickid" inputmode="numeric" autocomplete="off" placeholder="found automatically"></span></label>
+    </fieldset>
+    <fieldset class="card"><legend>2 · Layout</legend>
+      <div class="field"><span class="lab" id="l-layout">Sources</span><div class="seg" role="radiogroup" aria-labelledby="l-layout">
+        <label><input type="radio" name="layout" value="separate"><span>Separate</span></label><label><input type="radio" name="layout" value="combined"><span>Combined</span></label></div></div>
+      <p class="note" id="layout-note"></p>
+      <div class="field" id="side-field"><span class="lab" id="l-side">Leaderboard</span><div class="seg" role="radiogroup" aria-labelledby="l-side">
+        <label><input type="radio" name="side" value="left"><span>Left</span></label><label><input type="radio" name="side" value="right"><span>Right</span></label><label><input type="radio" name="side" value="off"><span>Off</span></label></div></div>
+    </fieldset>
+    <fieldset class="card"><legend>3 · Look</legend>
+      <div class="field"><span class="lab" id="l-bgo">Background</span><div class="seg" role="radiogroup" aria-labelledby="l-bgo">
+        <label><input type="radio" name="bgo" value="0"><span>Transparent</span></label><label><input type="radio" name="bgo" value="80"><span>80%</span></label><label><input type="radio" name="bgo" value="95"><span>95%</span></label><label><input type="radio" name="bgo" value="100"><span>Solid</span></label></div></div>
+      <div class="field"><span class="lab" id="l-theme">Theme: <b id="theme-name" style="color:var(--ice);font-weight:600"></b></span><div class="themes" id="theme-pick" role="radiogroup" aria-labelledby="l-theme"></div></div>
+      <div class="field"><span class="lab" id="l-accent">Accent colour</span><div class="accents" id="accents" role="radiogroup" aria-labelledby="l-accent"></div></div>
+    </fieldset>
+    <fieldset class="card"><legend>4 · The board</legend>
+      <div class="field"><span class="lab" id="l-rows">Rows of pegs</span><div class="seg" role="radiogroup" aria-labelledby="l-rows">
+        <label><input type="radio" name="rows" value="8"><span>8</span></label><label><input type="radio" name="rows" value="9"><span>9</span></label><label><input type="radio" name="rows" value="10"><span>10</span></label><label><input type="radio" name="rows" value="11"><span>11</span></label><label><input type="radio" name="rows" value="12"><span>12</span></label></div></div>
+      <div class="field"><span class="lab">Points and odds (from 100,000 real drops)</span><div class="odds" id="odds"></div></div>
+      <label class="field"><span>Balls per <code id="cmd-name">!drop</code></span><span class="box"><select name="balls"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option><option value="8">8</option><option value="10">10</option></select></span></label>
+      <label class="field"><span>Ball colour</span><span class="box"><select name="color"><option value="chat">Each chatter’s chat colour</option><option value="accent">The accent colour</option><option value="platform">Twitch purple, Kick green</option><option value="rainbow">Rainbow</option></select></span></label>
+    </fieldset>
+    <fieldset class="card wide" id="lb-card"><legend>5 · Leaderboard</legend>
+      <div class="left" style="gap:14px 22px">
+        <div class="field"><span class="lab" id="l-show">Show</span><div class="seg" role="radiogroup" aria-labelledby="l-show">
+          <label><input type="radio" name="lbshow" value="both"><span>Both</span></label><label><input type="radio" name="lbshow" value="stream"><span>This stream</span></label><label><input type="radio" name="lbshow" value="all"><span>All time</span></label></div></div>
+        <label class="field" id="every-field"><span>Switch between them every</span><span class="box"><select name="lbevery"><option value="5">5 seconds</option><option value="10">10 seconds</option><option value="15">15 seconds</option><option value="20">20 seconds</option><option value="30">30 seconds</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="300">5 minutes</option></select></span></label>
+        <label class="field"><span>Players shown</span><span class="box"><select name="lbn"><option value="3">Top 3</option><option value="5">Top 5</option><option value="8">Top 8</option><option value="10">Top 10</option></select></span></label>
+        <div class="field" id="shape-field"><span class="lab" id="l-shape">Shape (its own source)</span><div class="seg" role="radiogroup" aria-labelledby="l-shape">
+          <label><input type="radio" name="lbshape" value="panel"><span>Panel</span></label><label><input type="radio" name="lbshape" value="strip"><span>Strip 720×72</span></label></div></div>
+        <label class="sw wide" id="own-field">Its own look (not the board’s) <input type="checkbox" role="switch" id="own"></label>
+        <div class="field" id="own-look" hidden><span class="lab" id="l-lbtheme">Leaderboard theme</span><div class="themes" id="lbtheme-pick" role="radiogroup" aria-labelledby="l-lbtheme"></div></div>
+        <div class="field" id="own-bg" hidden><span class="lab" id="l-lbbgo">Leaderboard background</span><div class="seg" role="radiogroup" aria-labelledby="l-lbbgo">
+          <label><input type="radio" name="lbbgo" value="0"><span>Transparent</span></label><label><input type="radio" name="lbbgo" value="95"><span>95%</span></label><label><input type="radio" name="lbbgo" value="100"><span>Solid</span></label></div></div>
+      </div>
+    </fieldset>
+    <details class="adv" id="adv"><summary><span class="abtn">⚙ Advanced settings</span><span class="chg" id="chg" hidden></span><span class="hint">slot values, big wins, motion, commands, credit…</span></summary>
+      <div class="agrid">
+        <fieldset class="card"><legend>The board</legend>
+          <label class="field"><span>Slot values, left to right (blank: the default)</span><span class="box"><input name="slots" autocomplete="off" spellcheck="false" id="slots-in"></span></label>
+          <p class="note" id="slots-note">One number per slot, 0–1000, commas between.</p>
+          <label class="field"><span>Big win card</span><span class="box"><select name="bigwin"><option value="top">The top slot (a jackpot)</option><option value="top2">The top two slots</option><option value="off">Never</option></select></span></label>
+          <label class="field"><span>Motion</span><span class="box"><select name="motion"><option value="auto">Full</option><option value="calm">Calm: fewer effects</option><option value="reduce">Minimal: nothing falls</option></select></span></label>
+          <label class="field"><span>Speed</span><span class="box"><select name="speed"><option value="slow">Slow</option><option value="normal">Normal</option><option value="fast">Fast</option></select></span></label>
+          <label class="sw">Show the commands on the board <input type="checkbox" role="switch" name="showcmd"></label>
+          <label class="sw">“So close!” near misses <input type="checkbox" role="switch" name="nearmiss"></label>
+        </fieldset>
+        <fieldset class="card"><legend>Chat</legend>
+          <label class="field"><span>Most balls on the board (the rest wait their turn)</span><span class="box"><select name="max"><option value="40">40</option><option value="60">60</option><option value="100">100</option><option value="150">150</option><option value="200">200</option></select></span></label>
+          <label class="field"><span>Wait between one viewer’s drops</span><span class="box"><select name="cool"><option value="0">None: spam away</option><option value="5">5 seconds</option><option value="10">10 seconds</option><option value="20">20 seconds</option><option value="30">30 seconds</option><option value="60">1 minute</option></select></span></label>
+          <div class="field"><span class="lab" id="l-ignore">Ignore these users (bots)</span><div class="tags" data-tags="ignore" data-placeholder="Add a name…" aria-labelledby="l-ignore"></div></div>
+          <label class="sw">Show All time <input type="checkbox" role="switch" name="remember"></label>
+          <label class="sw">Show “Made by TrongatesLegacy.com” <input type="checkbox" role="switch" name="credit"></label>
+        </fieldset>
+        <fieldset class="card wide"><legend>Chat commands</legend>
+          <div class="cmds">
+            <label class="field"><span>Drop</span><span class="box"><input name="cdrop" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Pause drops</span><span class="box"><input name="cpause" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Resume drops</span><span class="box"><input name="cresume" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Clear the board</span><span class="box"><input name="cclear" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Show the leaderboard</span><span class="box"><input name="ctop" autocomplete="off" spellcheck="false"></span></label>
+            <label class="field"><span>Clear all scores (only you)</span><span class="box"><input name="cwipe" autocomplete="off" spellcheck="false"></span></label>
+          </div>
+          <div class="field"><span class="lab" id="l-perm">Who can pause, resume and clear</span><div class="seg" role="radiogroup" aria-labelledby="l-perm"><label><input type="radio" name="perm" value="me"><span>Only me</span></label><label><input type="radio" name="perm" value="mods"><span>Me and mods</span></label><label><input type="radio" name="perm" value="all"><span>Everyone</span></label></div></div>
+          <label class="sw">Leaderboard command (for streamers without the leaderboard on screen) <input type="checkbox" role="switch" name="lb"></label>
+          <p class="note">Everyone can always drop. Several names for a command: separate them with commas.</p>
+        </fieldset>
+      </div>
+    </details>
+  </div>
+  <aside class="right" aria-label="Live preview and your OBS links">
+    <h3>LIVE PREVIEW <small>pretend chat, over a pretend game</small></h3>
+    <div class="screen game" id="pv-screen"><img class="poster" id="pv-poster" src="assets/themes/clear.webp" alt="" loading="lazy"><iframe id="pv" title="Preview of your Chaplinko board" width="640" height="540" tabindex="-1"></iframe></div>
+    <p class="pvlab" id="lb-lab">The leaderboard, its own source:</p>
+    <div class="screen game" id="lb-screen"><iframe id="lbpv" title="Preview of your Chaplinko leaderboard" width="300" height="270" tabindex="-1"></iframe></div>
+    <div class="copies"><button type="button" class="btn" id="copy">COPY BOARD LINK</button><button type="button" class="btn ghost" id="copy-lb">COPY LEADERBOARD LINK</button></div>
+    <p class="need" id="need">Add your Twitch or Kick channel first (step 1).</p>
+    <div class="meta"><span id="sizes"></span><span id="links" hidden><button type="button" id="show" aria-expanded="false" aria-controls="link">Show links</button> · <a id="open" href="play" target="_blank" rel="noopener">Open in new tab</a></span></div>
+    <p class="link" id="link" hidden></p>
+    <p class="how">In OBS: Sources → + → Browser, paste the link, set the size above. Changed a setting? Copy again and paste over the old link.</p>
+  </aside>
+</form>
+</section>
+
+<section class="wrap sec" id="faq"><h2>FAQ</h2>
+<div class="faq">
+  <details open><summary>Is this gambling?</summary><p>No. Nobody stakes anything and nothing is worth money: every drop is free and scores points, and the points are only for the leaderboard and bragging rights.</p></details>
+  <details><summary>Is it really free?</summary><p>Yes. No account, no login, no catch. It’s a web page you add to OBS as a browser source. The small “Made by” line can be turned off in Advanced settings.</p></details>
+  <details><summary>Separate or combined?</summary><p>Separate gives you two sources, the board and the leaderboard, to place and size anywhere. Combined is one source with the leaderboard beside the board: one link, easiest to set up. Both show the same scores.</p></details>
+  <details><summary>How often can viewers drop?</summary><p>As often as they like: spamming <code>!drop</code> is the point, and the more you drop, the higher you climb. The board limits itself instead of your viewers: past the most balls on screen, drops wait their turn, and when chat floods it goes into Frenzy. You can add a wait per viewer in Advanced settings.</p></details>
+  <details><summary>Which emotes work?</summary><p>Any emote Twitch or Kick shows in chat, plus emoji: <code>!drop 🔥</code>. 7TV, BTTV and FFZ emotes don’t yet.</p></details>
+  <details><summary>How do the leaderboards work?</summary><p>This stream starts fresh each time you go live (Chaplinko asks Twitch or Kick whether you’re live, so a crash and a quick restart still count as one stream). All time is kept for good. You can wipe both with <code>!drop clearscores</code> (only you can).</p></details>
+  <details><summary>Are the odds real?</summary><p>Yes. The odds on this page come from dropping 100,000 balls through the same physics your board runs, and every drop is fair side to side. More rows make the top slot rarer.</p></details>
+  <details><summary>Does it need my Twitch or Kick password?</summary><p>No. It only reads your public chat, the way a viewer does, and never posts anything.</p></details>
+</div>
+</section>
+</main>
+
+<footer class="site">
+  <p>Chaplinko is free, made by <b>Trongates Legacy</b> · <a href="/">trongateslegacy.com</a> · <a href="/chatagram/">Chatagram</a> · <a href="/widgets/">More widgets</a> · <a href="https://kick.com/trongateslegacy">Say hi on Kick</a></p>
+  <p>Not connected to any game show. Fonts: Bungee and Space Grotesk (SIL Open Font License).</p>
+</footer>
+
+<script src="../widgets/lib/settings.js"></script>
+<script src="../widgets/lib/theme.js"></script>
+<script src="../widgets/lib/platforms/twitch.js"></script>
+<script src="../widgets/lib/platforms/kick.js"></script>
+<script src="settings.js"></script>
+<script src="odds.js"></script>
+<script src="setup.js"></script>
+</body></html>

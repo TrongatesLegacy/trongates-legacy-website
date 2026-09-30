@@ -62,7 +62,9 @@
   const scores = W.scores(demo || still ? pretendScores() : savedScores, { now });
   const bc = 'BroadcastChannel' in window ? new BroadcastChannel(demo || still ? 'chaplinko:demo' : `chaplinko:${pair}`) : null;
   let saveTimer = null;
-  const writeSaves = () => { try { localStorage.setItem(SCORES, JSON.stringify(scores.record)); if (!demo && !still) localStorage.setItem(SAVE, JSON.stringify(game.snapshot())); } catch {} if (bc) bc.postMessage({ type: 'scores' }); };
+  // a pretend board only shares its scores when asked (share=1: the set-up page's preview, paired with its pretend leaderboard)
+  const shares = !still && (!demo || q.get('share') === '1');
+  const writeSaves = () => { if (!shares) return; try { localStorage.setItem(SCORES, JSON.stringify(scores.record)); if (!demo) localStorage.setItem(SAVE, JSON.stringify(game.snapshot())); } catch {} if (bc) bc.postMessage({ type: 'scores' }); };
   const save = () => { if (still || saveTimer) return; saveTimer = setTimeout(() => { saveTimer = null; writeSaves(); lbRefresh(); }, 250); };
   // the preview and pictures: made-up players (every name is made up)
   function pretendScores() {
@@ -74,7 +76,7 @@
   }
 
   // ---- the physics and the rules -----------------------------------------------------------------------------------------
-  const world = P.world({ rows: cfg.rows, collide: true });
+  const world = P.world({ rows: cfg.rows });
   const L = world.layout;
   const game = K.game(cfg, { now, layout: L, saved, award: (m, pts, n) => scores.award(m, pts, n) });
   const SPEED = { slow: 0.75, normal: 1, fast: 1.3 }[cfg.speed];
@@ -178,9 +180,9 @@
     if (res.near && level === 'quiet' && !rm) { number(cx, L.slots.y - 46, 'so close!', css(C.gold), 15, -1, true); wobble = { slot: slot + (game.values[slot + 1] === game.top ? 1 : -1), t: 0 }; }
     if (res.tier === 'big' && res.card && level !== 'frenzy') toast(by, res.pts);
     if (res.tier === 'jackpot') {
-      if (bc) bc.postMessage({ type: 'jackpot', key: `${by.platform}:${by.user}` });
+      if (bc && shares) bc.postMessage({ type: 'jackpot', key: `${by.platform}:${by.user}` });
       if (lbc) lbc.jackpot(`${by.platform}:${by.user}`);
-      if (res.card) jackpot({ by, res, slot, color });
+      if (res.card && !(still && screen !== 'jackpot')) jackpot({ by, res, slot, color });   // a still picture only shows the card when asked
     }
     return res;
   }
@@ -385,7 +387,6 @@
   function tick(dt) {
     for (const it of game.take(world.balls.length)) spawn(it);
     const slow = now() < slowUntil ? 0.33 : 1;
-    world.collide = lv() !== 'frenzy';
     acc += dt * SPEED * slow;
     let steps = 0;
     while (acc >= P.STEP && steps < 40) {

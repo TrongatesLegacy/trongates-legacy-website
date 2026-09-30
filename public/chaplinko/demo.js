@@ -5,7 +5,7 @@
   const K = (window.Chaplinko = window.Chaplinko || {});
   const PEOPLE = [['PixelPanda', '#ff4f9a'], ['NeonNacho', '#1e90ff'], ['SleepyWaffle', '#ffb000'], ['GridRunner', '#2ee6a8'], ['CaptainQuack', '#b36bff'],
     ['MossyMoose', '#7ed957'], ['ByteSizeBea', '#ff6a3d'], ['TurboTofu', '#00c2d1'], ['LunaLlama', '#ff9ecb'], ['WaffleWizard', ''], ['KevXD', '#ffd23f'], ['Sprout', '#5ad1ff']];
-  const EMOJI = ['🔥', '😂', '💜', '🐸', '⭐', '🍕', '👑', '💀'];
+  const EMOJI = ['🔥', '😂', '💜', '🐸', '⭐', '🍕', '👑', '🎉'];
 
   /**
    * @param {(m: any) => void} say  where messages go

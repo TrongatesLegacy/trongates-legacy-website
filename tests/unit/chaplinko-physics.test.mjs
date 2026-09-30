@@ -43,15 +43,14 @@ test('every ball lands, within 8 s on its own', () => {
   }
 });
 
-test('a crowd: 100 balls at once, bumping each other, all land and none stays on the board', () => {
-  for (const collide of [true, false]) {
-    const w = P.world({ rows: 10, collide });
-    for (let i = 0; i < 100; i++) w.add({ seed: i + 1 });
-    let landed = 0;
-    for (let i = 0; i < 120 * 35 && w.balls.length; i++) landed += w.step().filter((e) => e.type === 'land').length;
-    assert.equal(w.balls.length, 0, `collide ${collide}: ${w.balls.length} still on the board`);
-    assert.equal(landed, 100);
-  }
+test('a crowd: 100 balls at once all land, none stays on the board, and each lands exactly where it would alone', () => {
+  const w = P.world({ rows: 10 });
+  for (let i = 0; i < 100; i++) w.add({ seed: i + 1 });
+  const got = new Map();
+  for (let i = 0; i < 120 * 35 && w.balls.length; i++) for (const e of w.step()) if (e.type === 'land') got.set(e.ball.seed, e.slot);
+  assert.equal(w.balls.length, 0);
+  assert.equal(got.size, 100);
+  for (let s = 1; s <= 100; s++) assert.equal(got.get(s), P.drop(s, { rows: 10 }).slot, `seed ${s}: balls never change each other's landing (the odds stay true)`);
 });
 
 test('the layout: the slots sit under the gaps of the bottom row, and the board fits 640 × 540 at every row count', () => {
