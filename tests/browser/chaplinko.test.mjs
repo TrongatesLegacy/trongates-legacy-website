@@ -238,3 +238,19 @@ test('combined: the leaderboard beside the board can have its own theme and its 
   assert.equal(await tab.eval('document.querySelector(".lbw").dataset.theme'), 'royal', 'the leaderboard keeps its own');
   await tab.close();
 });
+
+test('the set-up page: the leaderboard\'s own accent; Reset to defaults resets every setting but the channels', async () => {
+  const tab = await chrome.open(site.origin + '/chaplinko/?kick=gridrunner&rows=12&lbshow=all&bgo=100&cool=10', { width: 1280, height: 900, init: `localStorage.removeItem('chaplinko:setup');` });
+  await tab.until('window.chaplinkoSetup', 5000, 'the set-up');
+  const click = (sel) => tab.eval(`(() => { document.querySelector(${JSON.stringify(sel)}).click(); return 1; })()`);
+  await click('#own'); await click('input[name=lbtheme][value="neon"]'); await click('input[name=lbaccentpick][value="ff3d8b"]');
+  const lb = new URL(await tab.eval('chaplinkoSetup.lbLink()')).searchParams;
+  assert.equal(lb.get('theme'), 'neon'); assert.equal(lb.get('accent'), 'ff3d8b', 'its own accent');
+  assert.equal(await tab.eval('document.getElementById("reset").disabled'), false);
+  await click('#reset');
+  assert.equal(await tab.eval('chaplinkoSetup.boardLink()'), site.origin + '/chaplinko/play?kick=gridrunner', 'everything back to default but the channel');
+  assert.equal(await tab.eval('chaplinkoSetup.lbLink()'), site.origin + '/chaplinko/leaderboard?kick=gridrunner');
+  assert.equal(await tab.eval('document.getElementById("reset").disabled'), true, 'nothing left to reset');
+  noErrors(tab, 'reset');
+  await tab.close();
+});

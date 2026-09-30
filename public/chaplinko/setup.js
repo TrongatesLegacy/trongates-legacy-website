@@ -23,14 +23,18 @@
   const swatches = (name) => K.settings.THEMES.map((t) => `<label title="${THEME_NAMES[t]}"><input type="radio" name="${name}" value="${t}" aria-label="${THEME_NAMES[t]}"><span style="background:linear-gradient(90deg, ${THEME_BG[t]} 58%, #${W.theme.ACCENTS[t]} 0)${t === 'light' || t === 'cozy' ? ';box-shadow:inset 0 0 0 1px #0003' : ''}"></span></label>`).join('');
   $('#theme-pick').innerHTML = swatches('theme');
   $('#lbtheme-pick').innerHTML = swatches('lbtheme');
+  // accent swatches: the board's (accent) and the leaderboard's own (lbaccent, with its own theme)
+  const PICKERS = { accent: { box: '#accents', theme: () => s.theme, radio: 'accentpick', custom: 'accent-custom' }, lbaccent: { box: '#lbaccents', theme: () => (s.lbtheme === 'same' ? s.theme : s.lbtheme), radio: 'lbaccentpick', custom: 'lbaccent-custom' } };
   function drawAccents() {
-    const def = W.theme.ACCENTS[s.theme];
-    const list = [[def, 'The theme’s own colour'], ...ACCENTS.filter(([c]) => c !== def)].slice(0, 7);
-    const custom = s.accent && !list.some(([c]) => c === s.accent) ? s.accent : '';
-    $('#accents').innerHTML = list.map(([c, n], i) => `<label title="${n}"><input type="radio" name="accentpick" value="${i ? c : ''}" aria-label="${n}"><span style="background:#${c}"></span></label>`).join('') +
-      `<label class="custom${custom ? ' on' : ''}" title="Any colour"${custom ? ` style="background:#${custom}"` : ''}><input type="color" id="accent-custom" value="#${custom || def}" aria-label="Pick any colour"></label>`;
-    const pick = custom ? null : s.accent && list.slice(1).some(([c]) => c === s.accent) ? s.accent : '';
-    for (const r of $$('input[name=accentpick]')) r.checked = pick !== null && r.value === pick;
+    for (const [key, p] of Object.entries(PICKERS)) {
+      const def = W.theme.ACCENTS[p.theme()], cur = s[key];
+      const list = [[def, 'The theme’s own colour'], ...ACCENTS.filter(([c]) => c !== def)].slice(0, 7);
+      const custom = cur && !list.some(([c]) => c === cur) ? cur : '';
+      $(p.box).innerHTML = list.map(([c, n], i) => `<label title="${n}"><input type="radio" name="${p.radio}" value="${i ? c : ''}" aria-label="${n}"><span style="background:#${c}"></span></label>`).join('') +
+        `<label class="custom${custom ? ' on' : ''}" title="Any colour"${custom ? ` style="background:#${custom}"` : ''}><input type="color" id="${p.custom}" value="#${custom || def}" aria-label="Pick any colour"></label>`;
+      const pick = custom ? null : cur && list.slice(1).some(([c]) => c === cur) ? cur : '';
+      for (const r of $$(`input[name=${p.radio}]`)) r.checked = pick !== null && r.value === pick;
+    }
   }
 
   // ---- tag fields (ignored users): chips with a ×; Enter, comma or leaving the box adds ---------------------------------------
@@ -92,8 +96,9 @@
   form.addEventListener('input', (e) => {
     const el = e.target;
     if (el.closest('[data-tags]')) return;
-    if (el.name === 'accentpick') s.accent = el.value;
-    else if (el.id === 'accent-custom') { s.accent = el.value.replace('#', ''); const c = el.closest('.custom'); c.classList.add('on'); c.style.background = el.value; for (const r of $$('input[name=accentpick]')) r.checked = false; update({ fill: false }); return; }
+    const picker = Object.entries(PICKERS).find(([, p]) => el.name === p.radio || el.id === p.custom);
+    if (picker && el.name === picker[1].radio) s[picker[0]] = el.value;
+    else if (picker) { s[picker[0]] = el.value.replace('#', ''); const c = el.closest('.custom'); c.classList.add('on'); c.style.background = el.value; for (const r of $$(`input[name=${picker[1].radio}]`)) r.checked = false; update({ fill: false }); return; }
     else if (el.id === 'own') { s.lbtheme = el.checked ? s.theme : 'same'; s.lbaccent = ''; }
     else if (el.type === 'text' || (el.tagName === 'INPUT' && !['radio', 'checkbox'].includes(el.type))) {
       read(el);
@@ -103,13 +108,14 @@
     }
     else read(el);
     if (el.name === 'theme') s.accent = '';
+    if (el.name === 'lbtheme') s.lbaccent = '';
     update();
   });
   form.addEventListener('change', (e) => {
     const el = e.target;
     if (el.name === 'twitch') { s.twitch = W.platforms.twitch.channel(el.value); el.value = s.twitch; }
     if (el.name === 'kick') { s.kick = W.platforms.kick.channel(el.value); el.value = s.kick; }
-    if (el.id === 'accent-custom') drawAccents();
+    if (el.id === 'accent-custom' || el.id === 'lbaccent-custom') drawAccents();
     update({ fill: false });
   });
 
@@ -233,7 +239,7 @@
     $('#layout-note').textContent = comb ? 'One source, 960 × 540: the board with the leaderboard beside it.' : 'Two sources: the board (640 × 540) and the leaderboard, each placed where you like.';
     $('#shape-field').hidden = comb;
     $('#own-field').hidden = comb && s.side === 'off';                    // its own theme works beside the board too
-    $('#own-look').hidden = s.lbtheme === 'same' || (comb && s.side === 'off');
+    $('#own-look').hidden = $('#own-accent').hidden = s.lbtheme === 'same' || (comb && s.side === 'off');
     $('#every-field').hidden = s.lbshow !== 'both';
     $('#lbbgo-field').hidden = comb && s.side === 'off';
     $('#lb-card').hidden = comb && s.side === 'off';
@@ -245,7 +251,7 @@
     $('#open').href = boardLink();
     const n = W.settings.changed(SCHEMA, s, ADVANCED) + (manualKickId && s.kickid ? 1 : 0);
     $('#chg').hidden = !n; $('#chg').textContent = `${n} changed`;
-    $('#reset').disabled = !n;
+    $('#reset').disabled = !W.settings.changed(SCHEMA, s, resettable());
     drawOdds();
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
     readyToCopy();
@@ -272,10 +278,13 @@
   info.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); const open = !info.classList.contains('open'); info.classList.toggle('open', open); e.currentTarget.setAttribute('aria-expanded', String(open)); });
   document.addEventListener('click', (e) => { if (!info.contains(e.target)) { info.classList.remove('open'); info.querySelector('button').setAttribute('aria-expanded', 'false'); } });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { info.classList.remove('open'); info.querySelector('button').setAttribute('aria-expanded', 'false'); } });
-  // Advanced → Reset to defaults: every advanced setting back to its default (channels, layout and look stay)
+  // Reset to defaults (Advanced, top right): every setting back to its default, except the channels (the owner: all
+  // settings, not just the advanced ones; wiping the channel names too is never what anyone wants)
+  const KEEP = ['twitch', 'kick', 'kickid'];
+  const resettable = () => Object.keys(SCHEMA).filter((k) => !KEEP.includes(k));
   $('#reset').addEventListener('click', (e) => {
     e.preventDefault(); e.stopPropagation();
-    for (const k of ADVANCED) s[k] = Array.isArray(SCHEMA[k].def) ? [...SCHEMA[k].def] : SCHEMA[k].def;
+    for (const k of resettable()) s[k] = Array.isArray(SCHEMA[k].def) ? [...SCHEMA[k].def] : SCHEMA[k].def;
     update();
   });
   if (fromLink && W.settings.changed(SCHEMA, s, ADVANCED)) $('#adv').open = true;

@@ -464,8 +464,10 @@ in and the jackpot slot lit. Tagline "Let chat drop." Credit as Chatagram: "made
 - Header: the mark, the wordmark with "made by TrongatesLegacy" under it, the section menu, More widgets ↗, Set it up.
 - The pretend chat drops Chaplinko's own animated emotes (`assets/emotes/`, `artwork/chaplinko/emotes.mjs`), so the hero
   and the preview show animated emotes falling; the hero's chat bubbles show them as they'd appear in chat.
-- Advanced settings has **Reset to defaults** (top right): every advanced setting back to its default; the channels,
-  layout and look stay.
+- Advanced settings has **Reset to defaults** (top right): every setting back to its default except the channels (the
+  owner: all settings, not just the advanced ones).
+- The Look card has the leaderboard's look too: its background, and (switched on) its own theme and accent, in either
+  layout.
 - Sections: hero (the board transparent over the page's glow with a pretend chat beside it), how it works, the looks
   (every theme as a picture, click to use; transparent is the default), set up, FAQ ("Is this gambling?" first).
 - **Set up**: channels (checked as typed, as Chatagram), layout (separate / combined, the leaderboard's side), look
