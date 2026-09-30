@@ -72,7 +72,7 @@ iframe { border: 0; background: transparent; position: absolute; }
 #tag { top: 830px; font-size: 64px; } .v #tag { top: 1090px; font-size: 60px; }
 /* montage */
 .grid8 { position: absolute; left: 50%; top: 250px; transform: translateX(-50%); display: grid; grid-template-columns: repeat(4, 380px); gap: 24px; }
-.v .grid8 { top: 330px; grid-template-columns: repeat(3, 320px); gap: 16px; }
+.v .grid8 { top: 290px; grid-template-columns: repeat(2, 360px); gap: 20px 24px; }   /* two even columns of four */
 .grid8 img { width: 100%; border-radius: 18px; opacity: 0; transform: rotateY(90deg); box-shadow: 0 0 40px #2f5bff44; }
 .grid8.go img { animation: flipIn .4s cubic-bezier(.2,.9,.3,1.2) both; }
 @keyframes flipIn { to { opacity: 1; transform: none; } }
@@ -89,6 +89,8 @@ iframe { border: 0; background: transparent; position: absolute; }
 #mkrow { top: 250px; } .v #mkrow { top: 480px; }
 #wm2row { top: 450px; } .v #wm2row { top: 700px; }
 #tag2 { top: 690px; font-size: 72px; } .v #tag2 { top: 930px; font-size: 64px; }
+#kick { top: 930px; font: 600 40px 'Space Grotesk', sans-serif; color: var(--mist); display: flex; justify-content: center; align-items: center; gap: 14px; } .v #kick { top: 1170px; font-size: 38px; }
+#kick b { color: #53fc18; } #kick .kk { width: 46px; height: 46px; border-radius: 10px; background: #53fc18; color: #07140a; font: 400 30px Bungee, sans-serif; display: grid; place-items: center; }
 #url { top: 850px; font: 600 44px 'Space Grotesk', sans-serif; color: var(--mist); } .v #url { top: 1090px; font-size: 40px; }
 </style></head><body>
 <div class="sky"></div><div class="floor"><i></i></div>
@@ -134,6 +136,7 @@ iframe { border: 0; background: transparent; position: absolute; }
   <div class="center" id="wm2row"><span class="word flick" id="wm2">CHAPLINK<span class="o"></span></span></div>
   <div class="center neon flick" id="tag2">LET CHAT <em>DROP.</em></div>
   <div class="center flick" id="url"><b style="color:var(--ice)">trongateslegacy.com</b>/chaplinko</div>
+  <div class="center flick" id="kick"><span class="kk">K</span><span>kick.com/<b>trongateslegacy</b></span></div>
 </section>
 
 <div class="chat" id="chat"><div class="head"><i style="background:#9146ff"></i><i style="background:#53fc18"></i>STREAM CHAT</div><div class="list" id="list"></div></div>
@@ -217,6 +220,7 @@ at(27500, () => { show('s6'); flash(0.5); flick('mk'); });
 at(27700, () => flick('wm2'));
 at(28000, () => flick('tag2'));
 at(28375, () => { flick('url'); flash(0.25); });
+at(28700, () => flick('kick'));
 
 // before the start: the boards live and ready, some scores already on the leaderboard, the looks laid out
 window.ready = () => { try { return ['board3', 'solo', 'lb'].every((f) => $(f).contentDocument.documentElement.dataset.ready === '1') && document.fonts.status === 'loaded'; } catch { return false; } };

@@ -40,6 +40,7 @@ own terms to keep).
 node --experimental-websocket artwork/chaplinko/trailer/record.mjs ~/Downloads/chaplinko-trailer.mp4
 node --experimental-websocket artwork/chaplinko/trailer/record.mjs ~/Downloads/chaplinko-trailer-short.mp4 --vertical
 node --experimental-websocket artwork/chaplinko/trailer/thumbnail.mjs            # both thumbnails into ~/Downloads
+node artwork/chaplinko/trailer/twitter.mjs                                       # the Short for X: the thumbnail as its first frame
 ```
 
 `--vertical` records the 1080 × 1920 cut for Shorts, Reels and TikTok: the same scenes laid out for a phone (the board
@@ -50,6 +51,7 @@ renders `thumbnail.html` at YouTube's recommended sizes (3840 × 2160 and 2160 �
 Twelve bars of 2.5 s: your stream as it is, a game with ordinary chat ("YOUR STREAM."), then chat typing `!plinko` and
 the board landing on it with balls pouring ("NEEDS MORE PLINKO."; the owner found a one-ball opening didn't make sense),
 `!plinko` typed and the ball dropping into the wordmark as its O, the game with chat and emotes, a raid and Frenzy, a jackpot streak and the card exploding, a player
-surging up the leaderboard to #1, quick cuts (the looks, Twitch + Kick, over your game, free), the end card. The board and
+surging up the leaderboard to #1, quick cuts (the looks, Twitch + Kick, over your game, free), the end card (the page
+and kick.com/trongateslegacy). The board and
 leaderboard are the real pages (`play.html`, `leaderboard.html`) with a scripted, made-up chat; the trailer answers "is it
 live" itself, since recording can't reach Twitch.
