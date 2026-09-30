@@ -383,7 +383,7 @@ Trongates overlay after its scene type, like the dock's own sources: *Trongates 
 (window)*, numbered if there are two of a type, never a name OBS already uses, a name that's already right kept. A
 Stream Deck button that finds a source by its old name needs updating after a rename; turn it off to keep your names.
 **Transitions** is the transitions section (below); its per-scene choices list only scenes with a Trongates overlay.
-The Widgets tab has sub-tabs too: OBS, Botrix, Music, Chatagram, veado, More (form looks, motion, backup, the rescue dock).
+The Widgets tab has sub-tabs too: OBS, Botrix, Music, Chatagram, Chaplinko, veado, More (form looks, motion, backup, the rescue dock).
 
 **Sources:** add our widgets as their own OBS sources to the current scene (or any): the chat box, follower goal,
 now playing, Chatagram and the shared chat. *Add existing* reuses the same source (one browser in several scenes); *New copy*
@@ -551,3 +551,23 @@ The dock's **Form looks** (`looks=`) are followed too: a form given Tron's look 
 
 Any `theme=` or `accent=` in the link is replaced by the form's. It needs the hosted address (it loads `/chatagram/`), so
 it doesn't work as a local file. Scores and the game in progress are kept in OBS's browser, so a refresh carries on.
+
+## Chaplinko (the chat Plinko game)
+
+Chaplinko is a free widget for any streamer (docs/widgets.md, set up at https://www.trongateslegacy.com/chaplinko/).
+`/obs/chaplinko` is the same board in the stream's colours, following the form exactly as Chatagram does (Tron → **neon**
+in the armour's colour, Princess Trina → **royal**, the Blobfish → **deep**, and the dock's Form looks), without ever
+reloading it. `/obs/chaplinko?part=leaderboard` is its leaderboard as its own source, in the same colours.
+
+**Adding it in OBS:**
+1. Set it up on the Chaplinko page, **Copy board link**.
+2. Paste that link in the dock's **Widgets → Chaplinko**. Its channels and settings go into both Chaplinko sources.
+3. **Sources → Chaplinko → Add** puts the board in the current scene (640 × 540, or 960 × 540 when the link says combined);
+   **Sources → Chaplinko leaderboard → Add** puts the leaderboard in (300 wide and as tall as the players it shows, or a
+   720 × 72 strip), sized from the link. By hand: the cards on the index's Sources tab copy both addresses; add each as a
+   Browser source with **Use custom frame rate**, FPS `30`.
+
+The leaderboard source reads the board's scores from OBS's browser (both sources run in it), so it needs the board
+running somewhere to update; `/chaplinko/check.html` (added twice, `?n=1` and `?n=2`) shows whether two sources can talk
+in a given OBS. Any `theme=` or `accent=` in the link is replaced by the form's; the link's own `motion=` (calm) wins over
+the dock's. It needs the hosted address (it loads `/chaplinko/`).

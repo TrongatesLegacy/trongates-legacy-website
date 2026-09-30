@@ -231,3 +231,47 @@ test('every Chatagram setting a link can carry passes through /obs/chatagram (th
   const want = Object.keys(cg.Chatagram.settings.SCHEMA).filter((k) => k !== 'theme' && k !== 'accent').sort();
   assert.deepEqual([...M.CHATAGRAM_KEYS].filter((k) => k !== 'seed').sort(), want);
 });
+
+// Chaplinko (obs/chaplinko.html): the board and its leaderboard as two sources, both from the one link pasted in
+// Widgets → Chaplinko; the colours come from the form. Their sizes follow the link (combined, the strip, how many).
+test('Chaplinko: the pasted link\'s settings go into both sources; theme and accent are left to the form; sizes follow the link', () => {
+  const s = M.normalise(null);
+  s.chaplinko = 'https://www.trongateslegacy.com/chaplinko/play?kick=gridrunner&kickid=715&rows=12&theme=candy&accent=ff0000&lbn=8&cdrop=!plinko&motion=calm';
+  const board = new URL(url('chaplinko', s)).searchParams, lb = new URL(url('chaplinkolb', s)).searchParams;
+  for (const q of [board, lb]) {
+    assert.equal(q.get('kick'), 'gridrunner'); assert.equal(q.get('rows'), '12'); assert.equal(q.get('cdrop'), '!plinko'); assert.equal(q.get('motion'), 'calm');
+    assert.equal(q.get('theme'), null, 'the form sets the theme'); assert.equal(q.get('accent'), null);
+  }
+  assert.equal(board.get('part'), null); assert.equal(lb.get('part'), 'leaderboard');
+  assert.deepEqual(plain(M.sizeOf('chaplinko', s)), [640, 540]);
+  assert.deepEqual(plain(M.sizeOf('chaplinkolb', s)), [300, 372], 'eight players');
+  s.chaplinko = 'kick=gridrunner&layout=combined&lbshape=strip';
+  assert.deepEqual(plain(M.sizeOf('chaplinko', s)), [960, 540]);
+  assert.deepEqual(plain(M.sizeOf('chaplinkolb', s)), [720, 72]);
+  s.chaplinko = 'kick=gridrunner&layout=combined&side=off';
+  assert.deepEqual(plain(M.sizeOf('chaplinko', s)), [640, 540], 'combined with the leaderboard off: the board alone');
+  // the dock's motion setting doesn't override the link's own
+  s.motion = 'full'; s.chaplinko = 'kick=x&motion=calm';
+  assert.equal(new URL(url('chaplinko', s)).searchParams.getAll('motion').join(), 'calm');
+  assert.ok(M.options('chaplinkolb', s, { preview: { form: 'red' } }).some(([k, v]) => k === 'demo' && v === '1'), 'previews play with a pretend chat');
+});
+
+test('Chaplinko: rewriting a source keeps hand-set settings unless a link is pasted; the address is recognised and read back', () => {
+  const base = HOST + 'chaplinko?part=leaderboard&kick=old&layout=combined&noveado=1';
+  const kept = new URL(M.withOptions(base, M.options('chaplinkolb', M.normalise(null)))).searchParams;
+  assert.equal(kept.get('kick'), 'old'); assert.equal(kept.get('layout'), 'combined'); assert.equal(kept.get('part'), 'leaderboard');
+  const pasted = M.normalise(null); pasted.chaplinko = 'kick=new&rows=9';
+  const out = new URL(M.withOptions(base, M.options('chaplinkolb', pasted))).searchParams;
+  assert.equal(out.get('kick'), 'new'); assert.equal(out.get('rows'), '9'); assert.equal(out.get('layout'), null); assert.equal(out.getAll('part').join(), 'leaderboard');
+  assert.equal(M.recognise(HOST + 'chaplinko?kick=x').kind, 'chaplinko');
+  assert.equal(M.recognise(HOST + 'chaplinko.html?part=leaderboard&kick=x').kind, 'chaplinkolb');
+  const s = M.fromUrls([HOST + 'chaplinko?part=leaderboard&kick=gridrunner&lbshape=strip', HOST + 'chaplinko?kick=gridrunner&rows=11&noveado=1']);
+  assert.deepEqual(plain(M.chaplinkoPairs(s.chaplinko)), [['kick', 'gridrunner'], ['rows', '11']], 'the board\'s address wins');
+});
+
+test('every Chaplinko setting a link can carry passes through /obs/chaplinko (its look comes from the form)', () => {
+  const cp = vm.createContext({ URLSearchParams }); cp.window = cp;
+  vm.runInContext(read('public/chaplinko/settings.js'), cp);
+  const want = Object.keys(cp.Chaplinko.settings.SCHEMA).filter((k) => !['theme', 'accent', 'lbtheme', 'lbaccent', 'lbbgo'].includes(k)).sort();
+  assert.deepEqual([...M.CHAPLINKO_KEYS].sort(), want);
+});

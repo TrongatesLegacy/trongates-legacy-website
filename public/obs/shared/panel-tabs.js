@@ -122,16 +122,17 @@
       const card = (kind) => {
         const w = M.WIDGETS[kind], mine = obs.scan.widgets.filter((x) => (kind === 'bare' ? x.kind === 'shared' : x.kind === kind) && x.input.tag);
         const places = [...new Set(mine.flatMap((x) => x.places.map((p) => p.container.name)))];
-        const size = kind === 'bare' ? `${M.SHARED_W} × ${M.SHARED_H}` : `${w.w} × ${w.h}`;
+        const size = kind === 'bare' ? `${M.SHARED_W} × ${M.SHARED_H}` : M.sizeOf(kind, P.s).join(' × ');
         const title = kind === 'bare' ? 'Shared chat' : w.title;
-        return `<div class="scene"><div class="t"><b class="grow">${title}</b><span class="muted">${kind === 'bare' ? 'raw Botrix · ' : kind === 'music' ? '' : kind === 'chatagram' ? 'game · ' : 'framed · '}${size}</span></div>
+        return `<div class="scene"><div class="t"><b class="grow">${title}</b><span class="muted">${kind === 'bare' ? 'raw Botrix · ' : kind === 'music' ? '' : kind === 'chatagram' || kind === 'chaplinko' || kind === 'chaplinkolb' ? 'game · ' : 'framed · '}${size}</span></div>
           ${kind === 'chatagram' && !M.chatagramPairs(P.s.chatagram).length ? '<span class="hint bad">Paste your Chatagram link first (Widgets → Chatagram), or it will ask for a channel.</span>' : ''}
+          ${(kind === 'chaplinko' || kind === 'chaplinkolb') && !M.chaplinkoPairs(P.s.chaplinko).length ? '<span class="hint bad">Paste your Chaplinko link first (Widgets → Chaplinko), or it will ask for a channel.</span>' : ''}
           <span class="hint">${places.length ? 'In ' + esc(places.join(', ')) : 'Not in any scene'}</span>
           <div class="row">${mine.length ? `<button type="button" class="btn grow" data-add="${kind}">Add existing</button><button type="button" class="btn" data-add="${kind}" data-copy="1" ${kind === 'bare' ? 'disabled' : ''}>New copy</button>` : `<button type="button" class="btn solid grow" data-add="${kind}">${kind === 'bare' ? 'Set up shared chat…' : 'Add to scene'}</button>`}</div></div>`;
       };
-      const found = obs.scan.widgets.filter((x) => !x.input.tag && !(P.s.dock.ignore || []).includes(x.input.uuid) && ['botrix-chat', 'chatbox', 'goal', 'music', 'bare', 'chatagram'].includes(x.kind));
+      const found = obs.scan.widgets.filter((x) => !x.input.tag && !(P.s.dock.ignore || []).includes(x.input.uuid) && ['botrix-chat', 'chatbox', 'goal', 'music', 'bare', 'chatagram', 'chaplinko', 'chaplinkolb'].includes(x.kind));
       return `<div class="row"><span class="grow">Add to</span><select data-target>${sceneOpts}</select></div>
-        ${['bare', 'chatbox', 'goal', 'music', 'chatagram'].map(card).join('')}
+        ${['bare', 'chatbox', 'goal', 'music', 'chatagram', 'chaplinko', 'chaplinkolb'].map(card).join('')}
         ${found.length ? `<h3>Found, not managed</h3>${found.map((x) => `<div class="scene"><div class="t"><b class="grow">${esc(x.input.name)}</b><span class="muted">${x.kind === 'botrix-chat' ? 'raw Botrix chat' : esc(M.WIDGETS[x.kind] ? M.WIDGETS[x.kind].title : x.kind)} · ${esc([...new Set(x.places.map((p) => p.container.name))].join(', '))}</span></div>
           <div class="row">${['botrix-chat', 'bare'].includes(x.kind) && !shared() ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="shared-chat">Use as shared chat</button>` : ''}${x.kind !== 'botrix-chat' ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="widget:${x.kind}">Adopt</button>` : ''}<button type="button" class="btn red" data-ignore="${x.input.uuid}">Ignore</button></div></div>`).join('')}` : ''}
         <p class="hint">Adding happens straight away, just above the scene's overlay (or at the top of a scene without one), centred. After that it's yours to move; settings changes reach it through Review &amp; apply.</p>`;
@@ -163,6 +164,10 @@
         <span class="hint ${M.chatagramPairs(P.s.chatagram).length ? 'ok' : ''}">${M.chatagramPairs(P.s.chatagram).length
           ? 'Using ' + M.chatagramPairs(P.s.chatagram).map(([k]) => k).join(', ') + '. The colours follow your form, whatever theme the link has.'
           : 'Set Chatagram up on trongateslegacy.com/chatagram, press Copy OBS link, and paste it here: its channels and game settings go into the Chatagram source.'}</span>`,
+        chaplinko: () => `<label class="field">Your Chaplinko link (the board’s)<input type="text" data-set="chaplinko" value="${esc(P.s.chaplinko || '')}" placeholder="https://www.trongateslegacy.com/chaplinko/play?kick=…" autocomplete="off" spellcheck="false"></label>
+        <span class="hint ${M.chaplinkoPairs(P.s.chaplinko).length ? 'ok' : ''}">${M.chaplinkoPairs(P.s.chaplinko).length
+          ? 'Using ' + M.chaplinkoPairs(P.s.chaplinko).map(([k]) => k).join(', ') + '. The colours follow your form, whatever theme the link has. The board and the leaderboard sources both use it.'
+          : 'Set Chaplinko up on trongateslegacy.com/chaplinko, press Copy board link, and paste it here: its channels and settings go into the Chaplinko sources (the board and its leaderboard).'}</span>`,
         music: () => `<label class="field">Music app (blank: whatever Windows has in focus)<input type="text" data-set="music.app" value="${esc(P.s.music.app)}" placeholder="e.g. cider, applemusic, spotify"></label>
         <div class="row"><span class="grow">Stay up while paused</span>${tog('music.always', P.s.music.always)}</div>
         <label class="field">SMTC Bridge address<input type="text" data-set="music.host" value="${esc(P.s.music.host)}" placeholder="${M.BRIDGE_DEFAULT}"></label>
@@ -189,7 +194,7 @@
         <div class="row"><button type="button" class="btn grow" data-act="copy-rescue">Copy rescue dock address</button></div>
         <p class="hint">A second, tiny dock (Docks → Custom Browser Docks) that refreshes every Trongates source, or puts every scene back on Tron, even if this dock is stuck.</p>`,
       };
-      const s = seg('widgets', [['obs', 'OBS'], ['botrix', 'Botrix'], ['music', 'Music'], ['chatagram', 'Chatagram'], ['veado', 'veado'], ['more', 'More']]);
+      const s = seg('widgets', [['obs', 'OBS'], ['botrix', 'Botrix'], ['music', 'Music'], ['chatagram', 'Chatagram'], ['chaplinko', 'Chaplinko'], ['veado', 'veado'], ['more', 'More']]);
       return s.html + parts[s.cur]();
     }
     function tabLayout() {

@@ -308,7 +308,7 @@
       return (await call('GetCurrentProgramScene')).sceneName;
     }
     async function addWidget(kind, sceneName, copy) {
-      const w = M.WIDGETS[kind], existing = !copy && obs.scan.widgets.find((x) => x.kind === (kind === 'bare' ? 'shared' : kind) && x.input.tag);
+      const w0 = M.WIDGETS[kind], [ww, wh] = M.sizeOf(kind, P.s), w = { ...w0, w: ww, h: wh }, existing = !copy && obs.scan.widgets.find((x) => x.kind === (kind === 'bare' ? 'shared' : kind) && x.input.tag);
       const container = obs.scan.containers.find((c) => c.name === sceneName && !c.group);
       const ov = managedRows().find((r) => r.container.name === sceneName);
       let itemId;
