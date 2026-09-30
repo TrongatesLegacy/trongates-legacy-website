@@ -26,6 +26,16 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
   transform: translateX(-110%); animation: shim 30s linear infinite; }
 @keyframes shim { 0% { transform: translateX(-110%); } 4% { transform: translateX(110%); } 100% { transform: translateX(110%); } }
 
+/* the idle prompt: the command big over the pegs (play.js: letters drop in, an emoji joins, they fall out). Big and
+   short on purpose: most streams show the board small, so anything smaller wouldn't read. */
+.prompt { position: absolute; left: 0; right: 0; top: 190px; display: none; justify-content: center; align-items: center; gap: .12em;
+  font: var(--display-weight) 104px/1 var(--display); color: var(--accent); pointer-events: none; white-space: nowrap; z-index: 2;
+  text-shadow: 0 .05em 0 color-mix(in srgb, var(--accent) 45%, #000), 0 0 .3em color-mix(in srgb, var(--accent) 60%, transparent), 0 .1em .3em rgb(0 0 0 / .6); }
+.prompt.on { display: flex; }
+.prompt .word { display: inline-flex; } .prompt i { font-style: normal; display: inline-block; }
+.prompt .emo { text-shadow: 0 .1em .3em rgb(0 0 0 / .5); }
+.board:not(.clear) .prompt { text-shadow: 0 .05em 0 color-mix(in srgb, var(--accent) 45%, #000), 0 0 .3em color-mix(in srgb, var(--accent) 45%, transparent); }   /* its own background: no need to cut through a game */
+
 /* Frenzy: the board's edge glows and breathes */
 .glow { position: absolute; inset: 0; border-radius: var(--radius); pointer-events: none; opacity: 0; transition: opacity .6s;
   box-shadow: inset 0 0 34px color-mix(in srgb, var(--accent) 55%, transparent); }

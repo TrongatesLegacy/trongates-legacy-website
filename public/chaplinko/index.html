@@ -313,6 +313,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
           <label class="field"><span>Big win card</span><span class="box"><select name="bigwin"><option value="top">The top slot (a jackpot)</option><option value="top2">The top two slots</option><option value="off">Never</option></select></span></label>
           <label class="field"><span>Motion</span><span class="box"><select name="motion"><option value="auto">Full</option><option value="calm">Calm: fewer effects</option><option value="reduce">Minimal: nothing falls</option></select></span></label>
           <label class="field"><span>Speed</span><span class="box"><select name="speed"><option value="slow">Slow</option><option value="normal">Normal</option><option value="fast">Fast</option></select></span></label>
+          <label class="sw">When it’s quiet, show the command big now and then <input type="checkbox" role="switch" name="hint"></label>
           <label class="sw">Show the commands on the board <input type="checkbox" role="switch" name="showcmd"></label>
           <label class="sw">“So close!” near misses <input type="checkbox" role="switch" name="nearmiss"></label>
         </fieldset>
@@ -325,7 +326,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
         </fieldset>
         <fieldset class="card wide"><legend>Chat commands</legend>
           <div class="cmdrow">
-            <label class="field"><span>Command</span><span class="box"><input name="cmd" autocomplete="off" spellcheck="false" placeholder="!plinko"></span></label>
+            <label class="field"><span>Command</span><span class="box"><input name="cmd" maxlength="7" autocomplete="off" spellcheck="false" placeholder="!plinko"></span></label>
             <ul class="cmdlist">
               <li><code data-cmd="">!plinko</code> drops balls (<code data-cmd="🔥">!plinko 🔥</code> drops an emote)</li>
               <li><code data-cmd="top">!plinko top</code> shows the leaderboard</li>
@@ -335,7 +336,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
             </ul>
           </div>
           <div class="field"><span class="lab" id="l-perm">Who can use the commands (anyone can drop)</span><div class="seg" role="radiogroup" aria-labelledby="l-perm"><label><input type="radio" name="perm" value="me"><span>Only me</span></label><label><input type="radio" name="perm" value="mods"><span>Me and mods</span></label><label><input type="radio" name="perm" value="all"><span>Everyone</span></label></div></div>
-          <p class="note">Change the command and the rest follow it. Everyone can always drop.</p>
+          <p class="note">Change the command (up to 6 characters after the !) and the rest follow it. Everyone can always drop.</p>
         </fieldset>
       </div>
     </details>

@@ -68,7 +68,7 @@
   const CHATAGRAM_KEYS = ['twitch', 'kick', 'kickid', 'layout', 'time', 'diff', 'shuffle', 'minlen', 'slots', 'goal', 'tricky', 'longbonus', 'bonus',
     'locks', 'lockmsg', 'next', 'restart', 'cmd', 'cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear', 'perm', 'lb', 'wrong', 'ignore', 'block', 'top', 'remember', 'bgo', 'credit', 'seed'];
   // Chaplinko's (public/chaplinko/settings.js), the same way: its look (theme, accent, the leaderboard's own look) comes from the form
-  const CHAPLINKO_KEYS = ['twitch', 'kick', 'kickid', 'layout', 'side', 'rows', 'bgo', 'lbshape', 'lbn', 'lbshow', 'lbevery', 'lbbgo', 'bigwin', 'showcmd', 'color',
+  const CHAPLINKO_KEYS = ['twitch', 'kick', 'kickid', 'layout', 'side', 'rows', 'bgo', 'lbshape', 'lbn', 'lbshow', 'lbevery', 'lbbgo', 'bigwin', 'hint', 'showcmd', 'color',
     'balls', 'cool', 'max', 'speed', 'motion', 'nearmiss', 'cmd', 'perm', 'ignore', 'remember', 'credit'];
   /** a pasted widget link's settings (the whole link or just what's after the ?), those in keys */
   const pairsOf = (keys) => (link) => {

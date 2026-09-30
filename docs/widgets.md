@@ -369,6 +369,9 @@ artwork/chaplinko/                        the link-preview image and the picture
 - **The command** is one setting (`cmd=`, default `!plinko`; it was `!drop` until the owner changed it, 2026-09-30); the
   words after it are fixed. `!plinko` drops **Balls per drop** (default 5, 1–10). `!plinko <emote>` drops that emote (one
   the platform marked), or an emoji (`!plinko 🔥`). Anything else after it is ignored, so `!plinko 5` is a plain drop.
+  The set-up page takes **up to 6 characters after the `!`** (the owner, 2026-09-30: so it can be shown big on an idle
+  board); a longer command from an older link still plays in OBS and is shortened when that link is opened here
+  (`settings.shortCommand`).
 - **No cooldown** by default (Advanced: 0–300 s per viewer). The board takes up to **Most balls on the board** (default
   100, 20–200); beyond that drops queue and leave the chute one at a time (faster in Frenzy, up to 20 a second). The
   queue holds 600 balls (about 30 s); drops beyond it are ignored until it drains.
@@ -417,8 +420,12 @@ count punches up (JACKPOT! ×2, ×3…), the new name slides in (the same person
 then "+N more"), the points count on to the streak's total, more confetti, and each jackpot still fires its own beam and
 ripple (slow motion and the shake only on the first). The card goes 2 s after the last jackpot (at least 4 s after it
 opened; 2 s in Frenzy), so it's always about what just happened. Other moments: the pegs pop in row by row when
-the board loads; the commands shine every 30 s after a minute idle; PAUSED / GO! in the chute; `!plinko clear` pops every
-ball. **Motion** (`motion=` in the link, Advanced): auto/full, **calm** (no shake, slow motion, beam, confetti, trails
+the board loads; the commands shine every 30 s after a minute idle (only with the idle prompt off); PAUSED / GO! in the chute; `!plinko clear` pops every
+ball. **The idle prompt** (`hint=`, on by default; the owner,
+2026-09-30): after 30 s with nothing dropping, the command big over the pegs, then every 90 s while it stays quiet
+(about 7 s each; not while balls fall, a card shows or it's paused). Its letters drop in and bounce, a 🔥 joins (an emoji
+drops in any channel, unlike an emote), then everything falls out through the pegs; any drop ends it. Two big beats and no
+small print, because most streams show the board small. Calm: it fades; reduced motion: it just shows. **Motion** (`motion=` in the link, Advanced): auto/full, **calm** (no shake, slow motion, beam, confetti, trails
 or hot pegs), **reduce** (nothing falls: each ball's landing is worked out at once and the `+N` shows; the leaderboard
 changes instantly). As everywhere, OBS ignores the PC's own setting unless the link says so. Outside OBS a device asking for
 less motion gets **reduce**, which looks broken on the page (a board where nothing falls: the owner hit this on a PC with

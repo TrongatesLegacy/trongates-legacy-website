@@ -27,7 +27,8 @@
     lbbgo: { type: 'int', def: 0, min: 0, max: 100 },               // the leaderboard's own background, always (0: transparent)
     // advanced: the board
     bigwin: { type: 'enum', def: 'top', values: ['top', 'top2', 'off'] },          // the big win card: the top slot, the top two, or never
-    showcmd: { type: 'bool', def: false },                              // the commands in the drop chute (off: the chute shows who leads)
+    showcmd: { type: 'bool', def: false },
+    hint: { type: 'bool', def: true },                                 // a quiet board shows the command big, now and then                              // the commands in the drop chute (off: the chute shows who leads)
     color: { type: 'enum', def: 'chat', values: ['chat', 'accent', 'platform', 'rainbow'] },   // ball colour
     balls: { type: 'int', def: 5, min: 1, max: 10 },                  // balls per !plinko
     cool: { type: 'int', def: 0, min: 0, max: 300 },                  // seconds a viewer waits between drops (0: none, spam away)
@@ -67,6 +68,9 @@
   const SIZES = { separate: [640, 540], combined: [960, 540], strip: [720, 72], panel: (n) => [300, 100 + 34 * n] };
   /** the command as typed in chat: lowercase, one word (the default if it's empty) */
   const command = (cfg) => String(cfg.cmd || '').trim().toLowerCase().split(/\s+/)[0] || SCHEMA.cmd.def;
+  /** the command for a new link: up to 6 characters after the ! (the idle prompt shows it big); older links keep theirs */
+  const CMD_MAX = 6;
+  const shortCommand = (v) => { const c = command({ cmd: v }), bang = c.startsWith('!') ? 1 : 0; return c.slice(0, bang + CMD_MAX); };
   const MAIN = ['twitch', 'kick', 'layout', 'side', 'rows', 'theme', 'accent', 'bgo'];
-  K.settings = { SCHEMA, SLOTS, THEMES, SIZES, MAIN, LB_KEYS, slotValues, leaderboardSettings, command };
+  K.settings = { SCHEMA, SLOTS, THEMES, SIZES, MAIN, LB_KEYS, slotValues, leaderboardSettings, command, shortCommand, CMD_MAX };
 })();

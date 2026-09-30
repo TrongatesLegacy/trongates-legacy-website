@@ -248,8 +248,59 @@
   }
   function dropped() {
     lastDropAt = Date.now(); chute.classList.remove('idle'); clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => { if (!game.paused) chute.classList.add('idle'); }, 60000);   // idle a minute: a shine along the commands
+    idleTimer = setTimeout(() => { if (!game.paused && !cfg.hint) chute.classList.add('idle'); }, 60000);   // idle a minute: a shine along the commands (the big prompt does it instead)
+    if (prompt.on) prompt.end();
   }
+
+  // ---- the idle prompt: after half a minute with nothing dropping, the command big over the pegs, then every 90 s while
+  // it stays quiet (about 7 s each). The letters drop in and bounce, an emoji joins (an emoji drops in every channel,
+  // unlike emotes), then they all fall out through the pegs. Any drop ends it. Calm: it fades; reduced motion: it just shows.
+  const prompt = (() => {
+    const el = $('#prompt'), FIRST = 30000, EVERY = 90000, EMOJI = '🔥';
+    let shownAt = 0, timers = [], on = false;
+    const later = (ms, f) => timers.push(setTimeout(f, ms));
+    const quiet = () => !game.paused && !game.queued && !world.balls.length && !jc;
+    function show() {
+      on = true; shownAt = Date.now();
+      el.innerHTML = `<span class="word">${[...cmdName].map((c) => `<i>${esc(c)}</i>`).join('')}</span><i class="emo">${EMOJI}</i>`;
+      el.style.fontSize = '';
+      el.classList.add('on');
+      const word = $('.word', el), emo = $('.emo', el), letters = [...word.children];
+      const w = word.offsetWidth + emo.offsetWidth * 1.12; if (w > 600) el.style.fontSize = Math.floor(104 * 600 / w) + 'px';   // an older, longer command
+      if (rm) { later(7000, hide); return; }
+      const shift = (emo.offsetWidth + parseFloat(getComputedStyle(el).columnGap || 0)) / 2;
+      emo.style.opacity = '0';
+      word.style.transform = `translateX(${shift}px)`;                        // the word alone, centred
+      letters.forEach((l, i) => l.animate(calm ? [{ opacity: 0 }, { opacity: 1 }]
+        : [{ transform: 'translateY(-330px)', easing: 'cubic-bezier(.5,0,1,1)' }, { transform: 'translateY(0)', offset: 0.55, easing: 'cubic-bezier(0,0,.5,1)' },
+          { transform: `translateY(-24px) rotate(${(Math.random() - 0.5) * 12}deg)`, offset: 0.75, easing: 'cubic-bezier(.5,0,1,1)' }, { transform: 'none' }],
+        { duration: calm ? 400 : 750, delay: i * 70, fill: 'backwards' }));
+      later(2800, () => {                                                     // the emoji joins; the word makes room
+        word.animate([{ transform: `translateX(${shift}px)` }, { transform: 'none' }], { duration: 350, easing: 'ease-in-out', fill: 'forwards' });
+        emo.style.opacity = '1';
+        emo.animate(calm ? [{ opacity: 0 }, { opacity: 1 }] : [{ transform: 'translateY(-330px) rotate(-30deg)', easing: 'cubic-bezier(.5,0,1,1)' }, { transform: 'none', offset: 0.6, easing: 'cubic-bezier(0,0,.5,1)' },
+          { transform: 'translateY(-20px) rotate(8deg)', offset: 0.8, easing: 'cubic-bezier(.5,0,1,1)' }, { transform: 'none' }], { duration: calm ? 400 : 800, delay: 150, fill: 'backwards' });
+      });
+      later(6000, () => leave(900));
+    }
+    function leave(ms) {                                                      // everything falls out through the pegs
+      timers.forEach(clearTimeout); timers = [];
+      if (rm) return hide();
+      const parts = [...el.querySelectorAll('i')];
+      parts.forEach((p) => p.animate(calm ? [{ opacity: 1 }, { opacity: 0 }]
+        : [{ transform: 'none', opacity: 1 }, { transform: `translateY(380px) rotate(${(Math.random() - 0.5) * 70}deg)`, opacity: 0 }],
+        { duration: ms, delay: Math.random() * ms * 0.3, easing: 'cubic-bezier(.55,0,1,.45)', fill: 'forwards' }));
+      later(ms * 1.35, hide);
+    }
+    function hide() { timers.forEach(clearTimeout); timers = []; on = false; el.classList.remove('on'); el.innerHTML = ''; }
+    if (cfg.hint && !still) setInterval(() => {
+      if (on || document.hidden || !quiet()) return;
+      const since = Date.now() - Math.max(lastDropAt, shownAt);
+      if (since >= (shownAt > lastDropAt ? EVERY : FIRST)) show();
+    }, 1000);
+    return { get on() { return on; }, end: () => leave(450), show, quietFor(ms) { lastDropAt -= ms; shownAt -= ms; } };
+  })();
+
   let lastGulp = 0;
   function gulp() {
     if (calm || lv() === 'frenzy' || Date.now() - lastGulp < 110) return;
@@ -596,6 +647,6 @@
     }
   }
   document.documentElement.dataset.ready = '1';
-  window.chaplinko = { cfg, game, world, scores, hear, checkStream, get running() { return running; }, leaderboard: lbc, advance(ms) { offset += ms; },
+  window.chaplinko = { cfg, game, world, scores, hear, checkStream, quietFor: prompt.quietFor, get running() { return running; }, leaderboard: lbc, advance(ms) { offset += ms; },
     land: (by, slot) => { const r = onLand(by, slot, null, ballColor(by)); kick(); return r; } };
 })();

@@ -11,11 +11,12 @@
   const THEME_NAMES = { chatagram: 'Chatagram', chaplinko: 'Chaplinko', neutral: 'Neutral', light: 'Light', neon: 'Neon', candy: 'Candy', royal: 'Royal', deep: 'Deep', cozy: 'Cozy' };
   const THEME_BG = { chatagram: '#16122b', chaplinko: '#0a1233', neutral: '#1b1e26', light: '#f4f5f8', neon: '#03060d', candy: '#6b2fd6', royal: '#0a0510', deep: '#020b11', cozy: '#f3e6cf' };
   const ACCENTS = [['ff7a1a', 'Tangerine'], ['ff3d8b', 'Jackpot pink'], ['2ee6a8', 'Mint'], ['22e5ff', 'Cyan'], ['4f8cff', 'Blue'], ['ffc93c', 'Sun'], ['b48cff', 'Lilac']];
-  const ADVANCED = ['bigwin', 'motion', 'speed', 'showcmd', 'nearmiss', 'max', 'cool', 'ignore', 'remember', 'credit', 'cmd', 'perm'];
+  const ADVANCED = ['bigwin', 'motion', 'speed', 'hint', 'showcmd', 'nearmiss', 'max', 'cool', 'ignore', 'remember', 'credit', 'cmd', 'perm'];
 
   let saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
   const fromLink = location.search.length > 1;
   let s = W.settings.decode(SCHEMA, fromLink ? location.search : saved ? W.settings.encode(SCHEMA, saved) : '');
+  s.cmd = K.settings.shortCommand(s.cmd);                                     // an older, longer command is shortened here
   let manualKickId = !!(fromLink && s.kickid);
 
   // ---- swatches ------------------------------------------------------------------------------------------------------
@@ -113,7 +114,7 @@
     const el = e.target;
     if (el.name === 'twitch') { s.twitch = W.platforms.twitch.channel(el.value); el.value = s.twitch; }
     if (el.name === 'kick') { s.kick = W.platforms.kick.channel(el.value); el.value = s.kick; }
-    if (el.name === 'cmd') { s.cmd = K.settings.command({ cmd: el.value }); el.value = s.cmd; }
+    if (el.name === 'cmd') { s.cmd = K.settings.shortCommand(el.value); el.value = s.cmd; }
     if (el.id === 'accent-custom' || el.id === 'lbaccent-custom') drawAccents();
     update({ fill: false });
   });

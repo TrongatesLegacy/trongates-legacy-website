@@ -239,6 +239,55 @@ test('combined: the leaderboard beside the board can have its own theme and its 
   await tab.close();
 });
 
+test('a quiet board shows the command big (letters drop in, then an emoji, then they fall out); a drop ends it; hint=0 never', async () => {
+  const tab = await chrome.open(site.origin + BOARD + '&cmd=!drop', { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
+  await ready(tab); await sleep(200);
+  const on = () => tab.eval('document.getElementById("prompt").classList.contains("on")');
+  assert.equal(await on(), false, 'not straight away');
+  await tab.eval('chaplinko.quietFor(31000); 1');
+  await tab.until('document.getElementById("prompt").classList.contains("on")', 3000, 'the prompt after half a minute of quiet');
+  assert.equal(await tab.eval('document.querySelector("#prompt .word").textContent'), '!drop', 'the command as typed');
+  await tab.until('getComputedStyle(document.querySelector("#prompt .emo")).opacity === "1"', 5000, 'the emoji beat');
+  const box = await tab.eval('(() => { const r = document.getElementById("prompt").getBoundingClientRect(); return [r.left, r.right]; })()');
+  assert.ok(box[0] >= 0 && box[1] <= 640, `fits the board: ${box}`);
+  await tab.eval(`__chat.twitch('PixelPanda', '!drop'); 1`);
+  await tab.until('!document.getElementById("prompt").classList.contains("on")', 2000, 'a drop ends it');
+  await tab.eval('chaplinko.quietFor(31000); 1'); await sleep(1500);
+  assert.equal(await on(), false, 'not again while balls are still falling, nor so soon');
+  noErrors(tab, 'the prompt');
+  await tab.close();
+  const off = await chrome.open(site.origin + BOARD + '&hint=0', { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
+  await ready(off); await off.eval('chaplinko.quietFor(200000); 1'); await sleep(1500);
+  assert.equal(await off.eval('document.getElementById("prompt").classList.contains("on")'), false, 'switched off');
+  await off.close();
+  const rm = await chrome.open(site.origin + BOARD + '&motion=reduce', { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
+  await ready(rm); await rm.eval('chaplinko.quietFor(31000); 1');
+  await rm.until('document.getElementById("prompt").classList.contains("on")', 3000, 'the prompt with reduced motion');
+  assert.equal(await rm.eval('document.getAnimations().length'), 0, 'reduced motion: it just shows');
+  assert.equal(await rm.eval('getComputedStyle(document.querySelector("#prompt .emo")).opacity'), '1', 'the emoji with it');
+  await rm.close();
+});
+
+test('the set-up page: the command is up to 6 characters after the ! (the idle prompt shows it big); an old longer link still plays', async () => {
+  const tab = await chrome.open(site.origin + '/chaplinko/?kick=gridrunner&cmd=!dropballs', { width: 1280, height: 900, init: `localStorage.removeItem('chaplinko:setup');` });
+  await tab.until('window.chaplinkoSetup', 5000, 'the set-up');
+  const cmdOf = async () => new URL(await tab.eval('chaplinkoSetup.boardLink()')).searchParams.get('cmd');
+  assert.equal(await cmdOf(), '!dropba', 'an old link opened here is shortened');
+  const type = (v) => tab.eval(`(() => { const el = document.querySelector('[name=cmd]'); el.value = ${JSON.stringify(v)}; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return el.value; })()`);
+  assert.equal(await type('!Drop'), '!drop');
+  assert.equal(await type('!sixsix'), '!sixsix', 'six after the ! fits');
+  assert.equal(await type('!sevense'), '!sevens');
+  assert.equal(await type('dropper'), 'droppe', 'without a ! too');
+  assert.equal(await tab.eval('document.querySelector("[name=cmd]").maxLength'), 7);
+  noErrors(tab, 'command limit');
+  await tab.close();
+  const board = await chrome.open(site.origin + BOARD + '&cmd=!dropballs', { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
+  await ready(board); await sleep(200);
+  await board.eval(`__chat.twitch('PixelPanda', '!dropballs'); 1`);
+  await board.until(`chaplinko.game.queued > 0 || chaplinko.world.balls.length > 0`, 3000, 'an old OBS link keeps its command');
+  await board.close();
+});
+
 test('the set-up page under reduced motion: the hero and the preview say why nothing falls, and can show it falling anyway', async () => {
   const init = `if (window === top) { localStorage.removeItem('chaplinko:setup'); localStorage.removeItem('chaplinko:animate'); }`;   // not in its frames
   const plain = await chrome.open(site.origin + '/chaplinko/?kick=gridrunner', { width: 1280, height: 900, init });
