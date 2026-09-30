@@ -79,11 +79,12 @@ h1 { font-size: 62px; line-height: 1.02; margin: 0 0 16px; } h1 em { font-style:
 /* the hero game's pretend chat: speech bubbles like the logo's, spilling off the game's bottom-left corner (setup.js) */
 .chat { position: absolute; left: -58px; bottom: -26px; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; z-index: 2; pointer-events: none; }
 .chat .b { background: var(--paper); color: var(--ink); border-radius: 16px 16px 16px 4px; padding: 7px 12px 8px; font-size: 15px; line-height: 1.3; box-shadow: 0 4px 0 #cdbfa8, 0 12px 24px #0008;
-  display: flex; gap: 7px; align-items: center; white-space: nowrap; max-width: 320px; transform-origin: left bottom; transition: filter .3s, transform .3s; }
+  display: flex; gap: 7px; align-items: center; white-space: nowrap; max-width: 320px; transform-origin: 0 100%; transition: filter .5s, scale .5s ease-out, rotate .6s cubic-bezier(.25,1.6,.5,1); }
 .chat .b > span:last-child { overflow: hidden; text-overflow: ellipsis; }
 .chat .b b { font-weight: 700; }
-.chat .b:not(:last-child) { filter: brightness(.72) saturate(.7); transform: scale(.92); }
-.chat .b:last-child { transform: rotate(-2deg); }
+/* scale and rotate (not transform), so setup.js's glide (translate) and pop never fight the resting tilt */
+.chat .b:not(:last-child) { filter: brightness(.72) saturate(.7); scale: .92; }
+.chat .b:last-child { rotate: -2deg; }
 .chat .b.hit { background: var(--sun); box-shadow: 0 4px 0 #c9921a, 0 12px 24px #0008; }
 .chat .tiles { display: inline-flex; gap: 2px; }
 .chat .tiles i { font: 13px "Lilita One", sans-serif; width: 19px; height: 21px; display: grid; place-items: center; background: var(--paper); color: var(--ink); border-radius: 4px; box-shadow: 0 2px 0 #c9921a; }

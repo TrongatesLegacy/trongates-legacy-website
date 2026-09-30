@@ -280,6 +280,11 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
   game's bottom-left corner, like the logo's: a find sun-yellow with the word as tiles and a mint `+N`, older ones
   dimmed (not see-through: the board showed through). Only the hero's frame is listened to, never the set-up preview's.
   The pretend chatters' colours (demo.js) are dark enough to read on cream and yellow. Hidden on phones (≤720 px).
+  Motion, its own (not Chaplinko's slide): the ones above glide up (measured before and after, then animated back); the
+  oldest floats off and fades (it stays in place meanwhile, and the stack hangs from the bottom, so nothing jumps); once
+  the slot has cleared the new one pops out of its tail corner and swings into its tilt, settling like a card set down,
+  as its letter tiles flip in one by one. The tilt and shrink use `rotate`/`scale`, never `transform`, so the animations
+  and the resting CSS can't fight (the first version snapped to its tilt at the end). Reduced motion: none of it.
 - **Set-up**: channels, each checked as it's typed with a line under the box (Twitch through its public web API,
   `gql.twitch.tv`, no key; Kick through its channel API, which also gives the chatroom id; the overlay itself never asks
   Twitch); look (layout, theme, accent: the first swatch is the theme's own, the rainbow one any colour); game (round

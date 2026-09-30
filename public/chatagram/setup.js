@@ -273,9 +273,28 @@
     const color = /^#[0-9a-f]{6}$/i.test(d.color || '') ? d.color : 'var(--ink)', pf = d.platform === 'kick' ? 'kick' : 'twitch';
     m.innerHTML = `<span class="pf ${pf}"><svg><use href="#i-${pf}"/></svg></span><b style="color:${color}">${esc(d.name)}</b>`
       + (d.found ? `<span class="tiles">${[...String(d.found).toUpperCase()].map((c) => `<i>${esc(c)}</i>`).join('')}</span><span class="pts">+${+d.pts || 0}</span>` : `<span>${esc(d.text)}</span>`);
+    // Chatagram's own motion: the bubble pops out of its tail corner and its letters flip in like the board's tiles; the
+    // ones above glide up (measured before and after, then animated back, so nothing jumps); the oldest floats off
+    const calm = !m.animate || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stay = [...chat.querySelectorAll('.b:not(.out)')], was = stay.map((b) => b.getBoundingClientRect().top);
     chat.appendChild(m);
-    while (chat.children.length > 3) chat.firstElementChild.remove();
-    if (m.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) m.animate([{ opacity: 0, transform: 'translateY(12px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.3,1.4,.6,1)' });
+    for (const old of stay.slice(0, Math.max(0, stay.length - 2))) {
+      old.classList.add('out');
+      if (calm) old.remove();
+      else old.animate([{ opacity: 1 }, { opacity: 0, translate: '-6px -14px' }], { duration: 320, easing: 'ease-in', fill: 'forwards' }).finished.then(() => old.remove(), () => old.remove());
+    }
+    if (calm) return;
+    stay.forEach((b, i) => {
+      const dy = was[i] - b.getBoundingClientRect().top;
+      if (dy && !b.classList.contains('out')) b.animate([{ translate: `0 ${dy}px` }, { translate: '0 0' }], { duration: 380, easing: 'cubic-bezier(.3,1.25,.55,1)' });
+    });
+    // the pop waits until the glide has cleared its spot, so the new bubble never lands on the one moving up
+    const wait = stay.length ? 170 : 0;
+    // it swings into its tilt and settles like a card set down: past it, back, a little past, then still (each step eased)
+    m.animate([{ opacity: 0, scale: .4, rotate: '9deg' }, { opacity: 1, scale: 1.05, rotate: '-5deg', offset: .38 }, { scale: .99, rotate: '.5deg', offset: .6 },
+      { scale: 1.01, rotate: '-2.8deg', offset: .8 }, { opacity: 1, scale: 1, rotate: '-2deg' }], { duration: 680, delay: wait, easing: 'ease-in-out', composite: 'replace', fill: 'backwards' });
+    [...m.querySelectorAll('.tiles i, .pts')].forEach((t, i) => t.animate([{ transform: 'rotateX(90deg) scale(.6)' }, { transform: 'rotateX(-12deg) scale(1.1)', offset: .7 }, { transform: 'none' }],
+      { duration: 300, delay: wait + 90 + i * 45, easing: 'ease-out', fill: 'backwards' }));
   });
   const afterLoad = () => setTimeout(() => {
     loaded = true;

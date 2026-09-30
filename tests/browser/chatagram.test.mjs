@@ -395,7 +395,7 @@ test('the hero shows its game\'s pretend chat as bubbles: the last three, finds 
   assert.match(last.pts, /^\+\d+$/);
   assert.ok(!(await tab.eval('document.getElementById("chat").textContent.includes("PreviewPerson")')), 'the preview\'s chat stays out of the hero');
   await say('hero-frame', 'HeroPerson', 'lol');
-  assert.ok(await tab.eval('document.querySelectorAll("#chat .b").length <= 3'));
+  assert.ok(await tab.eval('document.querySelectorAll("#chat .b:not(.out)").length <= 3'));
   assert.ok(!(await tab.eval('[...document.querySelectorAll("#chat .b")].at(-1).classList.contains("hit")')), 'a miss is a plain bubble');
   noErrors(tab, 'hero chat');
   await tab.close();
@@ -403,6 +403,33 @@ test('the hero shows its game\'s pretend chat as bubbles: the last three, finds 
   const phone = await chrome.open(site.origin + '/chatagram/', { width: 390, height: 844, mobile: true });
   assert.equal(await phone.eval('getComputedStyle(document.getElementById("chat")).display'), 'none');
   await phone.close();
+});
+
+// Bug (owner, 2026-09-30, a screen recording): a new bubble felt stiff. The stack jumped up a row at once, the oldest
+// vanished, and the newest finished its pop flat and then snapped to its tilt (the animation and the CSS both set
+// transform). Now the ones above glide up, the oldest fades out, and the pop ends exactly where the bubble rests.
+test('a new hero chat bubble: the ones above glide up, the oldest fades out, the pop ends where it rests', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/', { width: 1354, height: 860 });
+  await tab.until('document.querySelectorAll("#chat .b:not(.out)").length === 3', 15000, 'three bubbles');
+  // the pretend chat keeps talking: stop it hearing the hero game so only this test's message arrives
+  await tab.eval(`document.getElementById('hero-frame').contentWindow.postMessage = () => {}; 1`);
+  await sleep(700);
+  const r = await tab.eval(`(async () => {
+    const chat = document.getElementById('chat'), before = [...chat.querySelectorAll('.b:not(.out)')];
+    window.dispatchEvent(new MessageEvent('message', { data: { type: 'chatagram-chat', name: 'Glide', color: '#1971c2', platform: 'twitch', text: 'hello', found: '', pts: 0 }, source: document.getElementById('hero-frame').contentWindow }));
+    const now = [...chat.querySelectorAll('.b')], newest = now.at(-1), oldest = before[0];
+    const moves = before.slice(1).map((b) => b.getAnimations().some((a) => a.effect.getKeyframes().some((k) => k.translate && k.translate !== '0px' && k.translate !== 'none')));
+    const pop = newest.getAnimations()[0]?.effect.getKeyframes().at(-1);
+    return { moves, oldestStays: oldest.isConnected, oldestFades: oldest.classList.contains('out') && oldest.getAnimations().some((a) => a.effect.getKeyframes().at(-1).opacity === '0'),
+      popEnd: pop && pop.rotate };
+  })()`);
+  assert.deepEqual(r.moves, [true, true], 'the bubbles above glide up');
+  assert.ok(r.oldestStays && r.oldestFades, 'the oldest fades out rather than vanishing');
+  await sleep(900);
+  assert.equal(r.popEnd, await tab.eval('getComputedStyle([...document.querySelectorAll("#chat .b")].at(-1)).rotate'), 'the pop ends at the tilt the bubble rests at');
+  assert.equal(await tab.eval('document.querySelectorAll("#chat .b").length'), 3, 'the faded one is gone after');
+  noErrors(tab, 'hero chat motion');
+  await tab.close();
 });
 
 test('phones have no sticky Copy bar (the owner removed it)', async () => {
