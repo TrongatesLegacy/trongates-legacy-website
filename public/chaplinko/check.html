@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Chaplinko: can two sources talk?</title>
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- A check for OBS (docs/widgets.md, "Chaplinko: two sources"): add this page twice as browser sources, once with ?n=1
+     and once with ?n=2. Each says whether it can hear the other, through shared storage and through a BroadcastChannel,
+     which is how Chaplinko's separate leaderboard gets the board's scores. Hide one source ("Shutdown source when not
+     visible" on) and show it again: both should go back to green within a few seconds. -->
+<style>
+  body { margin: 0; font: 600 22px/1.4 system-ui, sans-serif; color: #eef3ff; background: #0a1233; padding: 20px; }
+  h1 { font-size: 26px; margin: 0 0 12px; }
+  p { margin: 6px 0; } .ok { color: #2ee6a8; } .bad { color: #ff7a7a; } small { color: #9fb0e0; font-weight: 400; }
+</style></head>
+<body>
+<h1>Source <span id="me"></span></h1>
+<p>Storage: <span id="st" class="bad">nothing yet</span></p>
+<p>BroadcastChannel: <span id="bc" class="bad">nothing yet</span></p>
+<p><small>Add this page twice in OBS (?n=1 and ?n=2). Both lines green on both = Chaplinko's separate leaderboard works.</small></p>
+<script>
+(() => {
+  const me = new URLSearchParams(location.search).get('n') === '2' ? '2' : '1', other = me === '1' ? '2' : '1';
+  document.getElementById('me').textContent = me;
+  const heard = { st: 0, bc: 0 };
+  const ch = 'BroadcastChannel' in window ? new BroadcastChannel('chaplinko-check') : null;
+  if (ch) ch.onmessage = (e) => { if (e.data && e.data.from === other) heard.bc = Date.now(); };
+  addEventListener('storage', (e) => { if (e.key === 'chaplinko-check:' + other) heard.st = Date.now(); });
+  const show = (id, t, none) => {
+    const el = document.getElementById(id), ago = t ? Math.round((Date.now() - t) / 1000) : null;
+    el.className = ago !== null && ago < 5 ? 'ok' : 'bad';
+    el.textContent = ago === null ? none : ago < 5 ? `hearing source ${other} ✓` : `last heard ${ago} s ago`;
+  };
+  setInterval(() => {
+    try { localStorage.setItem('chaplinko-check:' + me, String(Date.now())); } catch {}
+    if (ch) ch.postMessage({ from: me, at: Date.now() });
+    // also read the other's save directly (the storage event only fires on changes made by another page)
+    try { const t = +localStorage.getItem('chaplinko-check:' + other); if (t && Date.now() - t < 3000) heard.st = Math.max(heard.st, t); } catch {}
+    show('st', heard.st, 'nothing yet');
+    show('bc', heard.bc, ch ? 'nothing yet' : 'not available in this browser');
+  }, 1000);
+})();
+</script>
+</body></html>

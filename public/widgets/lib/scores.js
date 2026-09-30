@@ -1,6 +1,8 @@
-// Chatagram's leaderboards (docs/widgets.md, "Leaderboards"): All time and This stream, and which stream is on. Rules
-// only: the overlay (play.js) asks Twitch or Kick whether the channel is live and passes the answer to checked(); every
-// point scored comes in through award(). The clock is passed in, so the tests replay any day of streams.
+// The widgets' leaderboards (docs/widgets.md, "Leaderboards"): All time and This stream, and which stream is on. Rules
+// only: the overlay (Chatagram's or Chaplinko's play.js) asks Twitch or Kick whether the channel is live and passes the
+// answer to checked(); every point scored comes in through award(). The clock is passed in, so the tests replay any day
+// of streams. Each widget keeps its own record under its own key; "words" is what the widget counts beside the points
+// (Chatagram: words found; Chaplinko: balls dropped).
 //
 // Saved as its own record, apart from the game's save (docs/widgets.md, "Saved data"):
 //   { v: 1, allTime: { 'platform:user': { name, platform, score, words } },
@@ -9,7 +11,7 @@
 //     status: '' | 'live' | 'offline' | 'unknown', checkedAt, primary: '' | 'twitch' | 'kick' }
 // New versions only ever add fields: anything saved before always loads.
 (() => {
-  const C = (window.Chatagram = window.Chatagram || {});
+  const W = (window.Widgets = window.Widgets || {});
   const SAME = 40 * 60000;          // a new stream id starting within this of the last one seen live: the same stream
   const FRESH = 2 * 60000;          // a live answer younger than this is shown without asking again
   const LIVE_EVERY = 10 * 60000;    // while live, the overlay asks this often (so a stream's end is known to within this)
@@ -118,8 +120,8 @@
     };
   }
 
-  C.scores = scores;
-  C.scores.SAME = SAME;
-  C.scores.FRESH = FRESH;
-  C.scores.LIVE_EVERY = LIVE_EVERY;
+  W.scores = scores;
+  W.scores.SAME = SAME;
+  W.scores.FRESH = FRESH;
+  W.scores.LIVE_EVERY = LIVE_EVERY;
 })();

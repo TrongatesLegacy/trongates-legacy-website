@@ -55,7 +55,7 @@
   const SAVE = `chatagram:v1:${channels.twitch}|${channels.kick}`, SCORES = `chatagram:scores:v1:${channels.twitch}|${channels.kick}`;
   let saved = null, savedScores = null;
   if (!demo && !still) try { saved = JSON.parse(localStorage.getItem(SAVE) || 'null'); savedScores = JSON.parse(localStorage.getItem(SCORES) || 'null'); } catch {}
-  const scores = C.scores(demo || still ? pretendScores() : savedScores, { now, gameAllTime: saved && saved.allTime });
+  const scores = W.scores(demo || still ? pretendScores() : savedScores, { now, gameAllTime: saved && saved.allTime });
   const game = C.game(cfg, { dict, seeds, now, random: still ? seeded : Math.random, emit: (e) => queue.push(e), award: (m, pts, words) => scores.award(m, pts, words), firstSeed: /^[a-z]{3,9}$/.test(q.get('seed') || '') ? q.get('seed') : still ? STILL_SEEDS[cfg.diff] : null });   // seed=: the first puzzle's word (the trailer), if it's a real seed
   let saveTimer = null;
   const writeSaves = () => { try { game.state.allTime = scores.allTime; localStorage.setItem(SAVE, JSON.stringify(game.snapshot())); localStorage.setItem(SCORES, JSON.stringify(scores.record)); } catch {} };
@@ -651,7 +651,7 @@
       W.chat({ twitch: channels.twitch, kick: channels.kick, kickId: cfg.kickid || undefined }, hear, drawConn);
       checkStream();
       // while live, ask every 10 minutes (so a crash or a dropped stream is told apart from a new one); offline, never
-      setInterval(() => { const d = scores.record; if (d.status === 'live' && now() - d.checkedAt >= C.scores.LIVE_EVERY) checkStream(); }, 60000);
+      setInterval(() => { const d = scores.record; if (d.status === 'live' && now() - d.checkedAt >= W.scores.LIVE_EVERY) checkStream(); }, 60000);
     }
     // the set-up page's preview: its "Show leaderboard" button
     if (demo) addEventListener('message', (ev) => { if (ev.data && ev.data.type === 'chatagram-leaderboard') showLeaderboard({ by: 'Streamer', text: game.commandName('top') || '!cg top' }); });

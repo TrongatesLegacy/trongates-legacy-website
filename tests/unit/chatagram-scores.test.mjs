@@ -1,4 +1,4 @@
-// Chatagram's leaderboards (public/chatagram/scores.js) on a hand-driven clock: This stream follows the stream Twitch or
+// Chatagram's leaderboards (public/widgets/lib/scores.js, shared with Chaplinko) on a hand-driven clock: This stream follows the stream Twitch or
 // Kick says is on (a crash or a dropped stream carries on, a new stream starts again), All time is always recorded, and
 // saves from before the leaderboards (tests/fixtures/chatagram-save-v1.json, written by the game as it was) still load,
 // in both directions.
@@ -9,14 +9,14 @@ import { read, readAt, rng } from '../helpers/sim.mjs';
 
 const MIN = 60000, HOUR = 60 * MIN;
 const ctx = vm.createContext({ URLSearchParams, JSON }); ctx.window = ctx;
-for (const f of ['public/widgets/lib/settings.js', 'public/chatagram/words.js', 'public/chatagram/settings.js', 'public/chatagram/game.js', 'public/chatagram/scores.js']) vm.runInContext(read(f), ctx);
+for (const f of ['public/widgets/lib/settings.js', 'public/chatagram/words.js', 'public/chatagram/settings.js', 'public/chatagram/game.js', 'public/widgets/lib/scores.js']) vm.runInContext(read(f), ctx);
 const C = ctx.Chatagram, S = ctx.Widgets.settings;
 const plain = (o) => JSON.parse(JSON.stringify(o));
 const FIXTURE = JSON.parse(read('tests/fixtures/chatagram-save-v1.json'));
 
 function setup(saved, gameAllTime) {
   const t = { at: 1_790_000_000_000 };
-  t.sc = C.scores(saved, { now: () => t.at, gameAllTime });
+  t.sc = ctx.Widgets.scores(saved, { now: () => t.at, gameAllTime });
   t.live = (id, started = t.at, platform = 'twitch') => t.sc.checked({ state: 'live', platform, id, started });
   t.offline = () => t.sc.checked({ state: 'offline' });
   t.unknown = () => t.sc.checked({ state: 'unknown' });
@@ -201,7 +201,7 @@ test('an older overlay (a cached copy) still reads what the new one saves: the g
   let at = FIXTURE.savedAt + 3000;
   const g = C.game(S.defaults(C.settings.SCHEMA), { dict, seeds, now: () => at, random: rng(1) });
   g.boot(plain(FIXTURE));
-  const sc = C.scores(null, { now: () => at, gameAllTime: FIXTURE.allTime });
+  const sc = ctx.Widgets.scores(null, { now: () => at, gameAllTime: FIXTURE.allTime });
   g.handle({ platform: 'twitch', user: 'x', name: 'X', text: '!cg top', mod: true });
   at += 1000;
   g.state.allTime = sc.allTime;
