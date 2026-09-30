@@ -234,12 +234,12 @@
   let watch = localStorage.getItem('chaplinko:animate') === '1';
   const animate = () => (watch && rmQuery.matches ? '&animate=1' : '');
   function rmNotes() {
-    const say = watch ? 'Showing the balls falling, though your device asks for less motion. <button type="button">Keep them still</button>'
-      : 'Your device asks for less motion, so the balls here land without falling (in OBS they fall). <button type="button">Show them falling</button>';
+    const say = watch ? '<p><button type="button" title="Your device asks for less motion">Keep the balls still</button></p>'
+      : '<p><span>Your device asks for less motion, so the balls are invisible here. In OBS they fall.</span><button type="button" class="btn small">SHOW THEM FALLING</button></p>';
     for (const [id, show] of [['hero-rm', true], ['pv-rm', s.motion !== 'reduce']]) {
       const el = $('#' + id);
       el.hidden = !rmQuery.matches || !show;
-      if (el.dataset.watch !== String(watch)) { el.innerHTML = say; el.dataset.watch = String(watch); }
+      if (el.dataset.watch !== String(watch)) { el.innerHTML = say; el.dataset.watch = String(watch); el.classList.toggle('on', watch); }
     }
   }
   function heroSrc() { const src = 'play.html?demo=1' + animate(); if (loaded && !hero.src.endsWith(src)) { hero.src = src; showWhenReady(hero); } }

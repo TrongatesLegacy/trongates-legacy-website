@@ -250,12 +250,16 @@ test('the set-up page under reduced motion: the hero and the preview say why not
   const click = (sel) => tab.eval(`(() => { document.querySelector(${JSON.stringify(sel)}).click(); return 1; })()`);
   await tab.until('document.getElementById("hero-frame").src && document.getElementById("pv").src', 5000, 'the boards to start');
   assert.equal(await tab.eval('document.getElementById("hero-rm").hidden || document.getElementById("pv-rm").hidden'), false, 'both say why');
+  const over = (id, screen) => tab.eval(`(() => { const n = document.getElementById('${id}').getBoundingClientRect(), b = document.getElementById('${screen}').getBoundingClientRect(); return n.left <= b.left + 1 && n.right >= b.right - 1 && n.top <= b.top + 1 && n.bottom >= b.bottom - 1; })()`);
+  assert.equal(await over('hero-rm', 'hero-screen'), true, 'over the whole hero board');
+  assert.equal(await over('pv-rm', 'pv-screen'), true, 'over the whole preview');
   assert.doesNotMatch(await tab.eval('document.getElementById("hero-frame").src'), /animate=1/);
   await click('#hero-rm button');
   await tab.until('/animate=1/.test(document.getElementById("hero-frame").src) && /animate=1/.test(document.getElementById("pv").src)', 3000, 'both boards to animate');
   await tab.until('document.getElementById("hero-frame").contentWindow.chaplinko?.world.balls.length > 0', 10000, 'balls falling in the hero');
   assert.equal(await tab.eval('chaplinkoSetup.boardLink()'), site.origin + '/chaplinko/play?kick=gridrunner', 'the OBS link never carries it');
   assert.equal(await tab.eval('localStorage.getItem("chaplinko:animate")'), '1', 'remembered');
+  assert.equal(await over('hero-rm', 'hero-screen'), false, 'then only a small way back, out of the way');
   await click('#pv-rm button');
   await tab.until('!/animate=1/.test(document.getElementById("hero-frame").src) && !/animate=1/.test(document.getElementById("pv").src)', 3000, 'back to reduced motion');
   await tab.eval(`(() => { const el = document.querySelector('[name=motion]'); el.value = 'reduce'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
