@@ -4,7 +4,11 @@ A second free widget beside Chatagram (docs/widgets.md): chat types `!drop` and 
 scoring slots. Status: **planning** (2026-09-29). The first version is **Plinko only**; Pachinko and Pin tower are for
 later (see "Later").
 
-Mockups (`mockup.html`, drawn with the real `themes.css`; `?v=<name>` shows one at its real size). Board source:
+Brand mockups (`brand.html`): [logo](brand-logo.png), [colours and type](brand-palette.png), [the website](brand-site.png),
+[beside Chatagram](brand-compare.png).
+
+Widget mockups (`mockup.html`, drawn with the real `themes.css` plus the planned `chaplinko` theme; `?v=<name>` shows
+one at its real size). Board source:
 [board](classic.png), [big win](jackpot.png), [transparent](clear.png), [themes and accents](accents.png). Leaderboard
 source: [panel](panel.png), [strip](strip.png), [transparent](lbclear.png). On a stream: [separate](scene.png),
 [combined](combined.png).
@@ -27,6 +31,7 @@ source: [panel](panel.png), [strip](strip.png), [transparent](lbclear.png). On a
 - **Balls are the chatter's chat colour** by default (2026-09-30).
 - **The commands are shown on the board**, not on the leaderboard.
 - The name is **Chaplinko** (chat + Plinko). The command is `!drop`.
+- **Its own brand, logo and website, clearly different from Chatagram** (2026-09-30).
 
 ### About the name
 
@@ -36,6 +41,85 @@ nickname list). "Chatinko" was already taken by a Twitch/Kick chat game, so it w
 - It contains **Plinko**, a trademark of The Price Is Right. That's a small risk for a free widget, but if it ever grew
   large, a rename could be asked for. The page never uses The Price Is Right's look or says it's connected to the show.
 - `!drop` is also used by Coin Pusher Live (a paid Steam game). Streamers who run both can rename our command.
+
+## Brand
+
+Chaplinko is its own brand, as Chatagram is, and the two are meant to look like **siblings from the same maker, not the
+same product**. Chatagram is warm and cartoony: purple ink, coral and sun yellow, the rounded Lilita One, a lowercase
+wordmark and a speech-bubble tile. Chaplinko is a **late-night arcade**: midnight blue, cobalt glow, a tangerine ball,
+hard-edged arcade-sign capitals (mockup: beside Chatagram).
+
+| | Chatagram | Chaplinko |
+|---|---|---|
+| Feel | a cosy word game, cartoon | an arcade cabinet at night, glow |
+| Ground | purple ink `#16122b` | midnight blue `#0a1233` |
+| Hero colour | coral `#ff5a5f` + sun `#ffc93c` | tangerine `#ff7a1a` (the ball) |
+| Top prize | gold | jackpot pink `#ff3d8b` |
+| Display type | Lilita One, lowercase | Bungee, capitals |
+| Text type | Chakra Petch (the site's) | Space Grotesk |
+| Mark | a speech bubble holding a letter tile | a cobalt tile: pegs, a falling ball, the slots |
+| Surfaces | chunky offset shadows | thin cobalt rims and soft glow |
+
+- **Name and wordmark**: `CHAPLINKO` in Bungee capitals, with the **O drawn as the ball** (tangerine, with a shine and a
+  thin pink edge underneath, the jackpot slot). One colour, no split like Chatagram's **chat**agram. On dark it's ice,
+  on light it's midnight (mockup: logo).
+- **The mark** (`chaplinko/assets/icon.svg`, favicon and app tile): a cobalt rounded tile, a 1-2-3 triangle of ice pegs,
+  the tangerine ball falling in with a short streak, and four slots with the third lit jackpot pink. It holds up at 32
+  px; at 16 px (the favicon) a simpler version keeps only the ball, three pegs and the pink slot.
+- **Colours**: night `#0a1233` (backgrounds), deep `#121d4d` (panels), slot `#1b2a66`, cobalt `#2f5bff` (the tile,
+  rims, glow), ice `#eef3ff` (text, pegs), mist `#9fb0e0` (quieter text), tangerine `#ff7a1a` (the ball, buttons),
+  jackpot pink `#ff3d8b` (the top slot, big wins). No Kick green or Twitch purple in the brand, so the platform dots
+  always read as platforms.
+- **Type**: **Bungee** for the wordmark, headings, slot numbers and buttons; **Space Grotesk** 400/600 for everything
+  else. Both are SIL Open Font License, self-hosted beside the others in `public/assets/fonts/` (latin only, about 30 KB
+  and 25 KB). Fonts are files, not a dependency.
+- **Tagline**: **"Let chat drop."** In the site's voice (docs/content-and-voice.md): chill and playful.
+- **Signature details**: the peg-dot texture behind sections; numbers in balls (the steps on the page); a tangerine
+  button with a glow instead of Chatagram's offset shadow.
+- **Credit**, as Chatagram: "made by **TrongatesLegacy**" in the page header, and `Made by TrongatesLegacy.com` on the
+  widget, on by default, can be turned off.
+- **Keep away from**: Charlie Chaplin's look (bowler hat, cane, moustache, silent-film type: the Chaplin estate
+  protects them), and The Price Is Right's look (its Plinko board, logo, colours or "$" slots). The name is the only
+  nod to either.
+
+### The chaplinko theme
+
+A 9th theme in `widgets/lib/themes.css`, **`chaplinko`**, in the brand's colours and type: it's Chaplinko's default
+(the mockups use it) as `chatagram` is Chatagram's. Every widget gets every theme, so Chatagram gains it too, and
+Chaplinko keeps all the others (mockup: themes and accents). Its `--gold` is jackpot pink.
+
+A small change for every theme: the slots' heat (from the plain slot colour to the accent) mixes in `oklch`, not
+`srgb`, so blue-to-orange goes through purple and pink instead of mud brown.
+
+### Artwork
+
+`artwork/chaplinko/` like `artwork/chatagram/`: the link-preview image (1200 × 630: the lockup, the tagline and a real
+board, rendered by `render.mjs` into `public/chaplinko/assets/og.jpg`) and the theme pictures for the page
+(`render-previews.mjs`, the real board in every theme, into `public/chaplinko/assets/themes/`). The mark is hand-drawn
+SVG, as Chatagram's is.
+
+## The website
+
+`/chaplinko/`, indexed, with its own title, description, canonical, share image and JSON-LD (as Chatagram). The same
+**parts** as Chatagram's page, because they work, in a **different look** (mockup: the website):
+
+- **Header**: the mark and wordmark, a pill menu (Play, How it works, Looks, Set up, FAQ) that shows where you are, and
+  "made by TrongatesLegacy" linking to the homepage.
+- **Hero**: "LET CHAT **DROP.**" (the last word tangerine, glowing); one line on what it does; **Set it up** (tangerine)
+  and **See it play** (outline); "No sign-up, no download: one link in OBS." Beside it, **the real board playing
+  transparent** over the page's glow, with a pretend chat dropping balls (`demo.js`, as Chatagram). A picture first,
+  the live board fading in over it once drawn, as Chatagram does.
+- **How it works**: three cards, numbered with balls: type your channel, add it to OBS, chat drops.
+- **Looks**: the board in every theme, transparent and with a background, as pictures; click one to use it.
+- **Set up**: channels (checked as typed), layout (separate / combined), look, the board (rows, slot values with the
+  odds beside them), the leaderboard (show, switch every, how many), Advanced. The live preview stays in view with
+  **Copy OBS link** under it: two buttons for separate (board, leaderboard), one for combined.
+- **FAQ**: is this gambling? (no: points only, nobody stakes anything); how do I add the leaderboard?; separate or
+  combined?; which emotes work?; can I rename `!drop`?; what counts as This stream?
+- **Footer**: credits and the other widgets.
+- Checks as for every page: Lighthouse at the site's baseline (accessibility and best practices 100), desktop and
+  phone screenshots, reduced motion (the hero board shows its picture, nothing falls).
+- On `/widgets/`: a Chaplinko card in its own colours beside Chatagram's, and in the sitemap.
 
 ## What it reuses from Chatagram
 
@@ -203,14 +287,6 @@ credit.
 Saved: `chaplinko:scores:v1:<twitch>|<kick>` (the shared scores record). Balls in flight aren't saved: after a refresh,
 the queue and balls in the air are gone, and they hadn't scored yet.
 
-## The page
-
-`/chaplinko/`, built the same way as Chatagram's: a hero with a pretend chat dropping balls, the themes, set-up with a
-live preview (both sources, or the combined one) and the odds table, **Copy OBS link buttons** (board and leaderboard
-for separate, one for combined), and an FAQ ("is
-this gambling?": no; "how do I add the leaderboard?"). It goes on `/widgets/` and in the sitemap, with its own
-link-preview image.
-
 ## Build order (each step tested and committed on its own)
 
 1. **Prove two sources can talk** in the owner's OBS (a two-page test: shared storage and `BroadcastChannel`). If they
@@ -225,9 +301,11 @@ link-preview image.
 6. **Leaderboard**: `leaderboard.js` draws the list (panel and strip, show and switch every); `leaderboard.html` is the
    separate source reading the board's scores live, with a browser test running both pages at once; the combined layout
    uses the same code inside the board.
-7. **Set-up page**, the widgets list entry, the preview pictures, the link-preview image.
+7. **Brand and website**: the `chaplinko` theme and the two fonts, the mark and favicon, the page (see "The
+   website"), the widgets list entry, the theme pictures, the link-preview image.
 8. **`/obs/chaplinko`** for Trongates Legacy's scenes.
-9. Docs: a "Chaplinko" section in docs/widgets.md, plus testing.md.
+9. Docs: a "Chaplinko" section in docs/widgets.md (with the brand, as Chatagram's has), plus testing.md, and a row in
+   CLAUDE.md's table for `artwork/chaplinko/`.
 
 ## Later (not in the first version)
 

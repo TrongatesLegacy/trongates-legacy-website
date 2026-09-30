@@ -1,0 +1,156 @@
+<!doctype html>
+<!-- Chaplinko's brand, still mockup (docs/plans/chaplinko/plan.md, "Brand"). ?v=logo|palette|site|compare shows one at
+     its real size (for screenshots); no ?v shows them all. Google Fonts only here; the build self-hosts them. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chaplinko brand mockup</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;600;700&display=block">
+<style>
+  :root { --night: #0a1233; --deep: #121d4d; --slot: #1b2a66; --cobalt: #2f5bff; --tangerine: #ff7a1a; --pink: #ff3d8b;
+          --ice: #eef3ff; --muted: #9fb0e0; --display: Bungee, system-ui, sans-serif; --font: "Space Grotesk", system-ui, sans-serif; }
+  body { margin: 0; background: #07070a; color: var(--ice); font: 16px var(--font); }
+  .page { display: flex; flex-direction: column; gap: 28px; padding: 28px; }
+  .solo .page { padding: 0; }
+  .cap { font: 600 13px system-ui; color: #999; margin: 0 0 8px; }
+  .solo .cap { display: none; }
+  .board { background: var(--night); position: relative; overflow: hidden; }
+  /* the peg-dot texture the brand uses behind sections */
+  .pegs { background-image: radial-gradient(circle, #eef3ff22 1.6px, transparent 2px); background-size: 28px 24px; }
+
+  /* logo sheet */
+  .logo { width: 1200px; height: 630px; display: grid; grid-template-columns: 1fr 1fr; }
+  .logo > div { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; }
+  .logo .dark { background: var(--night); }
+  .logo .light { background: var(--ice); color: var(--night); }
+  .lockup { display: flex; align-items: center; gap: 16px; }
+  .word { font: 400 56px var(--display); letter-spacing: .01em; line-height: 1; display: inline-flex; align-items: baseline; }
+  .word .o { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-left: .04em; position: relative;
+             background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--tangerine); box-shadow: 0 .07em 0 -.025em var(--pink); }
+  .sizes { display: flex; align-items: flex-end; gap: 22px; }
+  .tag { font: 600 15px var(--font); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+  .light .tag { color: #4a5a8c; }
+  .note { font: 13px var(--font); color: var(--muted); max-width: 440px; text-align: center; line-height: 1.5; }
+  .light .note { color: #4a5a8c; }
+
+  /* palette + type */
+  .palette { width: 1200px; height: 520px; padding: 40px; box-sizing: border-box; display: grid; grid-template-columns: 1.25fr 1fr; gap: 40px; }
+  .sw { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-content: start; }
+  .sw div { height: 118px; border-radius: 16px; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-end; font: 600 13px var(--font); box-shadow: inset 0 0 0 1px #ffffff1f; }
+  .sw small { font-weight: 400; opacity: .8; }
+  .type h3 { font: 400 44px/1 var(--display); margin: 0 0 6px; }
+  .type h4 { font: 400 22px var(--display); margin: 18px 0 6px; color: var(--tangerine); }
+  .type p { margin: 0 0 8px; color: var(--muted); line-height: 1.5; }
+  .type code { white-space: nowrap; font: 700 15px var(--font); background: var(--slot); padding: 2px 8px; border-radius: 8px; color: var(--ice); }
+
+  /* website hero */
+  .site { width: 1280px; height: 900px; }
+  .site .glow { position: absolute; width: 900px; height: 900px; right: -200px; top: -150px; border-radius: 50%;
+                background: radial-gradient(circle, #2f5bff55, transparent 60%); }
+  header { position: relative; display: flex; align-items: center; gap: 14px; padding: 20px 40px; }
+  header .word { font-size: 26px; }
+  nav { margin-left: 34px; display: flex; gap: 6px; }
+  nav a { font: 600 14px var(--font); color: var(--muted); padding: 7px 14px; border-radius: 999px; text-decoration: none; }
+  nav a.on { color: var(--ice); background: #ffffff14; box-shadow: inset 0 0 0 1px #ffffff22; }
+  .by { margin-left: auto; font: 13px var(--font); color: var(--muted); }
+  .by b { color: var(--ice); }
+  .hero { position: relative; display: grid; grid-template-columns: 1fr 640px; gap: 10px; padding: 24px 40px 0; }
+  .eyebrow { display: inline-flex; gap: 8px; align-items: center; font: 700 12px var(--font); letter-spacing: .16em; text-transform: uppercase;
+             color: var(--ice); background: #ffffff10; box-shadow: inset 0 0 0 1px #ffffff22; padding: 7px 12px; border-radius: 999px; margin-top: 46px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  h1 { font: 400 86px/.95 var(--display); margin: 22px 0 18px; letter-spacing: -.005em; }
+  h1 em { font-style: normal; color: var(--tangerine); text-shadow: 0 0 30px #ff7a1a66; }
+  .lede { font-size: 19px; line-height: 1.55; color: var(--muted); max-width: 500px; margin: 0; }
+  .lede code { font: 700 17px var(--font); color: var(--ice); background: var(--slot); padding: 1px 7px; border-radius: 7px; }
+  .cta { display: flex; gap: 12px; margin-top: 30px; }
+  .btn { font: 400 18px var(--display); padding: 15px 24px; border-radius: 999px; letter-spacing: .02em; }
+  .btn.go { background: linear-gradient(180deg, #ff9442, var(--tangerine)); color: #1a0a00; box-shadow: 0 10px 30px #ff7a1a55, inset 0 -3px 0 #0003; }
+  .btn.ghost { color: var(--ice); box-shadow: inset 0 0 0 2px #ffffff33; }
+  .free { margin-top: 18px; font-size: 14px; color: var(--muted); }
+  .stage { position: relative; height: 540px; }
+  .stage iframe { border: 0; width: 640px; height: 540px; background: transparent; }
+  .chat { position: absolute; left: -40px; top: 150px; width: 220px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { background: #0e1740; box-shadow: inset 0 0 0 1px #ffffff1f, 0 8px 20px #0006; border-radius: 14px; padding: 8px 12px; font-size: 14px; }
+  .msg b { margin-right: 6px; }
+  .steps { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 40px 40px 0; }
+  .step { background: linear-gradient(180deg, #16235c, #0f1a47); border-radius: 22px; padding: 22px; box-shadow: inset 0 0 0 1px #2f5bff55, 0 0 40px #2f5bff1a; }
+  .step .n { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font: 400 18px var(--display); color: #1a0a00;
+             background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--tangerine); margin-bottom: 12px; }
+  .step h3 { font: 400 20px var(--display); margin: 0 0 6px; }
+  .step p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  /* side by side with Chatagram */
+  .compare { width: 1200px; height: 315px; display: grid; grid-template-columns: 1fr 1fr; }
+  .compare > div { position: relative; overflow: hidden; }
+  .compare img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .compare .lab { position: absolute; left: 12px; top: 12px; font: 600 12px system-ui; background: #000a; color: #fff; padding: 4px 8px; border-radius: 6px; }
+  .compare .ck { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 18px; height: 100%; }
+</style>
+</head>
+<body>
+<div class="page" id="page"></div>
+<script>
+// the mark: a cobalt tile, a triangle of pegs, the tangerine ball dropping in, the slots with the jackpot lit
+const mark = (size, id = 'm' + size) => `<svg width="${size}" height="${size}" viewBox="0 0 64 64" role="img" aria-label="Chaplinko">
+  <defs><linearGradient id="${id}t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d68ff"/><stop offset="1" stop-color="#1c34c9"/></linearGradient>
+  <radialGradient id="${id}b" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffd2ad"/><stop offset=".35" stop-color="#ff7a1a"/><stop offset="1" stop-color="#e2600a"/></radialGradient></defs>
+  <rect width="64" height="64" rx="15" fill="url(#${id}t)"/>
+  <rect x="1" y="1" width="62" height="62" rx="14" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
+  ${[[32, 22], [24, 32], [40, 32], [16, 42], [32, 42], [48, 42]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#eef3ff"/>`).join('')}
+  <path d="M38 5 L40 13" stroke="#ffb27a" stroke-opacity=".6" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="40.5" cy="14.5" r="6.5" fill="url(#${id}b)"/>
+  <rect x="9" y="50" width="10" height="7" rx="2.5" fill="#0a1233" opacity=".55"/><rect x="21" y="50" width="10" height="7" rx="2.5" fill="#0a1233" opacity=".55"/>
+  <rect x="33" y="50" width="10" height="7" rx="2.5" fill="#ff3d8b"/><rect x="45" y="50" width="10" height="7" rx="2.5" fill="#0a1233" opacity=".55"/>
+</svg>`;
+const word = (size, color = 'var(--ice)') => `<span class="word" style="font-size:${size}px;color:${color}">CHAPLINK<span class="o"></span></span>`;
+const lockup = (m, w, color) => `<div class="lockup">${mark(m)}${word(w, color)}</div>`;
+
+const V = {
+  logo: ['Logo: the mark (favicon, app tile) and the wordmark, on dark and on light', () => `<div class="logo">
+    <div class="dark pegs">${lockup(84, 64)}<div class="sizes">${mark(128, 'a')}${mark(64, 'b')}${mark(32, 'c')}${mark(16, 'd')}</div>
+      <div class="tag">Let chat drop</div></div>
+    <div class="light">${lockup(84, 64, '#0a1233')}<div class="sizes">${word(34, '#0a1233')}${word(22, '#0a1233')}</div>
+      <div class="note">The O is the ball. The wordmark is always capitals in Bungee; the mark always has the pink jackpot slot. No bowler hats, canes or moustaches, and nothing from The Price Is Right.</div></div></div>`],
+  palette: ['Colours and type', () => `<div class="palette board">
+    <div><div class="sw">
+      <div style="background:#0a1233">Night<small>#0a1233 · backgrounds</small></div>
+      <div style="background:#121d4d">Deep<small>#121d4d · panels</small></div>
+      <div style="background:#2f5bff">Cobalt<small>#2f5bff · the tile, rims, glow</small></div>
+      <div style="background:#eef3ff;color:#0a1233">Ice<small>#eef3ff · text, pegs</small></div>
+      <div style="background:#ff7a1a;color:#1a0a00">Tangerine<small>#ff7a1a · the ball, buttons</small></div>
+      <div style="background:#ff3d8b">Jackpot pink<small>#ff3d8b · the top slot, big wins</small></div>
+      <div style="background:#1b2a66">Slot<small>#1b2a66 · slots, code chips</small></div>
+      <div style="background:#9fb0e0;color:#0a1233">Mist<small>#9fb0e0 · quieter text</small></div>
+    </div></div>
+    <div class="type"><h3>BUNGEE</h3><p>Display: the wordmark, headings, slot numbers, buttons. Arcade-sign capitals.</p>
+      <h4>SPACE GROTESK</h4><p>Text: everything else, 400 and 600. Commands look like <code>!drop 5 🔥</code></p>
+      <p style="margin-top:18px">Both are free (SIL Open Font License) and would be self-hosted beside the others, latin only.</p></div></div>`],
+  site: ['The website, /chaplinko/: the top of the page (1280 wide)', () => `<div class="site board">
+    <div class="glow"></div>
+    <header>${mark(40, 'h')}${word(26)}<nav><a class="on">Play</a><a>How it works</a><a>Looks</a><a>Set up</a><a>FAQ</a></nav>
+      <span class="by">made by <b>TrongatesLegacy</b></span></header>
+    <div class="hero">
+      <div><span class="eyebrow"><span class="dot" style="background:#9146ff"></span><span class="dot" style="background:#53fc18"></span>Free for Twitch and Kick</span>
+        <h1>LET CHAT<br><em>DROP.</em></h1>
+        <p class="lede">Chat types <code>!drop</code>. Balls bounce down the pegs, in each chatter's own colour, and the slots keep score. A leaderboard for this stream and all time, straight over your game.</p>
+        <div class="cta"><span class="btn go">SET IT UP</span><span class="btn ghost">SEE IT PLAY</span></div>
+        <div class="free">No sign-up, no download: one link in OBS.</div></div>
+      <div class="stage"><iframe src="mockup.html?v=hero"></iframe>
+        <div class="chat"><div class="msg"><b style="color:#ff4f9a">pixelpriya</b>!drop 5</div><div class="msg"><b style="color:#1e90ff">m0ssy</b>!drop 3 🔥</div><div class="msg"><b style="color:#ffb000">kevxd</b>!drop</div></div></div>
+    </div>
+    <div class="steps pegs">
+      <div class="step"><div class="n">1</div><h3>TYPE YOUR CHANNEL</h3><p>Twitch, Kick or both. Pick a look, or keep it see-through.</p></div>
+      <div class="step"><div class="n">2</div><h3>ADD IT TO OBS</h3><p>Copy the link into a browser source. The leaderboard can be its own source, or sit beside the board.</p></div>
+      <div class="step"><div class="n">3</div><h3>CHAT DROPS</h3><p>Every ball scores. Land the jackpot and the whole stream sees your name.</p></div>
+    </div></div>`],
+  compare: ['Beside Chatagram: two different brands from the same maker', () => `<div class="compare">
+    <div><img src="../../../public/chatagram/assets/og.jpg" alt=""><span class="lab">Chatagram</span></div>
+    <div class="board pegs"><div class="ck">${lockup(72, 54)}<div class="tag">Let chat drop</div></div><span class="lab">Chaplinko</span></div></div>`],
+};
+const q = new URLSearchParams(location.search).get('v');
+if (q) document.body.classList.add('solo');
+document.getElementById('page').innerHTML = Object.entries(V).filter(([k]) => !q || k === q)
+  .map(([, [cap, f]]) => `<div><p class="cap">${cap}</p>${f()}</div>`).join('');
+</script>
+</body>
+</html>

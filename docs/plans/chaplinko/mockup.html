@@ -1,12 +1,14 @@
 <!doctype html>
 <!-- A still mockup of Chaplinko (docs/plans/chaplinko/plan.md), drawn with the real widget themes. Not the game:
-     nothing moves. ?v=classic|pachinko|tower|jackpot|clear|panel|strip|lbclear|scene|combined|accents shows one frame at its real size (for screenshots);
+     nothing moves. ?v=classic|pachinko|tower|jackpot|clear|panel|strip|lbclear|scene|combined|hero|accents shows one frame at its real size (for screenshots);
      no ?v shows them all. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Chaplinko mockup</title>
 <link rel="stylesheet" href="../../../public/widgets/lib/themes.css">
+<!-- the planned chaplinko theme (plan.md, "Brand"); Google Fonts only in this mockup, the build self-hosts them -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;600;700&display=block">
 <style>
   body { margin: 0; background: #0b0b0f; color: #ddd; font: 14px system-ui; }
   .page { display: flex; flex-wrap: wrap; gap: 28px; padding: 28px; align-items: flex-start; }
@@ -67,6 +69,7 @@
   .w.clear { --bgo: 0; box-shadow: none; }
   .w.clear svg circle, .w.clear svg rect, .w.clear svg text { filter: drop-shadow(0 1px 2px rgb(0 0 0 / .8)); }
   .scene > .w.clear { position: absolute; inset: 0; }
+  .w.clear svg text[style*="accent-ink"] { filter: none; }
   .w.clear .lb, .w.clear .tabs span:not(.on), .w.clear .best, .w.clear .strip .chip, .w.clear .how code { background: none; }
   .w.clear .tabs span:not(.on) { box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .35); }
   .w.clear .tabs .on { text-shadow: none; }
@@ -74,7 +77,12 @@
   .w.clear .row { border-color: rgb(255 255 255 / .12); }
   .w.clear, .w.clear .lb h2, .w.clear .strip .st { text-shadow: 0 1px 2px rgb(0 0 0 / .9), 0 0 6px rgb(0 0 0 / .5); }
   .w.clear .muted, .w.clear .strip .st, .w.clear .row b { color: var(--text); }
-  .mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  [data-theme=chaplinko] {
+    --bg: rgb(10 18 51 / var(--bgo, 1)); --panel: #121d4d; --slot: #1b2a66; --text: #eef3ff; --muted: #9fb0e0; --accent: #ff7a1a; --accent-ink: #1a0a00;
+    --gold: #ff3d8b; --edge: inset 0 0 0 1px #2f5bff55, 0 0 40px #2f5bff22; --radius: 18px;
+    --font: "Space Grotesk", system-ui, sans-serif; --display: Bungee, system-ui, sans-serif; --display-weight: 400; }
+  .bare, .bare body { background: transparent; }
 </style>
 </head>
 <body>
@@ -87,7 +95,7 @@ let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 21474836
 function slotFill(v, max) {
   if (v === max) return 'var(--gold)';
   const t = Math.round(Math.pow(v / max, .45) * 85);
-  return `color-mix(in srgb, var(--accent) ${t}%, var(--slot))`;
+  return `color-mix(in oklch, var(--accent) ${t}%, var(--slot))`;
 }
 function slotInk(v, max) { return v === max || v / max > .3 ? 'var(--accent-ink)' : 'var(--text)'; }
 
@@ -186,27 +194,29 @@ const frame = (theme, w, h, inner, accent, clear) => `<div class="w${clear ? ' c
 const confetti = () => { let s = ''; for (let i = 0; i < 70; i++) { const c = ['var(--gold)', 'var(--accent)', 'var(--text)', '#ff5a5f', '#2ee6a8'][i % 5]; s += `<rect x="${rnd() * 960}" y="${rnd() * 540}" width="${6 + rnd() * 6}" height="${3 + rnd() * 4}" transform="rotate(${rnd() * 360})" style="fill:${c}" opacity=".9"/>`; } return svg(960, 540, [s]); };
 
 const V = {
-  classic: ['Board source: Classic Plinko · 640×540 · chatagram theme', () => frame('chatagram', 640, 540, classic() + credit)],
+  classic: ['Board source: Plinko · 640×540 · chaplinko theme (the default), with a background', () => frame('chaplinko', 640, 540, classic() + credit)],
   pachinko: ['Board source: Pachinko · 640×540 · neon theme', () => frame('neon', 640, 540, pachinko() + credit)],
   tower: ['Board source: Pin tower · tall 360×640 · candy theme', () => frame('candy', 360, 640, tower())],
-  jackpot: ['Board source: the top prize card · deep theme', () => frame('deep', 640, 540, classic({ balls: false }) + `<div class="dim"></div>` + confetti() +
+  jackpot: ['Board source: the top prize card · chaplinko theme', () => frame('chaplinko', 640, 540, classic({ balls: false }) + `<div class="dim"></div>` + confetti() +
     `<div class="card"><div class="k">JACKPOT!</div><div class="who"><span class="dot tw"></span>pixelpriya</div><div class="pts">+100</div><div class="sub">1 in 512 · the first today</div></div>`)],
-  panel: ['Leaderboard source: panel · 300×270 · chatagram theme', () => frame('chatagram', 300, 270, panel())],
+  panel: ['Leaderboard source: panel · 300×270 · chaplinko theme, with a background', () => frame('chaplinko', 300, 270, panel())],
   strip: ['Leaderboard source: strip · 720×72 · neon theme', () => frame('neon', 720, 72, strip())],
-  clear: ['Board source, transparent: no background, no frame, pegs and slots shadowed to read over any game · neon theme', () => `<div class="scene" style="width:640px;height:540px">${frame('neon', 640, 540, classic(), '', true)}</div>`],
-  lbclear: ['Leaderboard source, transparent: panel and strip straight over the game · chatagram and neon themes', () => `<div class="scene" style="width:960px;height:540px">
-    <div style="position:absolute;left:0;top:0">${frame('chatagram', 300, 270, panel(), '', true)}</div>
+  clear: ['Board source, transparent: no background, no frame, pegs and slots shadowed to read over any game (the default) · chaplinko theme', () => `<div class="scene" style="width:640px;height:540px">${frame('chaplinko', 640, 540, classic(), '', true)}</div>`],
+  lbclear: ['Leaderboard source, transparent: panel and strip straight over the game · chaplinko and neon themes', () => `<div class="scene" style="width:960px;height:540px">
+    <div style="position:absolute;left:0;top:0">${frame('chaplinko', 300, 270, panel(), '', true)}</div>
     <div style="position:absolute;left:0;bottom:0">${frame('neon', 720, 72, strip(), '', true)}</div></div>`],
   scene: ['Separate: two sources over the game, transparent (the default) (1280×720)', () => `<div class="scene">
-    <div class="src-at" style="left:28px;top:28px;width:180px;height:162px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 300, 270, panel(), '', true)}</div><span class="tag">leaderboard source</span></div>
-    <div class="src-at" style="right:28px;bottom:28px;width:384px;height:324px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 640, 540, classic(), '', true)}</div><span class="tag">board source</span></div></div>`],
-  combined: ['Combined: one source, the board with the leaderboard beside it · 960×540 · transparent (the default) · chatagram theme', () => `<div class="scene" style="width:960px;height:540px">${frame('chatagram', 960, 540,
+    <div class="src-at" style="left:28px;top:28px;width:180px;height:162px"><div style="transform:scale(.6);transform-origin:0 0">${frame('chaplinko', 300, 270, panel(), '', true)}</div><span class="tag">leaderboard source</span></div>
+    <div class="src-at" style="right:28px;bottom:28px;width:384px;height:324px"><div style="transform:scale(.6);transform-origin:0 0">${frame('chaplinko', 640, 540, classic(), '', true)}</div><span class="tag">board source</span></div></div>`],
+  combined: ['Combined: one source, the board with the leaderboard beside it · 960×540 · transparent (the default) · chaplinko theme', () => `<div class="scene" style="width:960px;height:540px">${frame('chaplinko', 960, 540,
     `<div style="position:absolute;left:0;top:0">${classic()}</div><div style="position:absolute;right:0;top:0;width:300px;height:270px">${panel()}</div>`, '', true)}</div>`],
-  accents: ['The same board, any theme and accent (640×540 each, shown at half size)', () => `<div class="mini">${[['neutral', ''], ['light', ''], ['cozy', ''], ['chatagram', '#2ee6a8'], ['neon', '#ff4155'], ['royal', '#ffd98a'], ['deep', '#45d6c8'], ['candy', '#ff7bd5']]
+  hero: ['The board alone, transparent, for the website mockup', () => frame('chaplinko', 640, 540, classic(), '', true)],
+  accents: ['The same board with a background: chaplinko (the default), chatagram and the other themes, some with other accents (640×540 each, shown at half size)', () => `<div class="mini">${[['chaplinko', ''], ['chatagram', ''], ['neutral', ''], ['light', ''], ['cozy', ''], ['neon', '#ff4155'], ['royal', '#ffd98a'], ['deep', '#45d6c8'], ['candy', '#ff7bd5']]
     .map(([t, a]) => `<div style="width:320px;height:270px;overflow:hidden"><div style="transform:scale(.5);transform-origin:0 0">${frame(t, 640, 540, classic({ w: 640 }), a)}</div></div>`).join('')}</div>`],
 };
 const q = new URLSearchParams(location.search).get('v');
 if (q) document.body.classList.add('solo');
+if (q === 'hero') document.documentElement.classList.add('bare');
 document.getElementById('page').innerHTML = Object.entries(V).filter(([k]) => !q || k === q)
   .map(([, [cap, f]]) => `<div><p class="cap">${cap}</p>${f()}</div>`).join('');
 </script>
