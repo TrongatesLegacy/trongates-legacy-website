@@ -275,6 +275,11 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
 
 - Sections: hero (the pretend chat playing), how it works, the eight themes live, set up, FAQ. Sticky header with a
   pill menu that shows where you are.
+- **Hero chat**: the hero game (`play.html?demo=1`) posts each pretend-chat message to the page (`chatagram-chat`: name,
+  colour, platform, text, the word found and its points); `setup.js` shows the last three as speech bubbles off the
+  game's bottom-left corner, like the logo's: a find sun-yellow with the word as tiles and a mint `+N`, older ones
+  dimmed (not see-through: the board showed through). Only the hero's frame is listened to, never the set-up preview's.
+  The pretend chatters' colours (demo.js) are dark enough to read on cream and yellow. Hidden on phones (≤720 px).
 - **Set-up**: channels, each checked as it's typed with a line under the box (Twitch through its public web API,
   `gql.twitch.tv`, no key; Kick through its channel API, which also gives the chatroom id; the overlay itself never asks
   Twitch); look (layout, theme, accent: the first swatch is the theme's own, the rainbow one any colour); game (round
