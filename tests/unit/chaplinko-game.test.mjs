@@ -38,7 +38,7 @@ test('!drop drops the streamer\'s balls per drop (5 by default); any number type
 
 test('!drop <emote>: an emote the platform marked, else an emoji, else balls', () => {
   const t = setup();
-  const e = { id: '25', name: 'Kappa', url: 'https://static-cdn.jtvnw.net/emoticons/v2/25/static/dark/2.0' };
+  const e = { id: '25', name: 'Kappa', url: 'https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/2.0' };
   assert.deepEqual(plain(t.say('!drop Kappa', { emotes: [e] }).item), { kind: 'emote', url: e.url, name: 'Kappa' });
   assert.deepEqual(plain(t.say('!drop 🔥').item), { kind: 'emoji', text: '🔥' });
   assert.deepEqual(plain(t.say('!drop 5 👍🏽 extra').item), { kind: 'emoji', text: '👍🏽' }, 'skin tones stay with their emoji');

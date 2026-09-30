@@ -10,7 +10,8 @@
 
   // the emotes Twitch itself found in the message (its "emotes" tag: id:start-end,start-end/id:…, positions in characters),
   // in the order they appear. Only ids Twitch sent are used, never an address someone typed.
-  const EMOTE_URL = (id) => `https://static-cdn.jtvnw.net/emoticons/v2/${id}/static/dark/2.0`;
+  // "default": the animated GIF for an animated emote, the still PNG otherwise
+  const EMOTE_URL = (id) => `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/dark/2.0`;
   function emotesFrom(tag, text) {
     if (!tag) return [];
     const chars = Array.from(text), out = [];

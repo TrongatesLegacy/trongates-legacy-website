@@ -40,7 +40,7 @@ artwork/chatagram/                        the link-preview image's design and re
 `chat.js` connects each platform the streamer filled in and turns every message into one shape:
 `{ platform, user, name, text, mod, owner, color, emotes }` (`color`: the chatter's chat colour, `#rrggbb` or `''`;
 `emotes`: `[{ id, name, url }]`, the emotes the platform itself found in the text, in order. Twitch: its `emotes` tag,
-positions counted in characters, pictures from `static-cdn.jtvnw.net/emoticons/v2/<id>/static/dark/2.0`; Kick:
+positions counted in characters, pictures from `static-cdn.jtvnw.net/emoticons/v2/<id>/default/dark/2.0` (the GIF for an animated emote); Kick:
 `[emote:<id>:<name>]` in the text, pictures from `files.kick.com/emotes/<id>/fullsize`. Only these are ever used, never
 an address someone typed; added 2026-09-30, fields only added, so Chatagram is unchanged). It reconnects after a drop, waiting 1, 2, 5, 10, then 30 s (never more
 than a few attempts a minute), goes back to quick retries after 30 s connected, and reports each platform's state
@@ -351,7 +351,9 @@ artwork/chaplinko/                        the link-preview image and the picture
   (the owner only), `!drop top` (off by default: both lists over the board for 8 s; viewers share one a minute).
 - Bots are ignored (the same list as Chatagram's).
 - **Ball colour**: the chatter's chat colour (default; lightened if too dark to see), the accent, the platform's, or
-  rainbow. An emote whose picture can't load falls as a plain ball.
+  rainbow. An emote whose picture can't load falls as a plain ball. **Animated emotes play** while they fall: a canvas only
+  draws a GIF's first frame, so the board fetches the file (Twitch's and Kick's image servers both allow it) and decodes
+  its frames with `ImageDecoder` (up to 100); without it, the first frame (checked 2026-09-30 with real xqc emotes).
 
 ### Scoring and big wins
 

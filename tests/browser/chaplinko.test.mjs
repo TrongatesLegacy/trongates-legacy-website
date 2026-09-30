@@ -7,10 +7,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { launch } from '../helpers/chrome.mjs';
 import { siteServer } from '../helpers/server.mjs';
+import { readFileSync } from 'node:fs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let chrome, site;
-test.before(async () => { chrome = await launch(); site = await siteServer(); });
+// an animated GIF served like an emote (the real image servers are blocked here)
+test.before(async () => { chrome = await launch(); site = await siteServer({ files: { '/test/anim.gif': readFileSync(new URL('../fixtures/anim.gif', import.meta.url)) } }); });
 test.after(async () => { await chrome?.close(); await site?.close(); });
 const noErrors = (tab, what) => assert.deepEqual(tab.errors, [], `${what}: errors in the page`);
 const ready = (tab) => tab.until('document.documentElement.dataset.ready === "1"', 8000, 'the page to start');
@@ -184,10 +186,21 @@ test('an emote the platform marked drops as that emote; when its picture can\'t 
   await tab.eval(`__chat.twitch('PixelPanda', '!drop Kappa', { emotes: '25:6-10' }); 1`);
   await tab.until('chaplinko.world.balls.length > 0', 3000, 'the first ball');
   const item = JSON.parse(await tab.eval('JSON.stringify(chaplinko.world.balls[0].data.item)'));
-  assert.deepEqual(item, { kind: 'emote', url: 'https://static-cdn.jtvnw.net/emoticons/v2/25/static/dark/2.0', name: 'Kappa' });
+  assert.deepEqual(item, { kind: 'emote', url: 'https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/2.0', name: 'Kappa' });
   // outside requests are blocked here, like an emote that fails to load: the ball still falls and scores
   await tab.until('chaplinko.world.balls.length === 0 && chaplinko.game.queued === 0', 15000, 'the emotes to land');
   assert.equal(await tab.eval(`chaplinko.scores.allTime['twitch:pixelpanda'].words`), 5);
   noErrors(tab, 'emotes');
+  await tab.close();
+});
+
+test('an animated emote plays while it falls: its frames are decoded (a canvas would only draw the first)', async () => {
+  const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
+  await ready(tab); await sleep(200);
+  await tab.eval(`chaplinko.hear({ platform: 'kick', user: 'b', name: 'B', text: '!drop [emote:1:anim]', emotes: [{ id: '1', name: 'anim', url: location.origin + '/test/anim.gif' }] }); 1`);
+  await tab.until('chaplinko.world.balls.length > 0', 3000, 'the first ball');
+  await tab.until('(chaplinko.world.balls[0]?.data.img.frames || []).length === 4', 5000, 'the GIF\'s four frames decoded');
+  assert.ok(await tab.eval('chaplinko.world.balls[0].data.img.total') > 300, 'with their timing');
+  noErrors(tab, 'animated emotes');
   await tab.close();
 });

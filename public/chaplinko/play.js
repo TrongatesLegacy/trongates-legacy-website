@@ -139,16 +139,44 @@
     }
     return colorCache.get(c);
   }
-  // emote pictures (only from Twitch's and Kick's own image servers, found by the platform): loaded once each
-  const images = new Map();
+  // emote pictures (only from Twitch's and Kick's own image servers, found by the platform): loaded once each. A canvas
+  // only ever draws an animated GIF's first frame, so an animated emote's frames are decoded (ImageDecoder: both image
+  // servers allow reading the file, and OBS's browser has it) and played while the ball falls. Without ImageDecoder, or
+  // for a still emote, the picture as it is.
+  const images = new Map(), MAX_FRAMES = 100;   // 100 frames of a 56–70 px emote is under 2 MB; at most 80 emotes kept
   function image(url) {
     if (images.has(url)) return images.get(url);
-    const img = new Image(); const rec = { img, ok: false, bad: false };
+    const img = new Image(); const rec = { img, ok: false, bad: false, frames: null, total: 0 };
     img.onload = () => { rec.ok = true; }; img.onerror = () => { rec.bad = true; };
     img.src = url; images.set(url, rec);
-    if (images.size > 200) images.delete(images.keys().next().value);
+    if (images.size > 80) { const [, old] = images.entries().next().value; images.delete(images.keys().next().value); if (old.frames) old.frames.forEach((f) => f.bmp.close()); }
+    animate(url, rec);
     return rec;
   }
+  async function animate(url, rec) {
+    if (!('ImageDecoder' in window) || rm) return;
+    try {
+      const r = await fetch(url, { mode: 'cors' }); if (!r.ok) return;
+      const data = new Uint8Array(await r.arrayBuffer()), head = String.fromCharCode(...data.slice(0, 12));
+      const type = head.startsWith('GIF8') ? 'image/gif' : head.startsWith('RIFF') && head.slice(8, 12) === 'WEBP' ? 'image/webp' : '';
+      if (!type) return;                                                     // a PNG: still
+      const dec = new window.ImageDecoder({ data, type });
+      await dec.tracks.ready;
+      const track = dec.tracks.selectedTrack;
+      if (!track || !track.animated) { dec.close(); return; }
+      await dec.completed;
+      const frames = []; let total = 0;
+      for (let i = 0; i < Math.min(track.frameCount, MAX_FRAMES); i++) {
+        const { image: f } = await dec.decode({ frameIndex: i });
+        const bmp = await createImageBitmap(f);
+        total += Math.max(20, (f.duration || 100000) / 1000); f.close();   // durations are in microseconds; GIFs under 20 ms play at 100 ms in browsers, near enough
+        frames.push({ bmp, until: total });
+      }
+      dec.close();
+      if (frames.length > 1) { rec.frames = frames; rec.total = total; rec.ok = true; } else frames.forEach((f) => f.bmp.close());
+    } catch {}
+  }
+  const frameOf = (rec) => { if (!rec.frames) return rec.img; const t = performance.now() % rec.total; return (rec.frames.find((f) => t < f.until) || rec.frames[0]).bmp; };
   // a white shine drawn over every ball (one picture, not a gradient per ball)
   const shine = document.createElement('canvas'); shine.width = shine.height = 64;
   { const g = shine.getContext('2d'), gr = g.createRadialGradient(22, 19, 0, 22, 19, 40); gr.addColorStop(0, 'rgba(255,255,255,.85)'); gr.addColorStop(0.35, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.arc(32, 32, 32, 0, Math.PI * 2); g.fill(); }
@@ -345,7 +373,7 @@
       if (item && item.kind === 'emote' && b.data.img && b.data.img.ok) {
         ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.angle);
         if (sh) { ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1; }
-        ctx.drawImage(b.data.img.img, -b.r * 1.05, -b.r * 1.05, b.r * 2.1, b.r * 2.1); ctx.restore(); continue;
+        ctx.drawImage(frameOf(b.data.img), -b.r * 1.05, -b.r * 1.05, b.r * 2.1, b.r * 2.1); ctx.restore(); continue;
       }
       if (sh) { ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.beginPath(); ctx.arc(b.x + 1, b.y + 2, b.r, 0, TAU); ctx.fill(); }
       const sq = b.squash > 0 ? 1 - b.squash * 0.06 : 1;

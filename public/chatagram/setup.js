@@ -265,6 +265,18 @@
   const hero = $('#hero-frame');
   const fitHero = () => fitFrame(hero, $('#hero-screen'));
   fitHero();
+  // the hero game's pretend chat as speech bubbles off its left edge: the last three; a find in yellow, as tiles, with its points
+  const chat = $('#chat');
+  addEventListener('message', (e) => {
+    const d = e.data; if (!d || d.type !== 'chatagram-chat' || e.source !== hero.contentWindow) return;
+    const m = document.createElement('div'); m.className = 'b' + (d.found ? ' hit' : '');
+    const color = /^#[0-9a-f]{6}$/i.test(d.color || '') ? d.color : 'var(--ink)', pf = d.platform === 'kick' ? 'kick' : 'twitch';
+    m.innerHTML = `<span class="pf ${pf}"><svg><use href="#i-${pf}"/></svg></span><b style="color:${color}">${esc(d.name)}</b>`
+      + (d.found ? `<span class="tiles">${[...String(d.found).toUpperCase()].map((c) => `<i>${esc(c)}</i>`).join('')}</span><span class="pts">+${+d.pts || 0}</span>` : `<span>${esc(d.text)}</span>`);
+    chat.appendChild(m);
+    while (chat.children.length > 3) chat.firstElementChild.remove();
+    if (m.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) m.animate([{ opacity: 0, transform: 'translateY(12px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.3,1.4,.6,1)' });
+  });
   const afterLoad = () => setTimeout(() => {
     loaded = true;
     hero.src = 'play.html?demo=1'; showWhenReady(hero);

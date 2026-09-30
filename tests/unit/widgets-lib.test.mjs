@@ -70,7 +70,7 @@ test('Twitch: emotes come from Twitch\'s own tag (positions in characters), and 
   const m = plain(P.twitch.parse(line, 'gridrunner'));
   assert.equal(m.text, '!drop Kappa 🔥 catJAM Kappa');
   assert.deepEqual(m.emotes.map((e) => e.name), ['Kappa', 'catJAM', 'Kappa'], 'in the order they appear, counted in characters (🔥 is one)');
-  assert.equal(m.emotes[0].url, 'https://static-cdn.jtvnw.net/emoticons/v2/25/static/dark/2.0');
+  assert.equal(m.emotes[0].url, 'https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/2.0');
   assert.equal(m.emotes[1].id, 'emotesv2_4c3b4ed5');
   assert.deepEqual(plain(P.twitch.parse(TW.replace('emotes=;', 'emotes=bad.id?x:0-2;'), 'x')).emotes, [], 'an odd id is never used');
   assert.deepEqual(plain(P.twitch.parse(TW.replace('emotes=;', 'emotes=25:0-99;'), 'x')).emotes, [], 'a range past the text is ignored');

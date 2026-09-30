@@ -379,6 +379,32 @@ test('a flood of the same words from many viewers at once: first message wins ea
   await tab.close();
 });
 
+// The hero's pretend chat (owner, 2026-09-30, mockup A): the hero game's chat shows as speech bubbles off its left edge,
+// the last three; a find turns sun-yellow with the word as tiles and its points. The set-up preview's chat never shows there.
+test('the hero shows its game\'s pretend chat as bubbles: the last three, finds with tiles and points', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/', { width: 1354, height: 860 });
+  await tab.until('document.getElementById("hero-frame").contentDocument?.documentElement?.dataset.ready === "1" && document.getElementById("pv").contentDocument?.documentElement?.dataset.ready === "1"', 10000, 'both games');
+  await tab.until('document.querySelectorAll("#chat .b").length > 0', 8000, 'the pretend chat to talk');
+  const say = (frame, name, text) => tab.eval(`document.getElementById('${frame}').contentWindow.chatagram.hear({ platform: 'twitch', user: '${name}'.toLowerCase(), name: '${name}', text: '${text}', color: '#1971c2' }); 1`);
+  const word = await tab.eval('document.getElementById("hero-frame").contentWindow.chatagram.game.state.round.answers.find((a) => !a.by).word');
+  await say('pv', 'PreviewPerson', 'hello');
+  await say('hero-frame', 'HeroPerson', word);
+  await sleep(100);
+  const last = await tab.eval(`(() => { const b = [...document.querySelectorAll('#chat .b')].at(-1); return { hit: b.classList.contains('hit'), name: b.querySelector('b').textContent, tiles: [...b.querySelectorAll('.tiles i')].map((i) => i.textContent).join(''), pts: b.querySelector('.pts')?.textContent }; })()`);
+  assert.deepEqual(last, { hit: true, name: 'HeroPerson', tiles: word.toUpperCase(), pts: last.pts });
+  assert.match(last.pts, /^\+\d+$/);
+  assert.ok(!(await tab.eval('document.getElementById("chat").textContent.includes("PreviewPerson")')), 'the preview\'s chat stays out of the hero');
+  await say('hero-frame', 'HeroPerson', 'lol');
+  assert.ok(await tab.eval('document.querySelectorAll("#chat .b").length <= 3'));
+  assert.ok(!(await tab.eval('[...document.querySelectorAll("#chat .b")].at(-1).classList.contains("hit")')), 'a miss is a plain bubble');
+  noErrors(tab, 'hero chat');
+  await tab.close();
+  // on phones the game is too small for it
+  const phone = await chrome.open(site.origin + '/chatagram/', { width: 390, height: 844, mobile: true });
+  assert.equal(await phone.eval('getComputedStyle(document.getElementById("chat")).display'), 'none');
+  await phone.close();
+});
+
 test('phones have no sticky Copy bar (the owner removed it)', async () => {
   const tab = await chrome.open(site.origin + '/chatagram/', { width: 390, height: 844, mobile: true });
   assert.equal(await tab.eval('document.querySelectorAll(".copybar, #copy2").length'), 0);

@@ -607,6 +607,8 @@
     if (r.kind === 'locked' && cfg.lockmsg) bubble(`🔒 ${esc(m.name)}: wait for the padlock`, 'no');
     else if (cfg.wrong && (r.kind === 'dup' || (r.kind === 'wrong' && dict.tierOf.has(r.word)))) bubble(`${esc(m.name)}: ${esc(r.word)}`, 'no');
     flush(); schedule();
+    // the pretend chat, for the Chatagram page's hero to show beside the game (it draws its own bubbles)
+    if (demo && !m.owner && window.parent !== window) try { window.parent.postMessage({ type: 'chatagram-chat', name: m.name, color: m.color, platform: m.platform, text: m.text, found: r.kind === 'found' || r.kind === 'bonus' ? r.word : '', pts: r.pts || 0 }, '*'); } catch {}
     return r;
   }
 

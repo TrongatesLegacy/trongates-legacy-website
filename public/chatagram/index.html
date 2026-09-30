@@ -76,6 +76,18 @@ h1 { font-size: 62px; line-height: 1.02; margin: 0 0 16px; } h1 em { font-style:
 .screen { position: relative; }   /* just the game: no backdrop or frame around it */
 .screen iframe { position: absolute; left: 50%; top: 50%; border: 0; background: transparent; transform-origin: 50% 50%; }
 .hero .screen { height: 300px; }
+/* the hero game's pretend chat: speech bubbles like the logo's, spilling off the game's bottom-left corner (setup.js) */
+.chat { position: absolute; left: -58px; bottom: -26px; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; z-index: 2; pointer-events: none; }
+.chat .b { background: var(--paper); color: var(--ink); border-radius: 16px 16px 16px 4px; padding: 7px 12px 8px; font-size: 15px; line-height: 1.3; box-shadow: 0 4px 0 #cdbfa8, 0 12px 24px #0008;
+  display: flex; gap: 7px; align-items: center; white-space: nowrap; max-width: 320px; transform-origin: left bottom; transition: opacity .3s, transform .3s; }
+.chat .b > span:last-child { overflow: hidden; text-overflow: ellipsis; }
+.chat .b b { font-weight: 700; }
+.chat .b:not(:last-child) { opacity: .55; transform: scale(.92); }
+.chat .b:last-child { transform: rotate(-2deg); }
+.chat .b.hit { background: var(--sun); box-shadow: 0 4px 0 #c9921a, 0 12px 24px #0008; }
+.chat .tiles { display: inline-flex; gap: 2px; }
+.chat .tiles i { font: 13px "Lilita One", sans-serif; width: 19px; height: 21px; display: grid; place-items: center; background: var(--paper); color: var(--ink); border-radius: 4px; box-shadow: 0 2px 0 #c9921a; }
+.chat .pts { font: 13px "Lilita One", sans-serif; color: var(--ink); background: var(--mint); border-radius: 99px; padding: 1px 7px; overflow: visible !important; }
 
 /* sections */
 section.sec { padding-top: 40px; padding-bottom: 10px; }
@@ -202,6 +214,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
 @media (max-width: 1020px) {
   .menu { display: none; }
   .hero { grid-template-columns: 1fr; } .hero .screen { max-width: 540px; width: 100%; }
+  .chat { left: -12px; }
   .cols { grid-template-columns: 1fr; } .right { position: static; order: -1; }
 }
 @media (max-width: 720px) {
@@ -211,7 +224,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   .steps, .tgrid { grid-template-columns: 1fr 1fr; }
   .left, .game, .agrid { grid-template-columns: 1fr; }
   .cmds { grid-template-columns: 1fr 1fr; }
-  .hero .screen, .right .screen { height: 190px; }
+  .hero .screen, .right .screen { height: 190px; } .chat { display: none; }
 }
 @media (max-width: 460px) { .steps, .tgrid { grid-template-columns: 1fr; } .navr .btn { display: none; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
@@ -239,7 +252,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
       <li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>9 themes</li><li>Leaderboards</li><li>Free</li>
     </ul>
   </div>
-  <div class="screen" id="hero-screen"><img class="poster" src="assets/themes/chatagram-full.webp" alt="" width="960" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chatagram playing with a pretend chat" width="960" height="540" style="transform: translate(-50%,-50%) scale(.55)" tabindex="-1"></iframe></div>
+  <div class="screen" id="hero-screen"><img class="poster" src="assets/themes/chatagram-full.webp" alt="" width="960" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chatagram playing with a pretend chat" width="960" height="540" style="transform: translate(-50%,-50%) scale(.55)" tabindex="-1"></iframe><div class="chat" id="chat" aria-hidden="true"></div></div>
 </section>
 
 <section class="wrap sec" id="how"><h2>How it <span>works</span></h2>
