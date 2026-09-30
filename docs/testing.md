@@ -42,6 +42,10 @@ without a runaway, also with the leaderboard holding the game), `chatagram` (bro
 Kick sockets, every layout and theme fits, theme messages, the OBS wrapper, the set-up link, reduced motion, the
 leaderboard with stubbed "is it live" answers, saved data from before the leaderboards). `tests/fixtures/` holds real saved
 data from older versions, so a change that stops old data loading fails a test (docs/widgets.md, "Saved data").
+Chaplinko has its own in each tier too: `chaplinko-physics`, `chaplinko-game` and `chaplinko-assets` (unit: the odds table
+replays exactly against the physics, so re-run `scripts/chaplinko-odds.mjs` after changing `physics.js`), `chaplinko-flow`
+(loops: spam and raids on the virtual clock), `chaplinko` (browser: the separate leaderboard is tested against the board in
+a second tab, as two OBS sources sharing one browser).
 
 ## How a loop gets caught
 

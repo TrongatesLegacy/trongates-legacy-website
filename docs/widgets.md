@@ -1,11 +1,12 @@
-# Stream widgets and Chatagram
+# Stream widgets, Chatagram and Chaplinko
 
 Free chat games and overlays for **any streamer**, on Twitch, Kick or both at once, at `/widgets/` (the list) and one
 page per widget. The first is **Chatagram** (`/chatagram/`), an anagram game chat plays by typing words, like
-wos.gg but reading Twitch and Kick together. Everything is static files: no server, no database, no logins, no Netlify
+wos.gg but reading Twitch and Kick together. The second is **Chaplinko** (`/chaplinko/`), Plinko for chat: `!drop`
+drops balls through pegs into scoring slots, and everyone climbs the leaderboard (see "Chaplinko" below). Everything is static files: no server, no database, no logins, no Netlify
 functions. A streamer's settings live in the link they paste into OBS.
 
-**Widgets stay generic.** Nothing in `public/widgets/` or `public/chatagram/` knows about Tron's forms, veadotube or
+**Widgets stay generic.** Nothing in `public/widgets/`, `public/chatagram/` or `public/chaplinko/` knows about Tron's forms, veadotube or
 the Lulu Gang. Anything specific to Trongates Legacy's stream lives in `public/obs/` (see "In Trongates Legacy's
 scenes" below).
 
@@ -17,17 +18,19 @@ public/widgets/lib/settings.js            settings ⇄ link, from a per-widget s
 public/widgets/lib/chat.js                every platform's chat as one reconnecting stream of messages
 public/widgets/lib/platforms/twitch.js    Twitch: anonymous IRC over WebSocket; is the channel live (its public web API)
 public/widgets/lib/platforms/kick.js      Kick: Pusher, chatroom looked up from the channel name; is the channel live
-public/widgets/lib/theme.js, themes.css   the eight themes, the accent, the live theme message, reduced motion
+public/widgets/lib/theme.js, themes.css   the nine themes, the accent, the live theme message, reduced motion
+public/widgets/lib/scores.js              the leaderboards: All time, This stream, which stream is on (both games; unit-tested)
 public/chatagram/index.html + setup.js    the Chatagram page: hero, how it works, themes, set-up with live preview, FAQ
 public/chatagram/play.html/.css/.js       the overlay OBS loads (noindex)
 public/chatagram/game.js                  the rules only: no drawing, no timers (unit-tested)
-public/chatagram/scores.js                the leaderboards: All time, This stream, which stream is on (unit-tested)
 public/chatagram/settings.js              every setting, its default and range
 public/chatagram/words.js                 word logic shared by the overlay and the builder
 public/chatagram/words/                   words.txt, seeds.txt (built), LICENSE.txt (the sources' notices)
 public/chatagram/demo.js                  a pretend chat (the preview, screenshots, still pictures)
 public/chatagram/assets/                  icon.svg (logo mark, favicon), og.jpg (link preview)
 public/obs/chatagram.html                 Chatagram in Trongates Legacy's form colours (OBS)
+public/chaplinko/                         Chaplinko: see "Chaplinko" below for its files
+public/obs/chaplinko.html                 Chaplinko (board, or part=leaderboard) in the form colours (OBS)
 scripts/build-words.mjs, scripts/words/   builds the word lists; the LDNOOBW list and our blocklist
 artwork/chatagram/                        the link-preview image's design and render script
 ```
@@ -35,7 +38,11 @@ artwork/chatagram/                        the link-preview image's design and re
 ## Reading chat
 
 `chat.js` connects each platform the streamer filled in and turns every message into one shape:
-`{ platform, user, name, text, mod, owner }`. It reconnects after a drop, waiting 1, 2, 5, 10, then 30 s (never more
+`{ platform, user, name, text, mod, owner, color, emotes }` (`color`: the chatter's chat colour, `#rrggbb` or `''`;
+`emotes`: `[{ id, name, url }]`, the emotes the platform itself found in the text, in order. Twitch: its `emotes` tag,
+positions counted in characters, pictures from `static-cdn.jtvnw.net/emoticons/v2/<id>/static/dark/2.0`; Kick:
+`[emote:<id>:<name>]` in the text, pictures from `files.kick.com/emotes/<id>/fullsize`. Only these are ever used, never
+an address someone typed; added 2026-09-30, fields only added, so Chatagram is unchanged). It reconnects after a drop, waiting 1, 2, 5, 10, then 30 s (never more
 than a few attempts a minute), goes back to quick retries after 30 s connected, and reports each platform's state
 (connecting, live, retrying, error), which the overlay shows as a light in its footer.
 
@@ -62,8 +69,9 @@ The set-up page also opens any existing link's settings: `/chatagram/?kick=name&
 
 ## Themes and the live theme message
 
-Eight themes, each only CSS variables in `themes.css` (backgrounds, panels, tiles, text, fonts, radius, edges):
-**chatagram** (the default, the brand's colours), neutral, light, neon, candy, royal, deep, cozy. Any accent colour
+Nine themes, each only CSS variables in `themes.css` (backgrounds, panels, tiles, text, fonts, radius, edges):
+**chatagram** (Chatagram's default, its brand's colours), **chaplinko** (Chaplinko's default, its brand's: added
+2026-09-30, with Bungee and Space Grotesk), neutral, light, neon, candy, royal, deep, cozy. Any accent colour
 (`accent=`). `theme.js` has the same list and each theme's own accent (a test checks they agree). A new theme is one
 block in `themes.css` plus its name and accent in `theme.js`, and every widget gets it.
 
@@ -117,7 +125,7 @@ passed in, so the tests replay any game exactly.
 
 ## Chatagram: leaderboards
 
-`scores.js` keeps two lists, both from every point scored (board words and bonus words, as they're scored):
+`scores.js` (`public/widgets/lib/`, shared with Chaplinko since 2026-09-30; it was `public/chatagram/scores.js`) keeps two lists, both from every point scored (board words and bonus words, as they're scored):
 
 - **All time**: everyone ever, kept for good (only `!cg clearscores` wipes it). Always recorded; the "Show all-time
   leaderboard" switch (`remember`, the name it had when it decided whether scores were kept) only decides if it's shown.
@@ -288,20 +296,172 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
 - The link-preview image: `node --experimental-websocket artwork/chatagram/render.mjs` (renders `artwork/chatagram/og.html`
   with the real overlay inside, into `public/chatagram/assets/og.jpg`). Re-render it when the brand or overlay changes.
 
+## Chaplinko
+
+Plinko for chat (planned in `docs/plans/chaplinko/`, built 2026-09-30). Viewers type `!drop` (or `!drop <emote>`),
+balls bounce down a triangle of pegs into slots worth points, and the points go to This stream and All time. **Spam is
+the point** (the owner): there's no number to type and no cooldown by default, so climbing the leaderboard means
+dropping the most; the board limits itself instead of the viewers.
+
+```
+public/chaplinko/index.html + setup.js    the page: hero (the board with a pretend chat), how it works, looks, set up, FAQ
+public/chaplinko/play.html/.css/.js       the board, OBS source 1 (640 × 540; 960 × 540 combined with the leaderboard)
+public/chaplinko/leaderboard.html         the leaderboard, OBS source 2 (lbsource.js reads the board's saved scores)
+public/chaplinko/leaderboard.js           the leaderboard itself: panel and strip, and all its animation (both pages use it)
+public/chaplinko/physics.js               the physics: balls, pegs, slots; seeded, a fixed 120 steps a second (unit-tested)
+public/chaplinko/odds.js                  where 100,000 real drops landed per row count (made by scripts/chaplinko-odds.mjs)
+public/chaplinko/game.js                  the rules only: commands, the queue, scoring, big wins, activity levels (unit-tested)
+public/chaplinko/settings.js              every setting, its default and range; the default slot values
+public/chaplinko/demo.js                  a pretend chat (the preview, the hero, pictures)
+public/chaplinko/check.html               a check for OBS: can two browser sources share data? (add it twice, ?n=1 and ?n=2)
+public/chaplinko/assets/                  icon.svg (the mark), og.jpg, themes/*.webp (render-previews.mjs)
+artwork/chaplinko/                        the link-preview image and the pictures (see its README)
+```
+
+### The board
+
+- **Rows** 8–12 (default 10), each row one more peg; the slots sit under the gaps of the bottom row. Fewer rows are
+  simply bigger (the rows stay near equilateral at every count). More than 12 made the edge slots all but impossible
+  (none in 50,000 drops at 14), so 12 is the limit.
+- **Slot values**: a default list per row count (`settings.js` `SLOTS`, 10 rows: `100 25 10 5 2 1 2 5 10 25 100`), or the
+  streamer's own (Advanced; one number per slot, 0–1000, or the default is used).
+- **Odds are real**: `scripts/chaplinko-odds.mjs` drops 100,000 balls per row count through the real physics (each seed
+  twice, once mirrored, so it's exactly fair) into `odds.js`; the set-up page shows each slot's chance and the jackpot
+  card says "1 in 1,176". At 10 rows each edge slot is about 1 in 1,200, like a fair coin at every row.
+  **Re-run the script after any change to physics.js**: a test replays the table's first 60 drops exactly and fails
+  until you do.
+- **Physics** (`physics.js`): our own, no library. Balls and pegs are circles; the only randomness is where a ball starts
+  (from its seed), so drops replay exactly; plain IEEE maths only, so a drop lands in the same slot in every browser. The
+  ball is big next to the gap (like a real chip) so it meets a peg on nearly every row: that's what makes the bell.
+  Things tried and dropped (2026-09-30): walls along the triangle (balls rode them into the edge slots), smaller balls
+  (they slipped past the edge pegs), **balls bumping each other** (in a busy board it made the edge slots 35 times
+  likelier, so the odds shown would have been false: balls now pass through each other, and a test checks a crowd lands
+  exactly as each ball would alone), and a gravity setting (it changed where balls land; **Speed** plays the same steps
+  slower or faster instead, so the odds hold).
+- A ball resting on a peg gets a small push towards the middle; after 30 s one is put in the nearest slot.
+
+### Chat
+
+- `!drop` drops **Balls per drop** (default 5, 1–10). `!drop <emote>` drops that emote (one the platform marked), or an
+  emoji (`!drop 🔥`). Anything else after `!drop` is ignored, so `!drop 5` from habit is a plain `!drop`.
+- **No cooldown** by default (Advanced: 0–300 s per viewer). The board takes up to **Most balls on the board** (default
+  100, 20–200); beyond that drops queue and leave the chute one at a time (faster in Frenzy, up to 20 a second). The
+  queue holds 600 balls (about 30 s); drops beyond it are ignored until it drains.
+- Commands, all renamable: `!drop pause` / `!drop resume` / `!drop clear` (owner and mods by default), `!drop clearscores`
+  (the owner only), `!drop top` (off by default: both lists over the board for 8 s; viewers share one a minute).
+- Bots are ignored (the same list as Chatagram's).
+- **Ball colour**: the chatter's chat colour (default; lightened if too dark to see), the accent, the platform's, or
+  rainbow. An emote whose picture can't load falls as a plain ball.
+
+### Scoring and big wins
+
+A landing scores the slot's value for whoever dropped it (`scores.js`, "balls" counted beside the points). Tiers:
+**jackpot** (the top value: the big win card), **big** (the second-highest: a BIG WIN toast with Big win card → top
+two), **high** (the upper half of the values), **low**. A **near miss** ("so close!") is a ball that lands next to a
+top slot, within most of a ball of its edge (on by default, Advanced). Jackpots are counted per day for the card's "the
+first today". Nothing is money: nobody stakes anything (the FAQ says so).
+
+### Activity levels and animation
+
+Everything on the board is drawn on one canvas by one loop that runs only while something moves or fades (an idle board
+costs nothing); the chute, cards and the leaderboard are HTML, animated on transform and opacity. The reaction scales
+with the moment, and with how busy the board is (`game.js`: up at once, down only after 3 s below the line):
+
+| | Quiet (under 15 balls) | Busy (15–50) | Frenzy (over 50, or a queue) |
+|---|---|---|---|
+| Trails | 6 positions | 3 | none |
+| Peg hit | flash, ring, a small squash | flash | the hot pegs carry it |
+| Landing | the slot dips and flashes, `+N` for every ball | `+N` for the upper half | a tally per slot (`×12`) |
+| Near miss, big win toast | yes | toast only | no |
+| Jackpot | slow motion, beam, ripple, card, confetti, shake | the same | no slow motion, 2 s card; more than 3 waiting merge into one card |
+
+Frenzy also makes the chute read "FRENZY · +230 waiting" and the board's edge glow. The jackpot: 0.4 s at a third of the
+speed, a beam up from the slot and a ripple through the pegs, the card springing in with the points counting up,
+confetti from both corners at 0.7 s, away toward the leaderboard at 4 s. Other moments: the pegs pop in row by row when
+the board loads; the commands shine every 30 s after a minute idle; PAUSED / GO! in the chute; `!drop clear` pops every
+ball. **Motion** (`motion=` in the link, Advanced): auto/full, **calm** (no shake, slow motion, beam, confetti, trails
+or hot pegs), **reduce** (nothing falls: each ball's landing is worked out at once and the `+N` shows; the leaderboard
+changes instantly). As everywhere, OBS ignores the PC's own setting unless the link says so.
+
+### The leaderboard
+
+- **Separate** (the default layout): its own OBS source, a **panel** (300 wide, as tall as its players: 3–10, default 5)
+  or a **strip** (720 × 72, the top 3), with its own theme, accent and background if the streamer wants.
+  **Combined**: beside the board in one 960 × 540 source (left or right, or off for the board alone).
+- **Show**: This stream, All time, or both (default), switching every 15 s (5–300) with a bar filling to the next switch;
+  a switch waits until 3 s after the last score change on the list showing, so an overtake is never cut off. Not live,
+  This stream is the last stream's (and says drops count for All time).
+- Scores count up, rows slide past each other (FLIP) with the places climbed (▲2), a `+N` badge adds up over a burst, a
+  new #1 gets a ball dropped on their name, a jackpot's winner glows pink for 3 s. When busy it batches: rows reorder at
+  most once a second.
+- **How the separate one gets the scores**: both sources run in OBS's one browser, so they share storage. The board is
+  the only one that writes (`chaplinko:scores:v1:<twitch>|<kick>`, the same record shape as Chatagram's, throttled to
+  4 a second) and announces each change on a `BroadcastChannel` named after the channels (`scores`, `jackpot`); the
+  leaderboard reads on each message, on the storage event, and every 5 s. `check.html` proves it in a given OBS.
+  If the board isn't running, the last saved scores still show.
+
+### Saved data
+
+| Key | What |
+|---|---|
+| `chaplinko:scores:v1:<twitch>\|<kick>` | the leaderboards (`scores.js`'s record; "words" is balls dropped) |
+| `chaplinko:v1:<twitch>\|<kick>` | `{ day, jackpots }`: today's jackpots, for the card |
+| `chaplinko:scores:demo` | the set-up preview's pretend board, shared with the pretend leaderboard beside it (only a board with `share=1` writes it) |
+| `chaplinko:setup` | the set-up page's last settings |
+
+### Settings in the links
+
+`settings.js` describes every setting; the set-up page writes two links from it: the board's (every setting that differs
+from its default) and the leaderboard's (`LB_KEYS`: channels, its look, shape, how many, show, switch every, All time,
+credit, motion). The leaderboard's own look is written into its link as `theme=`/`accent=`/`bgo=`. Other modes: `demo=1`
+(the pretend chat; `share=1` also feeds the pretend leaderboard), `still=1&screen=play|jackpot` (a frozen, seeded moment,
+for pictures). No channel: "Add your channel".
+
+## The Chaplinko page
+
+Its own brand, deliberately unlike Chatagram's (docs/plans/chaplinko/plan.md, "Brand"): a **late-night arcade**.
+Midnight `#0a1233`, deep `#121d4d`, slot `#1b2a66`, cobalt `#2f5bff` (the tile, rims, glow), ice `#eef3ff`, mist
+`#9fb0e0`, tangerine `#ff7a1a` (the ball, buttons), jackpot pink `#ff3d8b`. **Bungee** capitals for the wordmark,
+headings and numbers, **Space Grotesk** for text (both SIL OFL, self-hosted, latin only). The wordmark is `CHAPLINKO`
+with the **O drawn as the ball**; the mark (`assets/icon.svg`) is a cobalt tile with a peg triangle, the ball falling
+in and the jackpot slot lit. Tagline "Let chat drop." Credit as Chatagram: "made by TrongatesLegacy" in the header,
+`Made by TrongatesLegacy.com` on the board (on by default). Keep away from Charlie Chaplin's look and The Price Is Right's
+(the name is the only nod to either; the footer says it's not connected to any game show).
+
+- Sections: hero (the board transparent over the page's glow with a pretend chat beside it), how it works, the looks
+  (every theme as a picture, click to use; transparent is the default), set up, FAQ ("Is this gambling?" first).
+- **Set up**: channels (checked as typed, as Chatagram), layout (separate / combined, the leaderboard's side), look
+  (background, theme, accent), the board (rows with each slot's points and real odds, balls per drop, ball colour), the
+  leaderboard (show, switch every, how many, shape, its own look), Advanced. The **live preview** shows the board and
+  the leaderboard over a pretend game, playing with a pretend chat; **Copy board link** and **Copy leaderboard link**
+  (one **Copy OBS link** for combined). The preview is re-themed by message, so theme and accent never reload it.
+- Pictures before live boards, as Chatagram (`artwork/chaplinko/render-previews.mjs`; a test checks they're all there).
+- Indexed (sitemap), with its own title, description, canonical, share image and JSON-LD; the board and leaderboard
+  pages aren't.
+
 ## In Trongates Legacy's scenes
 
 `/obs/chatagram` (see obs/README.md, "Chatagram") is Chatagram in the stream's colours: it runs the scenes' form
 engine (`shared/theme.js`: veadotube, the dock, `form=`, `looks=`) and sends each change to the game as a live theme
 message: Tron (any armour) → **neon** in the armour's colour, Princess Trina → **royal**, the Blobfish → **deep**,
-following the dock's Form looks. It's the only Chatagram file that knows the forms.
+following the dock's Form looks. It's the only Chatagram file that knows the forms. `/obs/chaplinko` does the same for
+Chaplinko's board and (`part=leaderboard`) its leaderboard (obs/README.md, "Chaplinko").
 
 ## Tests
 
 `tests/unit/chatagram-words.test.mjs` (the lists as shipped, blocking, every difficulty's seeds make good puzzles),
 `tests/unit/chatagram-game.test.mjs` (the rules, with the real word lists; commands, holding),
 `tests/unit/chatagram-scores.test.mjs` (the leaderboards: streams, crashes, offline, no answer, saved data across versions), `tests/unit/widgets-lib.test.mjs` (settings,
-Twitch and Kick parsing from real captured messages, themes), `tests/loops/widgets-chat.test.mjs` (reconnecting, on the
+Twitch and Kick parsing from real captured messages, emotes and colours, themes), `tests/loops/widgets-chat.test.mjs` (reconnecting, on the
 virtual clock), `tests/loops/chatagram-flow.test.mjs` (hours of play: no runaway, always moves on),
 `tests/browser/chatagram.test.mjs` (the pages, a whole game from fake Twitch and Kick sockets, every layout and theme
 fits, theme messages, the OBS wrapper, the set-up link, reduced motion, the leaderboard in each layout with stubbed
 "is it live" answers, saved data from before the leaderboards). See testing.md.
+
+Chaplinko: `tests/unit/chaplinko-physics.test.mjs` (the odds table replays exactly, fairness, every ball lands, crowds
+don't change landings, the layout), `tests/unit/chaplinko-game.test.mjs` (what a `!drop` drops, spam and the optional
+cooldown, the queue, commands, scoring and big wins, near misses, activity levels), `tests/unit/chaplinko-assets.test.mjs`
+(the pictures), `tests/loops/chaplinko-flow.test.mjs` (spam and raids on the virtual clock: every ball lands and scores
+once, the queue drains, the board calms), `tests/browser/chaplinko.test.mjs` (real chat, the separate leaderboard
+following the board from another tab, sizes and themes, the OBS wrapper, the set-up links, reduced motion, Frenzy,
+emotes), and the dock's `tests/unit/model.test.mjs`.

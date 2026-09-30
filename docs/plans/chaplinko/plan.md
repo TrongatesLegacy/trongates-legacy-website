@@ -1,7 +1,11 @@
 # Plan: Chaplinko
 
 A second free widget beside Chatagram (docs/widgets.md): chat types `!drop` and balls fall through a Plinko board into
-scoring slots. Status: **planning** (2026-09-29). The first version is **Plinko only**; Pachinko and Pin tower are for
+scoring slots. Status: **built** (2026-09-30); docs/widgets.md, "Chaplinko", is how it works now. Changed while building,
+found by measuring: rows are 8–12, not 8–16 (at 14+ the top slot never came up in 50,000 drops); balls **don't bump each
+other** (it made the jackpot 35 times likelier in a busy board, so the odds shown would have been false); one ball size
+(smaller balls slipped past the edge pegs); **speed** instead of gravity (gravity changed where balls land); Frenzy pours
+from the one drop point (three spots would have changed the odds). The rest of this plan is kept as it was decided. The first version is **Plinko only**; Pachinko and Pin tower are for
 later (see "Later").
 
 Brand mockups (`brand.html`): [logo](brand-logo.png), [colours and type](brand-palette.png), [the website](brand-site.png),

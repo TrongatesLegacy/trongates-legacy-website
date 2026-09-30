@@ -11,7 +11,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [docs/content-and-voice.md](docs/content-and-voice.md) | writing any copy, speech lines or names |
 | [docs/verification.md](docs/verification.md) | finishing any change: how to check it actually works and looks right |
 | [docs/testing.md](docs/testing.md) | any code change: the automated tests, how loops get caught, adding a test |
-| [docs/widgets.md](docs/widgets.md) | the stream widgets (`/widgets/`) and Chatagram (`/chatagram/`): chat reading, settings links, themes, the game, words |
+| [docs/widgets.md](docs/widgets.md) | the stream widgets (`/widgets/`), Chatagram (`/chatagram/`) and Chaplinko (`/chaplinko/`): chat reading, settings links, themes, the games, words, physics and odds |
 | [artwork/README.md](artwork/README.md) | making or changing any artwork: how every piece is built |
 | [artwork/kick/README.md](artwork/kick/README.md) | Kick about panels, channel banner, offline banner |
 | [artwork/discord/README.md](artwork/discord/README.md) | Discord profile banner |
@@ -21,6 +21,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [artwork/club/README.md](artwork/club/README.md) | club.com profile cover (animated) |
 | [artwork/og/README.md](artwork/og/README.md) | the link-preview image shown when the site is shared |
 | [artwork/chatagram/README.md](artwork/chatagram/README.md) | Chatagram's link-preview image |
+| [artwork/chaplinko/README.md](artwork/chaplinko/README.md) | Chaplinko's link-preview image and pictures |
 | [obs/README.md](obs/README.md) | the OBS scene overlays, control dock and Botrix CSS (hosted under /obs/) |
 
 Project skills in `.claude/skills/` hold the step-by-step procedures: **verify-site-change** (after any
@@ -75,6 +76,7 @@ public/robots.txt, sitemap.xml
 public/obs/                  OBS scene overlays, index page, control dock, Botrix CSS (hosted at /obs/, noindex); see obs/README.md
 public/widgets/              free stream widgets for any streamer: the list page and the shared library (docs/widgets.md)
 public/chatagram/            Chatagram: the page, the OBS overlay (play.html), the game, the word lists (docs/widgets.md)
+public/chaplinko/            Chaplinko: the page, the board (play.html), the leaderboard source, physics, odds (docs/widgets.md)
 netlify/functions/feed.mjs   GET /api/feed: live YouTube list + Kick live status
 netlify.toml                 publish dir, functions dir, headers, build-skip rule
 tests/                       unit, loop (simulated OBS browser) and browser tests; see docs/testing.md
@@ -95,6 +97,7 @@ artwork/                     images made for other places, all built the same wa
   club/                        club.com profile cover (animated GIF + static)
   og/                          the link-preview (Open Graph) image; renders into public/assets/img/og.jpg
   chatagram/                   Chatagram's link-preview image; renders into public/chatagram/assets/og.jpg
+  chaplinko/                   Chaplinko's link-preview image and pictures; render into public/chaplinko/assets/
 ```
 
 ## Commands
@@ -108,6 +111,9 @@ node --experimental-websocket scripts/presize-art.mjs          # pre-size the ch
 node --experimental-websocket artwork/og/render.mjs            # re-render the link-preview (OG) image
 node --experimental-websocket artwork/chatagram/render.mjs     # re-render Chatagram's link-preview image
 node --experimental-websocket artwork/chatagram/render-previews.mjs  # re-render Chatagram's theme pictures (after any overlay look change)
+node --experimental-websocket artwork/chaplinko/render.mjs     # re-render Chaplinko's link-preview image
+node --experimental-websocket artwork/chaplinko/render-previews.mjs  # re-render Chaplinko's pictures (after any board look change)
+node scripts/chaplinko-odds.mjs                                # re-make Chaplinko's odds table (after any physics.js change; ~1 min)
 node scripts/build-words.mjs --scowl /tmp/scowl                # rebuild Chatagram's word lists (docs/widgets.md, "Words")
 python3 obs/build-scenes.py                                    # regenerate the OBS scene overlays
 scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running; +Princess/Blobfish when their theme changed, --forms to force)
