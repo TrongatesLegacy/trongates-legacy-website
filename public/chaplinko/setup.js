@@ -234,6 +234,7 @@
     $('#shape-field').hidden = $('#own-field').hidden = comb;
     $('#own-look').hidden = comb || s.lbtheme === 'same';
     $('#every-field').hidden = s.lbshow !== 'both';
+    $('#lbbgo-field').hidden = comb && s.side === 'off';
     $('#lb-card').hidden = comb && s.side === 'off';
     const [bw, bh] = comb && s.side !== 'off' ? K.settings.SIZES.combined : K.settings.SIZES.separate, [lw, lh] = lbSize();
     $('#copy').textContent = comb ? 'COPY OBS LINK' : 'COPY BOARD LINK';
@@ -265,6 +266,11 @@
   $('#open').addEventListener('click', (e) => { if (!hasChannel()) e.preventDefault(); });
   $('#show').addEventListener('click', (e) => { if (!hasChannel()) return; const l = $('#link'); l.hidden = !l.hidden; e.currentTarget.setAttribute('aria-expanded', String(!l.hidden)); e.currentTarget.textContent = l.hidden ? 'Show links' : 'Hide links'; });
   $('#link').style.whiteSpace = 'pre-wrap';
+  // the odds tooltip: shows on hover or focus; a tap (phones) pins it open, a tap anywhere else closes it
+  const info = $('#odds-info');
+  info.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); const open = !info.classList.contains('open'); info.classList.toggle('open', open); e.currentTarget.setAttribute('aria-expanded', String(open)); });
+  document.addEventListener('click', (e) => { if (!info.contains(e.target)) { info.classList.remove('open'); info.querySelector('button').setAttribute('aria-expanded', 'false'); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { info.classList.remove('open'); info.querySelector('button').setAttribute('aria-expanded', 'false'); } });
   // Advanced → Reset to defaults: every advanced setting back to its default (channels, layout and look stay)
   $('#reset').addEventListener('click', (e) => {
     e.preventDefault(); e.stopPropagation();

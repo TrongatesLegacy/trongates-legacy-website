@@ -148,6 +148,8 @@ test('the set-up page: defaults make short links, the leaderboard link carries i
   assert.equal(board.get('rows'), '12'); assert.equal(board.get('bgo'), '100'); assert.equal(board.get('theme'), null);
   assert.equal(lb.get('theme'), 'neon', 'its own look'); assert.equal(lb.get('lbshape'), 'strip'); assert.equal(lb.get('rows'), null, 'only what the leaderboard uses');
   assert.equal(await tab.eval('document.getElementById("odds").children.length'), 7, 'the odds for 12 rows: 13 slots, each value once');
+  await click('#odds-info button');
+  assert.equal(await tab.eval('getComputedStyle(document.getElementById("odds-pop")).display'), 'grid', 'the odds tooltip opens on a tap');
   await click('input[name=layout][value="combined"]');
   assert.equal(await tab.eval('document.getElementById("copy-lb").hidden'), true, 'one link for combined');
   assert.equal(new URL(await tab.eval('chaplinkoSetup.boardLink()')).searchParams.get('layout'), 'combined');

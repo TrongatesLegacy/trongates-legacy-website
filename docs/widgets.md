@@ -468,8 +468,9 @@ in and the jackpot slot lit. Tagline "Let chat drop." Credit as Chatagram: "made
 - Sections: hero (the board transparent over the page's glow with a pretend chat beside it), how it works, the looks
   (every theme as a picture, click to use; transparent is the default), set up, FAQ ("Is this gambling?" first).
 - **Set up**: channels (checked as typed, as Chatagram), layout (separate / combined, the leaderboard's side), look
-  (background, theme, accent), the board (rows with each value's points and real chance, balls per drop, ball colour),
-  the leaderboard (its background, show, switch every, how many, shape, its own theme), Advanced. The **live preview** shows the board and
+  (the board's background, the leaderboard's background, theme, accent), the board (rows, with an ⓘ tooltip of each value's
+  points and real chance per ball; balls per drop, ball colour), the leaderboard (show, switch every, how many, shape,
+  its own theme), Advanced. The **live preview** shows the board and
   the leaderboard over a pretend game, playing with a pretend chat; **Copy board link** and **Copy leaderboard link**
   (one **Copy OBS link** for combined). The preview is re-themed by message, so theme and accent never reload it.
 - Pictures before live boards, as Chatagram (`artwork/chaplinko/render-previews.mjs`; a test checks they're all there).
