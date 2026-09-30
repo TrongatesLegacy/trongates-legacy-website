@@ -135,15 +135,17 @@ test('scoring: the slot\'s value goes to whoever dropped it; the top slot is a j
   assert.equal(t.g.land(by, 5).tier, 'low');
   assert.deepEqual(t.awarded.slice(0, 3), [['NeonNacho', 100, 1], ['NeonNacho', 100, 1], ['NeonNacho', 25, 1]]);
   t.at += 86400000; assert.equal(t.g.land(by, 0).nth, 1, 'a new day starts again');
-  assert.ok(t.g.oneIn(0) > 500 && t.g.oneIn(0) < 3000, `the top slot is rare at 10 rows (1 in ${t.g.oneIn(0)})`);
+  assert.ok(t.g.oneIn(0) > 100 && t.g.oneIn(0) < 1000, `the top slot is rare at 10 rows, but reachable (1 in ${t.g.oneIn(0)})`);
 });
 
-test('slot values: the streamer\'s own list if it fits the rows, otherwise the default', () => {
-  assert.deepEqual(plain(setup('rows=8&slots=9,8,7,6,5,6,7,8,9').g.values), [9, 8, 7, 6, 5, 6, 7, 8, 9]);
-  assert.deepEqual(plain(setup('rows=8&slots=1,2,3').g.values), plain(K.settings.SLOTS[8]), 'wrong count');
-  assert.deepEqual(plain(setup('rows=8&slots=1,2,3,4,x,4,3,2,1').g.values), plain(K.settings.SLOTS[8]), 'not numbers');
-  const flat = setup('rows=8&slots=5,5,5,5,5,5,5,5,5');
-  assert.equal(flat.g.land({ name: 'x' }, 0).tier === 'jackpot', false, 'every slot the same: no jackpot on every landing');
+test('slot values follow the rows (there\'s no setting for them: the owner removed it); the rarest slots score the most', () => {
+  for (let rows = 8; rows <= 12; rows++) {
+    const v = setup('rows=' + rows).g.values, c = K.odds.counts[rows];
+    assert.equal(v.length, rows + 1);
+    assert.deepEqual([...v].reverse(), [...v], 'mirrored');
+    for (let i = 0; i < v.length; i++) for (let j = 0; j < v.length; j++) if (c[i] < c[j]) assert.ok(v[i] >= v[j], `${rows} rows: a rarer slot never scores less`);
+  }
+  assert.deepEqual(plain(setup('rows=8&slots=9,8,7,6,5,6,7,8,9').g.values), plain(K.settings.SLOTS[8]), 'an old link\'s own values are ignored');
 });
 
 test('near miss: touching the top slot\'s edge and falling the other way (only when it\'s on)', () => {

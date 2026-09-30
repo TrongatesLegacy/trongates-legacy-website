@@ -11,7 +11,7 @@
   const THEME_NAMES = { chatagram: 'Chatagram', chaplinko: 'Chaplinko', neutral: 'Neutral', light: 'Light', neon: 'Neon', candy: 'Candy', royal: 'Royal', deep: 'Deep', cozy: 'Cozy' };
   const THEME_BG = { chatagram: '#16122b', chaplinko: '#0a1233', neutral: '#1b1e26', light: '#f4f5f8', neon: '#03060d', candy: '#6b2fd6', royal: '#0a0510', deep: '#020b11', cozy: '#f3e6cf' };
   const ACCENTS = [['ff7a1a', 'Tangerine'], ['ff3d8b', 'Jackpot pink'], ['2ee6a8', 'Mint'], ['22e5ff', 'Cyan'], ['4f8cff', 'Blue'], ['ffc93c', 'Sun'], ['b48cff', 'Lilac']];
-  const ADVANCED = ['slots', 'bigwin', 'motion', 'speed', 'showcmd', 'nearmiss', 'max', 'cool', 'ignore', 'remember', 'credit', 'cdrop', 'cpause', 'cresume', 'cclear', 'ctop', 'cwipe', 'perm', 'lb'];
+  const ADVANCED = ['bigwin', 'motion', 'speed', 'showcmd', 'nearmiss', 'max', 'cool', 'ignore', 'remember', 'credit', 'cdrop', 'cpause', 'cresume', 'cclear', 'ctop', 'cwipe', 'perm', 'lb'];
   const CMDS = ['cdrop', 'cpause', 'cresume', 'cclear', 'ctop', 'cwipe'];
 
   let saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
@@ -20,7 +20,7 @@
   let manualKickId = !!(fromLink && s.kickid);
 
   // ---- swatches ------------------------------------------------------------------------------------------------------
-  const swatches = (name) => W.theme.THEMES.map((t) => `<label title="${THEME_NAMES[t]}"><input type="radio" name="${name}" value="${t}" aria-label="${THEME_NAMES[t]}"><span style="background:linear-gradient(90deg, ${THEME_BG[t]} 58%, #${W.theme.ACCENTS[t]} 0)${t === 'light' || t === 'cozy' ? ';box-shadow:inset 0 0 0 1px #0003' : ''}"></span></label>`).join('');
+  const swatches = (name) => K.settings.THEMES.map((t) => `<label title="${THEME_NAMES[t]}"><input type="radio" name="${name}" value="${t}" aria-label="${THEME_NAMES[t]}"><span style="background:linear-gradient(90deg, ${THEME_BG[t]} 58%, #${W.theme.ACCENTS[t]} 0)${t === 'light' || t === 'cozy' ? ';box-shadow:inset 0 0 0 1px #0003' : ''}"></span></label>`).join('');
   $('#theme-pick').innerHTML = swatches('theme');
   $('#lbtheme-pick').innerHTML = swatches('lbtheme');
   function drawAccents() {
@@ -94,7 +94,7 @@
     if (el.closest('[data-tags]')) return;
     if (el.name === 'accentpick') s.accent = el.value;
     else if (el.id === 'accent-custom') { s.accent = el.value.replace('#', ''); const c = el.closest('.custom'); c.classList.add('on'); c.style.background = el.value; for (const r of $$('input[name=accentpick]')) r.checked = false; update({ fill: false }); return; }
-    else if (el.id === 'own') { s.lbtheme = el.checked ? s.theme : 'same'; s.lbaccent = ''; s.lbbgo = s.bgo; }
+    else if (el.id === 'own') { s.lbtheme = el.checked ? s.theme : 'same'; s.lbaccent = ''; }
     else if (el.type === 'text' || (el.tagName === 'INPUT' && !['radio', 'checkbox'].includes(el.type))) {
       read(el);
       if (el.name === 'kick' || el.name === 'kickid') check('kick');
@@ -116,13 +116,12 @@
   // ---- the odds: each slot's points and its real chance (odds.js: 100,000 drops through the same physics) ------------------------
   function drawOdds() {
     const values = K.settings.slotValues(s), counts = K.odds.counts[s.rows], top = Math.max(...values);
-    // "1 in 1,176" in full on hover; in the cell, compact: 25%, 1/83, 1/1.2k
-    const oneIn = (c) => Math.round(K.odds.drops / c), full = (c) => `1 in ${oneIn(c).toLocaleString('en')}`;
-    const short = (c) => { const n = oneIn(c); return n <= 12 ? `${Math.round((c / K.odds.drops) * 100)}%` : n < 1000 ? `1/${n}` : `1/${(n / 1000).toFixed(n < 10000 ? 1 : 0)}k`; };
-    $('#odds').innerHTML = values.map((v, i) => `<div class="${v === top ? 'top' : ''}" title="${v} points: ${full(counts[i])}"><b>${v}</b>${short(counts[i])}</div>`).join('');
-    $('#slots-in').placeholder = K.settings.SLOTS[s.rows].join(',');
-    const own = String(s.slots || '').trim();
-    $('#slots-note').textContent = own && K.settings.slotValues(s) === K.settings.SLOTS[s.rows] ? `That list doesn’t fit ${s.rows} rows: it needs ${s.rows + 1} numbers, each 0–1000. Using the default.` : `One number per slot (${s.rows + 1} for ${s.rows} rows), 0–1000, commas between.`;
+    // the board is symmetric, so each value once, from the edge in: its chance per ball (both sides together) and a bar
+    const n = values.length, rows = [];
+    for (let i = 0; i < Math.ceil(n / 2); i++) { const c = i === n - 1 - i ? counts[i] : counts[i] + counts[n - 1 - i]; rows.push([values[i], c / K.odds.drops]); }
+    const most = Math.max(...rows.map(([, p]) => p));
+    const chance = (p) => (p >= 0.1 ? `${Math.round(p * 100)}%` : `1 in ${Math.round(1 / p).toLocaleString('en')}`);
+    $('#odds').innerHTML = rows.map(([v, p]) => `<div class="${v === top ? 'top' : ''}"><b>${v}</b><span class="bar"><i style="width:${Math.max(2, (p / most) * 100)}%"></i></span><span class="ch">${chance(p)}</span></div>`).join('');
     $('#cmd-name').textContent = s.cdrop[0] || '!drop';
   }
 
@@ -233,7 +232,7 @@
     $('#side-field').hidden = !comb;
     $('#layout-note').textContent = comb ? 'One source, 960 × 540: the board with the leaderboard beside it.' : 'Two sources: the board (640 × 540) and the leaderboard, each placed where you like.';
     $('#shape-field').hidden = $('#own-field').hidden = comb;
-    $('#own-look').hidden = $('#own-bg').hidden = comb || s.lbtheme === 'same';
+    $('#own-look').hidden = comb || s.lbtheme === 'same';
     $('#every-field').hidden = s.lbshow !== 'both';
     $('#lb-card').hidden = comb && s.side === 'off';
     const [bw, bh] = comb && s.side !== 'off' ? K.settings.SIZES.combined : K.settings.SIZES.separate, [lw, lh] = lbSize();
@@ -244,6 +243,7 @@
     $('#open').href = boardLink();
     const n = W.settings.changed(SCHEMA, s, ADVANCED) + (manualKickId && s.kickid ? 1 : 0);
     $('#chg').hidden = !n; $('#chg').textContent = `${n} changed`;
+    $('#reset').disabled = !n;
     drawOdds();
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
     readyToCopy();
@@ -265,10 +265,16 @@
   $('#open').addEventListener('click', (e) => { if (!hasChannel()) e.preventDefault(); });
   $('#show').addEventListener('click', (e) => { if (!hasChannel()) return; const l = $('#link'); l.hidden = !l.hidden; e.currentTarget.setAttribute('aria-expanded', String(!l.hidden)); e.currentTarget.textContent = l.hidden ? 'Show links' : 'Hide links'; });
   $('#link').style.whiteSpace = 'pre-wrap';
+  // Advanced → Reset to defaults: every advanced setting back to its default (channels, layout and look stay)
+  $('#reset').addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    for (const k of ADVANCED) s[k] = Array.isArray(SCHEMA[k].def) ? [...SCHEMA[k].def] : SCHEMA[k].def;
+    update();
+  });
   if (fromLink && W.settings.changed(SCHEMA, s, ADVANCED)) $('#adv').open = true;
 
   // ---- the looks gallery (pictures, made by artwork/chaplinko/render-previews.mjs) and the hero ------------------------------------------
-  $('#tgrid').innerHTML = W.theme.THEMES.map((t) => `<li><button type="button" class="thm" data-theme-pick="${t}" aria-label="Use the ${THEME_NAMES[t]} theme"><img src="assets/themes/${t}.webp" alt="" width="640" height="540" loading="lazy"><h3>${THEME_NAMES[t]}</h3></button></li>`).join('');
+  $('#tgrid').innerHTML = K.settings.THEMES.map((t) => `<li><button type="button" class="thm" data-theme-pick="${t}" aria-label="Use the ${THEME_NAMES[t]} theme"><img src="assets/themes/${t}.webp" alt="" width="640" height="540" loading="lazy"><h3>${THEME_NAMES[t]}</h3></button></li>`).join('');
   for (const b of $$('[data-theme-pick]')) b.addEventListener('click', () => { s.theme = b.dataset.themePick; s.accent = ''; if (s.bgo === 0) s.bgo = 95; update(); $('#setup').scrollIntoView(); });
   // The hero shows a picture straight away; the live board (with the pretend chat) starts after the page has loaded and fades
   // in over it once it has drawn, so nothing competes with the first paint (docs/website.md).
@@ -280,7 +286,10 @@
   addEventListener('message', (e) => {
     const d = e.data; if (!d || d.type !== 'chaplinko-chat' || e.source !== hero.contentWindow) return;
     const m = document.createElement('div'); m.className = 'msg';
-    m.innerHTML = `<b style="color:${/^#[0-9a-f]{6}$/i.test(d.color || '') ? d.color : '#ff7a1a'}">${esc(d.name)}</b>${esc(d.text)}`;
+    // an emote shows as itself, as it would in chat (only the page's own pictures: same origin)
+    const em = d.emote && typeof d.emote.url === 'string' && d.emote.url.startsWith(location.origin + '/chaplinko/assets/emotes/') ? d.emote : null;
+    const text = em ? `${esc(d.text.replace(em.name, '').trim())} <img src="${esc(em.url)}" alt="${esc(em.name)}" width="22" height="22">` : esc(d.text);
+    m.innerHTML = `<b style="color:${/^#[0-9a-f]{6}$/i.test(d.color || '') ? d.color : '#ff7a1a'}">${esc(d.name)}</b>${text}`;
     chat.appendChild(m);
     while (chat.children.length > 3) chat.firstElementChild.remove();
     if (m.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) m.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 250, easing: 'ease-out' });

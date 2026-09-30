@@ -48,13 +48,15 @@ h1, h2, h3, .bg { font-family: Bungee, system-ui, sans-serif; font-weight: 400; 
 /* header */
 .nav { position: sticky; top: 0; z-index: 10; background: rgb(10 18 51 / .86); backdrop-filter: blur(10px); border-bottom: 1px solid #2f5bff33; }
 .nav .in { height: var(--nav); display: flex; align-items: center; gap: 22px; }
-.brandlock { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-.brandlock img { width: 38px; height: 38px; }
+.brandlock { display: flex; align-items: center; gap: 12px; }
+.brandlock img { width: 38px; height: 38px; display: block; }
+.lockup { display: grid; gap: 3px; } .lockup .word { text-decoration: none; font-size: 22px; }
 .menu { display: flex; gap: 4px; margin: 0 auto; }
 .menu a { font: 600 14px "Space Grotesk", sans-serif; color: var(--mist); padding: 7px 14px; border-radius: 999px; text-decoration: none; }
 .menu a:hover { color: var(--ice); }
 .menu a.on { color: var(--ice); background: #ffffff14; box-shadow: inset 0 0 0 1px #ffffff22; }
-.by { font-size: 13px; color: var(--mist); text-decoration: none; } .by b { color: var(--ice); } .by:hover b { color: var(--tangerine); }
+.by { font-size: 11px; line-height: 1; color: var(--mist); text-decoration: none; } .by b { color: var(--ice); font-weight: 600; } .by:hover b { color: var(--tangerine); }
+.more { font-size: 14px; color: var(--mist); text-decoration: none; } .more:hover { color: var(--ice); }
 .btn { display: inline-block; font: 400 17px Bungee, sans-serif; letter-spacing: .02em; padding: 14px 22px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
   background: linear-gradient(180deg, #ff9442, var(--tangerine)); color: #1a0a00; box-shadow: 0 10px 30px #ff7a1a55, inset 0 -3px 0 #0003; }
 .btn:hover { filter: brightness(1.06); } .btn:active { transform: translateY(1px); }
@@ -81,7 +83,7 @@ h1 em { font-style: normal; color: var(--tangerine); text-shadow: 0 0 30px #ff7a
 .hero .screen { height: 500px; }
 .chat { position: absolute; left: -30px; top: 140px; width: 210px; display: flex; flex-direction: column; gap: 8px; z-index: 2; pointer-events: none; }
 .msg { background: #0e1740; box-shadow: inset 0 0 0 1px #ffffff1f, 0 8px 20px #0006; border-radius: 14px; padding: 7px 12px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.msg b { margin-right: 6px; }
+.msg b { margin-right: 6px; } .msg img { vertical-align: middle; margin: -4px 0 -3px 2px; }
 
 /* sections */
 section.sec { position: relative; padding-top: 48px; padding-bottom: 8px; }
@@ -143,10 +145,16 @@ fieldset.card { border: 0; margin: 0; display: grid; gap: 14px; align-content: s
 .accents .custom::after { content: '+'; color: #fff; font: 700 15px/1 system-ui; text-shadow: 0 1px 2px #0008; }
 .accents .custom.on { box-shadow: 0 0 0 2px var(--deep), 0 0 0 4px var(--ice); }
 .accents .custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
-.odds { display: flex; gap: 3px; }
-.odds div { flex: 1; min-width: 0; text-align: center; border-radius: 8px; padding: 6px 0 5px; background: var(--slot); font-size: 10px; color: var(--mist); line-height: 1.3; white-space: nowrap; }
-.odds b { display: block; font: 400 12px Bungee, sans-serif; color: var(--ice); }
-.odds .top { background: #ff3d8b33; box-shadow: inset 0 0 0 1px var(--pink); }
+/* the odds: each points value once (the board is symmetric), its chance per ball and a bar */
+.odds { display: grid; gap: 4px; }
+.odds div { display: grid; grid-template-columns: 52px 1fr 92px; align-items: center; gap: 10px; font-size: 14px; color: var(--ice); }
+.odds b { font: 400 13px Bungee, sans-serif; background: var(--slot); border-radius: 7px; text-align: center; padding: 4px 0; }
+.odds .top b { background: var(--pink); color: #0a1233; }
+.odds .bar { height: 6px; border-radius: 3px; background: #ffffff10; overflow: hidden; }
+.odds .bar i { display: block; height: 100%; border-radius: 3px; background: var(--mist); opacity: .7; }
+.odds .top .bar i { background: var(--pink); opacity: 1; }
+.odds .ch { text-align: right; font-variant-numeric: tabular-nums; color: var(--mist); }
+.odds .top .ch { color: var(--ice); font-weight: 600; }
 .adv { grid-column: 1 / -1; background: #0d1640; border-radius: 22px; padding: 16px 18px 18px; box-shadow: inset 0 0 0 1px #2f5bff33; }
 .adv summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .adv summary::-webkit-details-marker { display: none; }
@@ -154,6 +162,9 @@ fieldset.card { border: 0; margin: 0; display: grid; gap: 14px; align-content: s
 .adv .abtn::after { content: ' ▾'; color: var(--tangerine); } .adv[open] .abtn::after { content: ' ▴'; }
 .chg { font-size: 13px; background: var(--tangerine); color: #1a0a00; padding: 2px 10px; border-radius: 99px; font-weight: 700; }
 .adv .hint { font-size: 14px; color: var(--mist); }
+.reset { margin-left: auto; font: 600 13px "Space Grotesk", sans-serif; color: var(--ice); background: none; border: 0; box-shadow: inset 0 0 0 1.5px #ffffff33; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.reset:hover:not([disabled]) { box-shadow: inset 0 0 0 1.5px var(--tangerine); color: var(--tangerine); }
+.reset[disabled] { opacity: .4; cursor: default; }
 .agrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 16px; }
 .cmds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .cmds .box input { color: var(--tangerine); font-weight: 700; }
@@ -191,7 +202,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
   .cols { grid-template-columns: 1fr; } .right { position: static; order: -1; }
 }
 @media (max-width: 720px) {
-  .wrap { padding: 0 16px; } .by { display: none; }
+  .wrap { padding: 0 16px; } .more { display: none; }
   h1 { font-size: 54px; }
   .steps, .tgrid { grid-template-columns: 1fr 1fr; } .left, .agrid { grid-template-columns: 1fr; } .cmds { grid-template-columns: 1fr 1fr; }
   .clearnote { grid-template-columns: 1fr; }
@@ -203,9 +214,9 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
 </head>
 <body>
 <header class="nav"><div class="wrap in">
-  <a class="brandlock" href="#top" aria-label="Chaplinko"><img src="assets/icon.svg" alt="" width="38" height="38"><span class="word">CHAPLINK<span class="o"></span></span></a>
+  <div class="brandlock"><a href="#top" aria-label="Chaplinko"><img src="assets/icon.svg" alt="" width="38" height="38"></a><div class="lockup"><a class="word" href="#top" tabindex="-1" aria-hidden="true">CHAPLINK<span class="o"></span></a><a class="by" href="/">made by <b>TrongatesLegacy</b></a></div></div>
   <nav class="menu" aria-label="Sections"><a href="#how">How it works</a><a href="#looks">Looks</a><a href="#setup">Set up</a><a href="#faq">FAQ</a></nav>
-  <a class="by" href="/">made by <b>TrongatesLegacy</b></a>
+  <a class="more" href="/widgets/">More widgets ↗</a>
   <a class="btn small" href="#setup">Set it up</a>
 </div></header>
 
@@ -260,7 +271,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
     <fieldset class="card"><legend>4 · The board</legend>
       <div class="field"><span class="lab" id="l-rows">Rows of pegs</span><div class="seg" role="radiogroup" aria-labelledby="l-rows">
         <label><input type="radio" name="rows" value="8"><span>8</span></label><label><input type="radio" name="rows" value="9"><span>9</span></label><label><input type="radio" name="rows" value="10"><span>10</span></label><label><input type="radio" name="rows" value="11"><span>11</span></label><label><input type="radio" name="rows" value="12"><span>12</span></label></div></div>
-      <div class="field"><span class="lab">Points and odds (from 100,000 real drops)</span><div class="odds" id="odds"></div></div>
+      <div class="field"><span class="lab">Points and the chance per ball (from 100,000 real drops)</span><div class="odds" id="odds"></div></div>
       <label class="field"><span>Balls per <code id="cmd-name">!drop</code></span><span class="box"><select name="balls"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option><option value="8">8</option><option value="10">10</option></select></span></label>
       <label class="field"><span>Ball colour</span><span class="box"><select name="color"><option value="chat">Each chatter’s chat colour</option><option value="accent">The accent colour</option><option value="platform">Twitch purple, Kick green</option><option value="rainbow">Rainbow</option></select></span></label>
     </fieldset>
@@ -272,17 +283,15 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
         <label class="field"><span>Players shown</span><span class="box"><select name="lbn"><option value="3">Top 3</option><option value="5">Top 5</option><option value="8">Top 8</option><option value="10">Top 10</option></select></span></label>
         <div class="field" id="shape-field"><span class="lab" id="l-shape">Shape (its own source)</span><div class="seg" role="radiogroup" aria-labelledby="l-shape">
           <label><input type="radio" name="lbshape" value="panel"><span>Panel</span></label><label><input type="radio" name="lbshape" value="strip"><span>Strip 720×72</span></label></div></div>
-        <label class="sw wide" id="own-field">Its own look (not the board’s) <input type="checkbox" role="switch" id="own"></label>
-        <div class="field" id="own-look" hidden><span class="lab" id="l-lbtheme">Leaderboard theme</span><div class="themes" id="lbtheme-pick" role="radiogroup" aria-labelledby="l-lbtheme"></div></div>
-        <div class="field" id="own-bg" hidden><span class="lab" id="l-lbbgo">Leaderboard background</span><div class="seg" role="radiogroup" aria-labelledby="l-lbbgo">
-          <label><input type="radio" name="lbbgo" value="0"><span>Transparent</span></label><label><input type="radio" name="lbbgo" value="95"><span>95%</span></label><label><input type="radio" name="lbbgo" value="100"><span>Solid</span></label></div></div>
+        <div class="field"><span class="lab" id="l-lbbgo">Leaderboard background</span><div class="seg" role="radiogroup" aria-labelledby="l-lbbgo">
+          <label><input type="radio" name="lbbgo" value="0"><span>Transparent</span></label><label><input type="radio" name="lbbgo" value="80"><span>80%</span></label><label><input type="radio" name="lbbgo" value="95"><span>95%</span></label><label><input type="radio" name="lbbgo" value="100"><span>Solid</span></label></div></div>
+        <label class="sw" id="own-field">Its own theme (not the board’s) <input type="checkbox" role="switch" id="own"></label>
+        <div class="field wide" id="own-look" hidden><span class="lab" id="l-lbtheme">Leaderboard theme</span><div class="themes" id="lbtheme-pick" role="radiogroup" aria-labelledby="l-lbtheme"></div></div>
       </div>
     </fieldset>
-    <details class="adv" id="adv"><summary><span class="abtn">⚙ Advanced settings</span><span class="chg" id="chg" hidden></span><span class="hint">slot values, big wins, motion, commands, credit…</span></summary>
+    <details class="adv" id="adv"><summary><span class="abtn">⚙ Advanced settings</span><span class="chg" id="chg" hidden></span><span class="hint">big wins, motion, commands, credit…</span><button type="button" class="reset" id="reset" disabled>Reset to defaults</button></summary>
       <div class="agrid">
         <fieldset class="card"><legend>The board</legend>
-          <label class="field"><span>Slot values, left to right (blank: the default)</span><span class="box"><input name="slots" autocomplete="off" spellcheck="false" id="slots-in"></span></label>
-          <p class="note" id="slots-note">One number per slot, 0–1000, commas between.</p>
           <label class="field"><span>Big win card</span><span class="box"><select name="bigwin"><option value="top">The top slot (a jackpot)</option><option value="top2">The top two slots</option><option value="off">Never</option></select></span></label>
           <label class="field"><span>Motion</span><span class="box"><select name="motion"><option value="auto">Full</option><option value="calm">Calm: fewer effects</option><option value="reduce">Minimal: nothing falls</option></select></span></label>
           <label class="field"><span>Speed</span><span class="box"><select name="speed"><option value="slow">Slow</option><option value="normal">Normal</option><option value="fast">Fast</option></select></span></label>

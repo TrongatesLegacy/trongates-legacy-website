@@ -16,7 +16,7 @@ const root = join(new URL('.', import.meta.url).pathname, '../..'), out = join(r
 const ctx = vm.createContext({}); ctx.window = ctx;
 vm.runInContext(readFileSync(join(root, 'public/widgets/lib/theme.js'), 'utf8').replace('matchMedia(', '(() => ({ matches: false }))('), ctx);
 vm.runInContext(readFileSync(join(root, 'public/chatagram/settings.js'), 'utf8'), ctx);
-const only = process.argv.slice(2), THEMES = [...ctx.Widgets.theme.THEMES].filter((t) => !only.length || only.includes(t)), SIZES = ctx.Chatagram.settings.SIZES;
+const only = process.argv.slice(2), THEMES = [...ctx.Chatagram.settings.THEMES].filter((t) => !only.length || only.includes(t)), SIZES = ctx.Chatagram.settings.SIZES;
 // compact at 1.5× (shown up to ~400 px wide on retina screens); full at 1× (the live game replaces it within a second)
 const LAYOUTS = { compact: { scale: 1.5, suffix: '' }, full: { scale: 1, suffix: '-full' } };
 mkdirSync(out, { recursive: true });

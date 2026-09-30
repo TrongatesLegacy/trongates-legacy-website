@@ -7,7 +7,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { ROOT, read } from '../helpers/sim.mjs';
 
 const ctx = vm.createContext({}); ctx.window = ctx;
-vm.runInContext(read('public/widgets/lib/theme.js').replace('matchMedia(', '(() => ({ matches: false }))('), ctx);
+vm.runInContext(read('public/chaplinko/settings.js'), ctx);
 // a WebP's size, from its header (VP8, VP8L or VP8X)
 function webpSize(file) {
   const b = readFileSync(file), kind = b.toString('ascii', 12, 16);
@@ -17,7 +17,7 @@ function webpSize(file) {
 }
 
 test('every theme has its picture, plus the transparent board and the combined layout, at the right shape', () => {
-  for (const [name, w, h] of [...[...ctx.Widgets.theme.THEMES].map((t) => [t, 640, 540]), ['clear', 640, 540], ['combined', 960, 540]]) {
+  for (const [name, w, h] of [...[...ctx.Chaplinko.settings.THEMES].map((t) => [t, 640, 540]), ['clear', 640, 540], ['combined', 960, 540]]) {
     const file = `${ROOT}public/chaplinko/assets/themes/${name}.webp`;
     assert.ok(existsSync(file), `${name}.webp is missing: run artwork/chaplinko/render-previews.mjs`);
     assert.deepEqual(webpSize(file), [w, h], `${name}.webp`);

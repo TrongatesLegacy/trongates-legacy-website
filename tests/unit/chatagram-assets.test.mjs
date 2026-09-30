@@ -8,7 +8,7 @@ import { ROOT, read } from '../helpers/sim.mjs';
 
 const ctx = vm.createContext({ URLSearchParams }); ctx.window = ctx;
 for (const f of ['public/widgets/lib/theme.js', 'public/chatagram/settings.js']) vm.runInContext(read(f), ctx);
-const THEMES = [...ctx.Widgets.theme.THEMES], SIZES = ctx.Chatagram.settings.SIZES;
+const THEMES = [...ctx.Chatagram.settings.THEMES], SIZES = ctx.Chatagram.settings.SIZES;
 function webpSize(file) {
   const b = readFileSync(file);
   assert.equal(b.toString('ascii', 0, 4) + b.toString('ascii', 8, 12), 'RIFFWEBP', `${file} is not a WebP`);

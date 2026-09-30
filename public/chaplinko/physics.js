@@ -32,8 +32,9 @@
     rows = Math.max(8, Math.min(12, rows | 0));
     // rows are evenly spaced (dy = 0.85 × gap, near equilateral) at every row count, so a ball falls about as far between
     // rows as it drifts: fewer rows are simply bigger (pegs and balls scale with the gap), never stretched
-    const cx = W0 / 2, sy = 430, bottomRow = sy - 22, AR = 0.85;
-    const gap = Math.min(64, 580 / (rows + 1), (bottomRow - 72) / ((rows - 1) * AR)), dy = gap * AR, k = gap / 46;
+    // the slots sit near the bottom (the credit line fits under them) and the pegs use as much of the board as they can
+    const cx = W0 / 2, sy = 476, bottomRow = sy - 22, AR = 0.85;
+    const gap = Math.min(64, 600 / (rows + 1), (bottomRow - 64) / ((rows - 1) * AR)), dy = gap * AR, k = gap / 46;
     const top = bottomRow - (rows - 1) * dy;
     // the ball is big next to the gap (like a real Plinko chip), so it meets a peg on nearly every row: that's what makes
     // the landings a bell, with the edge slots rare (about 1 in 1,000 each at 10 rows, the same as a fair coin per row)

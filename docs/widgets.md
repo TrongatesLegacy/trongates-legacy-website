@@ -69,9 +69,11 @@ The set-up page also opens any existing link's settings: `/chatagram/?kick=name&
 
 ## Themes and the live theme message
 
-Nine themes, each only CSS variables in `themes.css` (backgrounds, panels, tiles, text, fonts, radius, edges):
+Nine themes in the library, each only CSS variables in `themes.css` (backgrounds, panels, tiles, text, fonts, radius, edges):
 **chatagram** (Chatagram's default, its brand's colours), **chaplinko** (Chaplinko's default, its brand's: added
-2026-09-30, with Bungee and Space Grotesk), neutral, light, neon, candy, royal, deep, cozy. Any accent colour
+2026-09-30, with Bungee and Space Grotesk), neutral, light, neon, candy, royal, deep, cozy. Each widget offers eight: its
+own brand's and the six shared ones, never the other game's brand (the owner, 2026-09-30; each widget's `settings.js`
+`THEMES` is its list). Any accent colour
 (`accent=`). `theme.js` has the same list and each theme's own accent (a test checks they agree). A new theme is one
 block in `themes.css` plus its name and accent in `theme.js`, and every widget gets it.
 
@@ -333,11 +335,17 @@ artwork/chaplinko/                        the link-preview image and the picture
 - **Rows** 8–12 (default 10), each row one more peg; the slots sit under the gaps of the bottom row. Fewer rows are
   simply bigger (the rows stay near equilateral at every count). More than 12 made the edge slots all but impossible
   (none in 50,000 drops at 14), so 12 is the limit.
-- **Slot values**: a default list per row count (`settings.js` `SLOTS`, 10 rows: `100 25 10 5 2 1 2 5 10 25 100`), or the
-  streamer's own (Advanced; one number per slot, 0–1000, or the default is used).
+- **Slot values**: one list per row count (`settings.js` `SLOTS`, 10 rows: `100 25 10 5 2 1 2 5 10 25 100`), the rarer
+  slots scoring more. There's no setting for them (the owner removed it, 2026-09-30; an old link's `slots=` is ignored).
+- **The board fills its source**: the slots sit at the bottom (476–520), the credit centred just under them, and the pegs
+  spread as wide as the rows allow (2026-09-30: it used to leave a wide margin and a big gap under the slots).
 - **Odds are real**: `scripts/chaplinko-odds.mjs` drops 100,000 balls per row count through the real physics (each seed
   twice, once mirrored, so it's exactly fair) into `odds.js`; the set-up page shows each slot's chance and the jackpot
-  card says "1 in 1,176". At 10 rows each edge slot is about 1 in 1,200, like a fair coin at every row.
+  card says "1 in 273". Each edge slot (the jackpot): about 1 in 70 balls at 8 rows, 1 in 270 at 10, 1 in 400 at 12. It
+  was 1 in 1,200 at 10 rows until the owner found the jackpot too rare to ever see (2026-09-30); the wider board made it
+  likelier (smaller balls widen it further but tip into balls escaping the triangle, where the edges become the most
+  common slots, so the ball and peg sizes stayed). The page shows each value once (the board is symmetric) with its
+  chance per ball, both sides together.
   **Re-run the script after any change to physics.js**: a test replays the table's first 60 drops exactly and fails
   until you do.
 - **Physics** (`physics.js`): our own, no library. Balls and pegs are circles; the only randomness is where a ball starts
@@ -357,6 +365,9 @@ artwork/chaplinko/                        the link-preview image and the picture
 - **No cooldown** by default (Advanced: 0–300 s per viewer). The board takes up to **Most balls on the board** (default
   100, 20–200); beyond that drops queue and leave the chute one at a time (faster in Frenzy, up to 20 a second). The
   queue holds 600 balls (about 30 s); drops beyond it are ignored until it drains.
+- **The chute** at the top of the board shows the commands only when Advanced → Show the commands is on (off by default,
+  the owner, 2026-09-30); otherwise it shows who's leading This stream (All time's #1 when not live, the name before
+  anyone has scored). It also says what's happening: ×N more coming, FRENZY · +N waiting, PAUSED, GO!.
 - Commands, all renamable: `!drop pause` / `!drop resume` / `!drop clear` (owner and mods by default), `!drop clearscores`
   (the owner only), `!drop top` (off by default: both lists over the board for 8 s; viewers share one a minute).
 - Bots are ignored (the same list as Chatagram's).
@@ -387,7 +398,8 @@ with the moment, and with how busy the board is (`game.js`: up at once, down onl
 | Near miss, big win toast | yes | toast only | no |
 | Jackpot | slow motion, beam, ripple, card, confetti, shake | the same | no slow motion, 2 s card; more than 3 waiting merge into one card |
 
-Frenzy also makes the chute read "FRENZY · +230 waiting" and the board's edge glow. The jackpot: 0.4 s at a third of the
+Frenzy also makes the chute read "FRENZY · +230 waiting" and the board's edge glow (not when the board is transparent:
+no border then). The jackpot: 0.4 s at a third of the
 speed, a beam up from the slot and a ripple through the pegs, the card springing in with the points counting up,
 confetti from both corners at 0.7 s, away toward the leaderboard at 4 s. Other moments: the pegs pop in row by row when
 the board loads; the commands shine every 30 s after a minute idle; PAUSED / GO! in the chute; `!drop clear` pops every
@@ -398,8 +410,10 @@ changes instantly). As everywhere, OBS ignores the PC's own setting unless the l
 ### The leaderboard
 
 - **Separate** (the default layout): its own OBS source, a **panel** (300 wide, as tall as its players: 3–10, default 5)
-  or a **strip** (720 × 72, the top 3), with its own theme, accent and background if the streamer wants.
-  **Combined**: beside the board in one 960 × 540 source (left or right, or off for the board alone).
+  or a **strip** (720 × 72, the top 3), with **its own background** always (`lbbgo`, transparent by default, apart from
+  the board's) and its own theme if the streamer wants. **Combined**: beside the board in one 960 × 540 source (left or
+  right, or off for the board alone), still with its own background (it carries the theme again on its own wrapper,
+  because a theme's `--bg` is worked out where the theme is set).
 - **Show**: This stream, All time, or both (default), switching every 15 s (5–300) with a bar filling to the next switch;
   a switch waits until 3 s after the last score change on the list showing, so an overtake is never cut off. Not live,
   This stream is the last stream's (and says drops count for All time).
@@ -440,11 +454,16 @@ in and the jackpot slot lit. Tagline "Let chat drop." Credit as Chatagram: "made
 `Made by TrongatesLegacy.com` on the board (on by default). Keep away from Charlie Chaplin's look and The Price Is Right's
 (the name is the only nod to either; the footer says it's not connected to any game show).
 
+- Header: the mark, the wordmark with "made by TrongatesLegacy" under it, the section menu, More widgets ↗, Set it up.
+- The pretend chat drops Chaplinko's own animated emotes (`assets/emotes/`, `artwork/chaplinko/emotes.mjs`), so the hero
+  and the preview show animated emotes falling; the hero's chat bubbles show them as they'd appear in chat.
+- Advanced settings has **Reset to defaults** (top right): every advanced setting back to its default; the channels,
+  layout and look stay.
 - Sections: hero (the board transparent over the page's glow with a pretend chat beside it), how it works, the looks
   (every theme as a picture, click to use; transparent is the default), set up, FAQ ("Is this gambling?" first).
 - **Set up**: channels (checked as typed, as Chatagram), layout (separate / combined, the leaderboard's side), look
-  (background, theme, accent), the board (rows with each slot's points and real odds, balls per drop, ball colour), the
-  leaderboard (show, switch every, how many, shape, its own look), Advanced. The **live preview** shows the board and
+  (background, theme, accent), the board (rows with each value's points and real chance, balls per drop, ball colour),
+  the leaderboard (its background, show, switch every, how many, shape, its own theme), Advanced. The **live preview** shows the board and
   the leaderboard over a pretend game, playing with a pretend chat; **Copy board link** and **Copy leaderboard link**
   (one **Copy OBS link** for combined). The preview is re-themed by message, so theme and accent never reload it.
 - Pictures before live boards, as Chatagram (`artwork/chaplinko/render-previews.mjs`; a test checks they're all there).

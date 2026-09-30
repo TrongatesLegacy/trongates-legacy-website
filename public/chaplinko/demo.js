@@ -6,6 +6,9 @@
   const PEOPLE = [['PixelPanda', '#ff4f9a'], ['NeonNacho', '#1e90ff'], ['SleepyWaffle', '#ffb000'], ['GridRunner', '#2ee6a8'], ['CaptainQuack', '#b36bff'],
     ['MossyMoose', '#7ed957'], ['ByteSizeBea', '#ff6a3d'], ['TurboTofu', '#00c2d1'], ['LunaLlama', '#ff9ecb'], ['WaffleWizard', ''], ['KevXD', '#ffd23f'], ['Sprout', '#5ad1ff']];
   const EMOJI = ['🔥', '😂', '💜', '🐸', '⭐', '🍕', '👑', '🎉'];
+  // Chaplinko's own animated emotes (artwork/chaplinko/emotes.mjs), dropped the way a Twitch or Kick emote would be
+  const EMOTES = ['chapBounce', 'chapHype', 'chapStar', 'chapGG'];
+  const emoteUrl = (name) => new URL(`assets/emotes/${name}.gif`, location.href).href;
 
   /**
    * @param {(m: any) => void} say  where messages go
@@ -18,7 +21,11 @@
     let timer = null, n = 0, burst = 0;
     const message = () => {
       const i = Math.floor(rnd() * PEOPLE.length), [name, color] = PEOPLE[i], r = rnd();
-      const text = r < 0.25 ? `${cmd} ${EMOJI[Math.floor(rnd() * EMOJI.length)]}` : r < 0.3 ? 'gg' : cmd;
+      if (r < 0.3) {                                                     // an animated emote
+        const e = EMOTES[Math.floor(rnd() * EMOTES.length)];
+        return { platform: platforms[i % platforms.length], user: name.toLowerCase(), name, text: `${cmd} ${e}`, mod: false, owner: false, color, emotes: [{ id: e, name: e, url: emoteUrl(e) }] };
+      }
+      const text = r < 0.45 ? `${cmd} ${EMOJI[Math.floor(rnd() * EMOJI.length)]}` : r < 0.5 ? 'gg' : cmd;
       return { platform: platforms[i % platforms.length], user: name.toLowerCase(), name, text, mod: false, owner: false, color, emotes: [] };
     };
     const next = () => {

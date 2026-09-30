@@ -17,3 +17,12 @@ change to the board's look, and look at the results before committing.
 
 The mark (`public/chaplinko/assets/icon.svg`) is hand-drawn SVG: a cobalt tile, a 1-2-3 triangle of pegs, the tangerine
 ball falling in, and the slots with the third lit jackpot pink.
+
+`emotes.mjs` draws Chaplinko's own animated emotes (a bouncing ball, a beating heart, a spinning star, a wobbling GG, in
+the brand's colours) into `public/chaplinko/assets/emotes/*.gif` (64 × 64, 16 frames, transparent). The pretend chat on
+the page drops them, so the hero and the preview show animated emotes playing as they fall. They're original drawings:
+never use a real streamer's emotes on the page.
+
+```
+node --experimental-websocket artwork/chaplinko/emotes.mjs
+```

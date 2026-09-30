@@ -18,7 +18,7 @@
   let manualKickId = !!(fromLink && s.kickid);
 
   // ---- swatches ------------------------------------------------------------------------------------------------------
-  $('#theme-pick').innerHTML = W.theme.THEMES.map((t) => `<label title="${THEME_NAMES[t]}"><input type="radio" name="theme" value="${t}" aria-label="${THEME_NAMES[t]}"><span style="background:linear-gradient(90deg, ${THEME_BG[t]} 58%, #${W.theme.ACCENTS[t]} 0)${t === 'light' || t === 'cozy' ? ';box-shadow:inset 0 0 0 1px #0003' : ''}"></span></label>`).join('');
+  $('#theme-pick').innerHTML = C.settings.THEMES.map((t) => `<label title="${THEME_NAMES[t]}"><input type="radio" name="theme" value="${t}" aria-label="${THEME_NAMES[t]}"><span style="background:linear-gradient(90deg, ${THEME_BG[t]} 58%, #${W.theme.ACCENTS[t]} 0)${t === 'light' || t === 'cozy' ? ';box-shadow:inset 0 0 0 1px #0003' : ''}"></span></label>`).join('');
   function drawAccents() {
     const def = W.theme.ACCENTS[s.theme];
     const list = [[def, 'The theme’s own colour'], ...ACCENTS.filter(([c]) => c !== def)].slice(0, 7);
@@ -260,7 +260,7 @@
   // ---- theme gallery (pictures, made by artwork/chatagram/render.mjs) and the hero ----------------------------------------------
   // The hero shows a picture straight away; the live game (its script and word lists) starts after the page has loaded and
   // fades in over it once it has drawn, so nothing competes with the first paint (docs/website.md).
-  $('#tgrid').innerHTML = W.theme.THEMES.map((t) => `<li><button type="button" class="thm" data-theme-pick="${t}" aria-label="Use the ${THEME_NAMES[t]} theme"><div class="screen"><img class="poster" src="assets/themes/${t}.webp" alt="" width="560" height="230" loading="lazy"></div><h3>${THEME_NAMES[t]}</h3></button></li>`).join('');
+  $('#tgrid').innerHTML = C.settings.THEMES.map((t) => `<li><button type="button" class="thm" data-theme-pick="${t}" aria-label="Use the ${THEME_NAMES[t]} theme"><div class="screen"><img class="poster" src="assets/themes/${t}.webp" alt="" width="560" height="230" loading="lazy"></div><h3>${THEME_NAMES[t]}</h3></button></li>`).join('');
   for (const b of $$('[data-theme-pick]')) b.addEventListener('click', () => { s.theme = b.dataset.themePick; s.accent = ''; update(); $('#setup').scrollIntoView(); });
   const hero = $('#hero-frame');
   const fitHero = () => fitFrame(hero, $('#hero-screen'));

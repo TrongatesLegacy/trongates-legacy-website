@@ -14,9 +14,9 @@ import { siteServer } from '../../tests/helpers/server.mjs';
 
 const root = join(new URL('.', import.meta.url).pathname, '../..'), out = join(root, 'public/chaplinko/assets/themes');
 const ctx = vm.createContext({}); ctx.window = ctx;
-vm.runInContext(readFileSync(join(root, 'public/widgets/lib/theme.js'), 'utf8').replace('matchMedia(', '(() => ({ matches: false }))('), ctx);
+vm.runInContext(readFileSync(join(root, 'public/chaplinko/settings.js'), 'utf8'), ctx);
 const jobs = [
-  ...[...ctx.Widgets.theme.THEMES].map((t) => ({ name: t, query: `theme=${t}&bgo=100`, w: 640, h: 540 })),
+  ...[...ctx.Chaplinko.settings.THEMES].map((t) => ({ name: t, query: `theme=${t}&bgo=100`, w: 640, h: 540 })),
   { name: 'clear', query: '', w: 640, h: 540 },
   { name: 'combined', query: 'layout=combined', w: 960, h: 540 },
 ];

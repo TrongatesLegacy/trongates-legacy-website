@@ -272,6 +272,6 @@ test('Chaplinko: rewriting a source keeps hand-set settings unless a link is pas
 test('every Chaplinko setting a link can carry passes through /obs/chaplinko (its look comes from the form)', () => {
   const cp = vm.createContext({ URLSearchParams }); cp.window = cp;
   vm.runInContext(read('public/chaplinko/settings.js'), cp);
-  const want = Object.keys(cp.Chaplinko.settings.SCHEMA).filter((k) => !['theme', 'accent', 'lbtheme', 'lbaccent', 'lbbgo'].includes(k)).sort();
+  const want = Object.keys(cp.Chaplinko.settings.SCHEMA).filter((k) => !['theme', 'accent', 'lbtheme', 'lbaccent'].includes(k)).sort();
   assert.deepEqual([...M.CHAPLINKO_KEYS].sort(), want);
 });

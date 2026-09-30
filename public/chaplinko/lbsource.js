@@ -14,8 +14,10 @@
   if (rm) document.documentElement.classList.add('rm');
   W.theme.apply(root, { theme: cfg.theme, accent: cfg.accent });
   W.theme.listen(root);
-  root.style.setProperty('--bgo', String(cfg.bgo / 100));
-  root.classList.toggle('clear', cfg.bgo === 0);
+  // its own background: the leaderboard link says bgo=; a board link (the dock's Chaplinko sources) carries it as lbbgo=
+  const bgo = q.has('lbbgo') ? cfg.lbbgo : cfg.bgo;
+  root.style.setProperty('--bgo', String(bgo / 100));
+  root.classList.toggle('clear', bgo === 0);
   const strip = cfg.lbshape === 'strip';
   const [BW, BH] = strip ? K.settings.SIZES.strip : K.settings.SIZES.panel(cfg.lbn);
   const fit = () => { const k = Math.min(innerWidth / BW, innerHeight / BH) || 1; stage.style.transform = `translate(${(innerWidth - BW * k) / 2}px, ${(innerHeight - BH * k) / 2}px) scale(${k})`; };

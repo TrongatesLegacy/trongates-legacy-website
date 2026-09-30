@@ -21,7 +21,7 @@
   root.classList.toggle('calm', calm);
   W.theme.apply(root, { theme: cfg.theme, accent: cfg.accent });
   root.style.setProperty('--bgo', String(cfg.bgo / 100));
-  root.classList.toggle('clear', cfg.bgo === 0);
+  boardEl.classList.toggle('clear', cfg.bgo === 0);          // the board's own; the leaderboard beside it has its own (lbbgo)
   const combined = cfg.layout === 'combined' && cfg.side !== 'off';
   root.classList.toggle('left', combined && cfg.side === 'left');
   const [BW, BH] = combined ? K.settings.SIZES.combined : K.settings.SIZES.separate;
@@ -231,8 +231,18 @@
     else if (level === 'frenzy') h = `<span class="a">FRENZY</span>${queued ? ` <span class="m">·</span> +${queued} waiting` : ''}`;
     else if (queued) h = `<span class="a">×${queued}</span> more coming`;
     else if (cfg.showcmd) h = `${esc(cmdName)} <span class="m">·</span> ${esc(cmdName)} <span class="a">:emote:</span>`;
-    if (h !== chuteHtml) { chuteHtml = h; chute.innerHTML = h; chute.hidden = !h; }
+    else h = leaderLine();                                   // commands off: who leads (or the name, before anyone has)
+    if (h !== chuteHtml) { chuteHtml = h; chute.innerHTML = h; }
     root.classList.toggle('frenzy', level === 'frenzy');
+  }
+  // the chute without the commands: This stream's leader (or All time's when not live), else the game's name
+  let leaderCache = '', leaderAt = 0;
+  function leaderLine() {
+    if (Date.now() - leaderAt < 500) return leaderCache;
+    leaderAt = Date.now();
+    const { stream, all } = K.leaderboard.lists(scores, 1), p = (stream.kind === 'stream' && stream.list[0]) || all[0];
+    leaderCache = p ? `<span class="lead"></span><span class="m">${stream.kind === 'stream' && stream.list[0] ? 'LEADING' : 'ALL-TIME #1'}</span> ${esc(p.name)} <span class="a">${Math.round(p.score).toLocaleString('en')}</span>` : '<span class="nm">CHAPLINKO</span>';
+    return leaderCache;
   }
   function dropped() {
     lastDropAt = Date.now(); chute.classList.remove('idle'); clearTimeout(idleTimer);
@@ -441,9 +451,14 @@
   }
 
   // ---- the leaderboard beside the board (combined) ---------------------------------------------------------------------------
-  let lbc = null, lbTimer = null;
+  let lbc = null, lbTimer = null, lbTheme = () => {};
   if (combined) {
-    const el = document.createElement('div'); root.appendChild(el);
+    // its own wrapper, carrying the theme again (so its background can differ from the board's) and its own transparency
+    const wrap = document.createElement('div'); wrap.className = 'lbw'; root.appendChild(wrap);
+    lbTheme = () => { W.theme.apply(wrap, { theme: root.dataset.theme, accent: root.style.getPropertyValue('--accent').replace('#', '') }); if (!root.style.getPropertyValue('--accent')) wrap.style.removeProperty('--accent'); };
+    lbTheme();
+    wrap.style.setProperty('--bgo', String(cfg.lbbgo / 100)); wrap.classList.toggle('clear', cfg.lbbgo === 0);
+    const el = document.createElement('div'); wrap.appendChild(el);
     lbc = K.leaderboard(el, { shape: 'panel', n: cfg.lbn, show: cfg.lbshow, every: cfg.lbevery, remember: cfg.remember, rm, calm, dots: shownPlatforms.length > 1, cmd: cmdName });
     lbc.update(K.leaderboard.lists(scores, cfg.lbn));
     lbc.start();
@@ -476,7 +491,7 @@
       if (r.cmd === 'clearscores') { scores.clear(); writeSaves(); lbRefresh(); }
       if (r.cmd === 'top') showTop();
     }
-    if (demo && m.text && window.parent !== window) try { window.parent.postMessage({ type: 'chaplinko-chat', name: m.name, color: m.color, platform: m.platform, text: m.text }, '*'); } catch {}
+    if (demo && m.text && window.parent !== window) try { const e = m.emotes && m.emotes[0]; window.parent.postMessage({ type: 'chaplinko-chat', name: m.name, color: m.color, platform: m.platform, text: m.text, emote: e ? { name: e.name, url: e.url } : null }, '*'); } catch {}
     drawChute(); kick();
     return r;
   }
@@ -500,7 +515,7 @@
   }
 
   // ---- start ----------------------------------------------------------------------------------------------------------------------
-  W.theme.listen(root, () => readPalette());
+  W.theme.listen(root, () => { lbTheme(); readPalette(); });
   addEventListener('resize', fit);
   const msg = $('#msg');
   try { await Promise.race([document.fonts.load(`16px ${getComputedStyle(root).getPropertyValue('--display')}`), sleep(1500)]); } catch {}

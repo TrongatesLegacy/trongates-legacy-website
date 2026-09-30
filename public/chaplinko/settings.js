@@ -3,7 +3,8 @@
 // changes nothing gets. The board's link and the separate leaderboard's link both come from these.
 (() => {
   const K = (window.Chaplinko = window.Chaplinko || {});
-  const THEMES = ['chatagram', 'chaplinko', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy'];
+  // every widget theme but Chatagram's own brand (the owner, 2026-09-30)
+  const THEMES = ['chaplinko', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy'];
   const BOTS = ['botrix', 'botrixoficial', 'nightbot', 'streamelements', 'moobot', 'fossabot', 'streamlabs', 'kicklet', 'kickbot', 'sery_bot', 'wizebot', 'missxss'];
   /** @type {Record<string, any>} */
   const SCHEMA = {
@@ -23,11 +24,10 @@
     lbevery: { type: 'int', def: 15, min: 5, max: 300 },              // seconds between switches
     lbtheme: { type: 'enum', def: 'same', values: ['same', ...THEMES] },           // the separate leaderboard's own look
     lbaccent: { type: 'color', def: '' },
-    lbbgo: { type: 'int', def: 0, min: 0, max: 100 },
+    lbbgo: { type: 'int', def: 0, min: 0, max: 100 },               // the leaderboard's own background, always (0: transparent)
     // advanced: the board
-    slots: { type: 'str', def: '', maxLen: 120 },                      // slot values, comma separated ('' = the default for the rows)
     bigwin: { type: 'enum', def: 'top', values: ['top', 'top2', 'off'] },          // the big win card: the top slot, the top two, or never
-    showcmd: { type: 'bool', def: true },                               // the commands in the drop chute
+    showcmd: { type: 'bool', def: false },                              // the commands in the drop chute (off: the chute shows who leads)
     color: { type: 'enum', def: 'chat', values: ['chat', 'accent', 'platform', 'rainbow'] },   // ball colour
     balls: { type: 'int', def: 5, min: 1, max: 10 },                  // balls per !drop
     cool: { type: 'int', def: 0, min: 0, max: 300 },                  // seconds a viewer waits between drops (0: none, spam away)
@@ -53,23 +53,18 @@
     8: [25, 10, 5, 2, 1, 2, 5, 10, 25],
     9: [50, 15, 5, 2, 1, 1, 2, 5, 15, 50],
     10: [100, 25, 10, 5, 2, 1, 2, 5, 10, 25, 100],
-    11: [100, 50, 10, 5, 2, 1, 1, 2, 5, 10, 50, 100],
-    12: [250, 50, 20, 10, 5, 2, 1, 2, 5, 10, 20, 50, 250],
+    11: [150, 50, 10, 5, 2, 1, 1, 2, 5, 10, 50, 150],
+    12: [150, 50, 20, 10, 5, 2, 1, 2, 5, 10, 20, 50, 150],
   };
-  /** the slot values for these settings: the streamer's own list if it fits the rows, otherwise the default */
-  function slotValues(cfg) {
-    const own = String(cfg.slots || '').split(',').map((x) => x.trim()).filter(Boolean);
-    const n = cfg.rows + 1;
-    if (own.length === n && own.every((x) => /^\d{1,4}$/.test(x) && +x <= 1000)) return own.map(Number);
-    return SLOTS[cfg.rows] || SLOTS[10];
-  }
+  /** the slot values for these settings (the owner removed the setting for their own, 2026-09-30) */
+  const slotValues = (cfg) => SLOTS[cfg.rows] || SLOTS[10];
   // what goes in each source's link: the board's, and the separate leaderboard's (which carries its own look as theme=…)
   const LB_KEYS = ['twitch', 'kick', 'theme', 'accent', 'bgo', 'lbshape', 'lbn', 'lbshow', 'lbevery', 'remember', 'credit', 'motion'];
   /** the separate leaderboard's settings: its own look, unless it matches the board */
   const leaderboardSettings = (s) => {
-    const own = s.lbtheme !== 'same';
     const out = {}; for (const k of LB_KEYS) out[k] = s[k];
-    if (own) Object.assign(out, { theme: s.lbtheme, accent: s.lbaccent, bgo: s.lbbgo });
+    out.bgo = s.lbbgo;                                                  // its own background, always
+    if (s.lbtheme !== 'same') Object.assign(out, { theme: s.lbtheme, accent: s.lbaccent });
     return out;
   };
   // sizes: the board, the board with the leaderboard beside it, the separate leaderboard (panel height follows how many)

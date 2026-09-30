@@ -98,8 +98,8 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .steps li { background: var(--ink2); border-radius: 18px; padding: 20px; }
 .steps i { font: 28px "Lilita One", sans-serif; font-style: normal; color: var(--ink); background: var(--sun); width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; box-shadow: 0 4px 0 #c9921a; }
 .steps h3 { font-size: 22px; margin: 14px 0 6px; } .steps p { color: var(--muted); margin: 0; }
-.tgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 0; margin: 0; list-style: none; }
-.tgrid .screen { height: 156px; border-radius: 12px; }
+.tgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 0; margin: 0; list-style: none; }
+.tgrid .screen { height: 128px; border-radius: 12px; }
 .tgrid h3 { font-size: 18px; margin: 8px 0 0; }
 .thm { all: unset; display: block; width: 100%; cursor: pointer; border-radius: 12px; }
 .thm:hover .screen { transform: translateY(-3px); }
@@ -137,7 +137,7 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .sw input { appearance: none; width: 40px; height: 23px; border-radius: 99px; background: var(--ink3); position: relative; margin: 0; flex: none; cursor: pointer; }
 .sw input::after { content: ''; position: absolute; left: 3px; top: 3px; width: 17px; height: 17px; border-radius: 50%; background: var(--muted); transition: transform .15s; }
 .sw input:checked { background: var(--mint); } .sw input:checked::after { transform: translateX(17px); background: var(--ink); }
-.themes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .themes label { position: relative; cursor: pointer; }
 .themes input { position: absolute; opacity: 0; }
 .themes span { display: block; height: 30px; border-radius: 7px; }
@@ -250,7 +250,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
     <p class="lede">Unscramble the letters together, live on stream. Twitch and Kick at the same time, or just one. Free, no login, nothing to install: paste one link into OBS.</p>
     <div class="ctas"><a class="btn" href="#setup">Set it up free</a><a class="btn ghost" href="#themes">See the themes</a></div>
     <ul class="chips" aria-label="Features">
-      <li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>9 themes</li><li>Leaderboards</li><li>Free</li>
+      <li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>8 themes</li><li>Leaderboards</li><li>Free</li>
     </ul>
   </div>
   <div class="screen" id="hero-screen"><img class="poster" src="assets/themes/chatagram-full.webp" alt="" width="960" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chatagram playing with a pretend chat" width="960" height="540" style="transform: translate(-50%,-50%) scale(.55)" tabindex="-1"></iframe><div class="chat" id="chat" aria-hidden="true"></div></div>
@@ -264,7 +264,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   </ol>
 </section>
 
-<section class="wrap sec" id="themes"><h2>9 <span>themes</span></h2><p class="sub">Pick one, then any accent colour. Your viewers see it exactly like this.</p>
+<section class="wrap sec" id="themes"><h2>8 <span>themes</span></h2><p class="sub">Pick one, then any accent colour. Your viewers see it exactly like this.</p>
   <ul class="tgrid" id="tgrid"></ul>
 </section>
 

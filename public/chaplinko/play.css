@@ -7,16 +7,18 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
 .w { position: relative; font-family: var(--font); color: var(--text); display: flex; gap: 20px; align-items: flex-start; }
 .w.left { flex-direction: row-reverse; }
 .board { position: relative; width: 640px; height: 540px; border-radius: var(--radius); background: var(--bg); box-shadow: var(--edge); overflow: hidden; flex: none; }
-.clear .board, .clear .lb { background: none; box-shadow: none; }
+.board.clear { background: none; box-shadow: none; }
+.board { font-family: var(--font); }
 #cv { position: absolute; left: 0; top: 0; width: 640px; height: 540px; }
 
 /* the drop chute: the commands, or what's happening (FRENZY · +230 waiting, PAUSED) */
 .chute { position: absolute; top: 0; left: 50%; transform: translateX(-50%); height: 30px; padding: 0 18px; min-width: 180px; box-sizing: border-box;
   display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--slot); border-radius: 0 0 10px 10px;
   font: 700 12.5px var(--font); white-space: nowrap; overflow: hidden; transition: background .3s, box-shadow .3s; }
-.chute[hidden] { display: none; }
+.chute .lead { width: 11px; height: 11px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--accent); }
+.chute .nm { font: var(--display-weight) 13px var(--display); letter-spacing: .06em; }
 .chute .a { color: var(--accent); } .chute .m { color: var(--muted); }
-.clear .chute { box-shadow: 0 2px 10px rgb(0 0 0 / .45); }
+.board.clear .chute { box-shadow: 0 2px 10px rgb(0 0 0 / .45); }
 .frenzy .chute { background: color-mix(in srgb, var(--accent) 32%, var(--slot)); box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 55%, transparent); }
 .chute.idle::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / .35) 50%, transparent 65%);
   transform: translateX(-110%); animation: shim 30s linear infinite; }
@@ -26,14 +28,16 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
 .glow { position: absolute; inset: 0; border-radius: var(--radius); pointer-events: none; opacity: 0; transition: opacity .6s;
   box-shadow: inset 0 0 34px color-mix(in srgb, var(--accent) 55%, transparent); }
 .frenzy:not(.calm) .glow { opacity: 1; animation: breathe 1.4s ease-in-out infinite; }
+.board.clear .glow { display: none; }   /* transparent: no border, even in Frenzy (the owner) */
 @keyframes breathe { 50% { opacity: .55; } }
 
-.credit { position: absolute; left: 18px; bottom: 8px; font-size: 10px; color: var(--muted); opacity: .75; }
-.clear .credit { text-shadow: 0 1px 2px rgb(0 0 0 / .9); opacity: .9; }
+/* the credit: centred, just under the slots (they end at 520) */
+.credit { position: absolute; left: 0; right: 0; top: 525px; text-align: center; font-size: 10px; line-height: 12px; color: var(--muted); opacity: .75; }
+.board.clear .credit { text-shadow: 0 1px 2px rgb(0 0 0 / .9); opacity: .9; }
 
 /* the big win card, over the board */
 .dim { position: absolute; inset: 0; background: rgb(0 0 0 / .45); pointer-events: none; }
-.clear .dim { background: radial-gradient(ellipse 45% 40% at 50% 50%, rgb(0 0 0 / .55), transparent 75%); }
+.board.clear .dim { background: radial-gradient(ellipse 45% 40% at 50% 50%, rgb(0 0 0 / .55), transparent 75%); }
 .card { position: absolute; left: 50%; top: 50%; text-align: center; background: var(--panel); border-radius: var(--radius); padding: 18px 34px 20px;
   box-shadow: var(--edge), 0 20px 60px rgb(0 0 0 / .5); outline: 3px solid var(--gold); outline-offset: -3px; transform: translate(-50%, -50%) rotate(-2deg); min-width: 280px; }
 .card .k { font: var(--display-weight) 44px var(--display); color: var(--gold); letter-spacing: .03em; line-height: 1; white-space: nowrap; }
