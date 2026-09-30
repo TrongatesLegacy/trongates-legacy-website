@@ -40,7 +40,6 @@
     // pause, resume, clear, clearscores (the broadcaster only)
     cmd: { type: 'str', def: '!plinko', maxLen: 24 },
     perm: { type: 'enum', def: 'mods', values: ['me', 'mods', 'all'] },
-    lb: { type: 'bool', def: false },                                  // !plinko top: off (the leaderboard is usually on screen)
     ignore: { type: 'list', def: BOTS },
     remember: { type: 'bool', def: true },                             // show All time
     credit: { type: 'bool', def: true },

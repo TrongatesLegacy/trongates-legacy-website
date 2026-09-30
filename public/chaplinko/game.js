@@ -59,7 +59,7 @@
       switch (c.k) {
         case 'cwipe': return m.owner ? { kind: 'command', cmd: 'clearscores', by } : { kind: 'ignored' };
         case 'ctop':
-          if (!cfg.lb || !allowed(m, cfg.perm)) return { kind: 'ignored' };
+          if (!allowed(m, cfg.perm)) return { kind: 'ignored' };   // always on (the owner removed the switch, 2026-09-30)
           if (!m.mod && !m.owner && now() - topAt < TOP_COOLDOWN) return { kind: 'cooldown' };
           if (!m.mod && !m.owner) topAt = now();
           return { kind: 'command', cmd: 'top', by };

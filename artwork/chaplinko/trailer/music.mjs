@@ -1,7 +1,7 @@
 // An original synthwave track for Chaplinko's trailer, synthesised here (nothing licensed, no attribution needed):
 // 96 BPM, 12 bars = 30 s, F minor, Fm–Db–Ab–Eb. Deliberately unlike Chatagram's (128 BPM house in A minor): detuned saw
 // pads, an octave-pulsing saw bass, gated big snares, a sparkling square arpeggio, and plinks for the balls hitting pegs
-// in the cold open. Bars 1–2 cold open (pad, plinks), bar 3 the build (snare roll, riser), bars 4–11 full (a crash and a
+// as the board lands on the stream. Bars 1–2 cold open (pad, plinks), bar 3 the build (snare roll, riser), bars 4–11 full (a crash and a
 // bright stab on the jackpot at bar 8), bar 12 the ending chord and the last hit.
 // Usage: node music.mjs out.m4a   (ffmpeg adds the reverb, evens the loudness and encodes)
 import { writeFileSync } from 'node:fs';
@@ -21,8 +21,9 @@ const sq = (ph) => (ph % 1 < 0.5 ? 1 : -1);
 // one-pole low-pass per voice (state kept across samples)
 const lp = (st, x, a) => (st.v += a * (x - st.v));
 const padF = [{ v: 0 }, { v: 0 }], bassF = { v: 0 }, arpF = { v: 0 };
-// the cold open's plinks: a ball falling through pegs, faster and faster (times in seconds)
-const PLINKS = [0.35, 0.8, 1.2, 1.55, 1.85, 2.12, 2.36, 2.58, 2.78, 2.96, 3.12, 3.27, 3.4, 3.52, 3.63, 3.73, 3.82, 3.9, 3.97, 4.03];
+// the opening's plinks: balls pouring through the pegs (times in seconds)
+// (they start as the board lands on the stream, at 2.5 s)
+const PLINKS = [2.62, 2.78, 2.9, 3.02, 3.13, 3.24, 3.34, 3.44, 3.53, 3.62, 3.71, 3.79, 3.87, 3.95, 4.03, 4.11, 4.19, 4.27, 4.36, 4.45];
 const PLINK_NOTES = [84, 87, 91, 89, 84, 92, 87, 96, 91, 89, 94, 87, 96, 91, 99, 94, 96, 91, 99, 103];
 
 for (let i = 0; i < N; i++) {

@@ -516,7 +516,7 @@
   }
   function lbRefresh() { if (!lbc || lbTimer) return; lbTimer = setTimeout(() => { lbTimer = null; lbc.update(K.leaderboard.lists(scores, cfg.lbn)); }, 60); }
 
-  // ---- !plinko top (off by default): both lists over the board for 8 s -----------------------------------------------------------
+  // ---- !plinko top: both lists over the board for 8 s -----------------------------------------------------------
   let topEl = null;
   function showTop() {
     if (topEl) return;

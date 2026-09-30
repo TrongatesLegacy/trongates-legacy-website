@@ -38,10 +38,18 @@ own terms to keep).
 
 ```
 node --experimental-websocket artwork/chaplinko/trailer/record.mjs ~/Downloads/chaplinko-trailer.mp4
+node --experimental-websocket artwork/chaplinko/trailer/record.mjs ~/Downloads/chaplinko-trailer-short.mp4 --vertical
+node --experimental-websocket artwork/chaplinko/trailer/thumbnail.mjs            # both thumbnails into ~/Downloads
 ```
 
-Twelve bars of 2.5 s: one ball falling ("ONE BALL." "YOUR WHOLE CHAT."), `!plinko` typed and the ball dropping into the
-wordmark as its O, the game with chat and emotes, a raid and Frenzy, a jackpot streak and the card exploding, a player
+`--vertical` records the 1080 × 1920 cut for Shorts, Reels and TikTok: the same scenes laid out for a phone (the board
+alone with the chat under it, the leaderboard in its own scene), key content kept clear of the bottom. `thumbnail.mjs`
+renders `thumbnail.html` at YouTube's recommended sizes (3840 × 2160 and 2160 × 3840, under 2 MB): "CHAT PLAYS PLINKO",
+`!plinko`, and the real board mid jackpot streak.
+
+Twelve bars of 2.5 s: your stream as it is, a game with ordinary chat ("YOUR STREAM."), then chat typing `!plinko` and
+the board landing on it with balls pouring ("NEEDS MORE PLINKO."; the owner found a one-ball opening didn't make sense),
+`!plinko` typed and the ball dropping into the wordmark as its O, the game with chat and emotes, a raid and Frenzy, a jackpot streak and the card exploding, a player
 surging up the leaderboard to #1, quick cuts (the looks, Twitch + Kick, over your game, free), the end card. The board and
 leaderboard are the real pages (`play.html`, `leaderboard.html`) with a scripted, made-up chat; the trailer answers "is it
-live" itself, since recording can't reach Twitch. No vertical cut yet.
+live" itself, since recording can't reach Twitch.

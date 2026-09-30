@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- Chaplinko's YouTube thumbnails (thumbnail.mjs renders them at 2×): 1920 × 1080 for the trailer, 1080 × 1920 (?v=1)
+     for the Short. The trailer's late-night arcade look: the neon grid, the glowing title, and the real board in the
+     middle of a jackpot streak (play.html's seeded still). -->
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: Bungee; src: url(/assets/fonts/bungee.woff2) format("woff2"); }
+@font-face { font-family: "Space Grotesk"; src: url(/assets/fonts/space-grotesk.woff2) format("woff2"); font-weight: 300 700; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #050a1f; color: #eef3ff; font-family: "Space Grotesk", sans-serif; }
+.v, .v body { width: 1080px; height: 1920px; }
+.sky { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 55% at 70% 52%, #2f5bff66, transparent 70%), linear-gradient(#050a1f, #0a1233 55%, #0b0f33); }
+.v .sky { background: radial-gradient(ellipse 80% 45% at 50% 62%, #2f5bff66, transparent 70%), linear-gradient(#050a1f, #0a1233 55%, #0b0f33); }
+.floor { position: absolute; left: -50%; right: -50%; bottom: -10%; height: 55%; perspective: 520px; overflow: hidden; }
+.floor i { position: absolute; inset: 0; transform: rotateX(72deg); transform-origin: 50% 0; background-image: linear-gradient(#2f5bffaa 3px, transparent 3px), linear-gradient(90deg, #2f5bffaa 3px, transparent 3px); background-size: 120px 120px; mask-image: linear-gradient(transparent, #000 35%); }
+.neon { font: 400 150px/.95 Bungee, sans-serif; color: #eef3ff; text-shadow: -4px 0 #ff3d8b99, 4px 0 #22e5ff88, 0 0 36px #2f5bffcc, 0 0 90px #2f5bff88; }
+.neon em { font-style: normal; color: #ff7a1a; text-shadow: -4px 0 #ff3d8b99, 4px 0 #22e5ff66, 0 0 36px #ff7a1acc, 0 0 100px #ff7a1a88; }
+.left { position: absolute; left: 90px; top: 150px; width: 820px; }
+.v .left { left: 0; right: 0; top: 130px; width: auto; text-align: center; }
+.cmd { display: inline-block; margin-top: 50px; font: 700 78px "Space Grotesk", sans-serif; color: #ff7a1a; background: #0a1233e6; padding: 14px 40px; border-radius: 30px; box-shadow: inset 0 0 0 4px #2f5bff, 0 0 60px #2f5bff66; }
+.lock { position: absolute; left: 90px; bottom: 90px; display: flex; align-items: center; gap: 22px; }
+.v .lock { left: 0; right: 0; bottom: 330px; justify-content: center; }
+.lock img { width: 110px; height: 110px; filter: drop-shadow(0 0 30px #2f5bffcc); }
+.word { display: inline-flex; align-items: baseline; font: 400 100px/1 Bungee, sans-serif; text-shadow: 0 0 30px #2f5bffcc; }
+.word .o { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-left: .04em; background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), #ff7a1a; box-shadow: 0 .07em 0 -.025em #ff3d8b, 0 0 40px #ff7a1a99; }
+iframe { position: absolute; border: 0; background: transparent; left: 900px; top: 130px; width: 640px; height: 540px; transform: scale(1.5); transform-origin: 0 0; }
+.v iframe { left: 30px; top: 620px; transform: scale(1.6); }
+</style></head><body>
+<div class="sky"></div><div class="floor"><i></i></div>
+<div class="left"><div class="neon">CHAT<br>PLAYS<br><em>PLINKO</em></div><div class="cmd">!plinko</div></div>
+<iframe src="/chaplinko/play.html?still=1&screen=jackpot&bgo=0&credit=0&showcmd=1"></iframe>
+<div class="lock"><img src="/chaplinko/assets/icon.svg" alt=""><span class="word">CHAPLINK<span class="o"></span></span></div>
+<script>if (new URLSearchParams(location.search).get('v') === '1') { document.documentElement.classList.add('v'); document.querySelector('.neon').innerHTML = 'CHAT PLAYS<br><em>PLINKO</em>'; }</script>
+</body></html>

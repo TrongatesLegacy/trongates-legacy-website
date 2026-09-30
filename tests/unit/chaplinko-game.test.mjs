@@ -90,7 +90,7 @@ test('activity levels: up at once, down only after 3 s below the line', () => {
   t.at += 1000; t.g.take(10); assert.equal(t.g.level, 'quiet', 'after 3 s below the line it calms');
 });
 
-test('commands and who can use them; clearscores is the owner\'s only; !plinko top is off by default', () => {
+test('commands and who can use them; clearscores is the owner\'s only; !plinko top always works, for whoever can use commands', () => {
   const t = setup();
   assert.equal(t.say('!plinko pause').kind, 'ignored', 'a viewer can\'t pause');
   assert.equal(t.say('!plinko pause', { mod: true }).cmd, 'pause');
@@ -101,8 +101,9 @@ test('commands and who can use them; clearscores is the owner\'s only; !plinko t
   assert.equal(t.g.queued, 0);
   assert.equal(t.say('!plinko clearscores', { mod: true }).kind, 'ignored');
   assert.equal(t.say('!plinko clearscores', { owner: true }).cmd, 'clearscores');
-  assert.equal(t.say('!plinko top', { owner: true }).kind, 'ignored', 'off by default');
-  const on = setup('lb=1&perm=all');
+  assert.equal(t.say('!plinko top', { owner: true }).cmd, 'top', 'always on (no switch)');
+  assert.equal(t.say('!plinko top').kind, 'ignored', 'a viewer, with commands for the owner and mods');
+  const on = setup('perm=all');
   assert.equal(on.say('!plinko top').cmd, 'top');
   assert.equal(on.say('!plinko top', { name: 'Other' }).kind, 'cooldown', 'viewers share one a minute');
   assert.equal(on.say('!plinko top', { mod: true }).cmd, 'top', 'mods never wait');

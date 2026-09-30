@@ -376,7 +376,7 @@ artwork/chaplinko/                        the link-preview image and the picture
   the owner, 2026-09-30); otherwise it shows who's leading This stream (All time's #1 when not live, the name before
   anyone has scored). It also says what's happening: ×N more coming, FRENZY · +N waiting, PAUSED, GO!.
 - The other commands follow it: `!plinko pause` / `resume` / `clear` (owner and mods by default), `!plinko clearscores`
-  (the owner only), `!plinko top` (off by default: both lists' top 5 over the board for 8 s, 600 wide, with the **exact**
+  (the owner only), `!plinko top` (always on, who follows the setting: both lists' top 5 over the board for 8 s, 600 wide, with the **exact**
   scores, e.g. 4,288,123,456, where the leaderboard shows 4.28B: a long name shortens, a score never; viewers share one a
   minute).
 - Bots are ignored (the same list as Chatagram's).

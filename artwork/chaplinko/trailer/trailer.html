@@ -1,16 +1,19 @@
 <!doctype html>
-<!-- Chaplinko's 30-second trailer (1920 × 1080), recorded by record.mjs with music.mjs (96 BPM synthwave: one bar =
-     2.5 s, twelve bars). A late-night arcade, unlike Chatagram's cartoon trailer: a neon grid rolling toward you,
-     scanlines, glowing titles that flicker on, the camera zooming and pulsing on the beat. The board and leaderboard are
-     the real ones (play.html, leaderboard.html) with a scripted, made-up chat. -->
+<!-- Chaplinko's 30-second trailer, recorded by record.mjs with music.mjs (96 BPM synthwave: one bar = 2.5 s, twelve
+     bars): 1920 × 1080, or 1080 × 1920 for Shorts with ?v=1 (the same scenes laid out for a phone, the bottom kept clear
+     for the platforms' buttons). A late-night arcade, unlike Chatagram's cartoon trailer: a neon grid rolling toward you,
+     scanlines, glowing titles that flicker on, the camera pushing on the beat. The board and leaderboard are the real
+     ones (play.html, leaderboard.html) with a scripted, made-up chat. -->
 <html><head><meta charset="utf-8"><style>
 @font-face { font-family: Bungee; src: url(/assets/fonts/bungee.woff2) format("woff2"); }
 @font-face { font-family: "Space Grotesk"; src: url(/assets/fonts/space-grotesk.woff2) format("woff2"); font-weight: 300 700; }
 :root { --night: #0a1233; --deep: #121d4d; --slot: #1b2a66; --cobalt: #2f5bff; --tang: #ff7a1a; --pink: #ff3d8b; --ice: #eef3ff; --mist: #9fb0e0; }
 html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #050a1f; color: var(--ice); font-family: "Space Grotesk", sans-serif; }
+.v, .v body { width: 1080px; height: 1920px; }
 /* the world: a glow on the horizon and a neon grid floor rolling toward you */
 .sky { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 55% at 50% 58%, #2f5bff55, transparent 70%), linear-gradient(#050a1f, #0a1233 55%, #0b0f33); }
 .floor { position: absolute; left: -50%; right: -50%; bottom: -10%; height: 62%; perspective: 520px; overflow: hidden; }
+.v .floor { height: 45%; }
 .floor i { position: absolute; inset: 0; transform: rotateX(72deg); transform-origin: 50% 0; background-image: linear-gradient(#2f5bffaa 2px, transparent 2px), linear-gradient(90deg, #2f5bffaa 2px, transparent 2px);
   background-size: 120px 120px; animation: roll 1.25s linear infinite; mask-image: linear-gradient(transparent, #000 35%); }
 @keyframes roll { to { background-position: 0 120px, 0 0; } }
@@ -28,59 +31,86 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 .flick.go { animation: flick .5s steps(1) both; }
 @keyframes flick { 0% { opacity: 0; } 10% { opacity: 1; } 18% { opacity: .15; } 26% { opacity: 1; } 34% { opacity: .4; } 44%, 100% { opacity: 1; } }
 .center { position: absolute; left: 0; right: 0; text-align: center; }
-/* the wordmark: the O is the ball */
 .word { display: inline-flex; align-items: baseline; font: 400 190px/1 Bungee, sans-serif; color: var(--ice); text-shadow: 0 0 40px #2f5bffcc; }
+.v .word { font-size: 150px; }
 .word .o { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-left: .04em; background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--tang); box-shadow: 0 .07em 0 -.025em var(--pink), 0 0 50px #ff7a1a99; }
-/* frames for the real board and leaderboard */
-iframe { border: 0; background: transparent; }
-.chat { position: absolute; left: 70px; top: 230px; width: 450px; height: 740px; background: #0a1233d9; border-radius: 26px; box-shadow: inset 0 0 0 2px #2f5bff66, 0 0 60px #2f5bff33; display: flex; flex-direction: column; overflow: hidden; }
+iframe { border: 0; background: transparent; position: absolute; }
+/* the game behind (the streamer's own stream, before and under Chaplinko) */
+.game { position: absolute; inset: 0; background: radial-gradient(circle at 62% 38%, #3f7550, #1d3326 58%, #0b150f); }
+.game::after { content: 'YOUR GAME'; position: absolute; left: 62%; top: 44%; transform: translate(-50%, -50%); font: 400 150px Bungee, sans-serif; color: #ffffff10; letter-spacing: .1em; }
+.v .game::after { font-size: 110px; top: 30%; left: 50%; }
+/* the stream chat, from the opening into the game */
+.chat { position: absolute; z-index: 5; left: 70px; top: 230px; width: 450px; height: 740px; background: #0a1233d9; border-radius: 26px; box-shadow: inset 0 0 0 2px #2f5bff66, 0 0 60px #2f5bff33; display: flex; flex-direction: column; overflow: hidden; opacity: 0; transition: opacity .3s; }
+.v .chat { left: 40px; top: 1190px; width: 1000px; height: 520px; }
+.chat.on { opacity: 1; }
 .chat .head { padding: 18px 22px; font: 400 24px Bungee, sans-serif; letter-spacing: .04em; border-bottom: 1px solid #2f5bff44; display: flex; gap: 10px; align-items: center; }
 .chat .head i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 .chat .list { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; padding: 14px 16px; overflow: hidden; }
 .msg { font-size: 25px; line-height: 1.25; padding: 5px 8px; border-radius: 10px; white-space: nowrap; overflow: hidden; animation: msgIn .22s ease-out both; display: flex; align-items: center; gap: 8px; }
-.msg b { font-weight: 700; } .msg img { width: 34px; height: 34px; }
-.msg .cmd { font-weight: 700; color: var(--tang); }
+.v .msg { font-size: 30px; }
+.msg b { font-weight: 700; } .msg img { width: 34px; height: 34px; } .msg .cmd { font-weight: 700; color: var(--tang); } .msg .tx { color: var(--ice); }
 @keyframes msgIn { from { transform: translateX(-30px); opacity: 0; } to { transform: none; opacity: 1; } }
-.cap { position: absolute; left: 0; right: 0; top: 70px; text-align: center; font-size: 96px; }
+.cap { position: absolute; left: 0; right: 0; top: 70px; text-align: center; font-size: 96px; z-index: 6; }
+.v .cap { top: 120px; font-size: 76px; line-height: 1.1; padding: 0 40px; }
+/* the frames: 16:9 and 9:16 */
+#solo { left: 830px; top: 40px; width: 640px; height: 540px; transform: scale(1.5); transform-origin: 50% 0; opacity: 0; }
+.v #solo { left: 220px; top: 330px; transform: scale(1.55); }
+#board3 { left: 560px; top: 214px; width: 960px; height: 540px; transform: scale(1.37); transform-origin: 0 0; }
+.v #board3 { left: 44px; top: 330px; width: 640px; transform: scale(1.55); }
+#lb { left: 600px; top: 250px; width: 300px; height: 270px; transform: scale(2.4); transform-origin: 0 0; }
+.v #lb { left: 75px; top: 480px; transform: scale(3.1); }
+.t-bottom { left: 540px; top: 860px; font-size: 110px; }   /* beside the chat, not over it */
+.v .t-bottom { left: 0; top: 110px; font-size: 84px; line-height: 1.1; padding: 0 30px; }
 /* the typing scene */
 .input { position: absolute; left: 50%; top: 360px; transform: translateX(-50%); width: 980px; height: 150px; border-radius: 40px; background: #0a1233e6; box-shadow: inset 0 0 0 3px #2f5bff, 0 0 80px #2f5bff66;
   display: flex; align-items: center; padding: 0 50px; box-sizing: border-box; font: 700 76px "Space Grotesk", sans-serif; color: var(--tang); }
+.v .input { top: 560px; width: 940px; }
 .input .caret { width: 6px; height: 80px; background: var(--ice); margin-left: 6px; animation: blink .5s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .input .send { margin-left: auto; font: 400 34px Bungee, sans-serif; color: #1a0a00; background: var(--tang); border-radius: 999px; padding: 18px 30px; }
+#wmrow { top: 600px; } .v #wmrow { top: 880px; }
+#tag { top: 830px; font-size: 64px; } .v #tag { top: 1090px; font-size: 60px; }
 /* montage */
 .grid8 { position: absolute; left: 50%; top: 250px; transform: translateX(-50%); display: grid; grid-template-columns: repeat(4, 380px); gap: 24px; }
-.grid8 img { width: 380px; border-radius: 18px; opacity: 0; transform: rotateY(90deg); box-shadow: 0 0 40px #2f5bff44; }
+.v .grid8 { top: 330px; grid-template-columns: repeat(3, 320px); gap: 16px; }
+.grid8 img { width: 100%; border-radius: 18px; opacity: 0; transform: rotateY(90deg); box-shadow: 0 0 40px #2f5bff44; }
 .grid8.go img { animation: flipIn .4s cubic-bezier(.2,.9,.3,1.2) both; }
 @keyframes flipIn { to { opacity: 1; transform: none; } }
 .plats { position: absolute; left: 0; right: 0; top: 420px; display: flex; gap: 60px; justify-content: center; align-items: center; }
+.v .plats { flex-direction: column; top: 520px; gap: 40px; }
 .plat { font: 400 110px Bungee, sans-serif; padding: 24px 56px; border-radius: 36px; }
 .plat.t { background: #9146ff; color: #fff; box-shadow: 0 0 80px #9146ff99; } .plat.k { background: #53fc18; color: #07140a; box-shadow: 0 0 80px #53fc1899; }
-.gamebg { position: absolute; left: 50%; top: 260px; transform: translateX(-50%); width: 1100px; height: 640px; border-radius: 28px; overflow: hidden;
-  background: radial-gradient(circle at 60% 40%, #3b6b4a, #1d3326 60%, #0e1a13); box-shadow: 0 0 0 3px #2f5bff66, 0 30px 80px #000a; }
-.gamebg img { position: absolute; inset: 20px; width: calc(100% - 40px); height: calc(100% - 40px); object-fit: contain; }
-.gamebg .lbl { position: absolute; left: 30px; top: 22px; font: 400 26px Bungee, sans-serif; color: #fff5; }
+#same { top: 720px; } .v #same { top: 1300px; font-size: 80px; }
+.gamebox { position: absolute; left: 50%; top: 260px; transform: translateX(-50%); width: 1100px; height: 640px; border-radius: 28px; overflow: hidden; box-shadow: 0 0 0 3px #2f5bff66, 0 30px 80px #000a; }
+.v .gamebox { top: 420px; width: 1000px; height: 840px; }
+.gamebox img { position: absolute; inset: 20px; width: calc(100% - 40px); height: calc(100% - 40px); object-fit: contain; }
+#free { top: 380px; font-size: 190px; } .v #free { top: 640px; }
+#free2 { top: 620px; font-size: 70px; color: var(--mist); } .v #free2 { top: 880px; font-size: 56px; line-height: 1.3; padding: 0 60px; }
+#mkrow { top: 250px; } .v #mkrow { top: 480px; }
+#wm2row { top: 450px; } .v #wm2row { top: 700px; }
+#tag2 { top: 690px; font-size: 72px; } .v #tag2 { top: 930px; font-size: 64px; }
+#url { top: 850px; font: 600 44px 'Space Grotesk', sans-serif; color: var(--mist); } .v #url { top: 1090px; font-size: 40px; }
 </style></head><body>
 <div class="sky"></div><div class="floor"><i></i></div>
 
-<!-- 0–5 s: one ball, close up -->
+<!-- 0–5 s: your stream, as it is; then chat types !plinko and the board lands on it -->
 <section class="scene" id="s1"><div class="cam" id="cam1">
-  <iframe id="solo" style="position:absolute;left:640px;top:-10px;width:640px;height:540px;transform:scale(1.62);transform-origin:50% 0" src="/chaplinko/play.html?twitch=solo&kick=&balls=1&bgo=0&credit=0&speed=slow"></iframe>
-  <div class="center neon flick" id="t1" style="top:880px;font-size:120px">ONE BALL.</div>
-  <div class="center neon flick" id="t2" style="top:880px;font-size:120px">YOUR <em>WHOLE CHAT.</em></div>
+  <div class="game"></div>
+  <iframe id="solo"></iframe>
+  <div class="center neon flick t-bottom" id="t1">YOUR STREAM.</div>
+  <div class="center neon flick t-bottom" id="t2">NEEDS MORE <em>PLINKO.</em></div>
 </div></section>
 
 <!-- 5–7.5 s: !plinko, and the ball drops into the name -->
 <section class="scene" id="s2">
   <div class="input"><span id="typed"></span><span class="caret"></span><span class="send">SEND</span></div>
-  <div class="center" style="top:600px"><span class="word flick" id="wm">CHAPLINK<span class="o" id="wo"></span></span></div>
-  <div class="center neon flick" id="tag" style="top:830px;font-size:64px">LET CHAT <em>DROP.</em></div>
+  <div class="center" id="wmrow"><span class="word flick" id="wm">CHAPLINK<span class="o" id="wo"></span></span></div>
+  <div class="center neon flick" id="tag">LET CHAT <em>DROP.</em></div>
 </section>
 
 <!-- 7.5–22.5 s: the game: chat, then a raid and Frenzy, then a jackpot streak -->
 <section class="scene" id="s3"><div class="cam" id="cam3">
-  <div class="chat"><div class="head"><i style="background:#9146ff"></i><i style="background:#53fc18"></i>STREAM CHAT</div><div class="list" id="list"></div></div>
-  <iframe id="game" style="position:absolute;left:560px;top:214px;width:960px;height:540px;transform:scale(1.37);transform-origin:0 0" src="/chaplinko/play.html?twitch=streamer&kick=streamer&kickid=1&layout=combined&bgo=0&lbbgo=0&showcmd=1&lbshow=stream"></iframe>
+  <iframe id="board3"></iframe>
   <div class="cap neon flick" id="c1">TYPE <em>!PLINKO</em></div>
   <div class="cap neon flick" id="c2">RAID? <em>FRENZY.</em></div>
   <div class="cap neon flick" id="c3">JACKPOT <em>STREAKS</em></div>
@@ -88,32 +118,40 @@ iframe { border: 0; background: transparent; }
 
 <!-- 22.5–25 s: climbing the leaderboard -->
 <section class="scene" id="s4">
-  <div class="cap neon flick" id="c4" style="top:60px">CLIMB THE <em>LEADERBOARD</em></div>
-  <iframe id="lb" style="position:absolute;left:600px;top:250px;width:300px;height:270px;transform:scale(2.4);transform-origin:0 0" src="/chaplinko/leaderboard.html?twitch=streamer&kick=streamer&lbshow=stream&bgo=95&credit=0"></iframe>
+  <div class="cap neon flick" id="c4">CLIMB THE <em>LEADERBOARD</em></div>
+  <iframe id="lb"></iframe>
 </section>
 
 <!-- 25–27.5 s: quick cuts -->
-<section class="scene" id="s5a"><div class="cap neon" style="top:90px">8 <em>LOOKS</em></div><div class="grid8" id="g8"></div></section>
-<section class="scene" id="s5b"><div class="plats"><span class="plat t">TWITCH</span><span class="neon" style="font-size:120px">+</span><span class="plat k">KICK</span></div><div class="cap neon" style="top:720px">AT THE SAME TIME</div></section>
-<section class="scene" id="s5c"><div class="cap neon" style="top:80px">OVER <em>YOUR GAME</em></div><div class="gamebg"><span class="lbl">YOUR GAME</span><img src="/chaplinko/assets/themes/clear.webp" alt=""></div></section>
-<section class="scene" id="s5d"><div class="center neon" style="top:380px;font-size:190px">FREE.</div><div class="center neon" style="top:620px;font-size:70px;color:var(--mist)">NO LOGIN · ONE LINK IN OBS</div></section>
+<section class="scene" id="s5a"><div class="cap neon">8 <em>LOOKS</em></div><div class="grid8" id="g8"></div></section>
+<section class="scene" id="s5b"><div class="plats"><span class="plat t">TWITCH</span><span class="neon" style="font-size:120px">+</span><span class="plat k">KICK</span></div><div class="center neon" id="same" style="font-size:96px">AT THE SAME TIME</div></section>
+<section class="scene" id="s5c"><div class="cap neon">OVER <em>YOUR GAME</em></div><div class="gamebox"><div class="game"></div><img src="/chaplinko/assets/themes/clear.webp" alt=""></div></section>
+<section class="scene" id="s5d"><div class="center neon" id="free">FREE.</div><div class="center neon" id="free2">NO LOGIN · ONE LINK IN OBS</div></section>
 
 <!-- 27.5–30 s: the end -->
 <section class="scene" id="s6">
-  <div class="center" style="top:250px"><img src="/chaplinko/assets/icon.svg" alt="" style="width:170px;height:170px;filter:drop-shadow(0 0 40px #2f5bffcc)" class="flick" id="mk"></div>
-  <div class="center" style="top:450px"><span class="word flick" id="wm2">CHAPLINK<span class="o"></span></span></div>
-  <div class="center neon flick" id="tag2" style="top:690px;font-size:72px">LET CHAT <em>DROP.</em></div>
-  <div class="center flick" id="url" style="top:850px;font:600 44px 'Space Grotesk',sans-serif;color:var(--mist)"><b style="color:var(--ice)">trongateslegacy.com</b>/chaplinko</div>
+  <div class="center" id="mkrow"><img src="/chaplinko/assets/icon.svg" alt="" style="width:170px;height:170px;filter:drop-shadow(0 0 40px #2f5bffcc)" class="flick" id="mk"></div>
+  <div class="center" id="wm2row"><span class="word flick" id="wm2">CHAPLINK<span class="o"></span></span></div>
+  <div class="center neon flick" id="tag2">LET CHAT <em>DROP.</em></div>
+  <div class="center flick" id="url"><b style="color:var(--ice)">trongateslegacy.com</b>/chaplinko</div>
 </section>
 
+<div class="chat" id="chat"><div class="head"><i style="background:#9146ff"></i><i style="background:#53fc18"></i>STREAM CHAT</div><div class="list" id="list"></div></div>
 <div class="flash" id="flash"></div><div class="vig"></div><div class="scan"></div>
 <script>
+const V = new URLSearchParams(location.search).get('v') === '1';
+if (V) document.documentElement.classList.add('v');
 const BAR = 2500, BEAT = BAR / 4;
 const $ = (id) => document.getElementById(id);
+// the boards: the opening's (one person's drops, transparent over the game) and the game's (combined in 16:9; the board
+// alone in 9:16, where the leaderboard gets its own scene)
+$('solo').src = '/chaplinko/play.html?twitch=solo&kick=&balls=3&bgo=0&credit=0';
+$('board3').src = `/chaplinko/play.html?twitch=streamer&kick=streamer&kickid=1&bgo=0&lbbgo=0&showcmd=1&lbshow=stream&credit=0${V ? '' : '&layout=combined'}`;
+$('lb').src = '/chaplinko/leaderboard.html?twitch=streamer&kick=streamer&lbshow=stream&bgo=95&credit=0';
 const PEOPLE = [['PixelPanda', '#ff4f9a', 'twitch'], ['NeonNacho', '#1e90ff', 'kick'], ['SleepyWaffle', '#ffb000', 'twitch'], ['GridRunner', '#2ee6a8', 'kick'], ['CaptainQuack', '#b36bff', 'twitch'],
   ['MossyMoose', '#7ed957', 'kick'], ['ByteSizeBea', '#ff6a3d', 'twitch'], ['TurboTofu', '#00c2d1', 'kick'], ['LunaLlama', '#ff9ecb', 'twitch'], ['KevXD', '#ffd23f', 'kick']];
 const EMOTES = ['chapHype', 'chapBounce', 'chapStar', 'chapGG'];
-const game = () => $('game').contentWindow.chaplinko, solo = () => $('solo').contentWindow.chaplinko;
+const game = () => $('board3').contentWindow.chaplinko, solo = () => $('solo').contentWindow.chaplinko;
 const emoteUrl = (e) => location.origin + `/chaplinko/assets/emotes/${e}.gif`;
 let rs = 3; const rnd = () => ((rs = (rs * 16807) % 2147483647) / 2147483647);
 
@@ -121,37 +159,43 @@ function show(id) { for (const s of document.querySelectorAll('.scene')) s.class
 function flick(id) { const el = $(id); el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); }
 function hide(id) { $(id).classList.remove('go'); }
 function flash(a = 0.7) { $('flash').animate([{ opacity: a }, { opacity: 0 }], { duration: 380, easing: 'ease-out' }); }
-// the camera: a push on the beat
 function pulse(id, k = 1.035) { $(id).animate([{ transform: `scale(${k})` }, { transform: 'scale(1)' }], { duration: BEAT * 0.9, easing: 'cubic-bezier(.2,.8,.3,1)' }); }
-// a chat message: shown in the panel, and sent to the board as it would arrive from Twitch or Kick
-function say(i, emote) {
-  const [name, color, platform] = PEOPLE[i % PEOPLE.length], text = emote ? `!plinko ${emote}` : '!plinko';
-  const m = document.createElement('div'); m.className = 'msg';
-  m.innerHTML = `<b style="color:${color}">${name}</b><span class="cmd">!plinko</span>${emote ? `<img src="${emoteUrl(emote)}" alt="">` : ''}`;
+// a chat message in the panel; with to, sent to that board as it would arrive from Twitch or Kick
+function chat(i, html) {
+  const [name, color] = PEOPLE[i % PEOPLE.length], m = document.createElement('div'); m.className = 'msg';
+  m.innerHTML = `<b style="color:${color}">${name}</b>${html}`;
   const list = $('list'); list.appendChild(m); while (list.children.length > 16) list.firstElementChild.remove();
-  game().hear({ platform, user: name.toLowerCase(), name, text, mod: false, owner: false, color, emotes: emote ? [{ id: emote, name: emote, url: emoteUrl(emote) }] : [] });
+}
+function say(i, emote, to = game) {
+  const [name, color, platform] = PEOPLE[i % PEOPLE.length], text = emote ? `!plinko ${emote}` : '!plinko';
+  chat(i, `<span class="cmd">!plinko</span>${emote ? `<img src="${emoteUrl(emote)}" alt="">` : ''}`);
+  to().hear({ platform, user: name.toLowerCase(), name, text, mod: false, owner: false, color, emotes: emote ? [{ id: emote, name: emote, url: emoteUrl(emote) }] : [] });
 }
 const by = (i) => { const [name, color, platform] = PEOPLE[i]; return { platform, user: name.toLowerCase(), name, color }; };
 
-const T = [];            // [ms, action]
-const at = (ms, f) => T.push([ms, f]);
-// 0–5 s: one ball falling through the pegs, close up
-at(0, () => { show('s1'); solo().hear({ platform: 'twitch', user: 'pixelpanda', name: 'PixelPanda', text: '!plinko', color: '#ff7a1a', emotes: [], mod: false, owner: false }); $('cam1').animate([{ transform: 'scale(1)' }, { transform: 'scale(1.12) translateY(-40px)' }], { duration: 5000, easing: 'ease-in', fill: 'forwards' }); });
-at(700, () => flick('t1'));
-at(2400, () => { hide('t1'); flick('t2'); });
+const T = [], at = (ms, f) => T.push([ms, f]);
+// 0–2.5 s: your stream as it is: a game, ordinary chat
+at(0, () => { show('s1'); $('chat').classList.add('on'); flick('t1'); $('cam1').animate([{ transform: 'scale(1.06)' }, { transform: 'scale(1)' }], { duration: 5000, easing: 'ease-out', fill: 'forwards' }); });
+[['gg', 0], ['nice shot', 2], ['lol', 5], ['what was that', 7], ['bored ngl', 4]].forEach(([tx, i], k) => at(200 + k * 420, () => chat(i, `<span class="tx">${tx}</span>`)));
+// 2.5–5 s: chat types !plinko; the board lands on the stream and the balls pour
+at(2500, () => {
+  hide('t1'); flick('t2'); flash(0.45);
+  $('solo').animate([{ opacity: 0, transform: `scale(${V ? 1.9 : 1.85})` }, { opacity: 1, transform: `scale(${V ? 1.55 : 1.5})` }], { duration: 380, easing: 'cubic-bezier(.2,.9,.3,1.2)', fill: 'forwards' });
+});
+for (let k = 0; k < 9; k++) at(2560 + k * 250, () => say(k, k % 3 === 2 ? EMOTES[k % 4] : null, solo));
 // 5–7.5 s: typing !plinko, then the ball drops into the name as its O
-at(5000, () => { show('s2'); flash(0.35); });
+at(5000, () => { show('s2'); $('chat').classList.remove('on'); flash(0.35); });
 [...'!plinko'].forEach((c, i) => at(5150 + i * 110, () => { $('typed').textContent += c; }));
 at(6050, () => { document.querySelector('.input .send').animate([{ transform: 'scale(.9)' }, { transform: 'scale(1.08)' }, { transform: 'none' }], { duration: 260 }); flick('wm');
   $('wo').animate([{ transform: 'translateY(-620px)' }, { transform: 'translateY(0)', offset: 0.55, easing: 'ease-in' }, { transform: 'translateY(-60px)', offset: 0.72, easing: 'ease-out' }, { transform: 'translateY(0)', offset: 0.86, easing: 'ease-in' }, { transform: 'translateY(-12px)', offset: 0.93 }, { transform: 'translateY(0)' }], { duration: 900, fill: 'backwards' }); });
 at(6700, () => flick('tag'));
 // 7.5–12.5 s: the game, chat dropping
-at(7500, () => { show('s3'); flash(0.5); flick('c1'); });
+at(7500, () => { show('s3'); $('chat').classList.add('on'); flash(0.5); flick('c1'); });
 for (let k = 0; k < 13; k++) at(7600 + k * 360, () => say(Math.floor(rnd() * 10), rnd() < 0.35 ? EMOTES[Math.floor(rnd() * 4)] : null));
 // 12.5–17.5 s: a raid: everyone at once, Frenzy
 at(12500, () => { hide('c1'); flick('c2'); flash(0.4); });
 for (let k = 0; k < 42; k++) at(12600 + k * 38, () => say(k, k % 5 === 0 ? EMOTES[k % 4] : null));
-for (let b = 0; b < 8; b++) at(12500 + b * BEAT * 1, () => pulse('cam3', 1.028));
+for (let b = 0; b < 8; b++) at(12500 + b * BEAT, () => pulse('cam3', 1.028));
 for (let k = 0; k < 8; k++) at(14400 + k * 330, () => say(Math.floor(rnd() * 10), rnd() < 0.3 ? EMOTES[Math.floor(rnd() * 4)] : null));
 // 17.5–22.5 s: a jackpot streak, and the card explodes
 at(17500, () => { hide('c2'); flick('c3'); });
@@ -159,9 +203,8 @@ at(17600, () => { game().land(by(0), 0); flash(0.6); pulse('cam3', 1.06); });
 at(18350, () => { game().land(by(3), 10); flash(0.35); pulse('cam3', 1.04); });
 at(19050, () => { game().land(by(0), 10); flash(0.35); pulse('cam3', 1.04); });
 for (let k = 0; k < 6; k++) at(19400 + k * 420, () => say(Math.floor(rnd() * 10)));
-// 22.5–25 s: climbing the leaderboard (points land on the board, the separate leaderboard follows)
-at(22500, () => { show('s4'); flash(0.3); flick('c4'); });
-// KevXD surges from the bottom to the top in two bursts, a second apart (the leaderboard reorders at most once a second)
+// 22.5–25 s: climbing the leaderboard: KevXD surges to the top in two bursts, a second apart (it reorders at most once a second)
+at(22500, () => { show('s4'); $('chat').classList.remove('on'); flash(0.3); flick('c4'); });
 at(22650, () => { for (let k = 0; k < 11; k++) game().land(by(9), 1); });
 at(23700, () => { for (let k = 0; k < 16; k++) game().land(by(9), 1); });
 // 25–27.5 s: quick cuts on the beat
@@ -175,13 +218,13 @@ at(27700, () => flick('wm2'));
 at(28000, () => flick('tag2'));
 at(28375, () => { flick('url'); flash(0.25); });
 
-// before the start: both boards live and ready, some scores already on the leaderboard, the looks laid out
-window.ready = () => { try { return $('game').contentDocument.documentElement.dataset.ready === '1' && $('solo').contentDocument.documentElement.dataset.ready === '1' && $('lb').contentDocument.documentElement.dataset.ready === '1' && document.fonts.status === 'loaded'; } catch { return false; } };
+// before the start: the boards live and ready, some scores already on the leaderboard, the looks laid out
+window.ready = () => { try { return ['board3', 'solo', 'lb'].every((f) => $(f).contentDocument.documentElement.dataset.ready === '1') && document.fonts.status === 'loaded'; } catch { return false; } };
 window.start = () => {
   const g = game(), live = { state: 'live', platform: 'twitch', id: 'trailer', started: Date.now() - 3600000 };
-  // "is the channel live?": yes (the real check can't reach Twitch while recording, and would say unknown)
-  for (const f of ['game', 'solo']) for (const p of ['twitch', 'kick']) $(f).contentWindow.Widgets.platforms[p].stream = async () => live;
-  for (const b of [g, solo()]) { const orig = b.scores.checked; b.scores.checked = () => orig(live); b.scores.checked(); }   // (a check already on its way answers live too)
+  // "is the channel live?": yes (recording can't reach Twitch; the check would say unknown), however late it answers
+  for (const f of ['board3', 'solo']) for (const p of ['twitch', 'kick']) $(f).contentWindow.Widgets.platforms[p].stream = async () => live;
+  for (const b of [g, solo()]) { const orig = b.scores.checked; b.scores.checked = () => orig(live); b.scores.checked(); }
   for (const [i, pts] of [[4, 640], [1, 610], [6, 540], [2, 470], [9, 300]]) g.scores.award(by(i), pts, pts / 5);
   g.land(by(4), 5);
   $('g8').innerHTML = ['chaplinko', 'neon', 'royal', 'candy', 'deep', 'neutral', 'light', 'cozy'].map((t, i) => `<img src="/chaplinko/assets/themes/${t}.webp" style="animation-delay:${i * 50}ms" alt="">`).join('');

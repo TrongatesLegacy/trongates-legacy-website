@@ -1,6 +1,7 @@
 // Chaplinko's trailer: records trailer.html to an MP4 with the music (music.mjs): headless Chrome's screencast frames, with their timestamps,
 // become a constant 30 fps video. The page is served next to public/ (the test server), so the game in it is real.
-// Usage: node --experimental-websocket artwork/chaplinko/trailer/record.mjs ~/Downloads/chaplinko-trailer.mp4
+// Usage: node --experimental-websocket artwork/chaplinko/trailer/record.mjs ~/Downloads/chaplinko-trailer.mp4 [--vertical]
+//   --vertical: 1080 × 1920 for Shorts / Reels / TikTok (the same scenes, laid out for a phone)
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir, homedir } from 'node:os';
@@ -27,7 +28,7 @@ const FAKE_CHAT = `if (location.pathname.endsWith('/play.html')) (() => {
     kick: (name, text) => by('pusher').recv(JSON.stringify({ event: 'App\\\\Events\\\\ChatMessageEvent', data: JSON.stringify({ content: text, sender: { username: name, slug: name.toLowerCase(), identity: { badges: [] } } }) })),
   };
 })();`;
-const V = false, [W, H] = [1920, 1080];   // (no vertical cut yet)
+const V = process.argv.includes('--vertical'), [W, H] = V ? [1080, 1920] : [1920, 1080];
 const OUT = process.argv.slice(2).find((a) => !a.startsWith('--')) || join(homedir(), 'Downloads', V ? 'chaplinko-trailer-short.mp4' : 'chaplinko-trailer.mp4'), LEN = 30;
 const dir = mkdtempSync(join(tmpdir(), 'chaplinko-trailer-'));
 const music = join(dir, 'music.m4a');
@@ -35,7 +36,7 @@ execFileSync('node', [join(here, 'music.mjs'), music]);
 const site = await siteServer({ files: { '/trailer.html': readFileSync(join(here, 'trailer.html'), 'utf8') } });
 const chrome = await launch();
 try {
-  const tab = await chrome.open(site.origin + '/trailer.html', { width: W, height: H, init: FAKE_CHAT });
+  const tab = await chrome.open(site.origin + '/trailer.html' + (V ? '?v=1' : ''), { width: W, height: H, init: FAKE_CHAT });
   await tab.until('window.ready()', 10000);
   const frames = [];
   tab.on('Page.screencastFrame', (p) => {
