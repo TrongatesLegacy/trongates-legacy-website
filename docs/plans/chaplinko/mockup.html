@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- A still mockup of Chaplinko (docs/plans/chaplinko/plan.md), drawn with the real widget themes. Not the game:
-     nothing moves. ?v=classic|pachinko|tower|jackpot|clear|panel|strip|lbclear|scene|accents shows one frame at its real size (for screenshots);
+     nothing moves. ?v=classic|pachinko|tower|jackpot|clear|panel|strip|lbclear|scene|combined|accents shows one frame at its real size (for screenshots);
      no ?v shows them all. -->
 <html lang="en">
 <head>
@@ -102,9 +102,11 @@ function svg(w, h, parts) { return `<svg width="${w}" height="${h}" viewBox="0 0
   </defs>${parts.join('')}</svg>`; }
 
 const peg = (x, y, r = 4.5) => `<circle cx="${x}" cy="${y}" r="${r}" style="fill:color-mix(in srgb, var(--text) 85%, var(--accent))"/><circle cx="${x - 1.2}" cy="${y - 1.2}" r="${r * .45}" fill="#fff" opacity=".35"/>`;
-const ball = (x, y, r = 10, trail = 0) =>
-  (trail ? `<line x1="${x}" y1="${y - trail}" x2="${x}" y2="${y}" stroke-width="${r * 1.4}" stroke-linecap="round" style="stroke:var(--accent)" opacity=".18"/>` : '') +
-  `<circle cx="${x}" cy="${y}" r="${r}" style="fill:var(--accent)"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#shine)"/>`;
+// balls take the chatter's chat colour (the default); a chatter with none gets the accent
+const ball = (x, y, r = 10, trail = 0, c = 'var(--accent)') =>
+  (trail ? `<line x1="${x}" y1="${y - trail}" x2="${x}" y2="${y}" stroke-width="${r * 1.4}" stroke-linecap="round" style="stroke:${c}" opacity=".18"/>` : '') +
+  `<circle cx="${x}" cy="${y}" r="${r}" style="fill:${c}"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#shine)"/>`;
+const CHAT = ['#ff4f9a', '#1e90ff', '#ffb000', '#2ee6a8', 'var(--accent)', '#b36bff'];
 // an emote ball: in the game the emote's own image (Twitch/Kick CDN), spinning as it rolls; here an emoji stands in
 const emote = (x, y, e, r = 13, rot = 0) => `<text x="${x}" y="${y}" font-size="${r * 2}" text-anchor="middle" dominant-baseline="central" transform="rotate(${rot} ${x} ${y})">${e}</text>`;
 const text = (x, y, s, size, style = '') => `<text x="${x}" y="${y}" font-size="${size}" text-anchor="middle" dominant-baseline="central" style="font-family:var(--display);font-weight:var(--display-weight);${style}">${s}</text>`;
@@ -130,8 +132,8 @@ function classic(o = {}) {
   const bw = (rows + 1) * gap, sy = top + (rows - 1) * dy + 22;
   p.push(slots(cx - bw / 2, sy, bw, 44, vals));
   if (o.balls !== false) {
-    p.push(ball(cx - 8, 44, 10, 18), ball(cx + 30, 128, 10, 22), ball(cx - 50, 196, 10, 24), emote(cx + 70, 236, '🔥', 12, 20), emote(cx + 92, 250, '🔥', 12, -30),
-      ball(cx - 118, 300, 10, 26), emote(cx + 18, 320, '😂', 12, 40), ball(cx + 150, 352, 10, 20), ball(cx - 26, sy + 10, 10));
+    p.push(ball(cx - 8, 44, 10, 18, CHAT[0]), ball(cx + 30, 128, 10, 22, CHAT[1]), ball(cx - 50, 196, 10, 24, CHAT[2]), emote(cx + 70, 236, '🔥', 12, 20), emote(cx + 92, 250, '🔥', 12, -30),
+      ball(cx - 118, 300, 10, 26, CHAT[3]), emote(cx + 18, 320, '😂', 12, 40), ball(cx + 150, 352, 10, 20, CHAT[4]), ball(cx - 26, sy + 10, 10, 0, CHAT[5]));
     // a score floating up from a slot
     p.push(text(cx - 26, sy - 14, '+1', 14, 'fill:var(--text);opacity:.8'), text(cx + 184, sy - 22, '+10', 16, 'fill:var(--accent)'));
   }
@@ -195,9 +197,11 @@ const V = {
   lbclear: ['Leaderboard source, transparent: panel and strip straight over the game · chatagram and neon themes', () => `<div class="scene" style="width:960px;height:540px">
     <div style="position:absolute;left:0;top:0">${frame('chatagram', 300, 270, panel(), '', true)}</div>
     <div style="position:absolute;left:0;bottom:0">${frame('neon', 720, 72, strip(), '', true)}</div></div>`],
-  scene: ['How a streamer might place them: two sources over their game (1280×720)', () => `<div class="scene">
-    <div class="src-at" style="left:28px;top:28px;width:180px;height:162px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 300, 270, panel())}</div><span class="tag">leaderboard source</span></div>
-    <div class="src-at" style="right:28px;bottom:28px;width:384px;height:324px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 640, 540, classic())}</div><span class="tag">board source</span></div></div>`],
+  scene: ['Separate: two sources over the game, transparent (the default) (1280×720)', () => `<div class="scene">
+    <div class="src-at" style="left:28px;top:28px;width:180px;height:162px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 300, 270, panel(), '', true)}</div><span class="tag">leaderboard source</span></div>
+    <div class="src-at" style="right:28px;bottom:28px;width:384px;height:324px"><div style="transform:scale(.6);transform-origin:0 0">${frame('royal', 640, 540, classic(), '', true)}</div><span class="tag">board source</span></div></div>`],
+  combined: ['Combined: one source, the board with the leaderboard beside it · 960×540 · transparent (the default) · chatagram theme', () => `<div class="scene" style="width:960px;height:540px">${frame('chatagram', 960, 540,
+    `<div style="position:absolute;left:0;top:0">${classic()}</div><div style="position:absolute;right:0;top:0;width:300px;height:270px">${panel()}</div>`, '', true)}</div>`],
   accents: ['The same board, any theme and accent (640×540 each, shown at half size)', () => `<div class="mini">${[['neutral', ''], ['light', ''], ['cozy', ''], ['chatagram', '#2ee6a8'], ['neon', '#ff4155'], ['royal', '#ffd98a'], ['deep', '#45d6c8'], ['candy', '#ff7bd5']]
     .map(([t, a]) => `<div style="width:320px;height:270px;overflow:hidden"><div style="transform:scale(.5);transform-origin:0 0">${frame(t, 640, 540, classic({ w: 640 }), a)}</div></div>`).join('')}</div>`],
 };

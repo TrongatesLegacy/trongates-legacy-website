@@ -6,7 +6,8 @@ later (see "Later").
 
 Mockups (`mockup.html`, drawn with the real `themes.css`; `?v=<name>` shows one at its real size). Board source:
 [board](classic.png), [big win](jackpot.png), [transparent](clear.png), [themes and accents](accents.png). Leaderboard
-source: [panel](panel.png), [strip](strip.png), [transparent](lbclear.png). Both on a stream: [scene](scene.png).
+source: [panel](panel.png), [strip](strip.png), [transparent](lbclear.png). On a stream: [separate](scene.png),
+[combined](combined.png).
 
 ## What the owner asked for (2026-09-29)
 
@@ -17,8 +18,13 @@ source: [panel](panel.png), [strip](strip.png), [transparent](lbclear.png). Both
 - **Balls don't show names.** Names are for the leaderboard, and for a popup when someone hits the top slot ("pixelpriya
   scored 100").
 - Set up and configured the way Chatagram is.
-- **The leaderboard is a separate browser source**, placed wherever the streamer likes, and **compact**: just the list.
-- **Fully transparent** is an option for both the board and the leaderboard.
+- **Separate or combined** (2026-09-30): the board and the leaderboard as two browser sources, or as one source with
+  the leaderboard beside the board. The streamer picks.
+- The separate leaderboard is **compact**: just the list.
+- **Transparent by default** (2026-09-30), for the board and the leaderboard. A background is an option.
+- The leaderboard shows **This stream, All time, or both**; with both, it **switches between them every so many
+  seconds**, and the streamer sets how many (2026-09-30).
+- **Balls are the chatter's chat colour** by default (2026-09-30).
 - **The commands are shown on the board**, not on the leaderboard.
 - The name is **Chaplinko** (chat + Plinko). The command is `!drop`.
 
@@ -60,11 +66,21 @@ A Plinko triangle of pegs over a row of slots. Colours, fonts and frame come fro
 - **Top prize**: the highest slot value. Hitting it shows the big win card (below). Advanced → "Big win card for": top
   slot / top two / off.
 
-## Two browser sources
+## Separate or combined
 
-The streamer adds **two OBS browser sources** with two links from the set-up page. Both links carry the channels, which
-is how they find each other's data, and each has its own look settings. The leaderboard is optional: the board works on
-its own.
+The first choice on the set-up page is **Layout**:
+
+- **Separate** (the default): **two OBS browser sources** with two links, the board and the leaderboard, each placed
+  and sized on its own (mockup: separate). Both links carry the channels, which is how they find each other's data, and
+  each has its own look settings. The leaderboard is optional: the board works on its own.
+- **Combined**: **one browser source**, 960 × 540, with the board and the leaderboard panel beside it (mockup:
+  combined). The panel can be on the left or the right. One link, one theme. It needs nothing shared between sources,
+  so it works even if the step-1 OBS test fails.
+- **Board only**: the combined link with the leaderboard turned off, for streamers who don't want one (the big win card
+  still names the winner).
+
+Combined isn't separate code: the board page draws the same leaderboard as the leaderboard page, reading its own
+scores directly.
 
 ### The board source
 
@@ -72,10 +88,11 @@ its own.
 - **The commands are on the board**, in the drop chute at the top: `!drop · !drop 5 · !drop 5 :emote:` (using the
   streamer's own command names if they renamed them). This is where viewers look, and it keeps the leaderboard compact.
   It can be turned off (Advanced → Show the commands).
-- **Background**: 0–100% (Chatagram's `bgo`, but going down to 0), default 95%. **Transparent** (0) also drops the
-  theme's frame and gives pegs, slots, balls and the `+N` numbers a soft dark shadow so they read over any game (mockup:
-  transparent). The big win card keeps its own panel and dims the board only as a soft glow behind the card, not the
-  whole source. Transparent is one click on the set-up page, beside the theme.
+- **Transparent by default**: no background and no frame; pegs, slots, balls, the chute and the `+N` numbers have a
+  soft dark shadow so they read over any game (mockup: transparent). **Background** is a setting, 0–100% (Chatagram's
+  `bgo`, but going down to 0 and defaulting to 0), for streamers who want the theme's panel and frame (mockup: themes
+  and accents). The big win card always keeps its own panel and dims the board only as a soft glow behind the card,
+  not the whole source.
 - The big win card is drawn here, over the board.
 
 ### The leaderboard source
@@ -84,12 +101,17 @@ its own.
 
 - **panel** 300 × 270: the title, the This stream / All time tabs, the top 5 (mockup: panel). **How many** is a
   setting (3–10), and the source's height follows it.
-- **strip** 720 × 72: This stream's top 3 in a row, for the top or bottom of the screen (mockup: strip).
+- **strip** 720 × 72: the top 3 in a row, for the top or bottom of the screen, with the list's name at the start
+  (mockup: strip).
 - Its own theme, accent, background and credit, so it can match the board or not.
-- **Background** 0–100%, default 95%, with **Transparent** (0) one click away, as on the board: no background, frame,
-  panels or pill boxes, only the text and the active tab, with a text shadow so it reads over any game. The inactive tab
-  becomes an outline (mockup: transparent leaderboard).
-- **Which list**: This stream / All time / take turns every 15 s (default).
+- **Transparent by default**, as on the board: no background, frame, panels or pill boxes, only the text and the
+  active tab, with a text shadow so it reads over any game. The inactive tab becomes an outline (mockup: transparent
+  leaderboard). **Background** 0–100% is a setting, default 0.
+- **Show**: This stream / All time / **both** (default).
+  - **Both**: it switches between the two every **Switch every** seconds (default 15, range 5–300), with a short fade.
+    The tabs show which is on (panel); the strip's name changes.
+  - **One list**: the tabs go and the title says which list it is ("This stream").
+- The combined layout has the same **Show** and **Switch every** settings.
 - **How it gets the scores**: OBS browser sources on the same site share storage, and the board saves its scores there as
   they change. The board also announces each change on a `BroadcastChannel` named after the channels, so the leaderboard
   updates as soon as a ball lands; the leaderboard also re-reads the save every 5 s in case a message is missed. The
@@ -110,8 +132,8 @@ its own.
 - **Most balls on screen**: default 40, range 10–100. Beyond that, drops **queue** and fall in turn, spaced out, so a
   raid can't make OBS stutter. The queue has a limit (200) and drops beyond it are ignored.
 - The leaderboard and moderation commands follow Chatagram's pattern, all starting `!drop` and renamable in Advanced:
-  - `!drop top`: **off by default**, since the leaderboard is its own source. For streamers without one, it shows both
-    lists over the board for 8 s. Viewers share a 60 s cooldown.
+  - `!drop top`: **off by default**, since there's usually a leaderboard on screen. For streamers using board only, it
+    shows both lists over the board for 8 s. Viewers share a 60 s cooldown.
   - `!drop pause` / `!drop resume`: stop and restart new drops. Balls already falling land and score.
   - `!drop clear`: remove every ball and the queue, scoring nothing.
   - `!drop clearscores`: wipe both leaderboards (the owner only).
@@ -137,9 +159,11 @@ safe and means no lookups.
 
 ## Balls, scoring and the big win
 
-- A ball is drawn in the accent colour with a shine. Advanced → Ball colour: accent (default) / platform (Twitch purple,
-  Kick green) / the chatter's chat colour (Twitch's `color` tag, Kick's `identity.color`) / rainbow. An emote ball is
-  the emote itself, turning as it rolls.
+- A ball is drawn in **the chatter's chat colour** (default; Twitch's `color` tag, Kick's `identity.color`) with a
+  shine, so a viewer can follow their own balls without names. A chatter with no colour set gets the accent. Colours
+  too dark to see on a transparent board are lightened (a contrast check, as the themes do). Advanced → Ball colour:
+  chat colour (default) / accent / platform (Twitch purple, Kick green) / rainbow. An emote ball is the emote itself,
+  turning as it rolls.
 - **No names on balls.** When a ball lands, its value rises from the slot (`+10`), and the points go to the person who
   dropped it.
 - **Leaderboards**: points only, per `platform:user`, as in Chatagram.
@@ -168,8 +192,10 @@ replay any drop exactly.
 
 ## Settings (Chatagram's model)
 
-Main: Twitch, Kick, rows, theme, accent, background (Transparent is one click). The leaderboard source's own settings
-sit in a separate part: its layout (panel / strip), how many, which list, theme, accent, background. Advanced: slot
+Main: Twitch, Kick, **layout** (separate / combined, and for combined: leaderboard left / right / off), rows, theme,
+accent, background (default 0, transparent). The leaderboard's own settings sit in a separate part: its shape (panel /
+strip, separate only), how many, show (This stream / All time / both), switch every, and for the separate source its
+own theme, accent and background. Advanced: slot
 values, big win card, show the commands, ball colour, most balls per command, cooldown, most balls on screen, ball size,
 gravity (slow / normal / fast), commands and who can use them, ignored users, `!drop top` on or off, show All time, the
 credit.
@@ -180,13 +206,15 @@ the queue and balls in the air are gone, and they hadn't scored yet.
 ## The page
 
 `/chaplinko/`, built the same way as Chatagram's: a hero with a pretend chat dropping balls, the themes, set-up with a
-live preview of both sources and the odds table, **two Copy OBS link buttons** (board, leaderboard), and an FAQ ("is
+live preview (both sources, or the combined one) and the odds table, **Copy OBS link buttons** (board and leaderboard
+for separate, one for combined), and an FAQ ("is
 this gambling?": no; "how do I add the leaderboard?"). It goes on `/widgets/` and in the sitemap, with its own
 link-preview image.
 
 ## Build order (each step tested and committed on its own)
 
-1. **Prove two sources can talk** in the owner's OBS (a two-page test: shared storage and `BroadcastChannel`).
+1. **Prove two sources can talk** in the owner's OBS (a two-page test: shared storage and `BroadcastChannel`). If they
+   can't, combined still works, and separate needs the fallback above.
 2. **Shared scores**: move `scores.js` and the stream check to `widgets/lib/`, with Chatagram unchanged (all its tests
    still pass).
 3. **Emotes in chat.js**: Twitch and Kick parsing, with tests from captured messages.
@@ -194,8 +222,9 @@ link-preview image.
    nothing gets stuck), and the odds table script.
 5. **Board source**: `play.html/.css/.js`, transparent, commands, the queue, the big win card, saving the scores, reduced
    motion, and browser tests with fake Twitch and Kick sockets.
-6. **Leaderboard source**: `leaderboard.html`, panel and strip, reading the board's scores live, with a browser test
-   running both pages at once.
+6. **Leaderboard**: `leaderboard.js` draws the list (panel and strip, show and switch every); `leaderboard.html` is the
+   separate source reading the board's scores live, with a browser test running both pages at once; the combined layout
+   uses the same code inside the board.
 7. **Set-up page**, the widgets list entry, the preview pictures, the link-preview image.
 8. **`/obs/chaplinko`** for Trongates Legacy's scenes.
 9. Docs: a "Chaplinko" section in docs/widgets.md, plus testing.md.
@@ -214,5 +243,8 @@ link-preview image.
 ## Open questions for the owner
 
 1. **Cooldown and cap defaults**: 20 s per person and 5 balls per command? A big chat might want 60 s.
-2. **Leaderboard default**: take turns between This stream and All time, or This stream only?
-3. **Chatter colour** as the default ball colour instead of the accent? It's livelier but less on-theme.
+2. **Default layout**: separate or combined? The plan says separate (the most flexible), but combined is one link and
+   the easiest to set up.
+
+Decided 2026-09-30: transparent by default; the leaderboard shows both lists by default, switching every 15 s
+(configurable); balls are the chatter's colour.
