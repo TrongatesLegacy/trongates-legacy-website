@@ -19,7 +19,9 @@ source: [panel](panel.png), [strip](strip.png), [transparent](lbclear.png). On a
 - **Plinko**: balls fall through pegs, and the **scores are the slots at the bottom**.
 - The scores feed an **All time / This stream** leaderboard. Nothing more complex than that.
 - **Lots of variety in the design**: themes and accent colours.
-- `!drop` drops 1 ball, `!drop 5` drops 5, `!drop 5 <emote>` drops 5 of that emote.
+- `!drop` drops the balls, `!drop <emote>` drops that emote. **No number** and **no cooldown** (2026-09-30): the point
+  is chat spamming `!drop` to climb the leaderboard, so the board takes all of it and scales its animations to how busy
+  it is. Following one ball closely matters less than the leaderboard.
 - **Balls don't show names.** Names are for the leaderboard, and for a popup when someone hits the top slot ("pixelpriya
   scored 100").
 - Set up and configured the way Chatagram is.
@@ -170,7 +172,7 @@ scores directly.
 ### The board source
 
 - **640 × 540.** As in Chatagram, the board scales to fit if the OBS source is another size.
-- **The commands are on the board**, in the drop chute at the top: `!drop · !drop 5 · !drop 5 :emote:` (using the
+- **The commands are on the board**, in the drop chute at the top: `!drop · !drop :emote:` (using the
   streamer's own command names if they renamed them). This is where viewers look, and it keeps the leaderboard compact.
   It can be turned off (Advanced → Show the commands).
 - **Transparent by default**: no background and no frame; pegs, slots, balls, the chute and the `+N` numbers have a
@@ -210,12 +212,18 @@ scores directly.
 
 ## Chat commands
 
-- `!drop`: 1 ball. `!drop 5`: 5 balls (capped at **Most balls per command**, default 5, range 1–20). `!drop 5 <emote>`
-  or `!drop <emote>`: that emote instead of a ball. An emoji works too (`!drop 3 🔥`).
-- **Per-person cooldown**: default 20 s, range 0–300. A `!drop` during the cooldown is ignored silently, so chat isn't
-  spammed with replies (the widget has no way to reply anyway).
-- **Most balls on screen**: default 40, range 10–100. Beyond that, drops **queue** and fall in turn, spaced out, so a
-  raid can't make OBS stutter. The queue has a limit (200) and drops beyond it are ignored.
+- `!drop`: **Balls per drop** balls (default 5, range 1–10, the streamer's setting). `!drop <emote>`: that many of the
+  emote instead of balls. An emoji works too (`!drop 🔥`). There's no number to type: everyone's drop is the same size,
+  and anything after `!drop` that isn't an emote is ignored, so `!drop 5` from habit (other games use it) is a plain
+  `!drop`.
+- **Spam is the point.** Every `!drop` counts, as often as a viewer can send them, so climbing the leaderboard is about
+  dropping the most. The platforms' own chat limits (and slow mode, if the streamer turns it on) are the only brakes.
+  Advanced has a **per-person cooldown**, default **0 (off)**, range 0–300 s, for streamers who want one; a `!drop`
+  during it is ignored silently.
+- **The board limits itself, not the viewers.** **Most balls on screen**: default 100, range 20–200. Balls enter from
+  the chute at up to 20 a second; past that, drops **queue**. The queue holds about 30 s of balls (600); drops beyond it
+  are ignored until it drains, so a `!drop` never lands minutes late. How the board looks as it fills is in
+  "Animations" (activity levels).
 - The leaderboard and moderation commands follow Chatagram's pattern, all starting `!drop` and renamable in Advanced:
   - `!drop top`: **off by default**, since there's usually a leaderboard on screen. For streamers using board only, it
     shows both lists over the board for 8 s. Viewers share a 60 s cooldown.
@@ -262,7 +270,9 @@ safe and means no lookups.
 
 The game is only as good as how it feels to watch, so every moment chat causes gets a reaction, **in proportion to what
 happened**: a ball hitting a peg is a flicker, a jackpot stops the show. Housekeeping (pausing, switching lists) is
-quiet. Storyboards: [a ball](sb-drop.png), [the jackpot](sb-jackpot.png), [the leaderboard](sb-leaderboard.png),
+quiet. **The reactions scale with how busy the board is** (activity levels, below): with three balls on the board each
+one gets the full treatment; with a hundred, the board as a whole is the show and the leaderboard is what people
+watch. Storyboards: [a ball](sb-drop.png), [the jackpot](sb-jackpot.png), [the leaderboard](sb-leaderboard.png),
 [the board's moments](sb-board.png).
 
 ### How it's built
@@ -276,17 +286,42 @@ quiet. Storyboards: [a ball](sb-drop.png), [the jackpot](sb-jackpot.png), [the l
   jumps.
 - **Timing**, shared by both: quick 150 ms, base 300 ms, slow 600 ms; **spring** `cubic-bezier(.34, 1.56, .64, 1)`
   for things arriving (a little overshoot), **out** `cubic-bezier(.2, .8, .2, 1)` for things leaving or settling.
-- **Caps** so a raid can't make OBS stutter: at most 150 particles, 60 rings and 40 trails at once (the oldest go
-  first); the numbers that float up merge when they land in the same slot within 0.3 s (`+2 ×3`). Target: 60 frames a
-  second with 40 balls and a jackpot on a modest streaming PC, checked in the browser tests.
+- **Caps** as a last line (the activity levels do most of the work): at most 150 particles, 60 rings and 40 trails at
+  once, the oldest going first. Target: 60 frames a second with 200 balls and a jackpot on a modest streaming PC,
+  checked in the browser tests.
+
+### Activity levels
+
+The board measures how busy it is (balls on screen and the queue) and picks a level. It goes up at once and comes down
+only after 3 s below the line, so it doesn't flicker between levels. The change itself is animated (below).
+
+| | **Quiet** (under 15 balls) | **Busy** (15–50) | **Frenzy** (over 50, or a queue) |
+|---|---|---|---|
+| Drop point | the middle of the chute | the middle | **three spots** across the chute |
+| Trails | 6 positions | 3 | none |
+| Peg hit | flash, ring, squash | flash only | none per ball: **hot pegs** carry it |
+| Hot pegs | faint | clear | **the main effect**: the whole board glows where balls pour |
+| Landing | slot dips and flashes, `+N` for every ball | `+N` only for the upper half of values | no `+N`; each slot keeps a **tally** (`×12`) that bumps with each landing and fades 2 s after the last |
+| Sparkles | upper half of values | top two values | top value only |
+| Near miss | yes | no | no |
+| Big win toast (top two) | yes | yes | no: the second-highest slot just flashes |
+| Jackpot | the full show | the full show | a short version (below) |
+| Balls bump each other | yes | yes | no, so they pour instead of jam |
+
+**Entering Frenzy** is a moment of its own: the chute pulses and reads **FRENZY · +230 waiting** (counting down), the
+board's edge glows in the accent and breathes with the landings, and the balls start pouring from three spots. When it
+drains back to Busy the glow fades and the chute returns to the commands. Frenzy is the reward for chat spamming
+together, so it should feel like the board is overjoyed, not overwhelmed.
 - **Every animation ends.** A test with the fake clock runs a jackpot, a raid and a list switch, then checks the loop
   has stopped and no timers are left (the existing loop tests catch anything that keeps running).
 
 ### A ball (storyboard: a ball)
 
+As a ball looks when the board is **Quiet**; Busy and Frenzy trim it as in the table above.
+
 | Moment | What happens | Time |
 |---|---|---|
-| **The drop** | The chute gulps (squash and spring) and pops the ball out slightly big (1.15 → 1). `!drop 5` streams the rest 120 ms apart and the chute counts them down ("×4 more coming"). | 220 ms |
+| **The drop** | The chute gulps (squash and spring) and pops the ball out slightly big (1.15 → 1). The rest of the drop streams out 120 ms apart and the chute counts them down ("×4 more coming"). | 220 ms |
 | **In flight** | A short trail in the ball's colour (the last 6 positions, fading). Emote balls turn with the ball's spin. | always |
 | **Peg hit** | The peg flashes the ball's colour and a ring spreads out; the ball squashes a touch against it. | 250 ms |
 | **Hot pegs** | Hit pegs keep a glow in the ball's colour that fades over 2 s, so the board shows the paths the balls took. A busy board lights up. | 2 s |
@@ -313,6 +348,9 @@ Landings are **tiered by value**, so bigger feels bigger:
 
 - Several jackpots **queue**: the next card starts as the last leaves, and a second jackpot within 10 s says
   "×2 JACKPOT!".
+- **In Frenzy** the jackpot is shorter so the flood doesn't stall: no slow motion, the beam and ripple still fire, the
+  card shows for 2 s. If more than 3 are waiting they merge into one card: "JACKPOT ×5: pixelpriya, m0ssy, kevxd and 2
+  more".
 - Transparent board: no dimming of the whole source, only a soft dark glow behind the card, so the game stays visible.
 - The card's line under the points is the proof it's rare: "1 in 512 · the first today".
 
@@ -322,7 +360,8 @@ Landings are **tiered by value**, so bigger feels bigger:
   place. 0.8 s.
 - **Idle**: no drops for a minute, and a shine runs along the commands in the chute every 30 s, inviting a `!drop`.
   That's the only thing that runs while idle, and it's CSS.
-- **Busy** (a raid): past the most balls on screen, the chute shows "+37 waiting to drop" and counts down.
+- **Frenzy**: the chute reads "FRENZY · +230 waiting" and counts down, balls pour from three spots, hot pegs light the
+  board and the slots keep tallies (see "Activity levels").
 - **Paused**: the chute says PAUSED; balls already falling land. **Resume**: it flashes GO! for a moment.
 - **Cleared**: every ball pops into a little puff, 20 ms apart, scoring nothing.
 
@@ -332,13 +371,17 @@ Landings are **tiered by value**, so bigger feels bigger:
 |---|---|---|
 | **Appearing** | The title, then the rows deal in from just below, 60 ms apart. | 0.6 s |
 | **A score goes up** | The points count up (fixed-width digits, so nothing jiggles); an accent sweep crosses the row; a `+25` chip fades out beside it. | 600 ms |
-| **Overtaking** | Rows slide past each other with a little overshoot; the one going up lifts above the rest; the rank numbers roll like a counter. | 400 ms |
+| **Overtaking** | Rows slide past each other with a little overshoot; the one going up lifts above the rest; the rank numbers roll like a counter, and a **▲2** shows how many places they climbed (fades after 3 s). | 400 ms |
 | **A new #1** | A tangerine ball drops onto the new leader's row and bounces twice; a shine sweeps across it. | 800 ms |
 | **Into the top N** | The new row slides in from the side, and the one pushed out slides away and fades. | 400 ms |
 | **Switching lists** (both) | The tab pill slides across; the old rows lift away and the new ones deal in from below. A thin bar under the tabs fills until the next switch. | 600 ms |
 | **A jackpot on the board** | The winner's row glows jackpot pink for 3 s. | 3 s |
 | **Empty** | "No drops yet. Type `!drop`" with a ball that bounces three times every 10 s. | |
 
+- **Climbing is the point**, so the leaderboard's animations matter more than any ball's. When the board is busy the
+  leaderboard doesn't calm down with it; it **batches** instead: scores count up continuously, the `+N` chip adds up
+  over the burst (`+145`), and the rows reorder at most once a second, so a flood reads as people surging past each
+  other rather than a flicker. The ▲ arrows add up the same way.
 - **Switching waits for the action**: if a score on the shown list is animating, the switch holds until 3 s after the
   last change, so an overtake is never cut off. A score change on the hidden list waits until that list is shown, then
   plays.
@@ -355,7 +398,8 @@ the link says so):
 
 - **Full** (default): everything above.
 - **Calm**: the balls still fall and the numbers still count, but no shake, slow motion, beam, confetti, hot pegs or
-  trails; things fade instead of springing. For streamers who find it busy.
+  trails, and Frenzy only pours from three spots (no glow); things fade instead of springing. For streamers who find
+  it busy.
 - **Reduce**: nothing falls (the ball appears in its slot with the `+N`), leaderboard changes are instant, the big win
   card fades in and out. The website's previews follow the visitor's system setting.
 
@@ -368,7 +412,10 @@ nothing is drawn, and no timers run inside it. As with `game.js`, the clock and 
 replay any drop exactly.
 
 - A fixed 120 steps a second. Balls and pegs are circles, the walls and slot dividers are line segments. Balls bounce
-  off each other (a simple grid keeps that cheap), so 5 emotes don't pass through each other.
+  off each other (a simple grid keeps that cheap), so 5 emotes don't pass through each other. In **Frenzy** (see
+  "Animations") balls stop colliding with each other, so a flood pours through instead of jamming; the odds are the
+  same either way (the odds test checks both).
+- 200 balls at 120 steps a second is a few thousand circle checks per step: well within OBS's budget.
 - A little randomness when a ball is dropped (its start position and spin) and none after that, so each drop is exactly
   replayable from its seed.
 - One `<canvas>`, scaled for the screen's pixel density. The animation only runs while something is moving: an idle
@@ -384,7 +431,7 @@ Main: Twitch, Kick, **layout** (separate / combined, and for combined: leaderboa
 accent, background (default 0, transparent). The leaderboard's own settings sit in a separate part: its shape (panel /
 strip, separate only), how many, show (This stream / All time / both), switch every, and for the separate source its
 own theme, accent and background. Advanced: motion (full / calm / reduce), near miss on or off, slot
-values, big win card, show the commands, ball colour, most balls per command, cooldown, most balls on screen, ball size,
+values, big win card, show the commands, ball colour, balls per drop, cooldown (off), most balls on screen, ball size,
 gravity (slow / normal / fast), commands and who can use them, ignored users, `!drop top` on or off, show All time, the
 credit.
 
@@ -426,10 +473,10 @@ the queue and balls in the air are gone, and they hadn't scored yet.
 
 ## Open questions for the owner
 
-1. **Cooldown and cap defaults**: 20 s per person and 5 balls per command? A big chat might want 60 s.
+1. **Balls per drop**: 5 by default? With spam allowed, 3 would make each `!drop` less of a flood; 5 feels generous.
 2. **Default layout**: separate or combined? The plan says separate (the most flexible), but combined is one link and
    the easiest to set up.
 3. **Near miss** ("so close!"): on by default? It's the most fun small touch, but some might find it teasing.
 
-Decided 2026-09-30: transparent by default; the leaderboard shows both lists by default, switching every 15 s
+Decided 2026-09-30: no number and no cooldown (spam is the point; the board scales instead); transparent by default; the leaderboard shows both lists by default, switching every 15 s
 (configurable); balls are the chatter's colour.

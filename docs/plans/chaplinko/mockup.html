@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- A still mockup of Chaplinko (docs/plans/chaplinko/plan.md), drawn with the real widget themes. Not the game:
-     nothing moves. ?v=classic|pachinko|tower|jackpot|clear|panel|strip|lbclear|scene|combined|hero|accents|sb-drop|sb-jackpot|sb-leaderboard|sb-board shows one frame at its real size (for screenshots);
+     nothing moves. ?v=classic|pachinko|tower|jackpot|clear|panel|strip|lbclear|scene|combined|hero|accents|sb-drop|sb-jackpot|sb-leaderboard|sb-levels|sb-board shows one frame at its real size (for screenshots);
      no ?v shows them all. -->
 <html lang="en">
 <head>
@@ -109,7 +109,7 @@ function slotFill(v, max) {
 function slotInk(v, max) { return v === max || v / max > .3 ? 'var(--accent-ink)' : 'var(--text)'; }
 
 // the drop chute at the top of every board, carrying the commands (plan.md, "Chat commands")
-const CMDS = `!drop <tspan style="fill:var(--muted)">·</tspan> !drop 5 <tspan style="fill:var(--muted)">·</tspan> !drop 5 <tspan style="fill:var(--accent)">:emote:</tspan>`;
+const CMDS = `!drop <tspan style="fill:var(--muted)">·</tspan> !drop <tspan style="fill:var(--accent)">:emote:</tspan>`;
 const chute = (cx, label = CMDS, extra = '') => `<rect x="${cx - 132}" y="0" width="264" height="30" rx="8" style="fill:var(--slot)"/>${extra}` +
   `<text x="${cx}" y="15" font-size="12.5" text-anchor="middle" dominant-baseline="central" style="font-family:var(--font);font-weight:700;fill:var(--text)">${label}</text>`;
 function svg(w, h, parts) { return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="${NS}">
@@ -228,7 +228,7 @@ function mini(o = {}) {
 const at = (P, r, i) => P.find((q) => q.r === r && q.i === i);
 const sbDrop = () => `<div class="sb">
   ${fig(300, 250, mini({ chute: chute(150, `<tspan style="fill:var(--accent)">×4</tspan> more coming`, ''), extra: () => `<g transform="translate(150 30) scale(1 .86) translate(-150 -30)"></g>` + ball(150, 42, 11.5, 0, CHAT[0]) + `<path d="M141 33 q9 -6 18 0" fill="none" stroke-width="2" style="stroke:var(--text)" opacity=".5"/>` }),
-    '0 ms · the drop', 'The chute gulps (squash and spring, 220 ms) and pops the ball out a little big (scale 1.15 → 1). <code>!drop 5</code> streams the rest 120 ms apart and the chute counts them down.')}
+    '0 ms · the drop', 'The chute gulps (squash and spring, 220 ms) and pops the ball out a little big (scale 1.15 → 1). The rest of the drop streams out 120 ms apart and the chute counts them down.')}
   ${fig(300, 250, mini({ peg: (q) => q.r === 1 && q.i === 1 ? pegc(q.x, q.y, CHAT[0]) + ring(q.x, q.y, 13, CHAT[0]) + ring(q.x, q.y, 20, CHAT[0], .25, 1.5) : undefined,
     extra: ({ P }) => { const q = at(P, 1, 1); return [5, 4, 3, 2, 1].map((k) => `<circle cx="${q.x - 6 - k * 4}" cy="${q.y - 14 - k * 7}" r="${9 - k}" style="fill:${CHAT[0]}" opacity="${.07 * (6 - k)}"/>`).join('') +
       `<ellipse cx="${q.x - 6}" cy="${q.y - 13}" rx="11" ry="8.6" transform="rotate(-30 ${q.x - 6} ${q.y - 13})" style="fill:${CHAT[0]}"/><ellipse cx="${q.x - 6}" cy="${q.y - 13}" rx="11" ry="8.6" fill="url(#shine)"/>`; } }),
@@ -276,8 +276,8 @@ const L = PLAYERS;
 const sbBoard = () => `<div class="sb">
   ${fig(LW, LH, lbBox(lbRow(1, L[0]) + lbRow(2, L[1]) + lbRow(3, L[2], 'background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 35%, transparent), transparent 70%)', '<span class="chip">+25</span>', '87<span style="opacity:.45">2</span>') + lbRow(4, L[3]) + lbRow(5, L[4])),
     'a score goes up', 'The points count up (600 ms, fixed-width digits so nothing jiggles), a sweep of the accent crosses the row, and a <b style="display:inline;color:inherit">+25</b> chip fades out beside it.')}
-  ${fig(LW, LH, lbBox(lbRow(1, L[0]) + lbRow(2, L[1], 'transform:translateY(16px);opacity:.7') + lbRow('<span style="display:inline-block;transform:translateY(-4px);opacity:.6">2</span>', [L[2][0], L[2][1], 1130], 'transform:translateY(-16px) scale(1.04);background:var(--slot);border-radius:10px;box-shadow:0 8px 20px #0007;z-index:2') + lbRow(4, L[3]) + lbRow(5, L[4])),
-    'overtaking', 'Rows slide past each other (400 ms, a little overshoot). The one going up lifts above the rest; the rank numbers roll like a counter.')}
+  ${fig(LW, LH, lbBox(lbRow(1, L[0]) + lbRow(2, L[1], 'transform:translateY(16px);opacity:.7') + lbRow('<span style="display:inline-block;transform:translateY(-4px);opacity:.6">2</span>', [L[2][0], L[2][1], 1130], 'transform:translateY(-16px) scale(1.04);background:var(--slot);border-radius:10px;box-shadow:0 8px 20px #0007;z-index:2', '<span style="color:#2ee6a8;font-size:12px;font-weight:700;margin-right:8px">▲1</span>') + lbRow(4, L[3]) + lbRow(5, L[4])),
+    'overtaking', 'Rows slide past each other (400 ms, a little overshoot). The one going up lifts above the rest, the rank numbers roll like a counter, and ▲ shows the places climbed. When busy, reorders batch to once a second.')}
   ${fig(LW, LH, lbBox(lbRow(1, [L[2][0], L[2][1], 1302], 'background:linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--text) 18%, transparent) 40%, transparent 60%)', `<svg width="30" height="30" style="position:absolute;left:96px;top:2px;overflow:visible">${ball(12, 12, 8)}<path d="M4 -2 v-8 M12 -4 v-10 M20 -2 v-8" stroke="#fff" stroke-opacity=".5" stroke-width="1.5"/></svg>`) + lbRow(2, L[0]) + lbRow(3, L[1]) + lbRow(4, L[3]) + lbRow(5, L[4])),
     'a new #1', 'A tangerine ball drops onto the new leader’s name and bounces twice; a shine sweeps across the row.')}
   ${fig(LW, LH, lbBox(lbRow(1, ALLTIME[0]) + lbRow(2, ALLTIME[1], 'opacity:.65;transform:translateY(6px)') + lbRow(3, ALLTIME[2], 'opacity:.3;transform:translateY(16px)'),
@@ -293,13 +293,49 @@ const sbExtras = () => `<div class="sb">
     'the board appears', 'When the source loads or the scene changes: pegs pop in row by row (30 ms apart) and the slots rise into place. 0.8 s.')}
   ${fig(300, 250, mini({ chute: chute(150, CMDS, `<defs><linearGradient id="shim" x1="0" x2="1"><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset=".65" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect x="18" y="0" width="264" height="30" rx="8" fill="url(#shim)"/>`) }),
     'idle', 'No drops for a minute: a shine runs along the commands every 30 s, inviting a <code>!drop</code>. Nothing else runs while the board is idle.')}
-  ${fig(300, 250, mini({ chute: chute(150, `<tspan style="fill:var(--accent)">+37</tspan> waiting to drop`), extra: () => ball(120, 45, 10, 0, CHAT[1]) + ball(150, 80, 10, 0, CHAT[2]) + ball(185, 110, 10, 0, CHAT[0]) + ball(100, 150, 10, 0, CHAT[3]) + ball(200, 160, 10, 0, CHAT[5]) + ball(160, 180, 10, 0, CHAT[4]) }),
-    'busy (a raid)', 'Past the most balls on screen, the chute shows how many are waiting and counts down as they drop in.')}
+  ${fig(300, 250, mini({ chute: chute(150, `<tspan style="fill:var(--accent)">FRENZY</tspan> · +230 waiting`, `<rect x="16" y="-2" width="268" height="34" rx="10" style="fill:var(--accent)" opacity=".35" filter="url(#glow)"/>`),
+    peg: (q) => pegc(q.x, q.y, CHAT[(q.r + q.i) % 6], Math.max(.25, 1 - Math.abs(q.i - q.r / 2 - 1) * .3)),
+    extra: ({ x0, sw, sy }) => [[90, 40], [150, 42], [210, 40], [120, 76], [176, 70], [140, 110], [196, 104], [100, 140], [160, 146], [222, 136], [128, 176], [186, 172]].map(([x, y], k) => ball(x, y, 8, 0, CHAT[k % 6])).join('') +
+      [2, 9, 14, 8, 3].map((n, i) => `<rect x="${x0 + i * sw + 8}" y="${sy - 20}" width="${sw - 16}" height="15" rx="7" style="fill:var(--panel)"/>` + text(x0 + i * sw + sw / 2, sy - 12, '×' + n, 10, 'fill:var(--text)')).join('') }) +
+    `<div style="position:absolute;inset:0;border-radius:14px;box-shadow:inset 0 0 30px color-mix(in srgb, var(--accent) 60%, transparent);pointer-events:none"></div>`,
+    'frenzy (chat spamming)', 'Past 50 balls: the chute reads FRENZY with the queue counting down, balls pour from three spots without bumping, hot pegs light the board, the slots keep tallies, the edge glows.')}
   ${fig(300, 250, mini({ chute: chute(150, `<tspan style="fill:var(--muted)">❚❚</tspan> PAUSED`) , extra: () => ball(190, 150, 10, 0, CHAT[2]) }),
     'paused', '<code>!drop pause</code>: the chute says PAUSED and balls already falling land. <code>!drop resume</code>: it flashes GO! for a moment.')}
   ${fig(300, 250, mini({ extra: () => [[110, 70, 0], [180, 100, 1], [140, 140, 3], [205, 170, 5]].map(([x, y, c], k) => k === 0 ? ball(x, y, 10, 0, CHAT[c]) :
       ring(x, y, 8 + k * 3, CHAT[c], .9 - k * .2, 3) + [0, 1, 2, 3, 4, 5].map((j) => `<circle cx="${x + Math.cos(j) * (10 + k * 4)}" cy="${y + Math.sin(j) * (10 + k * 4)}" r="2" style="fill:${CHAT[c]}" opacity="${.9 - k * .2}"/>`).join('')).join('') }),
     'cleared', '<code>!drop clear</code>: every ball pops into a little puff, 20 ms apart, and scores nothing.')}
+</div>`;
+
+// the full board at each activity level (plan.md, "Activity levels")
+function levelBoard(level) {
+  const cx = 320, top = 66, dy = 38, gap = 46, sy = 430, x0 = 67, sw = 46, p = [], vals = [100, 25, 10, 5, 2, 1, 2, 5, 10, 25, 100];
+  seed = 11;
+  const n = { quiet: 3, busy: 26, frenzy: 95 }[level], B = [];
+  for (let k = 0; k < n; k++) {
+    const y = 30 + rnd() * 390, r = Math.max(0, (y - top) / dy); let s = 0; for (let j = 0; j < Math.round(r); j++) s += rnd() < .5 ? 0 : 1;
+    const spot = level === 'frenzy' ? [-80, 0, 80][k % 3] * Math.max(0, 1 - r / 4) : 0;
+    B.push({ x: cx + spot + (s - Math.round(r) / 2) * gap + (rnd() - .5) * 20, y, c: CHAT[k % 6] });
+  }
+  if (level === 'frenzy') p.push(chute(cx, `<tspan style="fill:var(--accent)">FRENZY</tspan> · +230 waiting`, `<rect x="${cx - 136}" y="-2" width="272" height="34" rx="10" style="fill:var(--accent)" opacity=".35" filter="url(#glow)"/>`));
+  else p.push(chute(cx));
+  for (let r = 0; r < 10; r++) { const m = r + 3; for (let i = 0; i < m; i++) {
+    const x = cx + (i - (m - 1) / 2) * gap, y = top + r * dy, near = B.filter((b) => Math.hypot(b.x - x, b.y - y) < 48);
+    if (level === 'quiet' || !near.length) { p.push(peg(x, y)); continue; }
+    p.push(pegc(x, y, near[0].c, Math.min(1, near.length * (level === 'frenzy' ? .3 : .45))));
+  } }
+  p.push(slots(x0, sy, 11 * sw, 44, vals));
+  if (level === 'frenzy') [0, 1, 3, 7, 16, 22, 17, 8, 3, 1, 0].forEach((t, i) => { if (!t) return;
+    p.push(`<rect x="${x0 + i * sw + 7}" y="${sy - 22}" width="${sw - 14}" height="17" rx="8" style="fill:var(--panel)"/>` + text(x0 + i * sw + sw / 2, sy - 13, '×' + t, 11, 'fill:var(--text)')); });
+  B.forEach((b) => p.push(ball(b.x, b.y, level === 'frenzy' ? 8 : 10, level === 'quiet' ? 26 : level === 'busy' ? 12 : 0, b.c)));
+  if (level === 'quiet') { p.push(ring(B[1].x + 12, B[1].y + 12, 13, B[1].c), text(x0 + 9.5 * sw, sy - 26, '+25', 18, `fill:${CHAT[1]}`), text(x0 + 5.5 * sw, sy - 18, '+1', 13, 'fill:var(--text);opacity:.8')); }
+  if (level === 'busy') p.push(text(x0 + 1.5 * sw, sy - 24, '+25', 17, `fill:${CHAT[3]}`));
+  const glow = level === 'frenzy' ? `<div style="position:absolute;inset:0;border-radius:var(--radius);box-shadow:inset 0 0 28px color-mix(in srgb, var(--accent) 45%, transparent)"></div>` : '';
+  return frame('chaplinko', 640, 540, svg(640, 540, p) + glow);
+}
+const sbLevels = () => `<div class="sb">
+  ${fig(384, 324, scaled(.6, levelBoard('quiet')), 'Quiet · under 15 balls', 'Every ball gets the full treatment: trails, a ring on each peg hit, the slot’s dip and flash, a <b style="display:inline;color:inherit">+N</b> for every landing, near misses.')}
+  ${fig(384, 324, scaled(.6, levelBoard('busy')), 'Busy · 15 to 50', 'Short trails, pegs just flash, hot pegs show the flow, and only the better landings get a number. The board reads as a whole.')}
+  ${fig(384, 324, scaled(.6, levelBoard('frenzy')), 'Frenzy · over 50, or a queue', 'Chat is spamming: balls pour from three spots without bumping, hot pegs are the effect, the slots keep tallies, the chute counts the queue down and the edge glows.')}
 </div>`;
 
 const V = {
@@ -322,6 +358,7 @@ const V = {
   'sb-drop': ['Motion: a ball, from the chute to its slot', sbDrop],
   'sb-jackpot': ['Motion: the jackpot, second by second', sbJackpot],
   'sb-leaderboard': ['Motion: the leaderboard', sbBoard],
+  'sb-levels': ['Motion: the same board at each activity level', sbLevels],
   'sb-board': ['Motion: the board’s moments', sbExtras],
   hero: ['The board alone, transparent, for the website mockup', () => frame('chaplinko', 640, 540, classic(), '', true)],
   accents: ['The same board with a background: chaplinko (the default), chatagram and the other themes, some with other accents (640×540 each, shown at half size)', () => `<div class="mini">${[['chaplinko', ''], ['chatagram', ''], ['neutral', ''], ['light', ''], ['cozy', ''], ['neon', '#ff4155'], ['royal', '#ffd98a'], ['deep', '#45d6c8'], ['candy', '#ff7bd5']]
