@@ -1,0 +1,124 @@
+/* Chaplinko's board (play.html) and leaderboard (leaderboard.html, and beside the board in the combined layout).
+   docs/widgets.md, "Chaplinko". The board itself is one canvas (play.js); the chute, the big win card, the toast and the
+   leaderboard are HTML over it, animated with Web Animations on transform and opacity only. .clear: transparent (the
+   default), where everything gets a soft dark shadow so it reads over any game. .rm: reduced motion. */
+html, body { margin: 0; background: transparent; overflow: hidden; }
+.stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.w { position: relative; font-family: var(--font); color: var(--text); display: flex; gap: 20px; align-items: flex-start; }
+.w.left { flex-direction: row-reverse; }
+.board { position: relative; width: 640px; height: 540px; border-radius: var(--radius); background: var(--bg); box-shadow: var(--edge); overflow: hidden; flex: none; }
+.clear .board, .clear .lb { background: none; box-shadow: none; }
+#cv { position: absolute; left: 0; top: 0; width: 640px; height: 540px; }
+
+/* the drop chute: the commands, or what's happening (FRENZY · +230 waiting, PAUSED) */
+.chute { position: absolute; top: 0; left: 50%; transform: translateX(-50%); height: 30px; padding: 0 18px; min-width: 180px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--slot); border-radius: 0 0 10px 10px;
+  font: 700 12.5px var(--font); white-space: nowrap; overflow: hidden; transition: background .3s, box-shadow .3s; }
+.chute[hidden] { display: none; }
+.chute .a { color: var(--accent); } .chute .m { color: var(--muted); }
+.clear .chute { box-shadow: 0 2px 10px rgb(0 0 0 / .45); }
+.frenzy .chute { background: color-mix(in srgb, var(--accent) 32%, var(--slot)); box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 55%, transparent); }
+.chute.idle::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / .35) 50%, transparent 65%);
+  transform: translateX(-110%); animation: shim 30s linear infinite; }
+@keyframes shim { 0% { transform: translateX(-110%); } 4% { transform: translateX(110%); } 100% { transform: translateX(110%); } }
+
+/* Frenzy: the board's edge glows and breathes */
+.glow { position: absolute; inset: 0; border-radius: var(--radius); pointer-events: none; opacity: 0; transition: opacity .6s;
+  box-shadow: inset 0 0 34px color-mix(in srgb, var(--accent) 55%, transparent); }
+.frenzy:not(.calm) .glow { opacity: 1; animation: breathe 1.4s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: .55; } }
+
+.credit { position: absolute; left: 18px; bottom: 8px; font-size: 10px; color: var(--muted); opacity: .75; }
+.clear .credit { text-shadow: 0 1px 2px rgb(0 0 0 / .9); opacity: .9; }
+
+/* the big win card, over the board */
+.dim { position: absolute; inset: 0; background: rgb(0 0 0 / .45); pointer-events: none; }
+.clear .dim { background: radial-gradient(ellipse 45% 40% at 50% 50%, rgb(0 0 0 / .55), transparent 75%); }
+.card { position: absolute; left: 50%; top: 50%; text-align: center; background: var(--panel); border-radius: var(--radius); padding: 18px 34px 20px;
+  box-shadow: var(--edge), 0 20px 60px rgb(0 0 0 / .5); outline: 3px solid var(--gold); outline-offset: -3px; transform: translate(-50%, -50%) rotate(-2deg); min-width: 280px; }
+.card .k { font: var(--display-weight) 44px var(--display); color: var(--gold); letter-spacing: .03em; line-height: 1; white-space: nowrap; }
+.card .k span { display: inline-block; }
+.card .who { margin-top: 10px; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; justify-content: center; }
+.card .pts { font: var(--display-weight) 30px var(--display); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.card .sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.card .many { font-size: 16px; font-weight: 600; margin-top: 8px; max-width: 360px; }
+.toast { position: absolute; left: 14px; top: 44px; background: var(--panel); border-radius: 12px; padding: 8px 14px; box-shadow: var(--edge), 0 8px 24px rgb(0 0 0 / .4);
+  display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; outline: 2px solid var(--accent); outline-offset: -2px; }
+.toast b { font: var(--display-weight) 15px var(--display); color: var(--accent); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+.tw { background: #9146ff; } .kk { background: #53fc18; }
+
+/* no channel yet, !drop top */
+.msg { position: absolute; inset: 0; display: none; place-items: center; text-align: center; padding: 30px; }
+.msg.on { display: grid; }
+.msg > div { background: var(--panel); border-radius: var(--radius); padding: 20px 26px; box-shadow: var(--edge); max-width: 440px; }
+.msg h2 { margin: 0 0 6px; font: var(--display-weight) 24px var(--display); }
+.msg p { margin: 0; color: var(--muted); }
+.msg code { font-family: inherit; font-weight: 700; color: var(--text); }
+.toplist { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 560px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  background: var(--panel); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--edge), 0 20px 60px rgb(0 0 0 / .45); }
+.toplist h3 { margin: 0 0 6px; font: var(--display-weight) 18px var(--display); }
+.toplist .row { height: 28px; }
+
+/* ---- the leaderboard ---- */
+.lb { font-family: var(--font); color: var(--text); box-sizing: border-box; position: relative; flex: none; }
+.lb.panel { width: 300px; padding: 14px 16px 12px; background: var(--bg); border-radius: var(--radius); box-shadow: var(--edge); }
+.lb h2 { margin: 0 0 10px; font: var(--display-weight) 22px var(--display); letter-spacing: .02em; }
+.lb .one { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .12em; text-transform: uppercase; margin: -4px 0 8px; }
+.lb .tabs { position: relative; display: flex; gap: 6px; margin-bottom: 6px; }
+.lb .tabs span { flex: 1; position: relative; z-index: 1; text-align: center; padding: 5px 0; border-radius: 999px; background: var(--slot); color: var(--muted); font-size: 12px; font-weight: 600; transition: color .3s; }
+.lb .tabs span.on { background: transparent; color: var(--accent-ink); }
+.lb .pill { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: var(--accent); transition: left .35s cubic-bezier(.2,.8,.2,1), width .35s; }
+.lb .bar { height: 3px; border-radius: 3px; background: var(--slot); overflow: hidden; margin-bottom: 6px; }
+.lb .bar i { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); opacity: .8; }
+.lb .rows { position: relative; }
+.lb .row { position: relative; display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 6px; box-sizing: border-box; font-size: 15px;
+  border-bottom: 1px solid color-mix(in srgb, var(--text) 8%, transparent); border-radius: 10px; }
+.lb .rk { width: 18px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.lb .n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb .p { font-weight: 700; font-variant-numeric: tabular-nums; }
+.lb .row:first-child .p { color: var(--accent); }
+/* the +N badge floats over the row (it comes and goes, so it never pushes the name or the points about) */
+.lb .chip { position: absolute; right: 66px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); opacity: 0; transition: opacity .3s; pointer-events: none; box-shadow: 0 1px 4px rgb(0 0 0 / .3); }
+.lb .chip.on { opacity: 1; }
+.lb .up { font-size: 12px; font-weight: 700; color: #2ee6a8; opacity: 0; transition: opacity .3s; }
+.lb .up.on { opacity: 1; }
+.lb .row.lift { z-index: 2; background: var(--slot); box-shadow: 0 8px 20px rgb(0 0 0 / .45); }
+.lb .row.sweep::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 38%, transparent), transparent 70%); animation: sweep .9s ease-out forwards; }
+@keyframes sweep { from { opacity: 0; transform: translateX(-30%); } 30% { opacity: 1; } to { opacity: 0; transform: none; } }
+.lb .row.shine::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--text) 22%, transparent) 50%, transparent 70%); animation: shine 1.1s ease-out forwards; }
+@keyframes shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.lb .row.jp { box-shadow: inset 0 0 0 2px var(--gold), 0 0 18px color-mix(in srgb, var(--gold) 55%, transparent); border-color: transparent; }
+.lb .crown { position: absolute; left: 44px; top: 3px; width: 13px; height: 13px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--accent); box-shadow: 0 2px 4px rgb(0 0 0 / .35); }
+.lb .empty { position: relative; padding: 16px 4px 12px 30px; color: var(--muted); font-size: 14px; }
+.lb .empty b { color: var(--text); }
+.lb .empty .bb { position: absolute; left: 6px; top: 17px; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--accent); animation: bounce 10s infinite; }
+@keyframes bounce { 0%, 30%, 100% { transform: none; } 5% { transform: translateY(-10px); } 10% { transform: none; } 15% { transform: translateY(-6px); } 20% { transform: none; } 25% { transform: translateY(-3px); } }
+
+.lb.strip { width: 720px; height: 72px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: var(--bg); border-radius: var(--radius); box-shadow: var(--edge); }
+.lb.strip .lbl { font: var(--display-weight) 14px var(--display); color: var(--muted); white-space: nowrap; }
+.lb.strip .rows { display: flex; gap: 8px; min-width: 0; flex: 1; }
+.lb.strip .row { height: auto; border: 0; background: var(--panel); border-radius: 999px; padding: 7px 12px 7px 7px; gap: 6px; flex: 1 1 0; min-width: 0; font-size: 14px; }
+.lb.strip .rk { width: 20px; height: 20px; border-radius: 50%; background: var(--slot); display: grid; place-items: center; font-size: 12px; color: var(--text); }
+.lb.strip .row:first-child .rk { background: var(--accent); color: var(--accent-ink); }
+.lb.strip .crown { left: 10px; top: -8px; }
+.lb.strip .up { display: none; }
+.lb.strip .chip { right: 6px; top: -7px; transform: none; }
+.lb.strip .empty { padding: 0 0 0 26px; } .lb.strip .empty .bb { top: 2px; }
+
+/* transparent: only the text and the active tab, shadowed; the inactive tab an outline */
+.clear .lb.panel, .clear .lb.strip { background: none; box-shadow: none; }
+.clear .lb, .clear .lb h2, .clear .lb .lbl { text-shadow: 0 1px 2px rgb(0 0 0 / .9), 0 0 6px rgb(0 0 0 / .5); }
+.clear .lb .tabs span:not(.on), .clear .lb.strip .row, .clear .lb .bar { background: none; }
+.clear .lb .tabs span:not(.on) { box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .35); }
+.clear .lb .tabs span.on, .clear .lb .chip { text-shadow: none; }
+.clear .lb .rk, .clear .lb.strip .lbl { color: var(--text); }
+.clear .lb .row { border-color: rgb(255 255 255 / .14); }
+.clear .lb.strip .row { box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .22); }
+.clear .lb .row.lift { background: rgb(0 0 0 / .35); }
+
+/* reduced motion: every change is instant */
+.rm *, .rm *::before, .rm *::after { animation: none !important; transition: none !important; }

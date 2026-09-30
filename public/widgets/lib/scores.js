@@ -45,7 +45,8 @@
     const p = list[k] || (list[k] = { name, platform, score: 0, words: 0 });
     p.name = name || p.name; p.score += pts; p.words += words;
   };
-  const top = (list, n) => Object.values(list).filter((p) => p.score > 0).sort((a, b) => b.score - a.score || b.words - a.words).slice(0, n);
+  // each with its key (platform:user), for widgets that follow a player between updates
+  const top = (list, n) => Object.entries(list).map(([key, p]) => ({ key, ...p })).filter((p) => p.score > 0).sort((a, b) => b.score - a.score || b.words - a.words).slice(0, n);
 
   /** @param {any} saved  @param {{ now: () => number, gameAllTime?: any }} deps */
   function scores(saved, deps) {

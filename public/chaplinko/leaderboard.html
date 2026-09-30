@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Chaplinko leaderboard</title>
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Chaplinko's separate leaderboard, its own OBS browser source: a panel (300 wide, taller with more players) or a strip
+     (720 × 72). It shows the scores the board (play.html) saves in this browser, following each change the board announces.
+     Set it up at /chaplinko/. docs/widgets.md, "Chaplinko: the leaderboard". -->
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../widgets/lib/themes.css">
+<link rel="stylesheet" href="play.css">
+</head>
+<body>
+<div class="stage"><div class="w" id="w" data-theme="chaplinko"><div id="lb"></div></div></div>
+<script src="../widgets/lib/settings.js"></script>
+<script src="../widgets/lib/theme.js"></script>
+<script src="../widgets/lib/platforms/twitch.js"></script>
+<script src="../widgets/lib/platforms/kick.js"></script>
+<script src="../widgets/lib/scores.js"></script>
+<script src="settings.js"></script>
+<script src="leaderboard.js"></script>
+<script src="lbsource.js"></script>
+</body></html>
