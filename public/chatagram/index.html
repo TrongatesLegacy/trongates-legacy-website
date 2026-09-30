@@ -79,10 +79,10 @@ h1 { font-size: 62px; line-height: 1.02; margin: 0 0 16px; } h1 em { font-style:
 /* the hero game's pretend chat: speech bubbles like the logo's, spilling off the game's bottom-left corner (setup.js) */
 .chat { position: absolute; left: -58px; bottom: -26px; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; z-index: 2; pointer-events: none; }
 .chat .b { background: var(--paper); color: var(--ink); border-radius: 16px 16px 16px 4px; padding: 7px 12px 8px; font-size: 15px; line-height: 1.3; box-shadow: 0 4px 0 #cdbfa8, 0 12px 24px #0008;
-  display: flex; gap: 7px; align-items: center; white-space: nowrap; max-width: 320px; transform-origin: left bottom; transition: opacity .3s, transform .3s; }
+  display: flex; gap: 7px; align-items: center; white-space: nowrap; max-width: 320px; transform-origin: left bottom; transition: filter .3s, transform .3s; }
 .chat .b > span:last-child { overflow: hidden; text-overflow: ellipsis; }
 .chat .b b { font-weight: 700; }
-.chat .b:not(:last-child) { opacity: .55; transform: scale(.92); }
+.chat .b:not(:last-child) { filter: brightness(.72) saturate(.7); transform: scale(.92); }
 .chat .b:last-child { transform: rotate(-2deg); }
 .chat .b.hit { background: var(--sun); box-shadow: 0 4px 0 #c9921a, 0 12px 24px #0008; }
 .chat .tiles { display: inline-flex; gap: 2px; }
