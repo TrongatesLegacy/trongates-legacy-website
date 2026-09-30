@@ -396,12 +396,18 @@ with the moment, and with how busy the board is (`game.js`: up at once, down onl
 | Peg hit | flash, ring, a small squash | flash | the hot pegs carry it |
 | Landing | the slot dips and flashes, `+N` for every ball | `+N` for the upper half | a tally per slot (`×12`) |
 | Near miss, big win toast | yes | toast only | no |
-| Jackpot | slow motion, beam, ripple, card, confetti, shake | the same | no slow motion, 2 s card; more than 3 waiting merge into one card |
+| Jackpot | slow motion, beam, ripple, card, confetti, shake | the same | no slow motion, 2 s card |
 
 Frenzy also makes the chute read "FRENZY · +230 waiting" and the board's edge glow (not when the board is transparent:
 no border then). The jackpot: 0.4 s at a third of the
 speed, a beam up from the slot and a ripple through the pegs, the card springing in with the points counting up,
-confetti from both corners at 0.7 s, away toward the leaderboard at 4 s. Other moments: the pegs pop in row by row when
+confetti from both corners at 0.7 s; at 4 s the card swells, flashes and **explodes** into shards and sparks with a
+shockwave across the board (the owner, 2026-09-30: more exciting than floating away; calm or reduced motion: it fades).
+**Jackpots in quick succession are a streak, not a queue** (2026-09-30): a jackpot while the card is up joins it: the
+count punches up (JACKPOT! ×2, ×3…), the new name slides in (the same person again: "PixelPanda ×2"; up to three names,
+then "+N more"), the points count on to the streak's total, more confetti, and each jackpot still fires its own beam and
+ripple (slow motion and the shake only on the first). The card goes 2 s after the last jackpot (at least 4 s after it
+opened; 2 s in Frenzy), so it's always about what just happened. Other moments: the pegs pop in row by row when
 the board loads; the commands shine every 30 s after a minute idle; PAUSED / GO! in the chute; `!drop clear` pops every
 ball. **Motion** (`motion=` in the link, Advanced): auto/full, **calm** (no shake, slow motion, beam, confetti, trails
 or hot pegs), **reduce** (nothing falls: each ball's landing is worked out at once and the `+N` shows; the leaderboard

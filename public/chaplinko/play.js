@@ -184,7 +184,7 @@
   // ---- effects: everything that fades, drawn on the canvas ---------------------------------------------------------------
   const heat = new Float32Array(L.pegs.length), heatColor = new Array(L.pegs.length).fill('');
   const pegIndex = new Map(L.pegs.map((p, i) => [p, i]));
-  let rings = [], sparks = [], nums = [], confetti = [], beam = null, ripple = null, appear = 0;
+  let rings = [], sparks = [], nums = [], confetti = [], beams = [], ripples = [], shocks = [], appear = 0;
   const slotFx = L.pegs.length ? new Array(L.slots.n).fill(null) : [];
   const tallies = new Array(L.slots.n).fill(null).map(() => ({ n: 0, at: 0, bump: 0 }));
   let slowUntil = 0, wobble = null;
@@ -265,46 +265,90 @@
     gulp();
   }
 
-  // ---- the jackpot: slow motion, the beam, the ripple, the card, confetti, then away (queued; merged when many) -------------------
-  const jq = []; let jOn = false;
-  function jackpot(j) { jq.push(j); if (!jOn) nextJackpot(); }
-  function nextJackpot() {
-    if (!jq.length) { jOn = false; return; }
-    jOn = true;
-    const frenzy = lv() === 'frenzy', many = frenzy && jq.length > 3 ? jq.splice(0) : [jq.shift()], j = many[0];
-    const cx = L.slots.x0 + (j.slot + 0.5) * L.slots.w;
-    if (!rm && !calm) {
-      if (!frenzy) slowUntil = now() + 400;
-      beam = { x: cx, t: 0 }; ripple = { x: cx, y: L.slots.y, t: 0 };
-      setTimeout(() => { for (let i = 0; i < 80; i++) { const left = i % 2, a = (left ? -0.35 : -2.8) + (Math.random() - 0.5) * 0.9, s = 380 + Math.random() * 380; confetti.push({ x: left ? 10 : 630, y: 530, vx: Math.cos(a) * s * (left ? 1 : 1), vy: Math.sin(a) * s, r: Math.random() * 6, vr: (Math.random() - 0.5) * 12, c: [css(C.gold), css(C.accent), css(C.text), '#2ee6a8', '#5ad1ff'][i % 5], w: 6 + Math.random() * 6, h: 3 + Math.random() * 4, t: 0 }); } shake(); kick(); }, 700);
-    }
+  // ---- the jackpot: one live card that grows into a streak ----------------------------------------------------------------------
+  // The first jackpot opens the card: slow motion (not in Frenzy), the card springing in, confetti and a shake. A jackpot that
+  // lands while the card is up joins it instead of waiting behind it: the count punches up (JACKPOT! ×2, ×3…), a new name slides
+  // in (the same person again: "PixelPanda ×2"), the points count on and more confetti bursts. Every jackpot fires its own beam
+  // and ripple from its slot. The card leaves 2 s after the last one (at least 4 s after it opened; 2 s in Frenzy), so it's
+  // always about what just happened, never a queue running behind.
+  let jc = null;
+  const STREAK_HOLD = 2000;
+  const who = (b) => `${shownPlatforms.length > 1 ? `<span class="dot ${b.platform === 'kick' ? 'kk' : 'tw'}"></span>` : ''}${esc(b.name)}`;
+  function jackpot(j) {
+    const cx = L.slots.x0 + (j.slot + 0.5) * L.slots.w, frenzy = lv() === 'frenzy';
+    if (!rm && !calm) { beams.push({ x: cx, t: 0 }); ripples.push({ x: cx, y: L.slots.y, t: 0 }); kick(); }
+    if (!jc) openCard(j, frenzy); else addToCard(j);
+    const stay = frenzy ? 2000 : 4000;
+    clearTimeout(jc.timer);
+    jc.timer = setTimeout(closeCard, Math.max(jc.openedAt + stay - Date.now(), jc.count > 1 ? STREAK_HOLD : 0));
+  }
+  function burst(n, delay = 0) {
+    if (rm || calm) return;
+    setTimeout(() => { for (let i = 0; i < n; i++) { const left = i % 2, a = (left ? -0.35 : -2.8) + (Math.random() - 0.5) * 0.9, s = 380 + Math.random() * 380; confetti.push({ x: left ? 10 : 630, y: 530, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: Math.random() * 6, vr: (Math.random() - 0.5) * 12, c: [css(C.gold), css(C.accent), css(C.text), '#2ee6a8', '#5ad1ff'][i % 5], w: 6 + Math.random() * 6, h: 3 + Math.random() * 4, t: 0 }); } kick(); }, delay);
+  }
+  function openCard(j, frenzy) {
+    if (!rm && !calm) { if (!frenzy) slowUntil = now() + 400; burst(80, 700); setTimeout(shake, 700); }
     const dim = document.createElement('div'); dim.className = 'dim';
     const card = document.createElement('div'); card.className = 'card';
-    const who = (b) => `${shownPlatforms.length > 1 ? `<span class="dot ${b.platform === 'kick' ? 'kk' : 'tw'}"></span>` : ''}${esc(b.name)}`;
-    const oneIn = game.oneIn(j.slot);
-    const nth = ['', 'the first', 'the second', 'the third'][j.res.nth] || `number ${j.res.nth}`;
-    card.innerHTML = many.length > 1
-      ? `<div class="k">${[...'JACKPOT'].map((c) => `<span>${c}</span>`).join('')} ×${many.length}</div><div class="many">${many.slice(0, 3).map((x) => who(x.by)).join(', ')}${many.length > 3 ? ` and ${many.length - 3} more` : ''}</div><div class="pts">+${j.res.pts} each</div>`
-      : `<div class="k">${[...'JACKPOT!'].map((c) => `<span>${c}</span>`).join('')}</div><div class="who">${who(j.by)}</div><div class="pts">+0</div><div class="sub">${oneIn ? `1 in ${oneIn.toLocaleString('en')} · ` : ''}${nth} today</div>`;
+    const oneIn = game.oneIn(j.slot), nth = ['', 'the first', 'the second', 'the third'][j.res.nth] || `number ${j.res.nth}`;
+    card.innerHTML = `<div class="k"><span class="jk">${[...'JACKPOT!'].map((c) => `<span>${c}</span>`).join('')}</span><span class="x" hidden></span></div>` +
+      `<div class="names"></div><div class="pts">+0</div><div class="sub">${oneIn ? `1 in ${oneIn.toLocaleString('en')} · ` : ''}${nth} today</div>`;
     boardEl.append(dim, card);
+    jc = { card, dim, count: 0, people: new Map(), total: 0, shown: 0, openedAt: Date.now(), oneIn, timer: null, firstNth: j.res.nth };
     anim(dim, [{ opacity: 0 }, { opacity: 1 }], { duration: 250, fill: 'backwards' });
     const cardIn = anim(card, [{ transform: 'translate(-50%, -50%) rotate(-8deg) scale(.5)', opacity: 0 }, { transform: 'translate(-50%, -50%) rotate(-1deg) scale(1.08)', opacity: 1, offset: 0.65 }, { transform: 'translate(-50%, -50%) rotate(-2deg) scale(1)', opacity: 1 }], { duration: 480, delay: rm ? 0 : 450, easing: 'ease-out', fill: 'backwards' });
     if (!cardIn) card.style.opacity = '1';
-    [...card.querySelectorAll('.k span')].forEach((s, i) => anim(s, [{ transform: 'translateY(26px) scale(.4)', opacity: 0 }, { transform: 'translateY(-6px) scale(1.15)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }], { duration: 420, delay: 520 + i * 45, easing: 'ease-out', fill: 'backwards' }));
-    // the points count up from 0
-    const ptsEl = many.length > 1 ? null : card.querySelector('.pts');
-    if (ptsEl) { if (rm) ptsEl.textContent = '+' + j.res.pts; else { const t0 = performance.now() + 600; const up = (t) => { const k = Math.max(0, Math.min(1, (t - t0) / 600)); ptsEl.textContent = '+' + Math.round(j.res.pts * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(up); }; requestAnimationFrame(up); } }
-    const stay = frenzy ? 2000 : 4000;
-    setTimeout(() => {
-      // away: toward the leaderboard (combined: its side), then the next one
-      const toX = combined ? (cfg.side === 'left' ? '-80%' : '80%') : '60%';
-      const out = anim(card, [{ transform: 'translate(-50%, -50%) rotate(-2deg) scale(1)', opacity: 1 }, { transform: `translate(${toX}, -140%) rotate(4deg) scale(.3)`, opacity: 0 }], { duration: 450, easing: 'ease-in', fill: 'forwards' });
-      const dimOut = anim(dim, [{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: 'forwards' });
-      const done = () => { card.remove(); dim.remove(); nextJackpot(); };
-      if (out) out.onfinish = done; else done();
-      void dimOut;
-    }, stay);
+    [...card.querySelectorAll('.jk span')].forEach((s, i) => anim(s, [{ transform: 'translateY(26px) scale(.4)', opacity: 0 }, { transform: 'translateY(-6px) scale(1.15)', opacity: 1, offset: 0.7 }, { transform: 'none', opacity: 1 }], { duration: 420, delay: 520 + i * 45, easing: 'ease-out', fill: 'backwards' }));
+    addToCard(j, true);
   }
+  function addToCard(j, first) {
+    const c = jc, key = `${j.by.platform}:${j.by.user}`;
+    c.count++; c.total += j.res.pts;
+    const p = c.people.get(key) || { by: j.by, n: 0 }; p.n++; c.people.set(key, p);
+    // the names: up to three, each with ×N when they hit more than once, then "+N more"
+    const list = [...c.people.values()], names = c.card.querySelector('.names');
+    names.innerHTML = list.slice(0, 3).map((x) => `<div class="who" data-key="${esc(`${x.by.platform}:${x.by.user}`)}">${who(x.by)}${x.n > 1 ? ` <b class="times">×${x.n}</b>` : ''}</div>`).join('') + (list.length > 3 ? `<div class="more">+${list.length - 3} more</div>` : '');
+    if (!first) {
+      const x = c.card.querySelector('.x'); x.hidden = false; x.textContent = `×${c.count}`;
+      c.card.querySelector('.sub').textContent = `${c.count} jackpots in a row${c.oneIn ? ` · 1 in ${c.oneIn.toLocaleString('en')} each` : ''}`;
+      anim(x, [{ transform: 'scale(2.2)', opacity: 0 }, { transform: 'scale(.9)', opacity: 1, offset: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'ease-out' });
+      anim(c.card, [{ transform: 'translate(-50%, -50%) rotate(-2deg) scale(1)' }, { transform: 'translate(-50%, -50%) rotate(-4deg) scale(1.07)', offset: 0.35 }, { transform: 'translate(-50%, -50%) rotate(-2deg) scale(1)' }], { duration: 360, easing: 'ease-out' });
+      const row = c.card.querySelector(`.who[data-key="${CSS.escape(key)}"]`);
+      if (row) anim(row, p.n > 1 ? [{ transform: 'scale(1.25)' }, { transform: 'none' }] : [{ transform: 'translateY(12px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 320, easing: 'ease-out' });
+      burst(40);
+    }
+    // the points count on from where they are to the streak's total
+    const ptsEl = c.card.querySelector('.pts'), from = c.shown, to = c.total;
+    if (rm) { ptsEl.textContent = '+' + to; c.shown = to; return; }
+    const t0 = performance.now() + (first ? 600 : 0), me = (c.countId = (c.countId || 0) + 1);
+    const up = (t) => { if (c.countId !== me) return; const k = Math.max(0, Math.min(1, (t - t0) / 600)); c.shown = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))); ptsEl.textContent = '+' + c.shown; if (k < 1) requestAnimationFrame(up); };
+    requestAnimationFrame(up);
+  }
+  // the end: the card swells and flashes, then explodes into shards of itself and sparks, with a shockwave across the board
+  // (calm or reduced motion: it just fades)
+  function closeCard() {
+    const c = jc; if (!c) return;
+    jc = null;                                                          // a jackpot from now on opens a fresh card
+    anim(c.dim, [{ opacity: 1 }, { opacity: 0 }], { duration: 500, delay: calm ? 0 : 220, fill: 'forwards' });
+    const done = () => { c.card.remove(); c.dim.remove(); };
+    if (rm) return done();
+    if (calm) { const a = anim(c.card, [{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: 'forwards' }); if (a) a.onfinish = done; else done(); return; }
+    const swell = anim(c.card, [{ transform: 'translate(-50%, -50%) rotate(-2deg) scale(1)', filter: 'brightness(1)' }, { transform: 'translate(-50%, -50%) rotate(-3deg) scale(1.12)', filter: 'brightness(1.8)', offset: 0.75 }, { transform: 'translate(-50%, -50%) rotate(0deg) scale(1.3)', filter: 'brightness(3)', opacity: 0 }], { duration: 260, easing: 'ease-in', fill: 'forwards' });
+    const boom = () => {
+      const r = c.card.getBoundingClientRect(), b = boardEl.getBoundingClientRect(), k = b.width / 640 || 1;
+      const x = (r.left + r.width / 2 - b.left) / k, y = (r.top + r.height / 2 - b.top) / k, w = r.width / k, h = r.height / k;
+      shocks.push({ x, y, t: 0 });
+      const shard = css(C.panel), edge = css(C.gold);
+      for (let i = 0; i < 90; i++) {
+        const a = Math.random() * Math.PI * 2, sp = 250 + Math.random() * 650, big = i < 34;
+        confetti.push({ x: x + (Math.random() - 0.5) * w * 0.8, y: y + (Math.random() - 0.5) * h * 0.8, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, r: Math.random() * 6, vr: (Math.random() - 0.5) * 18,
+          c: big ? (i % 3 ? shard : edge) : [edge, css(C.accent), css(C.text), '#fff'][i % 4], w: big ? 12 + Math.random() * 16 : 4 + Math.random() * 5, h: big ? 8 + Math.random() * 10 : 3 + Math.random() * 3, t: 0.3 });
+      }
+      done(); kick();
+    };
+    if (swell) swell.onfinish = boom; else boom();
+  }
+
   function shake() { anim(boardEl, [{ transform: 'none' }, { transform: 'translate(-4px, 2px)' }, { transform: 'translate(4px, -2px)' }, { transform: 'translate(-2px, 1px)' }, { transform: 'none' }], { duration: 320 }); }
   function toast(by, pts) {
     const t = document.createElement('div'); t.className = 'toast';
@@ -327,7 +371,7 @@
       const p = L.pegs[i], k = appear >= 1 ? 1 : Math.max(0, Math.min(1, (appear * 800 - p.row * 30) / 200));
       if (!k) continue;
       let r = p.r * k, rip = 0;
-      if (ripple) { const d = Math.hypot(p.x - ripple.x, p.y - ripple.y), front = ripple.t * 900; rip = Math.max(0, 1 - Math.abs(d - front) / 45) * (1 - ripple.t / 0.6); }
+      for (const w of ripples) { const d = Math.hypot(p.x - w.x, p.y - w.y), front = w.t * 900; rip = Math.max(rip, Math.max(0, 1 - Math.abs(d - front) / 45) * (1 - w.t / 0.6)); }
       if (heat[i] > 0.02 || rip > 0.02) {
         ctx.globalAlpha = Math.min(1, heat[i] * 0.55 + rip * 0.6); ctx.fillStyle = rip > heat[i] ? css(C.gold) : heatColor[i];
         ctx.beginPath(); ctx.arc(p.x, p.y, r + 5, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
@@ -341,7 +385,7 @@
     for (const g of rings) { const k = g.t / 0.25; ctx.globalAlpha = (1 - k) * 0.7; ctx.strokeStyle = g.c; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(g.x, g.y, g.r + 3 + k * 10, 0, TAU); ctx.stroke(); }
     ctx.globalAlpha = 1;
     // the beam from a jackpot slot
-    if (beam) { const k = beam.t / 0.7, g = ctx.createLinearGradient(0, L.slots.y, 0, 0); g.addColorStop(0, css([...C.gold.slice(0, 3), 0.85 * (1 - k)])); g.addColorStop(1, css([...C.gold.slice(0, 3), 0])); ctx.fillStyle = g; ctx.fillRect(beam.x - L.slots.w * 0.42, 0, L.slots.w * 0.84, L.slots.y); }
+    for (const beam of beams) { const k = beam.t / 0.7, g = ctx.createLinearGradient(0, L.slots.y, 0, 0); g.addColorStop(0, css([...C.gold.slice(0, 3), 0.85 * (1 - k)])); g.addColorStop(1, css([...C.gold.slice(0, 3), 0])); ctx.fillStyle = g; ctx.fillRect(beam.x - L.slots.w * 0.42, 0, L.slots.w * 0.84, L.slots.y); }
     // the slots: dip and flash when a ball lands; a tally in Frenzy; the top slot glows
     const rise = appear >= 1 ? 0 : Math.max(0, 1 - Math.max(0, appear * 800 - 300) / 400);
     const max = Math.max(...game.values);
@@ -402,6 +446,9 @@
       ctx.fillStyle = n.c; ctx.fillText(n.text, n.x, y);
     }
     ctx.globalAlpha = 1;
+    // the card's explosion: a shockwave ring and a flash
+    for (const w of shocks) { const k = w.t / 0.55; ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = css(C.gold); ctx.lineWidth = 10 * (1 - k) + 1; ctx.beginPath(); ctx.arc(w.x, w.y, 30 + k * 360, 0, TAU); ctx.stroke(); ctx.globalAlpha = (1 - k) * 0.35; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(w.x, w.y, 30 + k * 140, 0, TAU); ctx.fill(); }
+    ctx.globalAlpha = 1;
     for (const f of confetti) { ctx.save(); ctx.globalAlpha = Math.max(0, 1 - Math.max(0, f.t - 1.6) / 0.6); ctx.translate(f.x, f.y); ctx.rotate(f.r); ctx.fillStyle = f.c; ctx.fillRect(-f.w / 2, -f.h / 2, f.w, f.h); ctx.restore(); }
     ctx.globalAlpha = 1;
   }
@@ -412,7 +459,7 @@
   const caps = () => { if (sparks.length > 150) sparks.splice(0, sparks.length - 150); if (rings.length > 60) rings.splice(0, rings.length - 60); if (nums.length > 40) nums.splice(0, nums.length - 40); };
   function busy() {
     const t = now();
-    return world.balls.length || game.queued || rings.length || sparks.length || nums.length || confetti.length || beam || ripple || wobble || appear < 1 ||
+    return world.balls.length || game.queued || rings.length || sparks.length || nums.length || confetti.length || beams.length || ripples.length || shocks.length || wobble || appear < 1 ||
       heat.some((h) => h > 0.02) || slotFx.some((f) => f && f.t < 0.5) || tallies.some((x) => x.n && t - x.at < 2600);
   }
   function kick() { if (!running && !still) { running = true; last = performance.now(); requestAnimationFrame(frame); } }
@@ -440,8 +487,7 @@
     rings = fade(rings, 0.25); nums = fade(nums, 0.9);
     sparks = fade(sparks, 0.6); for (const s of sparks) { s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 400 * dt; }
     confetti = fade(confetti, 2.2); for (const f of confetti) { f.x += f.vx * dt; f.y += f.vy * dt; f.vy += 900 * dt; f.vx *= 0.99; f.r += f.vr * dt; }
-    if (beam && (beam.t += dt) > 0.7) beam = null;
-    if (ripple && (ripple.t += dt) > 0.6) ripple = null;
+    beams = fade(beams, 0.7); ripples = fade(ripples, 0.6); shocks = fade(shocks, 0.55);
     if (wobble && (wobble.t += dt) > 0.7) wobble = null;
     if (appear < 1) appear = Math.min(1, appear + dt / 0.8);
     for (let i = 0; i < heat.length; i++) if (heat[i] > 0) heat[i] = Math.max(0, heat[i] - dt / 2);
@@ -528,7 +574,7 @@
     const say = K.demo(() => {}, { platforms: shownPlatforms, random: seeded, setTimeout: () => 0, clearTimeout: () => {}, cmd: cmdName });
     for (let i = 0; i < 7; i++) { hear(say.message()); for (let s = 0; s < 70; s++) { offset += 1000 / 120; tick(1 / 120); } }
     draw(); drawChute();
-    if (screen === 'jackpot') { const by = { platform: shownPlatforms[0], user: 'pixelpanda', name: 'PixelPanda', color: '#ff4f9a' }; beam = ripple = null; jackpot({ by, res: { pts: game.top, nth: 1, tier: 'jackpot' }, slot: 0, color: '#ff4f9a' }); confetti = []; }
+    if (screen === 'jackpot') { const by = { platform: shownPlatforms[0], user: 'pixelpanda', name: 'PixelPanda', color: '#ff4f9a' }; jackpot({ by, res: { pts: game.top, nth: 1, tier: 'jackpot' }, slot: 0, color: '#ff4f9a' }); confetti = []; beams = []; ripples = []; }
   } else if (!demo && !platforms.length) {
     msg.innerHTML = `<div><h2>Add your channel</h2><p>Set Chaplinko up at <code>trongateslegacy.com/chaplinko</code>, then paste the link it gives you</p></div>`; msg.classList.add('on');
   } else {

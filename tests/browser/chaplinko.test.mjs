@@ -204,3 +204,23 @@ test('an animated emote plays while it falls: its frames are decoded (a canvas w
   noErrors(tab, 'animated emotes');
   await tab.close();
 });
+
+test('jackpots in quick succession grow one live card (a streak, never a queue of cards), which then explodes', async () => {
+  const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
+  await ready(tab); await sleep(200);
+  const land = (user, name, slot) => tab.eval(`chaplinko.land({ platform: 'twitch', user: '${user}', name: '${name}' }, ${slot}); 1`);
+  await land('pixelpanda', 'PixelPanda', 0); await sleep(600);
+  await land('neonnacho', 'NeonNacho', 10); await sleep(400);
+  await land('pixelpanda', 'PixelPanda', 10); await sleep(300);
+  assert.equal(await tab.eval('document.querySelectorAll(".card").length'), 1, 'one card, however many jackpots');
+  const text = await tab.eval('document.querySelector(".card").innerText');
+  assert.match(text, /×3/, 'the count'); assert.match(text, /PixelPanda\s*×2/, 'the same person twice'); assert.match(text, /NeonNacho/);
+  assert.match(text, /3 jackpots in a row/);
+  await tab.until('document.querySelector(".card .pts").textContent === "+300"', 3000, 'the points counted on to the streak\'s total');
+  // it ends 2 s after the last jackpot (at least 4 s after it opened), exploding: no card left, the board still animating
+  await tab.until('!document.querySelector(".card") && !document.querySelector(".dim")', 8000, 'the card to go');
+  await land('pixelpanda', 'PixelPanda', 0); await sleep(300);
+  assert.doesNotMatch(await tab.eval('document.querySelector(".card").innerText'), /×/, 'a later jackpot starts a fresh card');
+  noErrors(tab, 'the jackpot streak');
+  await tab.close();
+});
