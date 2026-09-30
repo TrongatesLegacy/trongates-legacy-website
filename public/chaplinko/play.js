@@ -113,13 +113,15 @@
   };
   let C = {};
   function readPalette() {
-    const s = getComputedStyle(root), v = (k) => s.getPropertyValue(k).trim();
-    C = { accent: rgba(v('--accent')), ink: rgba(v('--accent-ink')), text: rgba(v('--text')), muted: rgba(v('--muted')), slot: rgba(v('--slot')), panel: rgba(v('--panel')), gold: rgba(v('--gold')),
-      display: `${v('--display-weight') || 400} {px}px ${v('--display') || 'sans-serif'}`, font: v('--font') || 'sans-serif' };
+    // the board's own colours (a transparent Light or Cozy board swaps in light text: play.css), and the theme's own text
+    // for things drawn on the theme's own light surfaces (the slots, the tallies)
+    const s = getComputedStyle(boardEl), v = (k) => s.getPropertyValue(k).trim(), own = v('--text');
+    C = { accent: rgba(v('--accent')), ink: rgba(v('--accent-ink')), text: rgba(v('--ontop')), muted: rgba(v('--ontop-muted')), slot: rgba(v('--slot')), panel: rgba(v('--panel')), gold: rgba(v('--gold')),
+      surfaceText: rgba(own), display: `${v('--display-weight') || 400} {px}px ${v('--display') || 'sans-serif'}`, font: v('--font') || 'sans-serif' };
     C.peg = css(mix(C.text, C.accent, 0.15));
     const values = game.values, max = Math.max(...values);
     C.slots = values.map((val) => (val === max ? css(C.gold) : css(mix(C.slot[3] < 1 ? [...C.slot.slice(0, 3), 1] : C.slot, C.accent, Math.pow(val / max, 0.45) * 0.85))));
-    C.slotInk = values.map((val) => (val === max || val / max > 0.3 ? css(C.ink) : css(C.text)));
+    C.slotInk = values.map((val) => (val === max || val / max > 0.3 ? css(C.ink) : css(C.surfaceText)));
     colorCache.clear();
     draw();
   }
@@ -408,7 +410,7 @@
         if (tl.n && age < 2600) {
           const a = age < 2000 ? 1 : 1 - (age - 2000) / 600, b = 1 + tl.bump * 0.25;
           ctx.globalAlpha = a; ctx.fillStyle = css(C.panel); rrect(cx - w * 0.36 * b, L.slots.y - 24, w * 0.72 * b, 17 * b, 8); ctx.fill();
-          ctx.fillStyle = css(C.text); ctx.font = font(11 * b); ctx.fillText('×' + tl.n, cx, L.slots.y - 15.5); ctx.globalAlpha = 1;
+          ctx.fillStyle = css(C.surfaceText); ctx.font = font(11 * b); ctx.fillText('×' + tl.n, cx, L.slots.y - 15.5); ctx.globalAlpha = 1;
         }
       }
     }

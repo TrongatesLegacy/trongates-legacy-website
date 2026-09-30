@@ -8,7 +8,9 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
 .w.left { flex-direction: row-reverse; }
 .board { position: relative; width: 640px; height: 540px; border-radius: var(--radius); background: var(--bg); box-shadow: var(--edge); overflow: hidden; flex: none; }
 .board.clear { background: none; box-shadow: none; }
-.board { font-family: var(--font); }
+/* --ontop: text straight over the game (the chute, the credit; the canvas's pegs and numbers). The theme's own text
+   (--text) stays for what sits on the theme's own surfaces: the big win card, the slots. */
+.board { font-family: var(--font); color: var(--text); --ontop: var(--text); --ontop-muted: var(--muted); }
 #cv { position: absolute; left: 0; top: 0; width: 640px; height: 540px; }
 
 /* the drop chute: the commands, or what's happening (FRENZY · +230 waiting, PAUSED) */
@@ -17,7 +19,7 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
   font: 700 12.5px var(--font); white-space: nowrap; overflow: hidden; transition: background .3s, box-shadow .3s; }
 .chute .lead { width: 11px; height: 11px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--accent); }
 .chute .nm { font: var(--display-weight) 13px var(--display); letter-spacing: .06em; }
-.chute .a { color: var(--accent); } .chute .m { color: var(--muted); }
+.chute { color: var(--ontop); } .chute .a { color: var(--accent); } .chute .m { color: var(--ontop-muted); }
 .board.clear .chute { box-shadow: 0 2px 10px rgb(0 0 0 / .45); }
 .frenzy .chute { background: color-mix(in srgb, var(--accent) 32%, var(--slot)); box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 55%, transparent); }
 .chute.idle::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / .35) 50%, transparent 65%);
@@ -32,7 +34,7 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
 @keyframes breathe { 50% { opacity: .55; } }
 
 /* the credit: centred, just under the slots (they end at 520) */
-.credit { position: absolute; left: 0; right: 0; top: 525px; text-align: center; font-size: 10px; line-height: 12px; color: var(--muted); opacity: .75; }
+.credit { position: absolute; left: 0; right: 0; top: 525px; text-align: center; font-size: 10px; line-height: 12px; color: var(--ontop-muted); opacity: .75; }
 .board.clear .credit { text-shadow: 0 1px 2px rgb(0 0 0 / .9); opacity: .9; }
 
 /* the big win card, over the board */
@@ -70,7 +72,7 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
 .toplist .row { height: 28px; }
 
 /* ---- the leaderboard ---- */
-.lb { font-family: var(--font); color: var(--text); box-sizing: border-box; position: relative; flex: none; }
+.lb { font-family: var(--font); color: var(--text); box-sizing: border-box; position: relative; flex: none; overflow: clip; }   /* the shine and sweep stay inside (its padding leaves room for the rest) */
 .lb.panel { width: 300px; padding: 14px 16px 12px; background: var(--bg); border-radius: var(--radius); box-shadow: var(--edge); }
 .lb h2 { margin: 0 0 10px; font: var(--display-weight) 22px var(--display); letter-spacing: .02em; }
 .lb .one { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .12em; text-transform: uppercase; margin: -4px 0 8px; }
@@ -128,6 +130,13 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
 .clear .lb .row { border-color: rgb(255 255 255 / .14); }
 .clear .lb.strip .row { box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .22); }
 .clear .lb .row.lift { background: rgb(0 0 0 / .35); }
+
+/* transparent, the themes with dark text (Light, Cozy): over a game it would vanish, so the text turns light; the chute
+   gets a dark pill (the board's slots and panels keep the theme's own fill, and their own dark text: play.js surfaceText) */
+[data-theme=light] .board.clear, [data-theme=cozy] .board.clear { --ontop: #f7f8fb; --ontop-muted: #dde1ea; }
+.clear[data-theme=light], .clear[data-theme=cozy] { --text: #f7f8fb; --muted: #dde1ea; }   /* the leaderboard: nothing but text over the game */
+[data-theme=light] .board.clear .chute, [data-theme=cozy] .board.clear .chute { background: rgb(18 20 28 / .78); }
+.clear[data-theme=light] .lb .row:first-child .p, .clear[data-theme=cozy] .lb .row:first-child .p { color: var(--text); }
 
 /* reduced motion: every change is instant */
 .rm *, .rm *::before, .rm *::after { animation: none !important; transition: none !important; }

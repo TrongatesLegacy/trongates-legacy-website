@@ -357,6 +357,10 @@ artwork/chaplinko/                        the link-preview image and the picture
   exactly as each ball would alone), and a gravity setting (it changed where balls land; **Speed** plays the same steps
   slower or faster instead, so the odds hold).
 - A ball resting on a peg gets a small push towards the middle; after 30 s one is put in the nearest slot.
+- **Transparent with a dark-text theme** (Light, Cozy): their dark text would vanish over a game, so what sits straight on
+  the game turns light (the pegs, the numbers, the chute's text on a dark pill, the credit, the whole transparent
+  leaderboard), while the theme's own surfaces keep their dark text (the slots, the tallies, the big win card). CSS
+  `--ontop` is that "over the game" colour; the canvas reads it for the pegs and numbers.
 
 ### Chat
 
