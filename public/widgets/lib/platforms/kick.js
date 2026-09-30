@@ -37,6 +37,11 @@
     } catch { return { state: 'unknown' }; }
   }
 
+  // Kick puts emotes in the text itself: [emote:37226:KEKW]. Only that form, with Kick's own numeric id, becomes an emote.
+  const EMOTE_URL = (id) => `https://files.kick.com/emotes/${id}/fullsize`;
+  const emotesFrom = (text) => [...text.matchAll(/\[emote:(\d{1,12}):(\w{1,64})\]/g)].map((m) => ({ id: m[1], name: m[2], url: EMOTE_URL(m[1]) }));
+  const colorOf = (c) => (/^#[0-9a-f]{6}$/i.test(c || '') ? c.toLowerCase() : '');
+
   /** one Pusher frame → a message, a ping, subscribed, or null */
   function parse(raw, chan) {
     let f; try { f = JSON.parse(raw); } catch { return null; }
@@ -51,7 +56,7 @@
     const badges = [...(id.badges || []).map((b) => b && b.type), ...(id.badges_v2 || []).map((b) => b && b.name)];
     const user = String(d.sender.slug || d.sender.username || '').toLowerCase();
     const owner = badges.includes('broadcaster') || (!!chan && user === chan);
-    return { type: 'message', platform: 'kick', user, name: d.sender.username || user, text: d.content, owner, mod: owner || badges.includes('moderator') };
+    return { type: 'message', platform: 'kick', user, name: d.sender.username || user, text: d.content, owner, mod: owner || badges.includes('moderator'), color: colorOf(id.color), emotes: emotesFrom(d.content) };
   }
 
   /** @param {{ channel: string, chatroomId?: number|string, socket: Function, fetch?: Function }} o */
@@ -77,5 +82,5 @@
     }, onStatus);
   }
 
-  (W.platforms = W.platforms || {}).kick = { channel, chatroom, stream, streamFrom, parse, connect, KEY, label: 'Kick', color: '#53fc18' };
+  (W.platforms = W.platforms || {}).kick = { channel, chatroom, stream, streamFrom, parse, connect, KEY, EMOTE_URL, label: 'Kick', color: '#53fc18' };
 })();

@@ -7,9 +7,9 @@
 // Either field can be left out; accent: '' goes back to the theme's own colour. Anything invalid is ignored.
 (() => {
   const W = (window.Widgets = window.Widgets || {});
-  const THEMES = ['chatagram', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy'];
+  const THEMES = ['chatagram', 'chaplinko', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy'];
   // each theme's own accent, for the set-up page's "theme default" swatch (themes.css has the same values)
-  const ACCENTS = { chatagram: 'ffc93c', neutral: '4f8cff', light: 'ff5a36', neon: '22e5ff', candy: 'ffd23f', royal: 'ff63b8', deep: 'ffb36b', cozy: 'd9653b' };
+  const ACCENTS = { chatagram: 'ffc93c', chaplinko: 'ff7a1a', neutral: '4f8cff', light: 'ff5a36', neon: '22e5ff', candy: 'ffd23f', royal: 'ff63b8', deep: 'ffb36b', cozy: 'd9653b' };
   const hex = (c) => (/^#?[0-9a-f]{6}$/i.test(String(c || '')) ? String(c).replace('#', '').toLowerCase() : '');
 
   /** @param {HTMLElement} el @param {{ theme?: string, accent?: string }} t */

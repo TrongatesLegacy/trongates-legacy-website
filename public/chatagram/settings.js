@@ -3,7 +3,7 @@
 // streamer who changes nothing gets. MAIN are shown on the set-up page; the rest are under Advanced settings.
 (() => {
   const C = (window.Chatagram = window.Chatagram || {});
-  const THEMES = ['chatagram', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy'];
+  const THEMES = ['chatagram', 'chaplinko', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy'];
   /** @type {Record<string, any>} */
   const SCHEMA = {
     twitch: { type: 'str', def: '', maxLen: 25 },

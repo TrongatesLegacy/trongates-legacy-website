@@ -8,6 +8,8 @@
 @font-face { font-family: "Chakra Petch"; src: url("../../assets/fonts/chakra-petch-600.woff2") format("woff2"); font-weight: 600 700; font-display: swap; }
 @font-face { font-family: "Orbitron"; src: url("../../assets/fonts/orbitron.woff2") format("woff2"); font-weight: 400 900; font-display: swap; }
 @font-face { font-family: "Cinzel Decorative"; src: url("../../assets/fonts/cinzel-decorative-900.woff2") format("woff2"); font-weight: 900; font-display: swap; }
+@font-face { font-family: "Bungee"; src: url("../../assets/fonts/bungee.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Space Grotesk"; src: url("../../assets/fonts/space-grotesk.woff2") format("woff2"); font-weight: 300 700; font-display: swap; }
 
 [data-theme] {
   --good: #3ddc84; --bad: #ff5a5a; --gold: #ffc93c;
@@ -56,6 +58,13 @@
   --bg: linear-gradient(180deg, rgb(8 40 52 / var(--bgo, 1)), rgb(2 11 17 / var(--bgo, 1))); --panel: #06202b; --slot: #0b2f3c; --text: #eafcff; --muted: #8fbac2; --accent: #ffb36b; --accent-ink: #1b0f02;
   --tile: #ffb36b; --tile-text: #1b0f02; --tile-edge: #b86a26; --radius: 16px;
   --edge: inset 0 -5px 0 #45d6c833;
+}
+[data-theme=chaplinko] {
+  --frame: 1px;   /* Chaplinko's brand: midnight, cobalt rims, a tangerine ball, jackpot pink (docs/widgets.md, "The Chaplinko page") */
+  --bg: rgb(10 18 51 / var(--bgo, 1)); --panel: #121d4d; --slot: #1b2a66; --text: #eef3ff; --muted: #9fb0e0; --accent: #ff7a1a; --accent-ink: #1a0a00;
+  --gold: #ff3d8b; --tile: #eef3ff; --tile-text: #0a1233; --tile-edge: #2f5bff; --radius: 16px;
+  --font: "Space Grotesk", system-ui, sans-serif; --display: Bungee, system-ui, sans-serif; --display-weight: 400;
+  --edge: inset 0 0 0 1px #2f5bff66, 0 0 32px #2f5bff26;
 }
 [data-theme=cozy] {
   --frame: 3px;   /* the frame's width (overlays sit inside it) */

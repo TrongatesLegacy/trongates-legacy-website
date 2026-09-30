@@ -1,6 +1,7 @@
-// Reads every platform's chat as one stream of messages: { platform, user, name, text, mod, owner }
+// Reads every platform's chat as one stream of messages: { platform, user, name, text, mod, owner, color, emotes }
 // (docs/widgets.md, "Reading chat"). Each platform (platforms/*.js) describes its WebSocket; this file keeps it
-// connected: reconnects after a drop, waiting longer each time (1, 2, 5, 10, then 30 s: never more than a few
+// connected (color: the chatter's chat colour, '#rrggbb' or ''; emotes: [{ id, name, url }] the platform itself found in
+// the text, in order). It reconnects after a drop, waiting longer each time (1, 2, 5, 10, then 30 s: never more than a few
 // attempts a minute), keeps the connection alive, and reports each platform's status: connecting, live, retrying, or
 // error (e.g. a Kick channel that doesn't exist, retried every minute).
 //

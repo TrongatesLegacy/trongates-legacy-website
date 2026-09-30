@@ -1,6 +1,6 @@
 // Twitch chat, read anonymously (docs/widgets.md, "Reading chat"). Twitch lets anyone read a channel's chat over its
 // IRC WebSocket without logging in (a "justinfan" nickname), so nothing here needs an account or a key. Turns each
-// line into the widgets' one message shape: { platform, user, name, text, mod, owner }.
+// line into the widgets' one message shape: { platform, user, name, text, mod, owner, color, emotes }.
 (() => {
   const W = (window.Widgets = window.Widgets || {});
   const URL_ = 'wss://irc-ws.chat.twitch.tv:443';
@@ -8,6 +8,23 @@
   /** whatever someone typed (twitch.tv/Name, @Name, Name) → the channel's login */
   const channel = (input) => String(input || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^(www\.|m\.)?twitch\.tv\//, '').replace(/^@/, '').split(/[/?#\s]/)[0].replace(/[^a-z0-9_]/g, '').slice(0, 25);
 
+  // the emotes Twitch itself found in the message (its "emotes" tag: id:start-end,start-end/id:…, positions in characters),
+  // in the order they appear. Only ids Twitch sent are used, never an address someone typed.
+  const EMOTE_URL = (id) => `https://static-cdn.jtvnw.net/emoticons/v2/${id}/static/dark/2.0`;
+  function emotesFrom(tag, text) {
+    if (!tag) return [];
+    const chars = Array.from(text), out = [];
+    for (const part of tag.split('/')) {
+      const [id, ranges] = part.split(':');
+      if (!/^[\w-]{1,64}$/.test(id || '') || !ranges) continue;
+      for (const r of ranges.split(',')) {
+        const [a, b] = r.split('-').map(Number);
+        if (Number.isInteger(a) && Number.isInteger(b) && b >= a && b < chars.length) out.push({ id, name: chars.slice(a, b + 1).join(''), url: EMOTE_URL(id), at: a });
+      }
+    }
+    return out.sort((x, y) => x.at - y.at).map(({ at, ...e }) => e);
+  }
+  const colorOf = (c) => (/^#[0-9a-f]{6}$/i.test(c || '') ? c.toLowerCase() : '');
   const unescapeTag = (v) => v.replace(/\\s/g, ' ').replace(/\\:/g, ';').replace(/\\\\/g, '\\').replace(/\\r/g, '').replace(/\\n/g, '');
   /** one IRC line → a message, a ping, or null */
   function parse(line, chan) {
@@ -27,6 +44,7 @@
     return {
       type: 'message', platform: 'twitch', user, name: tags['display-name'] || m[1], text: m[3],
       owner, mod: owner || tags.mod === '1' || /(^|,)moderator\//.test(badges),
+      color: colorOf(tags.color), emotes: emotesFrom(tags.emotes, m[3]),
     };
   }
 
@@ -69,5 +87,5 @@
     }, onStatus);
   }
 
-  (W.platforms = W.platforms || {}).twitch = { channel, parse, connect, stream, streamFrom, GQL_ID, label: 'Twitch', color: '#9146ff' };
+  (W.platforms = W.platforms || {}).twitch = { channel, parse, connect, stream, streamFrom, GQL_ID, EMOTE_URL, label: 'Twitch', color: '#9146ff' };
 })();

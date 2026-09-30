@@ -55,13 +55,26 @@ const TW = '@badge-info=subscriber/19;badges=subscriber/18,gold-pixel-heart/1;co
 
 test('Twitch: a chat line becomes a message with name, text and roles', () => {
   const m = plain(P.twitch.parse(TW, 'gridrunner'));
-  assert.deepEqual(m, { type: 'message', platform: 'twitch', user: 'pixelpanda', name: 'PixelPanda', text: 'manic', owner: false, mod: false });
+  assert.deepEqual(m, { type: 'message', platform: 'twitch', user: 'pixelpanda', name: 'PixelPanda', text: 'manic', owner: false, mod: false, color: '#8a2be2', emotes: [] });
   assert.equal(P.twitch.parse(TW.replace('mod=0', 'mod=1'), 'gridrunner').mod, true);
   assert.equal(P.twitch.parse(TW.replace('badges=subscriber/18', 'badges=moderator/1'), 'gridrunner').mod, true);
   const owner = P.twitch.parse(TW.replace('badges=subscriber/18', 'badges=broadcaster/1'), 'gridrunner');
   assert.ok(owner.owner && owner.mod);
   assert.ok(P.twitch.parse(TW, 'pixelpanda').owner, 'the channel\'s own account is the owner');
   assert.equal(P.twitch.parse(TW.replace(':manic', ':two words here')).text, 'two words here');
+});
+
+test('Twitch: emotes come from Twitch\'s own tag (positions in characters), and the chat colour', () => {
+  // the emotes tag as Twitch sends it: id:start-end, several ranges, several emotes, listed by id not position
+  const line = TW.replace('emotes=;', 'emotes=emotesv2_4c3b4ed5:14-19/25:6-10,21-25;').replace(':manic', ':!drop Kappa 🔥 catJAM Kappa');
+  const m = plain(P.twitch.parse(line, 'gridrunner'));
+  assert.equal(m.text, '!drop Kappa 🔥 catJAM Kappa');
+  assert.deepEqual(m.emotes.map((e) => e.name), ['Kappa', 'catJAM', 'Kappa'], 'in the order they appear, counted in characters (🔥 is one)');
+  assert.equal(m.emotes[0].url, 'https://static-cdn.jtvnw.net/emoticons/v2/25/static/dark/2.0');
+  assert.equal(m.emotes[1].id, 'emotesv2_4c3b4ed5');
+  assert.deepEqual(plain(P.twitch.parse(TW.replace('emotes=;', 'emotes=bad.id?x:0-2;'), 'x')).emotes, [], 'an odd id is never used');
+  assert.deepEqual(plain(P.twitch.parse(TW.replace('emotes=;', 'emotes=25:0-99;'), 'x')).emotes, [], 'a range past the text is ignored');
+  assert.equal(P.twitch.parse(TW.replace('color=#8A2BE2', 'color='), 'x').color, '', 'no colour set');
 });
 
 test('Twitch: PING is answered, other lines are ignored', () => {
@@ -77,7 +90,7 @@ const kickFrame = (sender, content = 'manic') => JSON.stringify({ event: 'App\\E
 const NACHO = { id: 1, username: 'NeonNacho', slug: 'neonnacho', identity: { color: '#E26EFF', badges: [{ type: 'subscriber', text: 'Subscriber', count: 20 }], badges_v2: [{ name: 'level', badge_type: 'global' }] } };
 
 test('Kick: a chat frame becomes a message with name, text and roles', () => {
-  assert.deepEqual(plain(P.kick.parse(kickFrame(NACHO), 'gridrunner')), { type: 'message', platform: 'kick', user: 'neonnacho', name: 'NeonNacho', text: 'manic', owner: false, mod: false });
+  assert.deepEqual(plain(P.kick.parse(kickFrame(NACHO), 'gridrunner')), { type: 'message', platform: 'kick', user: 'neonnacho', name: 'NeonNacho', text: 'manic', owner: false, mod: false, color: '#e26eff', emotes: [] });
   const mod = { ...NACHO, identity: { badges: [{ type: 'moderator', text: 'Moderator' }] } };
   assert.equal(P.kick.parse(kickFrame(mod), 'gridrunner').mod, true);
   const v2 = { ...NACHO, identity: { badges: [], badges_v2: [{ name: 'moderator' }] } };
@@ -85,6 +98,13 @@ test('Kick: a chat frame becomes a message with name, text and roles', () => {
   const owner = { ...NACHO, identity: { badges: [{ type: 'broadcaster' }] } };
   assert.ok(P.kick.parse(kickFrame(owner), 'gridrunner').owner);
   assert.ok(P.kick.parse(kickFrame(NACHO), 'neonnacho').owner, 'the channel\'s own account is the owner');
+});
+
+test('Kick: emotes come from Kick\'s [emote:id:name] in the text', () => {
+  const m = plain(P.kick.parse(kickFrame(NACHO, '!drop [emote:37226:KEKW] [emote:39261:kkHuh]'), 'gridrunner'));
+  assert.deepEqual(m.emotes, [{ id: '37226', name: 'KEKW', url: 'https://files.kick.com/emotes/37226/fullsize' }, { id: '39261', name: 'kkHuh', url: 'https://files.kick.com/emotes/39261/fullsize' }]);
+  assert.deepEqual(plain(P.kick.parse(kickFrame(NACHO, '!drop [emote:abc:KEKW] [emote:1:../x] https://evil/x.png'), 'x')).emotes, [], 'only Kick\'s own numeric ids');
+  assert.equal(P.kick.parse(kickFrame({ ...NACHO, identity: {} }), 'x').color, '');
 });
 
 test('Kick: Pusher housekeeping frames, other events and broken frames', () => {
@@ -123,8 +143,8 @@ test('is the channel live: Twitch\'s and Kick\'s answers (shapes captured 2026-0
   assert.equal(asked, 'https://kick.com/api/v2/channels/gridrunner');
 });
 
-test('themes: eight themes, each with its own accent; bad colours are ignored', () => {
-  assert.deepEqual([...T.THEMES], ['chatagram', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy']);
+test('themes: nine themes, each with its own accent; bad colours are ignored', () => {
+  assert.deepEqual([...T.THEMES], ['chatagram', 'chaplinko', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy']);
   for (const t of T.THEMES) assert.match(T.ACCENTS[t], /^[0-9a-f]{6}$/, t);
   const css = read('public/widgets/lib/themes.css');
   for (const t of T.THEMES) {

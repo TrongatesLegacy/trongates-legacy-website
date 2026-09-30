@@ -2,7 +2,8 @@
 // public/chatagram/assets/themes/<theme>.webp (compact) and <theme>-full.webp (full), for every theme. Each is the real
 // overlay in its seeded "still" mode (play.html?still=1), on a transparent background. Re-run whenever the overlay's
 // look changes (a test checks every theme has both pictures). docs/widgets.md, "The Chatagram page".
-// Usage: node --experimental-websocket artwork/chatagram/render-previews.mjs   (needs Google Chrome + cwebp)
+// Usage: node --experimental-websocket artwork/chatagram/render-previews.mjs [theme…]   (needs Google Chrome + cwebp;
+// name themes to render only those, e.g. a newly added one)
 import { writeFileSync, mkdirSync, statSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -15,7 +16,7 @@ const root = join(new URL('.', import.meta.url).pathname, '../..'), out = join(r
 const ctx = vm.createContext({}); ctx.window = ctx;
 vm.runInContext(readFileSync(join(root, 'public/widgets/lib/theme.js'), 'utf8').replace('matchMedia(', '(() => ({ matches: false }))('), ctx);
 vm.runInContext(readFileSync(join(root, 'public/chatagram/settings.js'), 'utf8'), ctx);
-const THEMES = [...ctx.Widgets.theme.THEMES], SIZES = ctx.Chatagram.settings.SIZES;
+const only = process.argv.slice(2), THEMES = [...ctx.Widgets.theme.THEMES].filter((t) => !only.length || only.includes(t)), SIZES = ctx.Chatagram.settings.SIZES;
 // compact at 1.5× (shown up to ~400 px wide on retina screens); full at 1× (the live game replaces it within a second)
 const LAYOUTS = { compact: { scale: 1.5, suffix: '' }, full: { scale: 1, suffix: '-full' } };
 mkdirSync(out, { recursive: true });
