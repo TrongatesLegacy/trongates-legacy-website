@@ -149,7 +149,7 @@ test('the set-up page: defaults make short links, the leaderboard link carries i
   assert.equal(lb.get('theme'), 'neon', 'its own look'); assert.equal(lb.get('lbshape'), 'strip'); assert.equal(lb.get('rows'), null, 'only what the leaderboard uses');
   assert.equal(await tab.eval('document.getElementById("odds").children.length'), 7, 'the odds for 12 rows: 13 slots, each value once');
   await click('#odds-info button');
-  assert.equal(await tab.eval('getComputedStyle(document.getElementById("odds-pop")).display'), 'grid', 'the odds tooltip opens on a tap');
+  assert.equal(await tab.eval('getComputedStyle(document.getElementById("odds-pop")).display'), 'block', 'where the odds come from opens on a tap');
   await click('input[name=layout][value="combined"]');
   assert.equal(await tab.eval('document.getElementById("copy-lb").hidden'), true, 'one link for combined');
   assert.equal(new URL(await tab.eval('chaplinkoSetup.boardLink()')).searchParams.get('layout'), 'combined');
@@ -224,5 +224,17 @@ test('jackpots in quick succession grow one live card (a streak, never a queue o
   await land('pixelpanda', 'PixelPanda', 0); await sleep(300);
   assert.doesNotMatch(await tab.eval('document.querySelector(".card").innerText'), /×/, 'a later jackpot starts a fresh card');
   noErrors(tab, 'the jackpot streak');
+  await tab.close();
+});
+
+test('combined: the leaderboard beside the board can have its own theme and its own background', async () => {
+  const tab = await chrome.open(site.origin + '/chaplinko/play.html?demo=1&layout=combined&theme=chaplinko&bgo=0&lbtheme=royal&lbbgo=100', { width: 960, height: 540 });
+  await ready(tab);
+  assert.equal(await tab.eval('document.querySelector(".lbw").dataset.theme'), 'royal');
+  assert.equal(await tab.eval('document.querySelector(".lbw").classList.contains("clear")'), false, 'solid');
+  assert.equal(await tab.eval('document.getElementById("board").classList.contains("clear")'), true, 'while the board is transparent');
+  await tab.eval(`postMessage({ type: 'widget-theme', theme: 'neon' }, '*'); 1`);
+  await tab.until(`document.getElementById('w').dataset.theme === 'neon'`, 2000, 'the board restyled');
+  assert.equal(await tab.eval('document.querySelector(".lbw").dataset.theme'), 'royal', 'the leaderboard keeps its own');
   await tab.close();
 });

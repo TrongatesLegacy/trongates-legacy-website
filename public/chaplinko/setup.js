@@ -231,8 +231,9 @@
     const comb = s.layout === 'combined';
     $('#side-field').hidden = !comb;
     $('#layout-note').textContent = comb ? 'One source, 960 × 540: the board with the leaderboard beside it.' : 'Two sources: the board (640 × 540) and the leaderboard, each placed where you like.';
-    $('#shape-field').hidden = $('#own-field').hidden = comb;
-    $('#own-look').hidden = comb || s.lbtheme === 'same';
+    $('#shape-field').hidden = comb;
+    $('#own-field').hidden = comb && s.side === 'off';                    // its own theme works beside the board too
+    $('#own-look').hidden = s.lbtheme === 'same' || (comb && s.side === 'off');
     $('#every-field').hidden = s.lbshow !== 'both';
     $('#lbbgo-field').hidden = comb && s.side === 'off';
     $('#lb-card').hidden = comb && s.side === 'off';

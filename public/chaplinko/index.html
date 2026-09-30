@@ -145,16 +145,14 @@ fieldset.card { border: 0; margin: 0; display: grid; gap: 14px; align-content: s
 .accents .custom::after { content: '+'; color: #fff; font: 700 15px/1 system-ui; text-shadow: 0 1px 2px #0008; }
 .accents .custom.on { box-shadow: 0 0 0 2px var(--deep), 0 0 0 4px var(--ice); }
 .accents .custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
-/* the odds, in an info tooltip beside Rows of pegs: each points value once (the board is symmetric), its chance per ball */
+/* the odds: each points value once (the board is symmetric), its chance per ball and a bar; where they come from is in the ⓘ */
 .info { position: relative; display: inline-flex; }
 .info button { width: 19px; height: 19px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; font: italic 700 12px/19px Georgia, serif; color: var(--night); background: var(--mist); }
 .info button:hover, .info.open button { background: var(--tangerine); }
-.info .pop { display: none; position: absolute; z-index: 5; left: 50%; top: calc(100% + 10px); transform: translateX(-50%); width: 300px; padding: 14px 16px;
-  background: #0d1640; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--line), 0 16px 40px #0009; color: var(--ice); }
+.info .pop { display: none; position: absolute; z-index: 5; left: 50%; top: calc(100% + 10px); transform: translateX(-50%); width: 260px; padding: 12px 14px;
+  background: #0d1640; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line), 0 16px 40px #0009; color: var(--ice); font-size: 13px; line-height: 1.45; }
 .info .pop::before { content: ''; position: absolute; left: 50%; top: -6px; width: 12px; height: 12px; transform: translateX(-50%) rotate(45deg); background: #0d1640; box-shadow: -1px -1px 0 var(--line); }
-.info:hover .pop, .info:focus-within .pop, .info.open .pop { display: grid; gap: 10px; }
-.info .ph { font: 400 13px Bungee, sans-serif; color: var(--tangerine); }
-.info .pn { font-size: 12px; color: var(--mist); }
+.info:hover .pop, .info:focus-within .pop, .info.open .pop { display: block; }
 .odds { display: grid; gap: 4px; }
 .odds div { display: grid; grid-template-columns: 52px 1fr 86px; align-items: center; gap: 10px; font-size: 14px; color: var(--ice); }
 .odds b { font: 400 13px Bungee, sans-serif; background: var(--slot); border-radius: 7px; text-align: center; padding: 4px 0; }
@@ -278,10 +276,13 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
         <label><input type="radio" name="lbbgo" value="0"><span>Transparent</span></label><label><input type="radio" name="lbbgo" value="80"><span>80%</span></label><label><input type="radio" name="lbbgo" value="95"><span>95%</span></label><label><input type="radio" name="lbbgo" value="100"><span>Solid</span></label></div></div>
       <div class="field"><span class="lab" id="l-theme">Theme: <b id="theme-name" style="color:var(--ice);font-weight:600"></b></span><div class="themes" id="theme-pick" role="radiogroup" aria-labelledby="l-theme"></div></div>
       <div class="field"><span class="lab" id="l-accent">Accent colour</span><div class="accents" id="accents" role="radiogroup" aria-labelledby="l-accent"></div></div>
+      <label class="sw" id="own-field">Leaderboard in its own theme <input type="checkbox" role="switch" id="own"></label>
+      <div class="field" id="own-look" hidden><span class="lab" id="l-lbtheme">Leaderboard theme</span><div class="themes" id="lbtheme-pick" role="radiogroup" aria-labelledby="l-lbtheme"></div></div>
     </fieldset>
     <fieldset class="card"><legend>4 · The board</legend>
-      <div class="field"><span class="lab"><span id="l-rows">Rows of pegs</span><span class="info" id="odds-info"><button type="button" aria-label="Points and the chance per ball" aria-expanded="false" aria-controls="odds-pop">i</button><span class="pop" id="odds-pop" role="tooltip"><b class="ph">Points and the chance per ball</b><span class="odds" id="odds"></span><span class="pn">From 100,000 real drops through the same physics. More rows: a rarer top slot.</span></span></span></span><div class="seg" role="radiogroup" aria-labelledby="l-rows">
+      <div class="field"><span class="lab" id="l-rows">Rows of pegs</span><div class="seg" role="radiogroup" aria-labelledby="l-rows">
         <label><input type="radio" name="rows" value="8"><span>8</span></label><label><input type="radio" name="rows" value="9"><span>9</span></label><label><input type="radio" name="rows" value="10"><span>10</span></label><label><input type="radio" name="rows" value="11"><span>11</span></label><label><input type="radio" name="rows" value="12"><span>12</span></label></div></div>
+      <div class="field"><span class="lab">Points and the chance per ball <span class="info" id="odds-info"><button type="button" aria-label="Where the chances come from" aria-expanded="false" aria-controls="odds-pop">i</button><span class="pop" id="odds-pop" role="tooltip">From 100,000 real drops through the same physics your board runs, every drop fair side to side. The board is symmetric, so each value is shown once, both sides together. More rows make the top slot rarer.</span></span></span><div class="odds" id="odds"></div></div>
       <label class="field"><span>Balls per <code id="cmd-name">!drop</code></span><span class="box"><select name="balls"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option><option value="8">8</option><option value="10">10</option></select></span></label>
       <label class="field"><span>Ball colour</span><span class="box"><select name="color"><option value="chat">Each chatter’s chat colour</option><option value="accent">The accent colour</option><option value="platform">Twitch purple, Kick green</option><option value="rainbow">Rainbow</option></select></span></label>
     </fieldset>
@@ -293,8 +294,6 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
         <label class="field"><span>Players shown</span><span class="box"><select name="lbn"><option value="3">Top 3</option><option value="5">Top 5</option><option value="8">Top 8</option><option value="10">Top 10</option></select></span></label>
         <div class="field" id="shape-field"><span class="lab" id="l-shape">Shape (its own source)</span><div class="seg" role="radiogroup" aria-labelledby="l-shape">
           <label><input type="radio" name="lbshape" value="panel"><span>Panel</span></label><label><input type="radio" name="lbshape" value="strip"><span>Strip 720×72</span></label></div></div>
-        <label class="sw" id="own-field">Its own theme (not the board’s) <input type="checkbox" role="switch" id="own"></label>
-        <div class="field wide" id="own-look" hidden><span class="lab" id="l-lbtheme">Leaderboard theme</span><div class="themes" id="lbtheme-pick" role="radiogroup" aria-labelledby="l-lbtheme"></div></div>
       </div>
     </fieldset>
     <details class="adv" id="adv"><summary><span class="abtn">⚙ Advanced settings</span><span class="chg" id="chg" hidden></span><span class="hint">big wins, motion, commands, credit…</span><button type="button" class="reset" id="reset" disabled>Reset to defaults</button></summary>

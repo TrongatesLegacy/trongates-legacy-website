@@ -418,8 +418,9 @@ changes instantly). As everywhere, OBS ignores the PC's own setting unless the l
 - **Separate** (the default layout): its own OBS source, a **panel** (300 wide, as tall as its players: 3–10, default 5)
   or a **strip** (720 × 72, the top 3), with **its own background** always (`lbbgo`, transparent by default, apart from
   the board's) and its own theme if the streamer wants. **Combined**: beside the board in one 960 × 540 source (left or
-  right, or off for the board alone), still with its own background (it carries the theme again on its own wrapper,
-  because a theme's `--bg` is worked out where the theme is set).
+  right, or off for the board alone), still with its own background and, if picked, its own theme (it carries a theme on
+  its own wrapper, because a theme's `--bg` is worked out where the theme is set; with its own theme it doesn't follow
+  live theme messages, so in /obs/chaplinko only the board follows the form).
 - **Show**: This stream, All time, or both (default), switching every 15 s (5–300) with a bar filling to the next switch;
   a switch waits until 3 s after the last score change on the list showing, so an overtake is never cut off. Not live,
   This stream is the last stream's (and says drops count for All time).

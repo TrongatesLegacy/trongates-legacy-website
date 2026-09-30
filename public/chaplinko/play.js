@@ -501,7 +501,10 @@
   if (combined) {
     // its own wrapper, carrying the theme again (so its background can differ from the board's) and its own transparency
     const wrap = document.createElement('div'); wrap.className = 'lbw'; root.appendChild(wrap);
-    lbTheme = () => { W.theme.apply(wrap, { theme: root.dataset.theme, accent: root.style.getPropertyValue('--accent').replace('#', '') }); if (!root.style.getPropertyValue('--accent')) wrap.style.removeProperty('--accent'); };
+    // the board's theme (following theme messages), or the leaderboard's own when the streamer picked one (in combined too)
+    lbTheme = cfg.lbtheme !== 'same'
+      ? () => W.theme.apply(wrap, { theme: cfg.lbtheme, accent: cfg.lbaccent })
+      : () => { W.theme.apply(wrap, { theme: root.dataset.theme, accent: root.style.getPropertyValue('--accent').replace('#', '') }); if (!root.style.getPropertyValue('--accent')) wrap.style.removeProperty('--accent'); };
     lbTheme();
     wrap.style.setProperty('--bgo', String(cfg.lbbgo / 100)); wrap.classList.toggle('clear', cfg.lbbgo === 0);
     const el = document.createElement('div'); wrap.appendChild(el);
