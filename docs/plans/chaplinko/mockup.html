@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- A still mockup of Chaplinko (docs/plans/chaplinko/plan.md), drawn with the real widget themes. Not the game:
-     nothing moves. ?v=classic|pachinko|tower|jackpot|clear|panel|strip|lbclear|scene|combined|hero|accents shows one frame at its real size (for screenshots);
+     nothing moves. ?v=classic|pachinko|tower|jackpot|clear|panel|strip|lbclear|scene|combined|hero|accents|sb-drop|sb-jackpot|sb-leaderboard|sb-board shows one frame at its real size (for screenshots);
      no ?v shows them all. -->
 <html lang="en">
 <head>
@@ -83,6 +83,15 @@
     --gold: #ff3d8b; --edge: inset 0 0 0 1px #2f5bff55, 0 0 40px #2f5bff22; --radius: 18px;
     --font: "Space Grotesk", system-ui, sans-serif; --display: Bungee, system-ui, sans-serif; --display-weight: 400; }
   .bare, .bare body { background: transparent; }
+  /* motion storyboards */
+  .sb { display: flex; gap: 16px; align-items: flex-start; }
+  .sb figure { margin: 0; }
+  .sb figcaption { font: 13px/1.45 system-ui; color: #b8b8c4; margin-top: 10px; }
+  .sb figcaption b { display: block; color: #fff; font-size: 14px; margin-bottom: 2px; }
+  .sbw { position: relative; overflow: hidden; border-radius: 14px; }
+  .sbw > .scaled { transform-origin: 0 0; position: absolute; left: 0; top: 0; }
+  .row.fx { position: relative; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -100,9 +109,9 @@ function slotFill(v, max) {
 function slotInk(v, max) { return v === max || v / max > .3 ? 'var(--accent-ink)' : 'var(--text)'; }
 
 // the drop chute at the top of every board, carrying the commands (plan.md, "Chat commands")
-const chute = (cx) => `<rect x="${cx - 132}" y="0" width="264" height="30" rx="8" style="fill:var(--slot)"/>` +
-  `<text x="${cx}" y="15" font-size="12.5" text-anchor="middle" dominant-baseline="central" style="font-family:var(--font);font-weight:700;fill:var(--text)">` +
-  `!drop <tspan style="fill:var(--muted)">·</tspan> !drop 5 <tspan style="fill:var(--muted)">·</tspan> !drop 5 <tspan style="fill:var(--accent)">:emote:</tspan></text>`;
+const CMDS = `!drop <tspan style="fill:var(--muted)">·</tspan> !drop 5 <tspan style="fill:var(--muted)">·</tspan> !drop 5 <tspan style="fill:var(--accent)">:emote:</tspan>`;
+const chute = (cx, label = CMDS, extra = '') => `<rect x="${cx - 132}" y="0" width="264" height="30" rx="8" style="fill:var(--slot)"/>${extra}` +
+  `<text x="${cx}" y="15" font-size="12.5" text-anchor="middle" dominant-baseline="central" style="font-family:var(--font);font-weight:700;fill:var(--text)">${label}</text>`;
 function svg(w, h, parts) { return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="${NS}">
   <defs>
     <radialGradient id="shine" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/></radialGradient>
@@ -193,6 +202,106 @@ const frame = (theme, w, h, inner, accent, clear) => `<div class="w${clear ? ' c
 
 const confetti = () => { let s = ''; for (let i = 0; i < 70; i++) { const c = ['var(--gold)', 'var(--accent)', 'var(--text)', '#ff5a5f', '#2ee6a8'][i % 5]; s += `<rect x="${rnd() * 960}" y="${rnd() * 540}" width="${6 + rnd() * 6}" height="${3 + rnd() * 4}" transform="rotate(${rnd() * 360})" style="fill:${c}" opacity=".9"/>`; } return svg(960, 540, [s]); };
 
+// ---- motion storyboards (plan.md, "Animations") ----
+const fig = (w, h, inner, t, cap) => `<figure style="width:${w}px"><div class="sbw" style="width:${w}px;height:${h}px">${inner}</div><figcaption><b>${t}</b>${cap}</figcaption></figure>`;
+const scaled = (k, html) => `<div class="scaled" style="transform:scale(${k})">${html}</div>`;
+const pegc = (x, y, c, a = 1, r = 4.5) => `<circle cx="${x}" cy="${y}" r="${r + 3}" style="fill:${c}" opacity="${a * .45}" filter="url(#glow)"/><circle cx="${x}" cy="${y}" r="${r}" style="fill:${c}" opacity="${a}"/>`;
+const ring = (x, y, r, c, a = .6, w = 2) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke-width="${w}" style="stroke:${c}" opacity="${a}"/>`;
+const spark = (x, y, s, c) => `<path d="M${x} ${y - s}L${x + s * .28} ${y - s * .28}L${x + s} ${y}L${x + s * .28} ${y + s * .28}L${x} ${y + s}L${x - s * .28} ${y + s * .28}L${x - s} ${y}L${x - s * .28} ${y - s * .28}Z" style="fill:${c}"/>`;
+// a small board (4 rows, 5 slots) for the close-up frames
+function mini(o = {}) {
+  const W = 300, H = 250, cx = 150, gap = 44, dy = 34, top = 60, P = [], p = [];
+  for (let r = 0; r < 4; r++) { const n = r + 3; for (let i = 0; i < n; i++) P.push({ r, i, x: cx + (i - (n - 1) / 2) * gap, y: top + r * dy }); }
+  const bw = 5 * gap, sy = top + 3 * dy + 22, sw = gap, vals = [25, 5, 1, 5, 25];
+  p.push(o.chute || chute(cx));
+  P.forEach((q) => { const f = o.peg && o.peg(q); p.push(f !== undefined ? f : peg(q.x, q.y)); });
+  vals.forEach((v, i) => {
+    const x = cx - bw / 2 + i * sw, fx = (o.slot && o.slot(i)) || {}, k = fx.scale || 1, ox = x + sw / 2, oy = sy + 20;
+    p.push(`<g transform="translate(0 ${fx.dy || 0}) translate(${ox} ${oy}) scale(${k}) translate(${-ox} ${-oy})" opacity="${fx.a ?? 1}">` +
+      `<rect x="${x + 1.5}" y="${sy}" width="${sw - 3}" height="40" rx="6" style="fill:${slotFill(v, 25)}"/>` +
+      (fx.flash ? `<rect x="${x + 1.5}" y="${sy}" width="${sw - 3}" height="40" rx="6" style="fill:${fx.flash}" opacity=".55"/>` : '') +
+      text(x + sw / 2, sy + 21, v, 14, `fill:${slotInk(v, 25)}`) + '</g>');
+  });
+  if (o.extra) p.push(o.extra({ cx, P, sy, sw, bw, x0: cx - bw / 2 }));
+  return frame('chaplinko', W, H, svg(W, H, p));
+}
+const at = (P, r, i) => P.find((q) => q.r === r && q.i === i);
+const sbDrop = () => `<div class="sb">
+  ${fig(300, 250, mini({ chute: chute(150, `<tspan style="fill:var(--accent)">×4</tspan> more coming`, ''), extra: () => `<g transform="translate(150 30) scale(1 .86) translate(-150 -30)"></g>` + ball(150, 42, 11.5, 0, CHAT[0]) + `<path d="M141 33 q9 -6 18 0" fill="none" stroke-width="2" style="stroke:var(--text)" opacity=".5"/>` }),
+    '0 ms · the drop', 'The chute gulps (squash and spring, 220 ms) and pops the ball out a little big (scale 1.15 → 1). <code>!drop 5</code> streams the rest 120 ms apart and the chute counts them down.')}
+  ${fig(300, 250, mini({ peg: (q) => q.r === 1 && q.i === 1 ? pegc(q.x, q.y, CHAT[0]) + ring(q.x, q.y, 13, CHAT[0]) + ring(q.x, q.y, 20, CHAT[0], .25, 1.5) : undefined,
+    extra: ({ P }) => { const q = at(P, 1, 1); return [5, 4, 3, 2, 1].map((k) => `<circle cx="${q.x - 6 - k * 4}" cy="${q.y - 14 - k * 7}" r="${9 - k}" style="fill:${CHAT[0]}" opacity="${.07 * (6 - k)}"/>`).join('') +
+      `<ellipse cx="${q.x - 6}" cy="${q.y - 13}" rx="11" ry="8.6" transform="rotate(-30 ${q.x - 6} ${q.y - 13})" style="fill:${CHAT[0]}"/><ellipse cx="${q.x - 6}" cy="${q.y - 13}" rx="11" ry="8.6" fill="url(#shine)"/>`; } }),
+    'every peg hit', 'The peg flashes the ball’s colour and a ring spreads out (250 ms). The ball squashes a touch against it. A short trail follows each ball and fades.')}
+  ${fig(300, 250, mini({ peg: (q) => { const a = { '0,0': .9, '1,1': .75, '2,1': .55, '3,2': .35 }[q.r + ',' + q.i], b = { '0,0': .35, '1,0': .5, '2,0': .3, '3,0': .7 }[q.r + ',' + q.i];
+      return a ? pegc(q.x, q.y, CHAT[0], a) : b ? pegc(q.x, q.y, CHAT[1], b) : undefined; },
+    extra: ({ P }) => { const q = at(P, 3, 2), b = at(P, 3, 0); return ball(q.x + 14, q.y + 12, 10, 0, CHAT[0]) + ball(b.x - 14, b.y - 16, 10, 0, CHAT[1]); } }),
+    'hot pegs', 'Pegs keep a glow in the colour of the ball that hit them, fading over 2 s, so the board shows the paths the balls took. A busy board lights up.')}
+  ${fig(300, 250, mini({ slot: (i) => i === 3 ? { dy: 3, scale: 1.1, flash: CHAT[0] } : null,
+    extra: ({ x0, sw, sy }) => { const x = x0 + 3.5 * sw; return ball(x, sy + 12, 6, 0, CHAT[0]).replace('<circle', '<circle opacity=".7"') + text(x, sy - 30, '+5', 20, `fill:${CHAT[0]}`) +
+      spark(x - 24, sy - 8, 5, 'var(--text)') + spark(x + 22, sy - 14, 4, CHAT[0]) + spark(x + 8, sy - 50, 3.5, 'var(--text)') + spark(x - 14, sy - 44, 3, CHAT[0]); } }),
+    'landing', 'The slot dips and springs back (200 ms) and flashes the ball’s colour; the ball sinks in; <b style="display:inline;color:inherit">+5</b> floats up and fades (900 ms). Bigger values: a bigger number and more sparkles.')}
+  ${fig(300, 250, mini({ slot: (i) => i === 4 ? { dy: -2 } : null,
+    extra: ({ x0, sw, sy }) => { const x = x0 + 4 * sw; return ball(x - 11, sy - 4, 10, 0, CHAT[3]) + `<path d="M${x + 4} ${sy - 8} q6 -6 12 0 M${x + 2} ${sy - 16} q8 -8 18 0" fill="none" stroke-width="2" style="stroke:var(--gold)" opacity=".7"/>` +
+      text(x - 6, sy - 44, 'so close!', 15, 'fill:var(--gold);font-style:italic'); } }),
+    'near miss', 'A ball that touches the jackpot slot’s edge and falls the other way: the jackpot slot wobbles and a small “so close!” pops up. Cheap, and chat loves it.')}
+</div>`;
+
+const K = .45, JW = 640 * K, JH = 540 * K;
+const jb = (inner) => scaled(K, frame('chaplinko', 640, 540, inner));
+const jSlot = { x: 527, y: 430, w: 46, h: 44, cx: 550 };
+const jDim = (a) => `<div class="dim" style="background:rgb(0 0 0 / ${a})"></div>`;
+const jLit = (extra = '') => svg(640, 540, [`<rect x="${jSlot.x + 1.5}" y="${jSlot.y}" width="43" height="44" rx="6" style="fill:var(--gold)"/><rect x="${jSlot.x - 6}" y="${jSlot.y - 6}" width="58" height="56" rx="10" style="fill:var(--gold)" filter="url(#glow)" opacity=".7"/>` + text(jSlot.cx, jSlot.y + 23, 100, 15, 'fill:var(--accent-ink)') + extra]);
+const card = (style, k, who = 'pixelpriya', pts = '+100', sub = '1 in 512 · the first today') => `<div class="card" style="${style}"><div class="k">${k}</div><div class="who"><span class="dot tw"></span>${who}</div><div class="pts">${pts}</div><div class="sub">${sub}</div></div>`;
+const sbJackpot = () => `<div class="sb">
+  ${fig(JW, JH, jb(classic({ balls: false }) + jDim(.5) + jLit(ball(jSlot.cx, jSlot.y + 6, 10, 0, CHAT[0]) + `<path d="M540 380 v30 M550 372 v34 M560 380 v30" stroke-width="2" style="stroke:var(--text)" opacity=".5"/>`) ),
+    '0 ms · slow motion', 'A ball drops into the jackpot. Every ball slows to a third for 0.4 s and the board dims around the lit slot.')}
+  ${fig(JW, JH, jb(classic({ balls: false }) + jDim(.35) + jLit(`<defs><linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff3d8b" stop-opacity=".9"/><stop offset="1" stop-color="#ff3d8b" stop-opacity="0"/></linearGradient></defs>
+      <rect x="${jSlot.x + 4}" y="0" width="38" height="${jSlot.y}" fill="url(#beam)"/>` + ring(jSlot.cx, jSlot.y, 120, 'var(--gold)', .55, 3) + ring(jSlot.cx, jSlot.y, 200, 'var(--gold)', .25, 2) +
+      [[504, 392], [458, 392], [527, 354], [481, 354], [504, 316], [573, 392], [550, 354]].map(([x, y]) => pegc(x, y, 'var(--gold)', .9)).join(''))),
+    '200 ms · the beam', 'A beam of jackpot pink shoots up from the slot and a ripple runs out through the pegs; each peg flashes as the wave passes (500 ms).')}
+  ${fig(JW, JH, jb(classic({ balls: false }) + jDim(.45) + card('transform:translate(-50%,-50%) rotate(-7deg) scale(1.1)', 'JACK<span style="opacity:.25">POT!</span>', 'pixelpriya', '+37', '&nbsp;')),
+    '450 ms · the card', 'The card springs in (overshoots, settles tilted), JACKPOT! pops in a letter at a time, the name slides up and the points count up from 0.')}
+  ${fig(JW, JH, jb(classic({ balls: false }) + jDim(.45) + scaled(640 / 960, confetti()) + card('', 'JACKPOT!')),
+    '700 ms · confetti', 'Confetti bursts from both bottom corners (80 pieces, 2.2 s) and the board gives one small shake. Balls keep falling behind.')}
+  ${fig(JW, JH, jb(classic() + card('left:88%;top:12%;transform:translate(-50%,-50%) scale(.3) rotate(4deg);opacity:.85', 'JACKPOT!') + svg(640, 540, [`<path d="M420 160 Q500 90 540 70" fill="none" stroke-width="10" stroke-linecap="round" style="stroke:var(--gold)" opacity=".25"/>`])),
+    '4 s · away', 'The card shrinks off toward the leaderboard (combined: into the winner’s row), the board brightens and time runs normally. Several jackpots queue.')}
+</div>`;
+
+const LK = .9, LW = 300 * LK, LH = 270 * LK;
+const lbRow = (i, [u, pl, sc], st = '', after = '', pts = sc.toLocaleString()) => `<div class="row fx" style="${st}"><b>${i}</b><span class="dot ${pl}"></span><span class="n">${u}</span>${after}<span class="p">${pts}</span></div>`;
+const lbBox = (inner, tabs = '<div class="tabs"><span class="on">This stream</span><span>All time</span></div>', extra = '') =>
+  scaled(LK, frame('chaplinko', 300, 270, `<div class="lb src"><h2>Leaderboard</h2>${tabs}${inner}</div>${extra}`));
+const L = PLAYERS;
+const sbBoard = () => `<div class="sb">
+  ${fig(LW, LH, lbBox(lbRow(1, L[0]) + lbRow(2, L[1]) + lbRow(3, L[2], 'background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 35%, transparent), transparent 70%)', '<span class="chip">+25</span>', '87<span style="opacity:.45">2</span>') + lbRow(4, L[3]) + lbRow(5, L[4])),
+    'a score goes up', 'The points count up (600 ms, fixed-width digits so nothing jiggles), a sweep of the accent crosses the row, and a <b style="display:inline;color:inherit">+25</b> chip fades out beside it.')}
+  ${fig(LW, LH, lbBox(lbRow(1, L[0]) + lbRow(2, L[1], 'transform:translateY(16px);opacity:.7') + lbRow('<span style="display:inline-block;transform:translateY(-4px);opacity:.6">2</span>', [L[2][0], L[2][1], 1130], 'transform:translateY(-16px) scale(1.04);background:var(--slot);border-radius:10px;box-shadow:0 8px 20px #0007;z-index:2') + lbRow(4, L[3]) + lbRow(5, L[4])),
+    'overtaking', 'Rows slide past each other (400 ms, a little overshoot). The one going up lifts above the rest; the rank numbers roll like a counter.')}
+  ${fig(LW, LH, lbBox(lbRow(1, [L[2][0], L[2][1], 1302], 'background:linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--text) 18%, transparent) 40%, transparent 60%)', `<svg width="30" height="30" style="position:absolute;left:96px;top:2px;overflow:visible">${ball(12, 12, 8)}<path d="M4 -2 v-8 M12 -4 v-10 M20 -2 v-8" stroke="#fff" stroke-opacity=".5" stroke-width="1.5"/></svg>`) + lbRow(2, L[0]) + lbRow(3, L[1]) + lbRow(4, L[3]) + lbRow(5, L[4])),
+    'a new #1', 'A tangerine ball drops onto the new leader’s name and bounces twice; a shine sweeps across the row.')}
+  ${fig(LW, LH, lbBox(lbRow(1, ALLTIME[0]) + lbRow(2, ALLTIME[1], 'opacity:.65;transform:translateY(6px)') + lbRow(3, ALLTIME[2], 'opacity:.3;transform:translateY(16px)'),
+      `<div class="tabs" style="position:relative"><i style="position:absolute;left:30%;width:50%;top:0;bottom:0;border-radius:999px;background:var(--accent)"></i><span style="background:none;position:relative">This stream</span><span style="background:none;position:relative;color:var(--accent-ink)">All time</span>
+       <i style="position:absolute;left:0;right:0;bottom:-7px;height:3px;border-radius:3px;background:var(--slot)"></i><i style="position:absolute;left:0;bottom:-7px;height:3px;width:8%;border-radius:3px;background:var(--accent)"></i></div>`),
+    'switching lists', 'With “both”: the tab pill slides across, the old rows lift away and the new ones deal in from below (600 ms). A thin bar under the tabs fills until the next switch, and waits while a score is moving.')}
+  ${fig(LW, LH, lbBox(lbRow(1, L[0]) + lbRow(2, L[1], 'box-shadow:inset 0 0 0 2px var(--gold), 0 0 18px color-mix(in srgb, var(--gold) 55%, transparent);border-radius:10px;border-color:transparent', '<span class="chip" style="background:var(--gold);color:#fff">JACKPOT</span>') + lbRow(3, L[2]) + lbRow(4, L[3]) + lbRow(5, L[4])),
+    'jackpot on the board', 'The winner’s row glows jackpot pink for 3 s, in the separate source too (the board announces it on the channel it already uses).')}
+</div>`;
+
+const sbExtras = () => `<div class="sb">
+  ${fig(300, 250, mini({ peg: (q) => q.r === 2 ? `<g opacity=".45" transform="translate(${q.x} ${q.y}) scale(.5) translate(${-q.x} ${-q.y})">${peg(q.x, q.y)}</g>` : q.r === 3 ? '' : undefined, slot: () => ({ dy: 22, a: .3 }) }),
+    'the board appears', 'When the source loads or the scene changes: pegs pop in row by row (30 ms apart) and the slots rise into place. 0.8 s.')}
+  ${fig(300, 250, mini({ chute: chute(150, CMDS, `<defs><linearGradient id="shim" x1="0" x2="1"><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset=".65" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect x="18" y="0" width="264" height="30" rx="8" fill="url(#shim)"/>`) }),
+    'idle', 'No drops for a minute: a shine runs along the commands every 30 s, inviting a <code>!drop</code>. Nothing else runs while the board is idle.')}
+  ${fig(300, 250, mini({ chute: chute(150, `<tspan style="fill:var(--accent)">+37</tspan> waiting to drop`), extra: () => ball(120, 45, 10, 0, CHAT[1]) + ball(150, 80, 10, 0, CHAT[2]) + ball(185, 110, 10, 0, CHAT[0]) + ball(100, 150, 10, 0, CHAT[3]) + ball(200, 160, 10, 0, CHAT[5]) + ball(160, 180, 10, 0, CHAT[4]) }),
+    'busy (a raid)', 'Past the most balls on screen, the chute shows how many are waiting and counts down as they drop in.')}
+  ${fig(300, 250, mini({ chute: chute(150, `<tspan style="fill:var(--muted)">❚❚</tspan> PAUSED`) , extra: () => ball(190, 150, 10, 0, CHAT[2]) }),
+    'paused', '<code>!drop pause</code>: the chute says PAUSED and balls already falling land. <code>!drop resume</code>: it flashes GO! for a moment.')}
+  ${fig(300, 250, mini({ extra: () => [[110, 70, 0], [180, 100, 1], [140, 140, 3], [205, 170, 5]].map(([x, y, c], k) => k === 0 ? ball(x, y, 10, 0, CHAT[c]) :
+      ring(x, y, 8 + k * 3, CHAT[c], .9 - k * .2, 3) + [0, 1, 2, 3, 4, 5].map((j) => `<circle cx="${x + Math.cos(j) * (10 + k * 4)}" cy="${y + Math.sin(j) * (10 + k * 4)}" r="2" style="fill:${CHAT[c]}" opacity="${.9 - k * .2}"/>`).join('')).join('') }),
+    'cleared', '<code>!drop clear</code>: every ball pops into a little puff, 20 ms apart, and scores nothing.')}
+</div>`;
+
 const V = {
   classic: ['Board source: Plinko · 640×540 · chaplinko theme (the default), with a background', () => frame('chaplinko', 640, 540, classic() + credit)],
   pachinko: ['Board source: Pachinko · 640×540 · neon theme', () => frame('neon', 640, 540, pachinko() + credit)],
@@ -210,6 +319,10 @@ const V = {
     <div class="src-at" style="right:28px;bottom:28px;width:384px;height:324px"><div style="transform:scale(.6);transform-origin:0 0">${frame('chaplinko', 640, 540, classic(), '', true)}</div><span class="tag">board source</span></div></div>`],
   combined: ['Combined: one source, the board with the leaderboard beside it · 960×540 · transparent (the default) · chaplinko theme', () => `<div class="scene" style="width:960px;height:540px">${frame('chaplinko', 960, 540,
     `<div style="position:absolute;left:0;top:0">${classic()}</div><div style="position:absolute;right:0;top:0;width:300px;height:270px">${panel()}</div>`, '', true)}</div>`],
+  'sb-drop': ['Motion: a ball, from the chute to its slot', sbDrop],
+  'sb-jackpot': ['Motion: the jackpot, second by second', sbJackpot],
+  'sb-leaderboard': ['Motion: the leaderboard', sbBoard],
+  'sb-board': ['Motion: the board’s moments', sbExtras],
   hero: ['The board alone, transparent, for the website mockup', () => frame('chaplinko', 640, 540, classic(), '', true)],
   accents: ['The same board with a background: chaplinko (the default), chatagram and the other themes, some with other accents (640×540 each, shown at half size)', () => `<div class="mini">${[['chaplinko', ''], ['chatagram', ''], ['neutral', ''], ['light', ''], ['cozy', ''], ['neon', '#ff4155'], ['royal', '#ffd98a'], ['deep', '#45d6c8'], ['candy', '#ff7bd5']]
     .map(([t, a]) => `<div style="width:320px;height:270px;overflow:hidden"><div style="transform:scale(.5);transform-origin:0 0">${frame(t, 640, 540, classic({ w: 640 }), a)}</div></div>`).join('')}</div>`],

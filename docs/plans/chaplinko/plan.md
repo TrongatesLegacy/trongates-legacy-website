@@ -11,7 +11,8 @@ Widget mockups (`mockup.html`, drawn with the real `themes.css` plus the planned
 one at its real size). Board source:
 [board](classic.png), [big win](jackpot.png), [transparent](clear.png), [themes and accents](accents.png). Leaderboard
 source: [panel](panel.png), [strip](strip.png), [transparent](lbclear.png). On a stream: [separate](scene.png),
-[combined](combined.png).
+[combined](combined.png). Motion storyboards (see "Animations"): [a ball](sb-drop.png), [the jackpot](sb-jackpot.png),
+[the leaderboard](sb-leaderboard.png), [the board's moments](sb-board.png).
 
 ## What the owner asked for (2026-09-29)
 
@@ -257,6 +258,109 @@ safe and means no lookups.
 - **Nothing is money.** It's points and bragging rights only. The set-up page and FAQ say so, and there's no betting
   (viewers never stake anything). This matters on Twitch.
 
+## Animations
+
+The game is only as good as how it feels to watch, so every moment chat causes gets a reaction, **in proportion to what
+happened**: a ball hitting a peg is a flicker, a jackpot stops the show. Housekeeping (pausing, switching lists) is
+quiet. Storyboards: [a ball](sb-drop.png), [the jackpot](sb-jackpot.png), [the leaderboard](sb-leaderboard.png),
+[the board's moments](sb-board.png).
+
+### How it's built
+
+- **Board**: everything moving on the board (balls, trails, peg flashes, rings, sparkles, numbers, confetti, the beam)
+  is drawn on the one canvas, in the physics loop's frame. The loop runs while anything is moving **or fading**, and
+  stops when the last effect ends: an idle board still costs nothing. The chute and the big win card are HTML over the
+  canvas (crisp text, the theme's fonts), animated with Web Animations.
+- **Leaderboard**: HTML, animated with Web Animations on `transform` and `opacity` only (as Chatagram), so OBS
+  composites it without redrawing the page. Rows move with FLIP (measure, move, animate back), so a reorder never
+  jumps.
+- **Timing**, shared by both: quick 150 ms, base 300 ms, slow 600 ms; **spring** `cubic-bezier(.34, 1.56, .64, 1)`
+  for things arriving (a little overshoot), **out** `cubic-bezier(.2, .8, .2, 1)` for things leaving or settling.
+- **Caps** so a raid can't make OBS stutter: at most 150 particles, 60 rings and 40 trails at once (the oldest go
+  first); the numbers that float up merge when they land in the same slot within 0.3 s (`+2 ×3`). Target: 60 frames a
+  second with 40 balls and a jackpot on a modest streaming PC, checked in the browser tests.
+- **Every animation ends.** A test with the fake clock runs a jackpot, a raid and a list switch, then checks the loop
+  has stopped and no timers are left (the existing loop tests catch anything that keeps running).
+
+### A ball (storyboard: a ball)
+
+| Moment | What happens | Time |
+|---|---|---|
+| **The drop** | The chute gulps (squash and spring) and pops the ball out slightly big (1.15 → 1). `!drop 5` streams the rest 120 ms apart and the chute counts them down ("×4 more coming"). | 220 ms |
+| **In flight** | A short trail in the ball's colour (the last 6 positions, fading). Emote balls turn with the ball's spin. | always |
+| **Peg hit** | The peg flashes the ball's colour and a ring spreads out; the ball squashes a touch against it. | 250 ms |
+| **Hot pegs** | Hit pegs keep a glow in the ball's colour that fades over 2 s, so the board shows the paths the balls took. A busy board lights up. | 2 s |
+| **Landing** | The slot dips and springs back and flashes the ball's colour; the ball sinks in; `+N` floats up and fades. | 200 ms / 900 ms |
+| **Near miss** | A ball that touches the jackpot slot's edge and falls the other way: the jackpot slot wobbles and "so close!" pops up. | 700 ms |
+
+Landings are **tiered by value**, so bigger feels bigger:
+
+- **The bottom half** of the values: a small `+N`, no sparkles.
+- **The upper half**: a bigger `+N` in the slot's colour and a burst of 6 sparkles.
+- **Second-highest** (with Big win card: top two): a **BIG WIN** toast slides in from the side with the name and
+  points for 2.5 s, no slow motion.
+- **The top slot**: the jackpot.
+
+### The jackpot (storyboard: the jackpot)
+
+| Time | What happens |
+|---|---|
+| **0 ms** | **Slow motion**: every ball slows to a third for 0.4 s, and the board dims around the lit slot. |
+| **200 ms** | **The beam**: jackpot pink shoots up from the slot; a **ripple** runs out through the pegs, each flashing as the wave passes (500 ms). |
+| **450 ms** | **The card** springs in (overshoots, settles tilted): "JACKPOT!" pops in a letter at a time, the name slides up, the points count up from 0. |
+| **700 ms** | **Confetti** bursts from both bottom corners (80 pieces in the theme's colours, 2.2 s); the board gives one small shake. Balls keep falling behind. |
+| **4 s** | **Away**: the card shrinks off toward the leaderboard (combined: into the winner's row), the board brightens and time runs normally. |
+
+- Several jackpots **queue**: the next card starts as the last leaves, and a second jackpot within 10 s says
+  "×2 JACKPOT!".
+- Transparent board: no dimming of the whole source, only a soft dark glow behind the card, so the game stays visible.
+- The card's line under the points is the proof it's rare: "1 in 512 · the first today".
+
+### The board's moments (storyboard: the board's moments)
+
+- **Appearing** (the source loads or the scene changes): pegs pop in row by row (30 ms apart), the slots rise into
+  place. 0.8 s.
+- **Idle**: no drops for a minute, and a shine runs along the commands in the chute every 30 s, inviting a `!drop`.
+  That's the only thing that runs while idle, and it's CSS.
+- **Busy** (a raid): past the most balls on screen, the chute shows "+37 waiting to drop" and counts down.
+- **Paused**: the chute says PAUSED; balls already falling land. **Resume**: it flashes GO! for a moment.
+- **Cleared**: every ball pops into a little puff, 20 ms apart, scoring nothing.
+
+### The leaderboard (storyboard: the leaderboard)
+
+| Moment | What happens | Time |
+|---|---|---|
+| **Appearing** | The title, then the rows deal in from just below, 60 ms apart. | 0.6 s |
+| **A score goes up** | The points count up (fixed-width digits, so nothing jiggles); an accent sweep crosses the row; a `+25` chip fades out beside it. | 600 ms |
+| **Overtaking** | Rows slide past each other with a little overshoot; the one going up lifts above the rest; the rank numbers roll like a counter. | 400 ms |
+| **A new #1** | A tangerine ball drops onto the new leader's row and bounces twice; a shine sweeps across it. | 800 ms |
+| **Into the top N** | The new row slides in from the side, and the one pushed out slides away and fades. | 400 ms |
+| **Switching lists** (both) | The tab pill slides across; the old rows lift away and the new ones deal in from below. A thin bar under the tabs fills until the next switch. | 600 ms |
+| **A jackpot on the board** | The winner's row glows jackpot pink for 3 s. | 3 s |
+| **Empty** | "No drops yet. Type `!drop`" with a ball that bounces three times every 10 s. | |
+
+- **Switching waits for the action**: if a score on the shown list is animating, the switch holds until 3 s after the
+  last change, so an overtake is never cut off. A score change on the hidden list waits until that list is shown, then
+  plays.
+- **The strip** does the same in a row: chips count up and swap places, the list's name flips over, and the chips
+  re-deal left to right when it switches.
+- **Separate sources**: the board announces `score` and `jackpot` on the BroadcastChannel it already uses, so the
+  leaderboard animates the moment a ball lands. Changes it only finds on its 5-second re-read just count up, with no
+  fanfare.
+
+### Motion setting
+
+`motion=full|calm|reduce` in the link, as Chatagram's (inside OBS the streaming PC's system setting is ignored unless
+the link says so):
+
+- **Full** (default): everything above.
+- **Calm**: the balls still fall and the numbers still count, but no shake, slow motion, beam, confetti, hot pegs or
+  trails; things fade instead of springing. For streamers who find it busy.
+- **Reduce**: nothing falls (the ball appears in its slot with the `+N`), leaderboard changes are instant, the big win
+  card fades in and out. The website's previews follow the visitor's system setting.
+
+Sound is **not** in the first version (see Later).
+
 ## Physics and performance
 
 Our own code, no library (the no-dependencies rule), in `chaplinko/physics.js`, which only handles rules and movement:
@@ -271,15 +375,15 @@ replay any drop exactly.
   board costs nothing in OBS.
 - A ball that has been on the board 20 s (stuck on a peg, or wedged) gets a small push; after 30 s it's put in the
   nearest slot. A loop test runs hours of drops to check nothing ever stays on the board.
-- **Reduced motion**: no falling. The ball appears in its slot at once with the `+N`, and the big win card fades
-  without confetti.
+- **Motion** (see "Animations"): with `motion=reduce` nothing falls. The ball appears in its slot at once with the
+  `+N`, and the big win card fades without confetti.
 
 ## Settings (Chatagram's model)
 
 Main: Twitch, Kick, **layout** (separate / combined, and for combined: leaderboard left / right / off), rows, theme,
 accent, background (default 0, transparent). The leaderboard's own settings sit in a separate part: its shape (panel /
 strip, separate only), how many, show (This stream / All time / both), switch every, and for the separate source its
-own theme, accent and background. Advanced: slot
+own theme, accent and background. Advanced: motion (full / calm / reduce), near miss on or off, slot
 values, big win card, show the commands, ball colour, most balls per command, cooldown, most balls on screen, ball size,
 gravity (slow / normal / fast), commands and who can use them, ignored users, `!drop top` on or off, show All time, the
 credit.
@@ -315,6 +419,8 @@ the queue and balls in the air are gone, and they hadn't scored yet.
   not a new engine.
 - A **tall** size for the Plinko board.
 - 7TV / BTTV / FFZ emotes.
+- **Sound**: a soft tick per peg (thinned out when busy), a landing note that rises with the value, and a jackpot
+  fanfare. Off by default, with a volume; OBS needs "Control audio via OBS" on the source.
 - **Channel point redemptions**: a Twitch reward with text shows in chat with a reward id, so "Redeem: drop 10 balls"
   could work without a login. Kick's rewards aren't in its chat feed.
 
@@ -323,6 +429,7 @@ the queue and balls in the air are gone, and they hadn't scored yet.
 1. **Cooldown and cap defaults**: 20 s per person and 5 balls per command? A big chat might want 60 s.
 2. **Default layout**: separate or combined? The plan says separate (the most flexible), but combined is one link and
    the easiest to set up.
+3. **Near miss** ("so close!"): on by default? It's the most fun small touch, but some might find it teasing.
 
 Decided 2026-09-30: transparent by default; the leaderboard shows both lists by default, switching every 15 s
 (configurable); balls are the chatter's colour.
