@@ -66,10 +66,10 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
 .msg h2 { margin: 0 0 6px; font: var(--display-weight) 24px var(--display); }
 .msg p { margin: 0; color: var(--muted); }
 .msg code { font-family: inherit; font-weight: 700; color: var(--text); }
-.toplist { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 560px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+.toplist { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 600px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px;
   background: var(--panel); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--edge), 0 20px 60px rgb(0 0 0 / .45); }
 .toplist h3 { margin: 0 0 6px; font: var(--display-weight) 18px var(--display); }
-.toplist .row { height: 28px; }
+.toplist .row { height: 28px; } .toplist .p { flex: none; }   /* the exact score always shows; a long name shortens */
 
 /* ---- the leaderboard ---- */
 .lb { font-family: var(--font); color: var(--text); box-sizing: border-box; position: relative; flex: none; overflow: clip; }   /* the shine and sweep stay inside (its padding leaves room for the rest) */

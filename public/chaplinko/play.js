@@ -521,7 +521,8 @@
   function showTop() {
     if (topEl) return;
     const { stream, all } = K.leaderboard.lists(scores, 5);
-    const rows = (list) => list.length ? list.map((p, i) => `<div class="row"><b class="rk">${i + 1}</b><span class="n">${esc(p.name)}</span><span class="p">${K.leaderboard.fmt(p.score)}</span></div>`).join('') : '<div class="row"><span class="n">No drops yet</span></div>';
+    // the exact scores here (chat asked for them), unlike the leaderboard's three figures
+    const rows = (list) => list.length ? list.map((p, i) => `<div class="row"><b class="rk">${i + 1}</b><span class="n">${esc(p.name)}</span><span class="p">${Math.round(p.score).toLocaleString('en')}</span></div>`).join('') : '<div class="row"><span class="n">No drops yet</span></div>';
     topEl = document.createElement('div'); topEl.className = 'toplist lb';
     topEl.innerHTML = `<div><h3>${stream.kind === 'last' ? 'Last stream' : 'This stream'}</h3>${rows(stream.list)}</div>${cfg.remember ? `<div><h3>All time</h3>${rows(all)}</div>` : ''}`;
     if (!cfg.remember) topEl.style.gridTemplateColumns = '1fr';
