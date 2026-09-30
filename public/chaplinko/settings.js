@@ -29,21 +29,18 @@
     bigwin: { type: 'enum', def: 'top', values: ['top', 'top2', 'off'] },          // the big win card: the top slot, the top two, or never
     showcmd: { type: 'bool', def: false },                              // the commands in the drop chute (off: the chute shows who leads)
     color: { type: 'enum', def: 'chat', values: ['chat', 'accent', 'platform', 'rainbow'] },   // ball colour
-    balls: { type: 'int', def: 5, min: 1, max: 10 },                  // balls per !drop
+    balls: { type: 'int', def: 5, min: 1, max: 10 },                  // balls per !plinko
     cool: { type: 'int', def: 0, min: 0, max: 300 },                  // seconds a viewer waits between drops (0: none, spam away)
     max: { type: 'int', def: 100, min: 20, max: 200 },                // most balls on the board at once (the rest queue)
     speed: { type: 'enum', def: 'normal', values: ['slow', 'normal', 'fast'] },
     motion: { type: 'enum', def: 'auto', values: ['auto', 'full', 'calm', 'reduce'] },   // calm: fewer effects; reduce: nothing falls
     nearmiss: { type: 'bool', def: true },                             // "so close!" when a ball just misses the top slot
     // advanced: commands (several names: comma separated) and who can use them
-    cdrop: { type: 'list', def: ['!drop'] },
-    ctop: { type: 'list', def: ['!drop top'] },
-    cpause: { type: 'list', def: ['!drop pause'] },
-    cresume: { type: 'list', def: ['!drop resume'] },
-    cclear: { type: 'list', def: ['!drop clear'] },
-    cwipe: { type: 'list', def: ['!drop clearscores'] },             // wipe both leaderboards: the broadcaster only
+    // the command (the owner, 2026-09-30: one setting, the rest are fixed words after it): !plinko drops; !plinko top,
+    // pause, resume, clear, clearscores (the broadcaster only)
+    cmd: { type: 'str', def: '!plinko', maxLen: 24 },
     perm: { type: 'enum', def: 'mods', values: ['me', 'mods', 'all'] },
-    lb: { type: 'bool', def: false },                                  // !drop top: off (the leaderboard is usually on screen)
+    lb: { type: 'bool', def: false },                                  // !plinko top: off (the leaderboard is usually on screen)
     ignore: { type: 'list', def: BOTS },
     remember: { type: 'bool', def: true },                             // show All time
     credit: { type: 'bool', def: true },
@@ -59,7 +56,7 @@
   /** the slot values for these settings (the owner removed the setting for their own, 2026-09-30) */
   const slotValues = (cfg) => SLOTS[cfg.rows] || SLOTS[10];
   // what goes in each source's link: the board's, and the separate leaderboard's (which carries its own look as theme=…)
-  const LB_KEYS = ['twitch', 'kick', 'theme', 'accent', 'bgo', 'lbshape', 'lbn', 'lbshow', 'lbevery', 'remember', 'credit', 'motion'];
+  const LB_KEYS = ['twitch', 'kick', 'theme', 'accent', 'bgo', 'lbshape', 'lbn', 'lbshow', 'lbevery', 'remember', 'credit', 'motion', 'cmd'];
   /** the separate leaderboard's settings: its own look, unless it matches the board */
   const leaderboardSettings = (s) => {
     const out = {}; for (const k of LB_KEYS) out[k] = s[k];
@@ -69,6 +66,8 @@
   };
   // sizes: the board, the board with the leaderboard beside it, the separate leaderboard (panel height follows how many)
   const SIZES = { separate: [640, 540], combined: [960, 540], strip: [720, 72], panel: (n) => [300, 100 + 34 * n] };
+  /** the command as typed in chat: lowercase, one word (the default if it's empty) */
+  const command = (cfg) => String(cfg.cmd || '').trim().toLowerCase().split(/\s+/)[0] || SCHEMA.cmd.def;
   const MAIN = ['twitch', 'kick', 'layout', 'side', 'rows', 'theme', 'accent', 'bgo'];
-  K.settings = { SCHEMA, SLOTS, THEMES, SIZES, MAIN, LB_KEYS, slotValues, leaderboardSettings };
+  K.settings = { SCHEMA, SLOTS, THEMES, SIZES, MAIN, LB_KEYS, slotValues, leaderboardSettings, command };
 })();

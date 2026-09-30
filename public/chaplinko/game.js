@@ -6,7 +6,7 @@
 (() => {
   const K = (window.Chaplinko = window.Chaplinko || {});
   const QUEUE_MAX = 600;          // balls waiting: about 30 s at the fastest; drops past this are ignored until it drains
-  const TOP_COOLDOWN = 60000;     // viewers share one !drop top a minute (mods and the owner never wait)
+  const TOP_COOLDOWN = 60000;     // viewers share one !plinko top a minute (mods and the owner never wait)
   const SPACING = { quiet: 120, busy: 90, frenzy: 50 };   // ms between balls leaving the chute
   const LEVELS = { busy: 15, frenzy: 50 };                // balls on the board (Frenzy also whenever balls are queued)
   const CALM_AFTER = 3000;        // a level only drops after this long below its line (no flicker)
@@ -22,8 +22,9 @@
     const distinct = [...new Set(values)].sort((a, b) => b - a);
     // with every slot worth the same there's no top prize (no card on every landing)
     const top = distinct.length > 1 ? distinct[0] : Infinity, second = distinct.length > 2 ? distinct[1] : -1, high = distinct[Math.floor((distinct.length - 1) / 2)];
-    const names = (k) => (cfg[k] || []).map((x) => String(x).toLowerCase());
-    const ignore = new Set(names('ignore'));
+    const ignore = new Set((cfg.ignore || []).map((x) => String(x).toLowerCase()));
+    // the command and its fixed words: !plinko, !plinko top / pause / resume / clear / clearscores
+    const cmd = K.settings.command(cfg), WORDS = { top: 'ctop', pause: 'cpause', resume: 'cresume', clear: 'cclear', clearscores: 'cwipe' };
     const last = new Map();                                   // platform:user → when they last dropped (the cooldown)
     let queue = [], queued = 0, paused = false, topAt = 0, nextAt = 0;
     let level = 'quiet', calmSince = 0;
@@ -32,17 +33,19 @@
     let jp = deps.saved && deps.saved.day === today() ? { day: deps.saved.day, n: +deps.saved.jackpots || 0 } : { day: today(), n: 0 };
 
     const allowed = (m, who) => who === 'all' || m.owner || (who === 'mods' && m.mod);
-    /** what a !drop drops: an emote the platform marked, else the first emoji, else a ball */
+    /** what a !plinko drops: an emote the platform marked, else the first emoji, else a ball */
     function what(m, rest) {
       if (m.emotes && m.emotes.length) { const e = m.emotes[0]; return { kind: 'emote', url: e.url, name: e.name }; }
       const e = EMOJI.exec(rest);
       return e ? { kind: 'emoji', text: e[0] } : null;
     }
-    /** which command a message is, if any: the exact names first (!drop top), then the drop itself (!drop anything) */
+    /** which command a message is, if any: the command and a fixed word (!plinko top), else a drop (!plinko anything) */
     function command(text) {
       const t = text.trim().toLowerCase().replace(/\s+/g, ' ');
-      for (const k of ['cwipe', 'ctop', 'cpause', 'cresume', 'cclear']) if (names(k).includes(t)) return { k };
-      for (const n of names('cdrop')) if (t === n || t.startsWith(n + ' ')) return { k: 'cdrop', rest: text.trim().slice(n.length) };
+      if (t !== cmd && !t.startsWith(cmd + ' ')) return null;
+      const rest = t.slice(cmd.length).trim();
+      if (WORDS[rest]) return { k: WORDS[rest] };
+      return { k: 'cdrop', rest: text.trim().slice(cmd.length) };
       return null;
     }
 
@@ -64,7 +67,7 @@
         case 'cresume': if (!allowed(m, cfg.perm)) return { kind: 'ignored' }; paused = false; return { kind: 'command', cmd: 'resume', by };
         case 'cclear': if (!allowed(m, cfg.perm)) return { kind: 'ignored' }; queue = []; queued = 0; return { kind: 'command', cmd: 'clear', by };
       }
-      // !drop
+      // !plinko
       if (paused) return { kind: 'paused' };
       const key = `${m.platform}:${m.user}`, t = now();
       if (cfg.cool > 0 && last.has(key) && t - last.get(key) < cfg.cool * 1000) return { kind: 'cooldown' };

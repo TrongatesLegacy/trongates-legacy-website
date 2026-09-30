@@ -2,7 +2,7 @@
 
 Free chat games and overlays for **any streamer**, on Twitch, Kick or both at once, at `/widgets/` (the list) and one
 page per widget. The first is **Chatagram** (`/chatagram/`), an anagram game chat plays by typing words, like
-wos.gg but reading Twitch and Kick together. The second is **Chaplinko** (`/chaplinko/`), Plinko for chat: `!drop`
+wos.gg but reading Twitch and Kick together. The second is **Chaplinko** (`/chaplinko/`), Plinko for chat: `!plinko`
 drops balls through pegs into scoring slots, and everyone climbs the leaderboard (see "Chaplinko" below). Everything is static files: no server, no database, no logins, no Netlify
 functions. A streamer's settings live in the link they paste into OBS.
 
@@ -113,8 +113,10 @@ passed in, so the tests replay any game exactly.
 - **Padlocks** (off by default: people don't know them): 2–4 checkpoints on the countdown; a player who finds a word
   can't score again until the timer passes the next one. Stops one fast typer taking every word.
 - **Commands** `!cg start`, `!cg next`, `!cg skip`, `!cg reset`, `!cg top` (or just `!cg`), `!cg clearscores`
-  (renamable, several names each, any capitals; who: only the owner, owner and mods, or everyone, except clearscores:
-  the owner only). They were `!start`, `!next`, `!skip`, `!reset` until 2026-09-28; a link that named its own keeps them.
+  (any capitals; who: only the owner, owner and mods, or everyone, except clearscores: the owner only). **One setting**,
+  the command (`cmd=`, default `!cg`): the words after it are fixed (the owner, 2026-09-30). Before that each command had
+  its own names (`cstart=` … `cclear=`): a link carrying them still works in OBS, and the set-up page drops them when the
+  link is next copied. They were `!start`, `!next`, `!skip`, `!reset` until 2026-09-28.
   Reset restarts the game; the leaderboards stay.
 - **Flow**: after a level, the next one starts in 10 s (or waits for the next command); after game over, a new game in
   15 s (or waits for start). "Keep playing by itself" on the set-up page sets both.
@@ -310,7 +312,7 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
 
 ## Chaplinko
 
-Plinko for chat (planned in `docs/plans/chaplinko/`, built 2026-09-30). Viewers type `!drop` (or `!drop <emote>`),
+Plinko for chat (planned in `docs/plans/chaplinko/`, built 2026-09-30). Viewers type `!plinko` (or `!plinko <emote>`),
 balls bounce down a triangle of pegs into slots worth points, and the points go to This stream and All time. **Spam is
 the point** (the owner): there's no number to type and no cooldown by default, so climbing the leaderboard means
 dropping the most; the board limits itself instead of the viewers.
@@ -364,16 +366,17 @@ artwork/chaplinko/                        the link-preview image and the picture
 
 ### Chat
 
-- `!drop` drops **Balls per drop** (default 5, 1–10). `!drop <emote>` drops that emote (one the platform marked), or an
-  emoji (`!drop 🔥`). Anything else after `!drop` is ignored, so `!drop 5` from habit is a plain `!drop`.
+- **The command** is one setting (`cmd=`, default `!plinko`; it was `!drop` until the owner changed it, 2026-09-30); the
+  words after it are fixed. `!plinko` drops **Balls per drop** (default 5, 1–10). `!plinko <emote>` drops that emote (one
+  the platform marked), or an emoji (`!plinko 🔥`). Anything else after it is ignored, so `!plinko 5` is a plain drop.
 - **No cooldown** by default (Advanced: 0–300 s per viewer). The board takes up to **Most balls on the board** (default
   100, 20–200); beyond that drops queue and leave the chute one at a time (faster in Frenzy, up to 20 a second). The
   queue holds 600 balls (about 30 s); drops beyond it are ignored until it drains.
 - **The chute** at the top of the board shows the commands only when Advanced → Show the commands is on (off by default,
   the owner, 2026-09-30); otherwise it shows who's leading This stream (All time's #1 when not live, the name before
   anyone has scored). It also says what's happening: ×N more coming, FRENZY · +N waiting, PAUSED, GO!.
-- Commands, all renamable: `!drop pause` / `!drop resume` / `!drop clear` (owner and mods by default), `!drop clearscores`
-  (the owner only), `!drop top` (off by default: both lists over the board for 8 s; viewers share one a minute).
+- The other commands follow it: `!plinko pause` / `resume` / `clear` (owner and mods by default), `!plinko clearscores`
+  (the owner only), `!plinko top` (off by default: both lists over the board for 8 s; viewers share one a minute).
 - Bots are ignored (the same list as Chatagram's).
 - **Ball colour**: the chatter's chat colour (default; lightened if too dark to see), the accent, the platform's, or
   rainbow. An emote whose picture can't load falls as a plain ball. **Animated emotes play** while they fall: a canvas only
@@ -412,7 +415,7 @@ count punches up (JACKPOT! ×2, ×3…), the new name slides in (the same person
 then "+N more"), the points count on to the streak's total, more confetti, and each jackpot still fires its own beam and
 ripple (slow motion and the shake only on the first). The card goes 2 s after the last jackpot (at least 4 s after it
 opened; 2 s in Frenzy), so it's always about what just happened. Other moments: the pegs pop in row by row when
-the board loads; the commands shine every 30 s after a minute idle; PAUSED / GO! in the chute; `!drop clear` pops every
+the board loads; the commands shine every 30 s after a minute idle; PAUSED / GO! in the chute; `!plinko clear` pops every
 ball. **Motion** (`motion=` in the link, Advanced): auto/full, **calm** (no shake, slow motion, beam, confetti, trails
 or hot pegs), **reduce** (nothing falls: each ball's landing is worked out at once and the `+N` shows; the leaderboard
 changes instantly). As everywhere, OBS ignores the PC's own setting unless the link says so.
@@ -428,6 +431,8 @@ changes instantly). As everywhere, OBS ignores the PC's own setting unless the l
 - **Show**: This stream, All time, or both (default), switching every 15 s (5–300) with a bar filling to the next switch;
   a switch waits until 3 s after the last score change on the list showing, so an overtake is never cut off. Not live,
   This stream is the last stream's (and says drops count for All time).
+- Scores show in full up to 99,999, then in three figures (250K, 48.2M, 4.29B), so All time's years of points never push
+  the names out.
 - Scores count up, rows slide past each other (FLIP) with the places climbed (▲2), a `+N` badge adds up over a burst, a
   new #1 gets a ball dropped on their name, a jackpot's winner glows pink for 3 s. When busy it batches: rows reorder at
   most once a second.
@@ -504,7 +509,7 @@ fits, theme messages, the OBS wrapper, the set-up link, reduced motion, the lead
 "is it live" answers, saved data from before the leaderboards). See testing.md.
 
 Chaplinko: `tests/unit/chaplinko-physics.test.mjs` (the odds table replays exactly, fairness, every ball lands, crowds
-don't change landings, the layout), `tests/unit/chaplinko-game.test.mjs` (what a `!drop` drops, spam and the optional
+don't change landings, the layout), `tests/unit/chaplinko-game.test.mjs` (what a `!plinko` drops, spam and the optional
 cooldown, the queue, commands, scoring and big wins, near misses, activity levels), `tests/unit/chaplinko-assets.test.mjs`
 (the pictures), `tests/loops/chaplinko-flow.test.mjs` (spam and raids on the virtual clock: every ball lands and scores
 once, the queue drains, the board calms), `tests/browser/chaplinko.test.mjs` (real chat, the separate leaderboard

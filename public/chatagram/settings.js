@@ -29,14 +29,17 @@
     // advanced: flow (0 = wait for the command)
     next: { type: 'int', def: 10, min: 0, max: 60 },
     restart: { type: 'int', def: 15, min: 0, max: 120 },
-    // advanced: chat commands (several names: comma separated) and who can use them. All start "!cg" so they don't clash
-    // with other bots (changed from !start… on 2026-09-28: a link that set its own names keeps them)
-    cstart: { type: 'list', def: ['!cg start'] },
-    cnext: { type: 'list', def: ['!cg next'] },
-    cskip: { type: 'list', def: ['!cg skip'] },
-    creset: { type: 'list', def: ['!cg reset'] },
-    ctop: { type: 'list', def: ['!cg top', '!cg'] },                  // show the leaderboard for a few seconds
-    cclear: { type: 'list', def: ['!cg clearscores'] },               // wipe both leaderboards: the broadcaster only
+    // advanced: the chat command (the owner, 2026-09-30: one setting, the words after it are fixed): !cg start, next,
+    // skip, reset, top (or !cg alone), clearscores (the broadcaster only)
+    cmd: { type: 'str', def: '!cg', maxLen: 24 },
+    // older links' own names for each command (before 2026-09-30), still honoured beside the command; the set-up page no
+    // longer writes them
+    cstart: { type: 'list', def: [] },
+    cnext: { type: 'list', def: [] },
+    cskip: { type: 'list', def: [] },
+    creset: { type: 'list', def: [] },
+    ctop: { type: 'list', def: [] },
+    cclear: { type: 'list', def: [] },
     perm: { type: 'enum', def: 'mods', values: ['me', 'mods', 'all'] },
     lb: { type: 'bool', def: true },                                  // the leaderboard command is on
     // advanced: chat
@@ -50,8 +53,11 @@
     bgo: { type: 'int', def: 95, min: 50, max: 100 },                // the background's opacity, % (default a hint of the game behind; 100: solid)
     credit: { type: 'bool', def: true },
   };
+  /** the command as typed in chat: lowercase, one word (the default if it's empty) */
+  const command = (cfg) => String(cfg.cmd || '').trim().toLowerCase().split(/\s+/)[0] || SCHEMA.cmd.def;
+  const LEGACY = ['cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear'];
   const MAIN = ['twitch', 'kick', 'layout', 'theme', 'accent', 'time', 'diff', 'next', 'restart'];
   // full is 16:9, exactly half of 1920 × 1080, so it can fill the whole screen at a clean 2×
   const SIZES = { full: [960, 540], compact: [560, 230] };
-  C.settings = { SCHEMA, MAIN, THEMES, SIZES };
+  C.settings = { SCHEMA, MAIN, THEMES, SIZES, command, LEGACY };
 })();

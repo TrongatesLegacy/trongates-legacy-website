@@ -27,7 +27,7 @@
   const pair = `${channels.twitch}|${channels.kick}`;
   const KEY = demo ? 'chaplinko:scores:demo' : `chaplinko:scores:v1:${pair}`;
   const both = demo || (channels.twitch && channels.kick);
-  const lb = K.leaderboard(el, { shape: cfg.lbshape, n: cfg.lbn, show: cfg.lbshow, every: cfg.lbevery, remember: cfg.remember, rm, calm, dots: !!both, cmd: '!drop' });
+  const lb = K.leaderboard(el, { shape: cfg.lbshape, n: cfg.lbn, show: cfg.lbshow, every: cfg.lbevery, remember: cfg.remember, rm, calm, dots: !!both, cmd: K.settings.command(cfg) });
   let last = '';
   function read() {
     let raw = null; try { raw = localStorage.getItem(KEY); } catch {}

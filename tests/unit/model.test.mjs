@@ -236,10 +236,10 @@ test('every Chatagram setting a link can carry passes through /obs/chatagram (th
 // Widgets → Chaplinko; the colours come from the form. Their sizes follow the link (combined, the strip, how many).
 test('Chaplinko: the pasted link\'s settings go into both sources; theme and accent are left to the form; sizes follow the link', () => {
   const s = M.normalise(null);
-  s.chaplinko = 'https://www.trongateslegacy.com/chaplinko/play?kick=gridrunner&kickid=715&rows=12&theme=candy&accent=ff0000&lbn=8&cdrop=!plinko&motion=calm';
+  s.chaplinko = 'https://www.trongateslegacy.com/chaplinko/play?kick=gridrunner&kickid=715&rows=12&theme=candy&accent=ff0000&lbn=8&cmd=!drop&motion=calm';
   const board = new URL(url('chaplinko', s)).searchParams, lb = new URL(url('chaplinkolb', s)).searchParams;
   for (const q of [board, lb]) {
-    assert.equal(q.get('kick'), 'gridrunner'); assert.equal(q.get('rows'), '12'); assert.equal(q.get('cdrop'), '!plinko'); assert.equal(q.get('motion'), 'calm');
+    assert.equal(q.get('kick'), 'gridrunner'); assert.equal(q.get('rows'), '12'); assert.equal(q.get('cmd'), '!drop'); assert.equal(q.get('motion'), 'calm');
     assert.equal(q.get('theme'), null, 'the form sets the theme'); assert.equal(q.get('accent'), null);
   }
   assert.equal(board.get('part'), null); assert.equal(lb.get('part'), 'leaderboard');

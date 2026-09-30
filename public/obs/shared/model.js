@@ -66,10 +66,10 @@
   // Chatagram's own settings (public/chatagram/settings.js), which a pasted Chatagram link carries. theme and accent aren't
   // here: obs/chatagram.html sets them from the form.
   const CHATAGRAM_KEYS = ['twitch', 'kick', 'kickid', 'layout', 'time', 'diff', 'shuffle', 'minlen', 'slots', 'goal', 'tricky', 'longbonus', 'bonus',
-    'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear', 'perm', 'lb', 'wrong', 'ignore', 'block', 'top', 'remember', 'bgo', 'credit', 'seed'];
+    'locks', 'lockmsg', 'next', 'restart', 'cmd', 'cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear', 'perm', 'lb', 'wrong', 'ignore', 'block', 'top', 'remember', 'bgo', 'credit', 'seed'];
   // Chaplinko's (public/chaplinko/settings.js), the same way: its look (theme, accent, the leaderboard's own look) comes from the form
   const CHAPLINKO_KEYS = ['twitch', 'kick', 'kickid', 'layout', 'side', 'rows', 'bgo', 'lbshape', 'lbn', 'lbshow', 'lbevery', 'lbbgo', 'bigwin', 'showcmd', 'color',
-    'balls', 'cool', 'max', 'speed', 'motion', 'nearmiss', 'cdrop', 'ctop', 'cpause', 'cresume', 'cclear', 'cwipe', 'perm', 'lb', 'ignore', 'remember', 'credit'];
+    'balls', 'cool', 'max', 'speed', 'motion', 'nearmiss', 'cmd', 'perm', 'lb', 'ignore', 'remember', 'credit'];
   /** a pasted widget link's settings (the whole link or just what's after the ?), those in keys */
   const pairsOf = (keys) => (link) => {
     const qs = String(link || '').trim().split('#')[0].split('?').pop();

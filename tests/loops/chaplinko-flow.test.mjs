@@ -23,9 +23,9 @@ function run(link, seed, minutes) {
   let nextChat = now, raidAt = now + 60000;
   for (let t = 0; t < minutes * 60000; t += FRAME) {
     now += FRAME;
-    if (now >= raidAt) { for (let i = 0; i < 40; i++) if (g.handle({ platform: 'twitch', user: 'r' + i, name: 'R' + i, text: '!drop', mod: false, owner: false }).kind === 'drop') dropped += cfg.balls; raidAt = now + rand.int(120000, 240000); }
+    if (now >= raidAt) { for (let i = 0; i < 40; i++) if (g.handle({ platform: 'twitch', user: 'r' + i, name: 'R' + i, text: '!plinko', mod: false, owner: false }).kind === 'drop') dropped += cfg.balls; raidAt = now + rand.int(120000, 240000); }
     if (now >= nextChat) {
-      if (g.handle({ platform: rand() < 0.5 ? 'twitch' : 'kick', user: 'p' + rand.int(0, 30), name: 'P', text: rand() < 0.8 ? '!drop' : 'hello', mod: false, owner: false }).kind === 'drop') dropped += cfg.balls;
+      if (g.handle({ platform: rand() < 0.5 ? 'twitch' : 'kick', user: 'p' + rand.int(0, 30), name: 'P', text: rand() < 0.8 ? '!plinko' : 'hello', mod: false, owner: false }).kind === 'drop') dropped += cfg.balls;
       nextChat = now + (rand() < 0.3 ? rand.int(200, 800) : rand.int(1500, 12000));
     }
     for (const it of g.take(world.balls.length)) world.add({ seed: rand.int(1, 2 ** 31), data: it });

@@ -169,8 +169,10 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .toggles { display: grid; gap: 12px; background: var(--ink); border-radius: 12px; padding: 14px 16px; }
 @media (max-width: 720px) { .chatcols { grid-template-columns: 1fr; } }
 .sub-h { margin: 8px 0 0; padding-top: 12px; border-top: 1px solid var(--ink3); font: 17px "Lilita One", sans-serif; color: var(--sun); }
-.cmds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.cmds .box input { font-family: ui-monospace, Menlo, monospace; color: var(--sun); font-size: 15px; }
+.cmdrow { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: start; }
+.cmdrow .box input { font-family: ui-monospace, Menlo, monospace; color: var(--sun); font-size: 15px; }
+.cmdlist { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
+.cmdlist code { font: 13px ui-monospace, Menlo, monospace; color: var(--sun); background: var(--ink); padding: 1px 7px; border-radius: 7px; }
 .right { position: sticky; top: calc(var(--nav) + 16px); background: var(--ink2); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
 .right h3 { margin: 0; font-size: 19px; color: var(--sun); display: flex; justify-content: space-between; align-items: baseline; }
 .right h3 small { font: 12px "Chakra Petch", sans-serif; color: var(--muted); }
@@ -224,7 +226,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   h1 { font-size: 42px; }
   .steps, .tgrid { grid-template-columns: 1fr 1fr; }
   .left, .game, .agrid { grid-template-columns: 1fr; }
-  .cmds { grid-template-columns: 1fr 1fr; }
+  .cmdrow { grid-template-columns: 1fr; } .cmdlist { margin-top: 0; }
   .hero .screen, .right .screen { height: 190px; } .chat { display: none; }
 }
 @media (max-width: 460px) { .steps, .tgrid { grid-template-columns: 1fr; } .navr .btn { display: none; } }
@@ -331,17 +333,18 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
           </div></div>
         </fieldset>
         <fieldset class="card wide"><legend>Chat commands</legend>
-          <div class="cmds">
-            <label class="field"><span>Start a game</span><span class="box"><input name="cstart" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Next level</span><span class="box"><input name="cnext" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Skip this round</span><span class="box"><input name="cskip" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Restart the game</span><span class="box"><input name="creset" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Show the leaderboard</span><span class="box"><input name="ctop" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Clear all scores (only you)</span><span class="box"><input name="cclear" autocomplete="off" spellcheck="false"></span></label>
+          <div class="cmdrow">
+            <label class="field"><span>Command</span><span class="box"><input name="cmd" autocomplete="off" spellcheck="false" placeholder="!cg"></span></label>
+            <ul class="cmdlist">
+              <li><code data-cmd="start">!cg start</code> starts a game · <code data-cmd="next">!cg next</code> the next level</li>
+              <li><code data-cmd="skip">!cg skip</code> skips this round · <code data-cmd="reset">!cg reset</code> restarts the game</li>
+              <li><code data-cmd="top">!cg top</code> or <code data-cmd="">!cg</code> shows the leaderboard</li>
+              <li><code data-cmd="clearscores">!cg clearscores</code> clears all scores (only you)</li>
+            </ul>
           </div>
           <div class="field"><span class="lab" id="l-perm">Who can use them</span><div class="seg" role="radiogroup" aria-labelledby="l-perm"><label><input type="radio" name="perm" value="me"><span>Only me</span></label><label><input type="radio" name="perm" value="mods"><span>Me and mods</span></label><label><input type="radio" name="perm" value="all"><span>Everyone</span></label></div></div>
           <label class="sw">Leaderboard command <input type="checkbox" role="switch" name="lb"></label>
-          <p class="note">The leaderboard shows this stream's and all-time top players for a few seconds; when everyone can use commands, viewers can ask once a minute. Restarting the game keeps the scores; clearing them works for you only. Several names: separate with commas.</p>
+          <p class="note">The leaderboard shows this stream's and all-time top players for a few seconds; when everyone can use commands, viewers can ask once a minute. Restarting the game keeps the scores; clearing them works for you only. Change the command and the rest follow it.</p>
         </fieldset>
       </div>
     </details>

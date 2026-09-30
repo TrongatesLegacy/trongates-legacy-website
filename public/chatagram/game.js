@@ -26,7 +26,10 @@
     const Wd = C.words, now = deps.now, rnd = deps.random, emit = deps.emit || (() => {});
     const block = new Set(cfg.block || []);
     const ignore = new Set(cfg.ignore || []);
-    const cmds = { start: cfg.cstart, next: cfg.cnext, skip: cfg.cskip, reset: cfg.creset, top: cfg.lb ? cfg.ctop || [] : [], clear: cfg.cclear || [] };
+    // the command and its fixed words (!cg start…), plus any names an older link gave a command (settings.js)
+    const c = C.settings.command(cfg), own = (k) => (cfg[k] || []).map((x) => String(x).toLowerCase());
+    const cmds = { start: [`${c} start`, ...own('cstart')], next: [`${c} next`, ...own('cnext')], skip: [`${c} skip`, ...own('cskip')], reset: [`${c} reset`, ...own('creset')],
+      top: cfg.lb ? [`${c} top`, c, ...own('ctop')] : [], clear: [`${c} clearscores`, ...own('cclear')] };
     const key = (m) => `${m.platform}:${m.user}`;
     /** @type {any} */
     let s = fresh();

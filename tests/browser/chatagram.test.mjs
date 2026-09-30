@@ -218,10 +218,10 @@ test('the set-up page: defaults make a short link, changes are written, the adva
   // advanced: padlocks, a renamed command with two names, everyone can use them
   await tab.eval('document.getElementById("adv").open = true; 1');
   await tab.click('input[name=locks][value="3"]');
-  await type('cstart', '!cg start, !newgame');
+  await type('cmd', '!word');
   await tab.click('input[name=perm][value=all]');
   q = await tab.eval('chatagramSetup.query()');
-  assert.match(q, /locks=3/); assert.match(q, /cstart=!cg\+start,!newgame|cstart=!cg%20start,!newgame/); assert.match(q, /perm=all/);
+  assert.match(q, /locks=3/); assert.match(q, /cmd=!word/); assert.match(q, /perm=all/);
   assert.equal(await tab.eval('document.getElementById("chg").textContent'), '3 changed');
   // tag fields: Enter adds, × removes, straight into the link
   const tagInput = (k) => `document.querySelector('[data-tags=${k}] input')`;
@@ -239,7 +239,7 @@ test('the set-up page: defaults make a short link, changes are written, the adva
   assert.ok(link.startsWith(site.origin + '/chatagram/play?'));
   const o = await chrome.open(link.replace('/chatagram/play?', '/chatagram/play.html?'), { width: 560, height: 230, init: FAKE_CHAT });
   await ready(o);
-  assert.deepEqual(await o.eval('[chatagram.cfg.theme, chatagram.cfg.time, chatagram.cfg.locks, [...chatagram.cfg.cstart].join("|"), chatagram.cfg.perm, chatagram.game.state.phase]'), ['cozy', 300, 3, '!cg start|!newgame', 'all', 'idle']);
+  assert.deepEqual(await o.eval('[chatagram.cfg.theme, chatagram.cfg.time, chatagram.cfg.locks, chatagram.game.commandName("start"), chatagram.cfg.perm, chatagram.game.state.phase]'), ['cozy', 300, 3, '!word start', 'all', 'idle']);
   await o.close();
   noErrors(tab, 'set-up page');
   await tab.eval('localStorage.clear(); 1');

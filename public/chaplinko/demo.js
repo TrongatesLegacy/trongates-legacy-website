@@ -1,5 +1,5 @@
 // A pretend chat that plays Chaplinko, for the set-up page's preview, the page's hero and screenshots (play.html?demo=1).
-// Every name is made up. Mostly a !drop every second or two, now and then with an emoji; every so often a burst of
+// Every name is made up. Mostly a !plinko every second or two, now and then with an emoji; every so often a burst of
 // everyone at once (a raid), so the preview shows the board going into Frenzy.
 (() => {
   const K = (window.Chaplinko = window.Chaplinko || {});
@@ -17,7 +17,7 @@
   function demo(say, o) {
     const rnd = o.random || Math.random, st = o.setTimeout || setTimeout, ct = o.clearTimeout || clearTimeout;
     const platforms = o.platforms.length ? o.platforms : ['twitch', 'kick'];
-    const cmd = o.cmd || '!drop';
+    const cmd = o.cmd || '!plinko';
     let timer = null, n = 0, burst = 0;
     const message = () => {
       const i = Math.floor(rnd() * PEOPLE.length), [name, color] = PEOPLE[i], r = rnd();

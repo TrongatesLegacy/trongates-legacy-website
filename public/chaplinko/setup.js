@@ -11,8 +11,7 @@
   const THEME_NAMES = { chatagram: 'Chatagram', chaplinko: 'Chaplinko', neutral: 'Neutral', light: 'Light', neon: 'Neon', candy: 'Candy', royal: 'Royal', deep: 'Deep', cozy: 'Cozy' };
   const THEME_BG = { chatagram: '#16122b', chaplinko: '#0a1233', neutral: '#1b1e26', light: '#f4f5f8', neon: '#03060d', candy: '#6b2fd6', royal: '#0a0510', deep: '#020b11', cozy: '#f3e6cf' };
   const ACCENTS = [['ff7a1a', 'Tangerine'], ['ff3d8b', 'Jackpot pink'], ['2ee6a8', 'Mint'], ['22e5ff', 'Cyan'], ['4f8cff', 'Blue'], ['ffc93c', 'Sun'], ['b48cff', 'Lilac']];
-  const ADVANCED = ['bigwin', 'motion', 'speed', 'showcmd', 'nearmiss', 'max', 'cool', 'ignore', 'remember', 'credit', 'cdrop', 'cpause', 'cresume', 'cclear', 'ctop', 'cwipe', 'perm', 'lb'];
-  const CMDS = ['cdrop', 'cpause', 'cresume', 'cclear', 'ctop', 'cwipe'];
+  const ADVANCED = ['bigwin', 'motion', 'speed', 'showcmd', 'nearmiss', 'max', 'cool', 'ignore', 'remember', 'credit', 'cmd', 'perm', 'lb'];
 
   let saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
   const fromLink = location.search.length > 1;
@@ -91,7 +90,6 @@
     else v = el.value;
     const clean = W.settings.read(f, f.type === 'bool' ? (v ? '1' : '0') : f.type === 'list' ? v.join(',') : String(v));
     s[k] = clean === undefined ? (f.type === 'list' ? [] : f.def) : clean;
-    if (CMDS.includes(k) && !s[k].length) s[k] = [...f.def];
   }
   form.addEventListener('input', (e) => {
     const el = e.target;
@@ -115,6 +113,7 @@
     const el = e.target;
     if (el.name === 'twitch') { s.twitch = W.platforms.twitch.channel(el.value); el.value = s.twitch; }
     if (el.name === 'kick') { s.kick = W.platforms.kick.channel(el.value); el.value = s.kick; }
+    if (el.name === 'cmd') { s.cmd = K.settings.command({ cmd: el.value }); el.value = s.cmd; }
     if (el.id === 'accent-custom' || el.id === 'lbaccent-custom') drawAccents();
     update({ fill: false });
   });
@@ -128,7 +127,9 @@
     const most = Math.max(...rows.map(([, p]) => p));
     const chance = (p) => (p >= 0.1 ? `${Math.round(p * 100)}%` : `1 in ${Math.round(1 / p).toLocaleString('en')}`);
     $('#odds').innerHTML = rows.map(([v, p]) => `<div class="${v === top ? 'top' : ''}"><b>${v}</b><span class="bar"><i style="width:${Math.max(2, (p / most) * 100)}%"></i></span><span class="ch">${chance(p)}</span></div>`).join('');
-    $('#cmd-name').textContent = s.cdrop[0] || '!drop';
+    const c = K.settings.command(s);
+    $('#cmd-name').textContent = c;
+    for (const el of $$('[data-cmd]')) el.textContent = el.dataset.cmd ? `${c} ${el.dataset.cmd}` : c;
   }
 
   // ---- channel checks: say under each box whether the channel exists ---------------------------------------------------------

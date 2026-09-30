@@ -64,7 +64,7 @@ test('drops from Twitch and Kick land and score the right people; the loop stops
   const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
   await ready(tab);
   await sleep(300);
-  await tab.eval(`__chat.twitch('PixelPanda', '!drop', { color: '#FF4F9A' }); __chat.kick('NeonNacho', '!drop 🔥', { color: '#1E90FF' }); __chat.twitch('Nightbot', '!drop'); 1`);
+  await tab.eval(`__chat.twitch('PixelPanda', '!plinko', { color: '#FF4F9A' }); __chat.kick('NeonNacho', '!plinko 🔥', { color: '#1E90FF' }); __chat.twitch('Nightbot', '!plinko'); 1`);
   assert.equal(await tab.eval('chaplinko.game.queued + chaplinko.world.balls.length'), 10, 'two drops of five; the bot is ignored');
   await tab.until('chaplinko.game.queued === 0 && chaplinko.world.balls.length === 0', 15000, 'every ball to land');
   const all = await tab.eval('JSON.stringify(Object.fromEntries(Object.entries(chaplinko.scores.allTime).map(([k, p]) => [k, p.words])))');
@@ -109,7 +109,7 @@ test('every size fits in every theme: the board, combined, the panel (as tall as
 test('a live theme message restyles the board without restarting it; a bad one is ignored', async () => {
   const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
   await ready(tab); await sleep(200);
-  await tab.eval(`__chat.twitch('PixelPanda', '!drop'); 1`);
+  await tab.eval(`__chat.twitch('PixelPanda', '!plinko'); 1`);
   const before = await tab.eval('chaplinko.game.queued + chaplinko.world.balls.length');
   await tab.eval(`postMessage({ type: 'widget-theme', theme: 'neon', accent: 'ff4155' }, '*'); postMessage({ type: 'widget-theme', theme: 'nope' }, '*'); 1`);
   await tab.until(`document.getElementById('w').dataset.theme === 'neon'`, 2000, 'the new theme');
@@ -160,7 +160,7 @@ test('the set-up page: defaults make short links, the leaderboard link carries i
 test('reduced motion: nothing falls, the points still land and score; the leaderboard just changes', async () => {
   const tab = await chrome.open(site.origin + BOARD + '&motion=reduce&layout=combined', { width: 960, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
   await ready(tab); await sleep(200);
-  await tab.eval(`__chat.twitch('PixelPanda', '!drop'); 1`);
+  await tab.eval(`__chat.twitch('PixelPanda', '!plinko'); 1`);
   await tab.until('chaplinko.game.queued === 0', 5000, 'the queue to empty');
   assert.equal(await tab.eval('chaplinko.world.balls.length'), 0, 'no ball ever on the board');
   assert.equal(await tab.eval(`chaplinko.scores.allTime['twitch:pixelpanda'].words`), 5);
@@ -171,7 +171,7 @@ test('reduced motion: nothing falls, the points still land and score; the leader
 test('Frenzy: a flood of drops pours through, the chute counts the queue down, and it all drains and calms', async () => {
   const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
   await ready(tab); await sleep(200);
-  await tab.eval(`for (let i = 0; i < 40; i++) __chat.twitch('P' + i, '!drop'); 1`);
+  await tab.eval(`for (let i = 0; i < 40; i++) __chat.twitch('P' + i, '!plinko'); 1`);
   await tab.until(`chaplinko.game.level === 'frenzy'`, 3000, 'Frenzy');
   assert.match(await tab.eval('document.getElementById("chute").textContent'), /FRENZY/);
   assert.ok(await tab.eval('document.getElementById("w").classList.contains("frenzy")'));
@@ -185,7 +185,7 @@ test('Frenzy: a flood of drops pours through, the chute counts the queue down, a
 test('an emote the platform marked drops as that emote; when its picture can\'t load, a plain ball falls instead', async () => {
   const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
   await ready(tab); await sleep(200);
-  await tab.eval(`__chat.twitch('PixelPanda', '!drop Kappa', { emotes: '25:6-10' }); 1`);
+  await tab.eval(`__chat.twitch('PixelPanda', '!plinko Kappa', { emotes: '25:8-12' }); 1`);
   await tab.until('chaplinko.world.balls.length > 0', 3000, 'the first ball');
   const item = JSON.parse(await tab.eval('JSON.stringify(chaplinko.world.balls[0].data.item)'));
   assert.deepEqual(item, { kind: 'emote', url: 'https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/2.0', name: 'Kappa' });
@@ -199,7 +199,7 @@ test('an emote the platform marked drops as that emote; when its picture can\'t 
 test('an animated emote plays while it falls: its frames are decoded (a canvas would only draw the first)', async () => {
   const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
   await ready(tab); await sleep(200);
-  await tab.eval(`chaplinko.hear({ platform: 'kick', user: 'b', name: 'B', text: '!drop [emote:1:anim]', emotes: [{ id: '1', name: 'anim', url: location.origin + '/test/anim.gif' }] }); 1`);
+  await tab.eval(`chaplinko.hear({ platform: 'kick', user: 'b', name: 'B', text: '!plinko [emote:1:anim]', emotes: [{ id: '1', name: 'anim', url: location.origin + '/test/anim.gif' }] }); 1`);
   await tab.until('chaplinko.world.balls.length > 0', 3000, 'the first ball');
   await tab.until('(chaplinko.world.balls[0]?.data.img.frames || []).length === 4', 5000, 'the GIF\'s four frames decoded');
   assert.ok(await tab.eval('chaplinko.world.balls[0].data.img.total') > 300, 'with their timing');

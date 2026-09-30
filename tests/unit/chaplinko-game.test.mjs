@@ -1,4 +1,4 @@
-// Chaplinko's rules (public/chaplinko/game.js) on a hand-driven clock: what a !drop drops (balls, an emote the platform
+// Chaplinko's rules (public/chaplinko/game.js) on a hand-driven clock: what a !plinko drops (balls, an emote the platform
 // marked, an emoji), spam allowed (no cooldown unless the streamer sets one), the queue and its limit, commands and who
 // can use them, scoring and big wins, near misses, and how busy the board is (Quiet / Busy / Frenzy, without flicker).
 import test from 'node:test';
@@ -22,59 +22,59 @@ function setup(link = '') {
   return t;
 }
 
-test('!drop drops the streamer\'s balls per drop (5 by default); any number typed is ignored', () => {
+test('!plinko drops the streamer\'s balls per drop (5 by default); any number typed is ignored', () => {
   const t = setup();
-  assert.equal(t.say('!drop').kind, 'drop');
+  assert.equal(t.say('!plinko').kind, 'drop');
   assert.equal(t.g.queued, 5);
-  assert.equal(t.say('!drop 50').n, 5, '!drop 5 from habit is a plain !drop');
-  assert.equal(t.say('!DROP').kind, 'drop', 'any capitals');
-  assert.equal(t.say('!dropped').kind, 'none', 'another word');
-  assert.equal(t.say('hello !drop').kind, 'none');
-  assert.equal(setup('balls=2').say('!drop').n, 2);
+  assert.equal(t.say('!plinko 50').n, 5, '!plinko 5 from habit is a plain !plinko');
+  assert.equal(t.say('!PLINKO').kind, 'drop', 'any capitals');
+  assert.equal(t.say('!plinkoped').kind, 'none', 'another word');
+  assert.equal(t.say('hello !plinko').kind, 'none');
+  assert.equal(setup('balls=2').say('!plinko').n, 2);
   const out = t.drain();
   assert.equal(out.length, 15);
   assert.deepEqual(plain(out[0].by), { platform: 'twitch', user: 'pixelpanda', name: 'PixelPanda', color: '#ff4f9a' });
 });
 
-test('!drop <emote>: an emote the platform marked, else an emoji, else balls', () => {
+test('!plinko <emote>: an emote the platform marked, else an emoji, else balls', () => {
   const t = setup();
   const e = { id: '25', name: 'Kappa', url: 'https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/2.0' };
-  assert.deepEqual(plain(t.say('!drop Kappa', { emotes: [e] }).item), { kind: 'emote', url: e.url, name: 'Kappa' });
-  assert.deepEqual(plain(t.say('!drop 🔥').item), { kind: 'emoji', text: '🔥' });
-  assert.deepEqual(plain(t.say('!drop 5 👍🏽 extra').item), { kind: 'emoji', text: '👍🏽' }, 'skin tones stay with their emoji');
-  assert.deepEqual(plain(t.say('!drop ❤️').item), { kind: 'emoji', text: '❤️' });
-  assert.equal(t.say('!drop https://example.com/x.png').item, null, 'a typed address is never an image');
-  assert.equal(t.say('!drop Kappa').item, null, 'a word the platform didn\'t mark is just balls');
+  assert.deepEqual(plain(t.say('!plinko Kappa', { emotes: [e] }).item), { kind: 'emote', url: e.url, name: 'Kappa' });
+  assert.deepEqual(plain(t.say('!plinko 🔥').item), { kind: 'emoji', text: '🔥' });
+  assert.deepEqual(plain(t.say('!plinko 5 👍🏽 extra').item), { kind: 'emoji', text: '👍🏽' }, 'skin tones stay with their emoji');
+  assert.deepEqual(plain(t.say('!plinko ❤️').item), { kind: 'emoji', text: '❤️' });
+  assert.equal(t.say('!plinko https://example.com/x.png').item, null, 'a typed address is never an image');
+  assert.equal(t.say('!plinko Kappa').item, null, 'a word the platform didn\'t mark is just balls');
 });
 
 test('spam is the point: no cooldown by default; the streamer can set one', () => {
   const t = setup();
-  for (let i = 0; i < 20; i++) assert.equal(t.say('!drop').kind, 'drop');
+  for (let i = 0; i < 20; i++) assert.equal(t.say('!plinko').kind, 'drop');
   const c = setup('cool=30');
-  assert.equal(c.say('!drop').kind, 'drop');
-  c.at += 29000; assert.equal(c.say('!drop').kind, 'cooldown');
-  assert.equal(c.say('!drop', { name: 'NeonNacho' }).kind, 'drop', 'per person');
-  c.at += 1000; assert.equal(c.say('!drop').kind, 'drop');
+  assert.equal(c.say('!plinko').kind, 'drop');
+  c.at += 29000; assert.equal(c.say('!plinko').kind, 'cooldown');
+  assert.equal(c.say('!plinko', { name: 'NeonNacho' }).kind, 'drop', 'per person');
+  c.at += 1000; assert.equal(c.say('!plinko').kind, 'drop');
 });
 
 test('the queue: past about 30 s of balls, drops are ignored until it drains; the board never holds more than the most on screen', () => {
   const t = setup();
-  let n = 0; while (t.say('!drop', { name: 'P' + n }).kind === 'drop') n++;
+  let n = 0; while (t.say('!plinko', { name: 'P' + n }).kind === 'drop') n++;
   assert.equal(n * 5, K.game.QUEUE_MAX);
-  assert.equal(t.say('!drop', { name: 'Late' }).kind, 'full');
+  assert.equal(t.say('!plinko', { name: 'Late' }).kind, 'full');
   assert.equal(t.drain(95, 5000).length, 5, 'only up to the most on screen (100)');
   assert.equal(t.drain(100, 5000).length, 0, 'a full board takes nothing');
   t.drain(0, 60000);
   assert.equal(t.g.queued, 0);
-  assert.equal(t.say('!drop', { name: 'Late' }).kind, 'drop');
+  assert.equal(t.say('!plinko', { name: 'Late' }).kind, 'drop');
 });
 
 test('balls leave the chute one at a time, faster in Frenzy', () => {
-  const quiet = setup(); quiet.say('!drop');
+  const quiet = setup(); quiet.say('!plinko');
   let times = []; for (let i = 0; i < 200; i++) { quiet.at += 10; if (quiet.g.take(0).length) times.push(quiet.at); }
   assert.equal(times.length, 5);
   assert.ok(times[1] - times[0] >= K.game.SPACING.quiet, 'spaced out when quiet');
-  const busy = setup(); for (let i = 0; i < 30; i++) busy.say('!drop', { name: 'P' + i });
+  const busy = setup(); for (let i = 0; i < 30; i++) busy.say('!plinko', { name: 'P' + i });
   const t0 = busy.at; let got = 0; for (let i = 0; i < 100; i++) { busy.at += 10; got += busy.g.take(60).length; }
   assert.equal(busy.g.level, 'frenzy');
   assert.ok(got >= (busy.at - t0) / K.game.SPACING.frenzy - 1, `about 20 a second in Frenzy (${got} in 1 s)`);
@@ -90,34 +90,38 @@ test('activity levels: up at once, down only after 3 s below the line', () => {
   t.at += 1000; t.g.take(10); assert.equal(t.g.level, 'quiet', 'after 3 s below the line it calms');
 });
 
-test('commands and who can use them; clearscores is the owner\'s only; !drop top is off by default', () => {
+test('commands and who can use them; clearscores is the owner\'s only; !plinko top is off by default', () => {
   const t = setup();
-  assert.equal(t.say('!drop pause').kind, 'ignored', 'a viewer can\'t pause');
-  assert.equal(t.say('!drop pause', { mod: true }).cmd, 'pause');
-  assert.equal(t.say('!drop').kind, 'paused');
-  assert.equal(t.say('!drop resume', { owner: true }).cmd, 'resume');
-  t.say('!drop');
-  assert.equal(t.say('!drop clear', { mod: true }).cmd, 'clear');
+  assert.equal(t.say('!plinko pause').kind, 'ignored', 'a viewer can\'t pause');
+  assert.equal(t.say('!plinko pause', { mod: true }).cmd, 'pause');
+  assert.equal(t.say('!plinko').kind, 'paused');
+  assert.equal(t.say('!plinko resume', { owner: true }).cmd, 'resume');
+  t.say('!plinko');
+  assert.equal(t.say('!plinko clear', { mod: true }).cmd, 'clear');
   assert.equal(t.g.queued, 0);
-  assert.equal(t.say('!drop clearscores', { mod: true }).kind, 'ignored');
-  assert.equal(t.say('!drop clearscores', { owner: true }).cmd, 'clearscores');
-  assert.equal(t.say('!drop top', { owner: true }).kind, 'ignored', 'off by default');
+  assert.equal(t.say('!plinko clearscores', { mod: true }).kind, 'ignored');
+  assert.equal(t.say('!plinko clearscores', { owner: true }).cmd, 'clearscores');
+  assert.equal(t.say('!plinko top', { owner: true }).kind, 'ignored', 'off by default');
   const on = setup('lb=1&perm=all');
-  assert.equal(on.say('!drop top').cmd, 'top');
-  assert.equal(on.say('!drop top', { name: 'Other' }).kind, 'cooldown', 'viewers share one a minute');
-  assert.equal(on.say('!drop top', { mod: true }).cmd, 'top', 'mods never wait');
+  assert.equal(on.say('!plinko top').cmd, 'top');
+  assert.equal(on.say('!plinko top', { name: 'Other' }).kind, 'cooldown', 'viewers share one a minute');
+  assert.equal(on.say('!plinko top', { mod: true }).cmd, 'top', 'mods never wait');
   const me = setup('perm=me');
-  assert.equal(me.say('!drop pause', { mod: true }).kind, 'ignored');
-  const named = setup('cdrop=!plinko,!p&cpause=!stop');
-  assert.equal(named.say('!p 🔥').kind, 'drop');
-  assert.equal(named.say('!drop').kind, 'none');
-  assert.equal(named.say('!stop', { owner: true }).cmd, 'pause');
+  assert.equal(me.say('!plinko pause', { mod: true }).kind, 'ignored');
+  // one setting: the command; the words after it are fixed
+  const named = setup('cmd=!Drop');
+  assert.equal(named.say('!drop 🔥').kind, 'drop');
+  assert.equal(named.say('!plinko').kind, 'none', 'the default is replaced');
+  assert.equal(named.say('!drop pause', { owner: true }).cmd, 'pause');
+  assert.equal(named.say('!DROP Resume', { owner: true }).cmd, 'resume', 'any capitals');
+  assert.equal(setup('cmd=!my%20cmd').say('!my').kind, 'drop', 'one word: the first');
+  assert.equal(setup('cmd=').say('!plinko').kind, 'drop', 'empty: the default');
 });
 
 test('bots are ignored', () => {
   const t = setup();
-  assert.equal(t.say('!drop', { name: 'Nightbot' }).kind, 'ignored');
-  assert.equal(setup('ignore=gridrunner').say('!drop', { name: 'GridRunner' }).kind, 'ignored');
+  assert.equal(t.say('!plinko', { name: 'Nightbot' }).kind, 'ignored');
+  assert.equal(setup('ignore=gridrunner').say('!plinko', { name: 'GridRunner' }).kind, 'ignored');
 });
 
 test('scoring: the slot\'s value goes to whoever dropped it; the top slot is a jackpot with the card, counted per day', () => {
@@ -154,4 +158,12 @@ test('near miss: touching the top slot\'s edge and falling the other way (only w
   assert.equal(t.g.land({ name: 'x' }, 1, edge + t.L.slots.w / 2).near, false, 'in the middle of its slot');
   assert.equal(t.g.land({ name: 'x' }, 4, t.L.slots.x0 + 4 * t.L.slots.w + 1).near, false, 'not next to the top slot');
   assert.equal(setup('nearmiss=0').g.land({ name: 'x' }, 1, edge + 2).near, false);
+});
+
+test('scores on the leaderboard: in full up to 99,999, then three figures (never rounded up past what they are)', () => {
+  const c = vm.createContext({ Math, JSON }); c.window = c;
+  vm.runInContext(read('public/chaplinko/leaderboard.js'), c);
+  const f = c.Chaplinko.leaderboard.fmt;
+  for (const [n, want] of [[0, '0'], [1284, '1,284'], [99999, '99,999'], [100000, '100K'], [999999, '999K'], [1000000, '1.00M'], [7400210, '7.40M'], [48210933, '48.2M'], [912345678, '912M'], [4288123456, '4.28B'], [2.5e12, '2.50T']])
+    assert.equal(f(n), want, String(n));
 });

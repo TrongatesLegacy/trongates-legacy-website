@@ -11,7 +11,15 @@
   const K = (window.Chaplinko = window.Chaplinko || {});
   const REORDER = 1000, HOLD = 3000, COUNT = 600;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-  const fmt = (n) => Math.round(n).toLocaleString('en');
+  // scores in full up to 99,999, then three figures: 250K, 48.2M, 4.29B (All time grows for years; full digits pushed the
+  // names out, the owner, 2026-09-30)
+  function fmt(n) {
+    n = Math.round(n);
+    if (n < 100000) return n.toLocaleString('en');
+    const [d, u] = n >= 1e12 ? [1e12, 'T'] : n >= 1e9 ? [1e9, 'B'] : n >= 1e6 ? [1e6, 'M'] : [1e3, 'K'];
+    const v = n / d, s = v >= 100 ? Math.floor(v) : v >= 10 ? Math.floor(v * 10) / 10 : Math.floor(v * 100) / 100;
+    return (v >= 100 ? String(s) : s.toFixed(v >= 10 ? 1 : 2)) + u;
+  }
   const TITLES = { stream: 'This stream', last: 'Last stream', recent: 'Recent', all: 'All time' };
 
   /** @param {HTMLElement} el @param {{ shape?: string, n?: number, show?: string, every?: number, remember?: boolean, rm?: boolean, calm?: boolean, dots?: boolean, cmd?: string, now?: () => number }} o */
@@ -57,7 +65,7 @@
     function empty() {
       // offline, the stream's list is the last stream's; drops count for All time until the next stream
       const off = current === 'stream' && data.stream.kind === 'last';
-      rowsEl.innerHTML = off ? `<div class="empty"><span class="bb"></span>Not live: drops count for All time</div>` : `<div class="empty"><span class="bb"></span>No drops yet. Type <b>${esc(o.cmd || '!drop')}</b></div>`;
+      rowsEl.innerHTML = off ? `<div class="empty"><span class="bb"></span>Not live: drops count for All time</div>` : `<div class="empty"><span class="bb"></span>No drops yet. Type <b>${esc(o.cmd || '!plinko')}</b></div>`;
       shown.clear(); order = [];
     }
 
@@ -227,5 +235,6 @@
   }
 
   K.leaderboard = leaderboard;
+  K.leaderboard.fmt = fmt;
   K.leaderboard.lists = lists;
 })();

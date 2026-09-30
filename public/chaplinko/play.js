@@ -44,7 +44,7 @@
   const channels = { twitch: W.platforms.twitch.channel(cfg.twitch), kick: W.platforms.kick.channel(cfg.kick) };
   const platforms = Object.keys(channels).filter((p) => channels[p]);
   const shownPlatforms = demo || still ? (platforms.length ? platforms : ['twitch', 'kick']) : platforms;
-  const cmdName = (cfg.cdrop[0] || '!drop');
+  const cmdName = K.settings.command(cfg);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
   const anim = (el, frames, opts) => (rm || !el || !el.animate ? null : el.animate(frames, opts));
 
@@ -243,7 +243,7 @@
     if (Date.now() - leaderAt < 500) return leaderCache;
     leaderAt = Date.now();
     const { stream, all } = K.leaderboard.lists(scores, 1), p = (stream.kind === 'stream' && stream.list[0]) || all[0];
-    leaderCache = p ? `<span class="lead"></span><span class="m">${stream.kind === 'stream' && stream.list[0] ? 'LEADING' : 'ALL-TIME #1'}</span> ${esc(p.name)} <span class="a">${Math.round(p.score).toLocaleString('en')}</span>` : '<span class="nm">CHAPLINKO</span>';
+    leaderCache = p ? `<span class="lead"></span><span class="m">${stream.kind === 'stream' && stream.list[0] ? 'LEADING' : 'ALL-TIME #1'}</span> ${esc(p.name)} <span class="a">${K.leaderboard.fmt(p.score)}</span>` : '<span class="nm">CHAPLINKO</span>';
     return leaderCache;
   }
   function dropped() {
@@ -516,12 +516,12 @@
   }
   function lbRefresh() { if (!lbc || lbTimer) return; lbTimer = setTimeout(() => { lbTimer = null; lbc.update(K.leaderboard.lists(scores, cfg.lbn)); }, 60); }
 
-  // ---- !drop top (off by default): both lists over the board for 8 s -----------------------------------------------------------
+  // ---- !plinko top (off by default): both lists over the board for 8 s -----------------------------------------------------------
   let topEl = null;
   function showTop() {
     if (topEl) return;
     const { stream, all } = K.leaderboard.lists(scores, 5);
-    const rows = (list) => list.length ? list.map((p, i) => `<div class="row"><b class="rk">${i + 1}</b><span class="n">${esc(p.name)}</span><span class="p">${Math.round(p.score).toLocaleString('en')}</span></div>`).join('') : '<div class="row"><span class="n">No drops yet</span></div>';
+    const rows = (list) => list.length ? list.map((p, i) => `<div class="row"><b class="rk">${i + 1}</b><span class="n">${esc(p.name)}</span><span class="p">${K.leaderboard.fmt(p.score)}</span></div>`).join('') : '<div class="row"><span class="n">No drops yet</span></div>';
     topEl = document.createElement('div'); topEl.className = 'toplist lb';
     topEl.innerHTML = `<div><h3>${stream.kind === 'last' ? 'Last stream' : 'This stream'}</h3>${rows(stream.list)}</div>${cfg.remember ? `<div><h3>All time</h3>${rows(all)}</div>` : ''}`;
     if (!cfg.remember) topEl.style.gridTemplateColumns = '1fr';

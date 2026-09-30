@@ -10,12 +10,15 @@
   const THEME_NAMES = { chatagram: 'Chatagram', chaplinko: 'Chaplinko', neutral: 'Neutral', light: 'Light', neon: 'Neon', candy: 'Candy', royal: 'Royal', deep: 'Deep', cozy: 'Cozy' };
   const THEME_BG = { chatagram: '#16122b', chaplinko: '#0a1233', neutral: '#1b1e26', light: '#f4f5f8', neon: '#03060d', candy: '#6b2fd6', royal: '#0a0510', deep: '#020b11', cozy: '#f3e6cf' };
   const ACCENTS = [['ffc93c', 'Sun'], ['ff5a5f', 'Coral'], ['2ee6a8', 'Mint'], ['22e5ff', 'Cyan'], ['4f8cff', 'Blue'], ['b48cff', 'Lilac'], ['ff63b8', 'Pink']];
-  const ADVANCED = ['shuffle', 'slots', 'minlen', 'goal', 'tricky', 'longbonus', 'bonus', 'locks', 'lockmsg', 'next', 'restart', 'cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear', 'perm', 'lb', 'wrong', 'ignore', 'block', 'top', 'remember', 'bgo', 'credit'];
+  const ADVANCED = ['shuffle', 'slots', 'minlen', 'goal', 'tricky', 'longbonus', 'bonus', 'locks', 'lockmsg', 'next', 'restart', 'cmd', 'perm', 'lb', 'wrong', 'ignore', 'block', 'top', 'remember', 'bgo', 'credit'];
 
   let saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
   const fromLink = location.search.length > 1;
   let s = W.settings.decode(SCHEMA, fromLink ? location.search : saved ? W.settings.encode(SCHEMA, saved) : '');
   let manualKickId = !!(fromLink && s.kickid);
+  // an older link's own names for each command: dropped here (the command setting replaces them); a link copied from now
+  // on carries only the command. The old link keeps working in OBS until then.
+  for (const k of C.settings.LEGACY) s[k] = [];
 
   // ---- swatches ------------------------------------------------------------------------------------------------------
   $('#theme-pick').innerHTML = C.settings.THEMES.map((t) => `<label title="${THEME_NAMES[t]}"><input type="radio" name="theme" value="${t}" aria-label="${THEME_NAMES[t]}"><span style="background:linear-gradient(90deg, ${THEME_BG[t]} 58%, #${W.theme.ACCENTS[t]} 0)${t === 'light' || t === 'cozy' ? ';box-shadow:inset 0 0 0 1px #0003' : ''}"></span></label>`).join('');
@@ -74,7 +77,8 @@
     $('#auto').checked = s.next > 0 && s.restart > 0;
     $('#theme-name').textContent = THEME_NAMES[s.theme];
     for (const r of $$('input[name=lockmsg]')) r.disabled = !s.locks;
-    $('input[name=ctop]').disabled = !s.lb;
+    const c = C.settings.command(s);
+    for (const el of $$('[data-cmd]')) el.textContent = el.dataset.cmd ? `${c} ${el.dataset.cmd}` : c;
     $('#lbshow').hidden = !s.lb;
     drawAccents();
   }
@@ -87,7 +91,6 @@
     else v = el.value;
     const clean = W.settings.read(f, f.type === 'bool' ? (v ? '1' : '0') : f.type === 'list' ? v.join(',') : String(v));
     s[k] = clean === undefined ? (f.type === 'list' ? [] : f.def) : clean;
-    if (['cstart', 'cnext', 'cskip', 'creset', 'ctop', 'cclear'].includes(k) && !s[k].length) s[k] = [...f.def];
   }
   form.addEventListener('input', (e) => {
     const el = e.target;
@@ -110,6 +113,7 @@
     const el = e.target;
     if (el.name === 'twitch') { s.twitch = W.platforms.twitch.channel(el.value); el.value = s.twitch; }
     if (el.name === 'kick') { s.kick = W.platforms.kick.channel(el.value); el.value = s.kick; }
+    if (el.name === 'cmd') { s.cmd = C.settings.command({ cmd: el.value }); el.value = s.cmd; }
     if (el.id === 'accent-custom') drawAccents();
     update({ fill: false });
   });

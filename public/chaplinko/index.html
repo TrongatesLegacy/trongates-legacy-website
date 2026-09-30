@@ -3,14 +3,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chaplinko: free Plinko chat game for Twitch and Kick (OBS) · Trongates Legacy</title>
-<meta name="description" content="Chaplinko is a free Plinko game for streamers: chat types !drop and balls bounce down the pegs into scoring slots. A leaderboard for this stream and all time. Twitch and Kick at once, no login: paste one link into OBS.">
+<meta name="description" content="Chaplinko is a free Plinko game for streamers: chat types !plinko and balls bounce down the pegs into scoring slots. A leaderboard for this stream and all time. Twitch and Kick at once, no login: paste one link into OBS.">
 <link rel="canonical" href="https://www.trongateslegacy.com/chaplinko/">
 <meta name="theme-color" content="#0a1233">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Trongates Legacy">
 <meta property="og:title" content="Chaplinko: let chat drop">
-<meta property="og:description" content="Free Plinko for Twitch and Kick chat. Type !drop, climb the leaderboard. Paste one link into OBS.">
+<meta property="og:description" content="Free Plinko for Twitch and Kick chat. Type !plinko, climb the leaderboard. Paste one link into OBS.">
 <meta property="og:url" content="https://www.trongateslegacy.com/chaplinko/">
 <meta property="og:image" content="https://www.trongateslegacy.com/chaplinko/assets/og.jpg">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
@@ -19,7 +19,7 @@
 <link rel="preload" href="/assets/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Chaplinko","url":"https://www.trongateslegacy.com/chaplinko/",
- "applicationCategory":"GameApplication","operatingSystem":"Any (OBS browser source)","description":"A free Plinko game for Twitch and Kick chat, played on stream through an OBS browser source: chat types !drop and climbs the leaderboard.",
+ "applicationCategory":"GameApplication","operatingSystem":"Any (OBS browser source)","description":"A free Plinko game for Twitch and Kick chat, played on stream through an OBS browser source: chat types !plinko and climbs the leaderboard.",
  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
  "author":{"@type":"Person","name":"Trongates Legacy","url":"https://www.trongateslegacy.com/"}}
 </script>
@@ -132,7 +132,7 @@ fieldset.card { border: 0; margin: 0; display: grid; gap: 14px; align-content: s
 .sw input { appearance: none; width: 40px; height: 23px; border-radius: 99px; background: var(--slot); position: relative; margin: 0; flex: none; cursor: pointer; }
 .sw input::after { content: ''; position: absolute; left: 3px; top: 3px; width: 17px; height: 17px; border-radius: 50%; background: var(--mist); transition: transform .15s; }
 .sw input:checked { background: var(--tangerine); } .sw input:checked::after { transform: translateX(17px); background: var(--night); }
-.themes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .themes label { position: relative; cursor: pointer; } .themes input { position: absolute; opacity: 0; }
 .themes span { display: block; height: 28px; border-radius: 8px; }
 .themes input:checked + span { box-shadow: 0 0 0 2px var(--deep), 0 0 0 4px var(--ice); }
@@ -173,8 +173,10 @@ fieldset.card { border: 0; margin: 0; display: grid; gap: 14px; align-content: s
 .reset:hover:not([disabled]) { box-shadow: inset 0 0 0 1.5px var(--tangerine); color: var(--tangerine); }
 .reset[disabled] { opacity: .4; cursor: default; }
 .agrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 16px; }
-.cmds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.cmds .box input { color: var(--tangerine); font-weight: 700; }
+.cmdrow { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: start; }
+.cmdrow .box input { color: var(--tangerine); font-weight: 700; }
+.cmdlist { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 14px; color: var(--mist); }
+.cmdlist code { font: 700 13px "Space Grotesk", sans-serif; color: var(--ice); background: var(--slot); padding: 1px 7px; border-radius: 7px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--night); border-radius: 12px; padding: 7px 8px; min-height: 44px; cursor: text; box-shadow: inset 0 0 0 1px #ffffff14; }
 .tags:focus-within { outline: 3px solid var(--tangerine); outline-offset: 1px; }
 .tag { display: inline-flex; align-items: center; gap: 4px; background: var(--slot); border-radius: 99px; padding: 3px 4px 3px 11px; font-size: 14px; }
@@ -211,7 +213,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
 @media (max-width: 720px) {
   .wrap { padding: 0 16px; } .more { display: none; }
   h1 { font-size: 54px; }
-  .steps, .tgrid { grid-template-columns: 1fr 1fr; } .left, .agrid { grid-template-columns: 1fr; } .cmds { grid-template-columns: 1fr 1fr; }
+  .steps, .tgrid { grid-template-columns: 1fr 1fr; } .left, .agrid, .cmdrow { grid-template-columns: 1fr; } .cmdlist { margin-top: 0; }
   .clearnote { grid-template-columns: 1fr; }
   .hero .screen { height: 320px; } #pv-screen { height: 260px; } .chat { display: none; }
 }
@@ -232,7 +234,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
   <div>
     <span class="eyebrow"><span class="dot" style="background:#9146ff"></span><span class="dot" style="background:#53fc18"></span>Free for Twitch and Kick</span>
     <h1>LET CHAT<br><em>DROP.</em></h1>
-    <p class="lede">Chat types <code>!drop</code>. Balls bounce down the pegs, in each chatter’s own colour, and the slots keep score. A leaderboard for this stream and all time, straight over your game.</p>
+    <p class="lede">Chat types <code>!plinko</code>. Balls bounce down the pegs, in each chatter’s own colour, and the slots keep score. A leaderboard for this stream and all time, straight over your game.</p>
     <div class="ctas"><a class="btn" href="#setup">SET IT UP</a><a class="btn ghost" href="#looks">SEE THE LOOKS</a></div>
     <p class="free">No sign-up, no download: one link in OBS.</p>
   </div>
@@ -243,7 +245,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
   <ol class="steps">
     <li><div class="ball">1</div><h3>TYPE YOUR CHANNEL</h3><p>Twitch, Kick or both. Pick a look, or keep it see-through over your game.</p></li>
     <li><div class="ball">2</div><h3>ADD IT TO OBS</h3><p>Paste the link into a browser source. The leaderboard can be its own source, or sit beside the board.</p></li>
-    <li><div class="ball">3</div><h3>CHAT DROPS</h3><p>Every <code>!drop</code> scores. Spam it, climb the leaderboard, and land the jackpot for the whole stream to see.</p></li>
+    <li><div class="ball">3</div><h3>CHAT DROPS</h3><p>Every <code>!plinko</code> scores. Spam it, climb the leaderboard, and land the jackpot for the whole stream to see.</p></li>
   </ol>
 </section>
 
@@ -272,11 +274,11 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
     <fieldset class="card"><legend>3 · Look</legend>
       <div class="field"><span class="lab" id="l-bgo">Board background</span><div class="seg" role="radiogroup" aria-labelledby="l-bgo">
         <label><input type="radio" name="bgo" value="0"><span>Transparent</span></label><label><input type="radio" name="bgo" value="80"><span>80%</span></label><label><input type="radio" name="bgo" value="95"><span>95%</span></label><label><input type="radio" name="bgo" value="100"><span>Solid</span></label></div></div>
-      <div class="field" id="lbbgo-field"><span class="lab" id="l-lbbgo">Leaderboard background</span><div class="seg" role="radiogroup" aria-labelledby="l-lbbgo">
-        <label><input type="radio" name="lbbgo" value="0"><span>Transparent</span></label><label><input type="radio" name="lbbgo" value="80"><span>80%</span></label><label><input type="radio" name="lbbgo" value="95"><span>95%</span></label><label><input type="radio" name="lbbgo" value="100"><span>Solid</span></label></div></div>
       <div class="field"><span class="lab" id="l-theme">Theme: <b id="theme-name" style="color:var(--ice);font-weight:600"></b></span><div class="themes" id="theme-pick" role="radiogroup" aria-labelledby="l-theme"></div></div>
       <div class="field"><span class="lab" id="l-accent">Accent colour</span><div class="accents" id="accents" role="radiogroup" aria-labelledby="l-accent"></div></div>
-      <label class="sw" id="own-field">Leaderboard in its own theme and accent <input type="checkbox" role="switch" id="own"></label>
+      <div class="field" id="lbbgo-field"><span class="lab" id="l-lbbgo">Leaderboard background</span><div class="seg" role="radiogroup" aria-labelledby="l-lbbgo">
+        <label><input type="radio" name="lbbgo" value="0"><span>Transparent</span></label><label><input type="radio" name="lbbgo" value="80"><span>80%</span></label><label><input type="radio" name="lbbgo" value="95"><span>95%</span></label><label><input type="radio" name="lbbgo" value="100"><span>Solid</span></label></div></div>
+      <label class="sw" id="own-field">Leaderboard custom theme <input type="checkbox" role="switch" id="own"></label>
       <div class="field" id="own-look" hidden><span class="lab" id="l-lbtheme">Leaderboard theme</span><div class="themes" id="lbtheme-pick" role="radiogroup" aria-labelledby="l-lbtheme"></div></div>
       <div class="field" id="own-accent" hidden><span class="lab" id="l-lbaccent">Leaderboard accent</span><div class="accents" id="lbaccents" role="radiogroup" aria-labelledby="l-lbaccent"></div></div>
     </fieldset>
@@ -284,7 +286,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
       <div class="field"><span class="lab" id="l-rows">Rows of pegs</span><div class="seg" role="radiogroup" aria-labelledby="l-rows">
         <label><input type="radio" name="rows" value="8"><span>8</span></label><label><input type="radio" name="rows" value="9"><span>9</span></label><label><input type="radio" name="rows" value="10"><span>10</span></label><label><input type="radio" name="rows" value="11"><span>11</span></label><label><input type="radio" name="rows" value="12"><span>12</span></label></div></div>
       <div class="field"><span class="lab">Points and the chance per ball <span class="info" id="odds-info"><button type="button" aria-label="Where the chances come from" aria-expanded="false" aria-controls="odds-pop">i</button><span class="pop" id="odds-pop" role="tooltip">From 100,000 real drops through the same physics your board runs, every drop fair side to side. The board is symmetric, so each value is shown once, both sides together. More rows make the top slot rarer.</span></span></span><div class="odds" id="odds"></div></div>
-      <label class="field"><span>Balls per <code id="cmd-name">!drop</code></span><span class="box"><select name="balls"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option><option value="8">8</option><option value="10">10</option></select></span></label>
+      <label class="field"><span>Balls per <code id="cmd-name">!plinko</code></span><span class="box"><select name="balls"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option><option value="8">8</option><option value="10">10</option></select></span></label>
       <label class="field"><span>Ball colour</span><span class="box"><select name="color"><option value="chat">Each chatter’s chat colour</option><option value="accent">The accent colour</option><option value="platform">Twitch purple, Kick green</option><option value="rainbow">Rainbow</option></select></span></label>
     </fieldset>
     <fieldset class="card wide" id="lb-card"><legend>5 · Leaderboard</legend>
@@ -314,17 +316,19 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
           <label class="sw">Show “Made by TrongatesLegacy.com” <input type="checkbox" role="switch" name="credit"></label>
         </fieldset>
         <fieldset class="card wide"><legend>Chat commands</legend>
-          <div class="cmds">
-            <label class="field"><span>Drop</span><span class="box"><input name="cdrop" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Pause drops</span><span class="box"><input name="cpause" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Resume drops</span><span class="box"><input name="cresume" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Clear the board</span><span class="box"><input name="cclear" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Show the leaderboard</span><span class="box"><input name="ctop" autocomplete="off" spellcheck="false"></span></label>
-            <label class="field"><span>Clear all scores (only you)</span><span class="box"><input name="cwipe" autocomplete="off" spellcheck="false"></span></label>
+          <div class="cmdrow">
+            <label class="field"><span>Command</span><span class="box"><input name="cmd" autocomplete="off" spellcheck="false" placeholder="!plinko"></span></label>
+            <ul class="cmdlist">
+              <li><code data-cmd="">!plinko</code> drops balls (<code data-cmd="🔥">!plinko 🔥</code> drops an emote)</li>
+              <li><code data-cmd="top">!plinko top</code> shows the leaderboard</li>
+              <li><code data-cmd="pause">!plinko pause</code> · <code data-cmd="resume">!plinko resume</code> stop and restart drops</li>
+              <li><code data-cmd="clear">!plinko clear</code> clears the board</li>
+              <li><code data-cmd="clearscores">!plinko clearscores</code> clears all scores (only you)</li>
+            </ul>
           </div>
           <div class="field"><span class="lab" id="l-perm">Who can pause, resume and clear</span><div class="seg" role="radiogroup" aria-labelledby="l-perm"><label><input type="radio" name="perm" value="me"><span>Only me</span></label><label><input type="radio" name="perm" value="mods"><span>Me and mods</span></label><label><input type="radio" name="perm" value="all"><span>Everyone</span></label></div></div>
           <label class="sw">Leaderboard command (for streamers without the leaderboard on screen) <input type="checkbox" role="switch" name="lb"></label>
-          <p class="note">Everyone can always drop. Several names for a command: separate them with commas.</p>
+          <p class="note">Change the command and the rest follow it. Everyone can always drop.</p>
         </fieldset>
       </div>
     </details>
@@ -348,9 +352,9 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
   <details open><summary>Is this gambling?</summary><p>No. Nobody stakes anything and nothing is worth money: every drop is free and scores points, and the points are only for the leaderboard and bragging rights.</p></details>
   <details><summary>Is it really free?</summary><p>Yes. No account, no login, no catch. It’s a web page you add to OBS as a browser source. The small “Made by” line can be turned off in Advanced settings.</p></details>
   <details><summary>Separate or combined?</summary><p>Separate gives you two sources, the board and the leaderboard, to place and size anywhere. Combined is one source with the leaderboard beside the board: one link, easiest to set up. Both show the same scores.</p></details>
-  <details><summary>How often can viewers drop?</summary><p>As often as they like: spamming <code>!drop</code> is the point, and the more you drop, the higher you climb. The board limits itself instead of your viewers: past the most balls on screen, drops wait their turn, and when chat floods it goes into Frenzy. You can add a wait per viewer in Advanced settings.</p></details>
-  <details><summary>Which emotes work?</summary><p>Any emote Twitch or Kick shows in chat, plus emoji: <code>!drop 🔥</code>. 7TV, BTTV and FFZ emotes don’t yet.</p></details>
-  <details><summary>How do the leaderboards work?</summary><p>This stream starts fresh each time you go live (Chaplinko asks Twitch or Kick whether you’re live, so a crash and a quick restart still count as one stream). All time is kept for good. You can wipe both with <code>!drop clearscores</code> (only you can).</p></details>
+  <details><summary>How often can viewers drop?</summary><p>As often as they like: spamming <code>!plinko</code> is the point, and the more you drop, the higher you climb. The board limits itself instead of your viewers: past the most balls on screen, drops wait their turn, and when chat floods it goes into Frenzy. You can add a wait per viewer in Advanced settings.</p></details>
+  <details><summary>Which emotes work?</summary><p>Any emote Twitch or Kick shows in chat, plus emoji: <code>!plinko 🔥</code>. 7TV, BTTV and FFZ emotes don’t yet.</p></details>
+  <details><summary>How do the leaderboards work?</summary><p>This stream starts fresh each time you go live (Chaplinko asks Twitch or Kick whether you’re live, so a crash and a quick restart still count as one stream). All time is kept for good. You can wipe both with <code>!plinko clearscores</code> (only you can).</p></details>
   <details><summary>Are the odds real?</summary><p>Yes. The odds on this page come from dropping 100,000 balls through the same physics your board runs, and every drop is fair side to side. More rows make the top slot rarer.</p></details>
   <details><summary>Does it need my Twitch or Kick password?</summary><p>No. It only reads your public chat, the way a viewer does, and never posts anything.</p></details>
 </div>

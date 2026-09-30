@@ -59,7 +59,7 @@ html, body { margin: 0; background: transparent; overflow: hidden; }
 .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
 .tw { background: #9146ff; } .kk { background: #53fc18; }
 
-/* no channel yet, !drop top */
+/* no channel yet, !plinko top */
 .msg { position: absolute; inset: 0; display: none; place-items: center; text-align: center; padding: 30px; }
 .msg.on { display: grid; }
 .msg > div { background: var(--panel); border-radius: var(--radius); padding: 20px 26px; box-shadow: var(--edge); max-width: 440px; }
