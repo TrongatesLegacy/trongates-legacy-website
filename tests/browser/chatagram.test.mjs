@@ -463,9 +463,10 @@ test('a new hero chat bubble: the ones above glide up, the oldest fades out, the
   assert.deepEqual(r.moves, [true, true], 'the bubbles above glide up');
   assert.ok(r.oldestStays && r.oldestFades, 'the oldest fades out rather than vanishing');
   await sleep(900);
-  // this test's own bubble, found by name: the pretend chat keeps talking, and under load another bubble can arrive in
-  // the 900 ms (it was taken as "the newest", with a different tilt, and the test failed now and then: 2026-09-30)
-  assert.equal(r.popEnd, await tab.eval('getComputedStyle([...document.querySelectorAll("#chat .b")].find((b) => b.textContent.includes("Glide"))).rotate'), 'the pop ends at the tilt the bubble rests at');
+  // the tilt the newest bubble rests at, read from the style sheet: the pretend chat keeps talking, and under load another
+  // bubble can arrive in the 900 ms, so neither "the newest" (2026-09-30) nor this test's own bubble, no longer the newest
+  // and untilted (2026-10-01), is sure to be resting at it
+  assert.equal(r.popEnd, await tab.eval(`[...document.styleSheets].flatMap((s) => [...s.cssRules]).find((r) => r.selectorText === '.chat .b:last-child').style.rotate`), 'the pop ends at the tilt the bubble rests at');
   assert.equal(await tab.eval('document.querySelectorAll("#chat .b:not(.out)").length'), 3, 'the faded one is gone after');
   noErrors(tab, 'hero chat motion');
   await tab.close();
