@@ -159,6 +159,43 @@ test('both layouts fit their size in every theme, with one platform or two', asy
   }
 });
 
+// the missed words were 12 px chips squeezed into the right column (the owner, 2026-10-01): now big, at the foot of the
+// left column under the MVPs, the longest one bigger still; as many as fit, the rest a "+N more"
+test('summary, full layout: the missed words are big, under the MVPs, and as many as fit in every theme', async () => {
+  const LONG = ['WOMANHOOD', 'MOONWALKS', 'HOMEWORKS', 'WORKROOM', 'MUSHROOM', 'WOMANISH', 'MANHOODS', 'MOWDOWN', 'HOMEMOW', 'WOMMAN', 'MOWERS', 'WHOMSO'];
+  const check = `(() => {
+    const sec = document.querySelector('.back .missed-sec'); if (!sec) return 'no missed section';
+    const left = document.querySelector('.back .two .box'), r = left.getBoundingClientRect(), s = sec.getBoundingClientRect();
+    const chips = [...sec.querySelectorAll('.missed span:not(.more)')].filter((c) => c.offsetParent), more = sec.querySelector('.more');
+    const lastRank = [...left.querySelectorAll('.rank')].pop().getBoundingClientRect();
+    const scale = r.width / left.offsetWidth, px = (el) => parseFloat(getComputedStyle(el).fontSize);
+    return { inLeft: sec.parentElement === left, below: s.top >= lastRank.bottom, fits: s.bottom <= r.bottom + 1 && left.scrollHeight <= left.clientHeight + 1,
+      shown: chips.map((c) => c.textContent), more: more.offsetParent ? more.textContent : '', best: chips[0] && chips[0].classList.contains('best'), bestPx: px(chips[0]), restPx: chips[1] ? px(chips[1]) : 24, scale };
+  })()`;
+  for (const screen of ['cleared', 'over']) {
+    const tab = await chrome.open(`${site.origin}/chatagram/play.html?still=1&screen=${screen}`, { width: 960, height: 540 });
+    await ready(tab); await tab.eval('document.fonts.ready.then(() => 1)');
+    let c = await tab.eval(check);
+    assert.ok(c.inLeft && c.below && c.fits, `${screen}: ${JSON.stringify(c)}`);
+    assert.ok(c.best && c.bestPx >= 36 && c.restPx >= 24, `${screen}: big chips, the first biggest: ${JSON.stringify(c)}`);
+    assert.equal(c.more, '', `${screen}: everything fits, no "+N more"`);
+    // the longest words there are (9 letters), in every theme: the cleared screen's 12 don't all fit, so the rest are counted
+    const words = screen === 'over' ? LONG.slice(0, 3) : LONG;
+    await tab.eval(`(() => { const s = window.chatagram.game.state; if (s.gameResult) s.gameResult.away = ${JSON.stringify(words)}; s.result.missed = ${JSON.stringify(words)}; window.chatagram.advance(0); })()`);
+    for (const theme of ['chatagram', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy']) {
+      await tab.eval(`window.postMessage({ type: 'widget-theme', theme: '${theme}' }, '*'); new Promise((r) => setTimeout(r, 60))`);
+      await tab.eval('document.fonts.ready.then(() => new Promise((r) => setTimeout(r, 30)))');
+      c = await tab.eval(check);
+      assert.ok(c.inLeft && c.below && c.fits, `${screen} ${theme}, long words: ${JSON.stringify(c)}`);
+      assert.equal(c.shown[0], 'WOMANHOOD', `${screen} ${theme}: the longest first`);
+      if (screen === 'over') assert.equal(c.shown.length, 3, `${theme}: three long words fit`);
+      else { assert.ok(c.shown.length >= 3 && c.shown.length < 12, `${theme}: ${c.shown.length} shown`); assert.equal(c.more, `+${12 - c.shown.length} more`); }
+    }
+    noErrors(tab, screen);
+    await tab.close();
+  }
+});
+
 test('a live theme message restyles the board without restarting the game; bad ones are ignored', async () => {
   const tab = await chrome.open(site.origin + '/chatagram/play.html?demo=1', { width: 960, height: 540 });
   await ready(tab);

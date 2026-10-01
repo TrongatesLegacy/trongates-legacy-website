@@ -18,7 +18,7 @@
   if (rm) document.documentElement.classList.add('rm');
   W.theme.apply(board, { theme: cfg.theme, accent: cfg.accent });
   if (cfg.bgo < 100) board.style.setProperty('--bgo', String(cfg.bgo / 100));   // Advanced → Background: see-through
-  W.theme.listen(board);
+  W.theme.listen(board, () => { fitMissed(); document.fonts && document.fonts.ready.then(() => fitMissed()); });   // a theme's font changes the missed words' widths
   board.classList.toggle('compact', cfg.layout === 'compact');
   const [BW, BH] = C.settings.SIZES[cfg.layout];
   // fill the browser source; any other shape than the layout's is centred (e.g. 960 × 540 fills 1920 × 1080 at exactly 2×)
@@ -310,7 +310,7 @@
         back.innerHTML = head + `<div class="row3">${r.mvps.slice(0, 3).map((p, i) => `<div class="pcard"><small>${['MVP', '2ND', '3RD'][i]}</small><span class="who">${badge(p.platform)}${esc(p.name)}</span><b>${p.pts}</b></div>`).join('')}</div>` + LB_SEC + nextLine(label);
       } else {
         back.innerHTML = head + `<div class="kpis"><div class="kpi"><small>WORDS</small><b>${r.found}<i>/${r.total}</i></b></div><div class="kpi"><small>GOAL</small><b>${r.goal} <span class="ok">✓ beat</span></b></div><div class="kpi"><small>TIME LEFT</small><b>${mmss(r.timeLeft)}</b></div><div class="kpi"><small>PLAYERS</small><b>${r.players}</b></div></div>` +
-          `<div class="two"><div class="box"><h4><span>ROUND MVPS</span><span>PTS</span></h4>${ranks(r.mvps)}</div><div class="box">${splitBox(r.split) || highlights(r.highlights)}${r.missed.length ? `<h4 style="margin-top:6px"><span>MISSED</span></h4><div class="missed">${r.missed.slice(0, 12).map((w) => `<span>${esc(w)}</span>`).join('')}</div>` : ''}${LB_SEC}${nextLine(label + ': longer words')}</div></div>`;
+          `<div class="two"><div class="box"><h4><span>ROUND MVPS</span><span>PTS</span></h4>${ranks(r.mvps)}${missedSec('MISSED', r.missed)}</div><div class="box">${splitBox(r.split) || highlights(r.highlights)}${LB_SEC}${nextLine(label + ': longer words')}</div></div>`;
       }
     } else if (s.phase === 'over' && g) {
       const head = `<div class="sum-head"><div class="sum-title"><small>Level ${g.level} · goal missed, ${r.found} of ${r.goal}</small><b>Game over</b></div>${starsHtml(r.stars)}</div>`;
@@ -319,11 +319,23 @@
         back.innerHTML = head + `<div class="row3">${g.mvps.slice(0, 2).map((p, i) => `<div class="pcard"><small>${['MVP', '2ND'][i]}</small><span class="who">${badge(p.platform)}${esc(p.name)}</span><b>${p.pts}</b></div>`).join('')}${g.best ? `<div class="pcard"><small>BEST WORD</small><span class="who">${esc(g.best.word.toUpperCase())}</span><span class="who" style="font-weight:600">${badge(g.best.platform)}${esc(g.best.name)}</span></div>` : ''}</div>` + LB_SEC + nextLine(label);
       } else {
         back.innerHTML = head + `<div class="kpis"><div class="kpi"><small>REACHED</small><b>Level ${g.level}</b></div><div class="kpi"><small>WORDS, ALL LEVELS</small><b>${g.words}</b></div><div class="kpi"><small>BEST WORD</small><b>${g.best ? esc(g.best.word) : '–'}</b></div><div class="kpi"><small>PLAYERS</small><b>${g.players}</b></div></div>` +
-          `<div class="two"><div class="box"><h4><span>GAME MVPS</span><span>PTS</span></h4>${ranks(g.mvps)}</div><div class="box"><h4><span>THE ONE THAT GOT AWAY</span></h4><div class="missed">${g.away.map((w, i) => `<span class="${i ? '' : 'best'}">${esc(w)}</span>`).join('')}</div><div style="margin-top:6px"></div>${splitBox(g.split) || highlights(r.highlights)}${LB_SEC}${nextLine(label)}</div></div>`;
+          `<div class="two"><div class="box"><h4><span>GAME MVPS</span><span>PTS</span></h4>${ranks(g.mvps)}${missedSec('THE ONE THAT GOT AWAY', g.away)}</div><div class="box">${splitBox(g.split) || highlights(r.highlights)}${LB_SEC}${nextLine(label)}</div></div>`;
       }
     }
-    fillLbSec();
+    fillLbSec(); fitMissed();
   }
+  // the missed words, at the foot of the MVPs' column (longest first, the first one biggest): as many as fit, the rest
+  // counted in a "+N more". Measured, so short words show more; again once fonts load and when the theme changes.
+  const missedSec = (title, words) => words.length ? `<div class="missed-sec"><h4><span>${title}</span></h4><div class="missed">${words.map((w, i) => `<span class="${i ? '' : 'best'}">${esc(w)}</span>`).join('')}<span class="more" hidden></span></div></div>` : '';
+  function fitMissed() {
+    const sec = back.querySelector('.missed-sec'); if (!sec) return;
+    const col = sec.parentElement, chips = [...sec.querySelectorAll('.missed span:not(.more)')], more = sec.querySelector('.more');
+    const over = () => col.scrollHeight > col.clientHeight + 1;
+    sec.hidden = false; more.hidden = true; for (const c of chips) c.hidden = false;
+    for (let n = chips.length; n > 1 && over(); n--) { chips[n - 1].hidden = true; more.textContent = `+${chips.length - n + 1} more`; more.hidden = false; }
+    if (over()) sec.hidden = true;
+  }
+  document.fonts && document.fonts.ready.then(fitMissed);
   let sumTimer = null;
   // the countdown ring drains smoothly to the moment the next level / game starts (one animation, no ticking); only the
   // number inside changes each second. Reduced motion: the ring steps once a second instead.

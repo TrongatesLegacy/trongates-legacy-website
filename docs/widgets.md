@@ -190,7 +190,10 @@ shows it at a clean 2×; every word slot in columns by length; the layout measur
 letter boxes it can, with players' names beside the words when they fit, without them for very big puzzles; narrow
 columns shorten their heading to the length) or **compact** 560 × 230 (bigger tiles, the last three finds, the count). The board scales to fit if the
 source is another size. With one platform the badges beside names go, and the summary's "Twitch vs Kick" box becomes
-round highlights (fastest find, longest streak, last-second save).
+round highlights (fastest find, longest streak, last-second save). The full summary's missed words ("Missed" after a
+cleared level, "The one that got away" at game over) sit big at the foot of the MVPs' column, longest first and biggest
+(the owner, 2026-10-01: they were too small): as many as fit, measured after the fonts load and on every theme change,
+the rest counted in a "+N more". Even 9-letter words fit three at game over.
 
 - **The shuffle, matched to wos.gg frame by frame**: it isn't a 3D cube. Each tile is a fixed window with a strip of
   full-size letters scrolling down behind it, 0–2 letters passing on the way (about 0.1 s each, with motion blur and a
