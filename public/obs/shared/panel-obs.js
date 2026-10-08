@@ -166,6 +166,17 @@
         if (!M.sameUrl(want, r.input.url)) acts.push({ k: 'update', input: r.input.uuid, label: `${r.sceneName} overlay (${r.input.name}): ${changes(r.input.url, want)}`, reload: r.input.name,
           run: () => call('SetInputSettings', { inputUuid: r.input.uuid, inputSettings: { url: want } }) });
       }
+      // Game's layout changing: the game capture goes with it, if picked (Layout); else say it stays where it is
+      const games = new Set();
+      for (const r of managedRows()) {
+        if (r.kind !== 'game' || games.has(r.container.uuid) || M.recognise(r.input.url)?.layout === layoutOf(r)) continue;
+        games.add(r.container.uuid);
+        const pickC = P.s.dock.pick.capture[r.container.uuid], it = pickC && r.container.items.find((i) => i.sourceName === pickC), want = P.captureFor(layoutOf(r));
+        if (!pickC) acts.push({ k: 'skip', label: `${r.sceneName}: your game capture won't move with the layout (pick it on Layout and the dock moves it)` });
+        else if (!it) acts.push({ k: 'skip', label: `${r.sceneName}: ${pickC} isn't there any more (renamed or removed?): pick it again on Layout` });
+        else if (!sameTransform(it.sceneItemTransform, want)) acts.push({ k: 'place', label: `${pickC} in ${r.sceneName}: ${P.captureWhere(layoutOf(r))}`,
+          run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: want }) });
+      }
       if (P.s.dock.names !== false) for (const [uuid, name] of overlayNames()) {
         const inp = obs.scan.inputs.get(uuid);
         if (inp.name !== name) acts.push({ k: 'rename', input: uuid, label: `"${inp.name}" → "${name}"`, run: () => call('SetInputName', { inputUuid: uuid, newInputName: name }) });

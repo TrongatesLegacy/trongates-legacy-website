@@ -203,7 +203,7 @@
       for (const r of rows) {
         const others = r.container.items.filter((i) => i.sceneItemId !== r.item.sceneItemId && !(obs.scan.inputs.get(i.sourceUuid)?.tag)).map((i) => i.sourceName);
         const opt = (v) => `<option value="">Don't touch</option>${others.map((n) => `<option ${n === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}`;
-        if (r.kind === 'game' && layoutOf(r) === 'window') pickers.push(`<div class="row"><span class="grow">Game capture <span class="muted">(${esc(r.sceneName)})</span></span><select data-pick="capture:${r.container.uuid}">${opt(P.s.dock.pick.capture[r.container.uuid])}</select></div>`);
+        if (r.kind === 'game') pickers.push(`<div class="row"><span class="grow">Game capture <span class="muted">(${esc(r.sceneName)})</span></span><select data-pick="capture:${r.container.uuid}">${opt(P.s.dock.pick.capture[r.container.uuid])}</select></div>`);
         if (r.kind === 'chatting' || (r.kind === 'game' && layoutOf(r) === 'window')) pickers.push(`<div class="row"><span class="grow">veadotube <span class="muted">(${esc(r.sceneName)})</span></span><select data-pick="veado:${r.container.uuid}">${opt(P.s.dock.pick.veado[r.container.uuid])}</select></div>`);
       }
       const cs = checks(), av = P.s.dock.avatar || {}, pickedV = rows.some((r) => P.s.dock.pick.veado[r.container.uuid]);
@@ -213,7 +213,7 @@
         <span class="hint ${measure.running ? 'warn' : ''}">${esc(measure.note || (av.bounds ? `Measured ${av.states?.length || '?'} states on ${new Date(av.at).toLocaleDateString()} (${av.canvas.w} × ${av.canvas.h} canvas).` : 'Not measured yet: Tidy fits the whole veadotube canvas into the box, which leaves the avatar small.'))}</span>
         <button type="button" class="btn" data-act="measure" ${measure.running || veado.state !== 'ok' || obs.busy ? 'disabled' : ''}>${measure.running ? 'Measuring…' : av.bounds ? 'Measure again' : 'Measure avatar'}</button>
         <p class="hint">Before going live: veadotube steps through every state for a few seconds (viewers would see it), so stay quiet while it runs. Nothing is measured during a stream; after this, switching states never moves or resizes the avatar.</p>` : '';
-      return `${measurePrompt()}<h3>Your sources (placed only if picked)</h3>${pickers.join('') || '<p class="hint">Nothing to place: no Just chatting or Game (window) scene found.</p>'}${avatar}
+      return `${measurePrompt()}<h3>Your sources (placed only if picked)</h3>${pickers.join('') || '<p class="hint">Nothing to place: no Just chatting or Game scene found.</p>'}${avatar}
         <h3>Checks</h3>
         ${cs.length ? `<table><tr><th>Scene</th><th>Item</th><th>State</th></tr>${cs.map((c) => `<tr><td>${esc(c.where)}</td><td>${esc(c.what)}</td><td class="${c.good ? 'ok' : c.bad ? 'bad' : 'warn'}">${esc(c.state)}</td></tr>`).join('')}</table>` : '<p class="hint ok">Everything checked is in place.</p>'}
         <div class="row"><span class="grow">Lock the dock's own items</span>${tog('dock.lock', P.s.dock.lock)}</div>

@@ -397,8 +397,10 @@ the avatar, which state the Tron button uses, a wait before recolouring), animat
 SMTC timeline), and backup (copy settings link, import, read back from OBS).
 
 **Layout** (optional): pick your own game capture source (e.g. your *Game Captures* scene) and veadotube source per
-scene; they're never touched unless picked. **Checks** lists what's off: overlays without custom frame rate 30 or
-not filling the canvas, a picked game capture not in the game window, the shared chat out of its frame.
+scene; they're never touched unless picked. A picked game capture follows Game's layout: the 1440 × 810 window, or the
+whole canvas in full screen, and changing the layout moves it in the same Review & apply (without a pick, the review
+says it won't move). **Checks** lists what's off: overlays without custom frame rate 30 or
+not filling the canvas, a picked game capture not where Game's layout puts it, the shared chat out of its frame.
 **Tidy layout…** fixes those (after showing the plan). *Lock the dock's own items* locks what the dock placed.
 
 **Avatar size (veadotube):** veadotube's Spout picture is its whole window, mostly empty, so fitting it into the
@@ -487,7 +489,7 @@ right edges and below the socials strip, 16px from the bottom edge, and 16px bet
 column (now playing, chat, goal) is the same on Be right back and Just chatting, so switching between them doesn't move
 it. On Game (window), the goal and now playing are centred between the game window's border and the bottom edge instead
 (29px each side, so 13px higher than on the other two). The geometry lives in four places that must agree: `build-scenes.py` (the frames), `model.js` `chatBox()`
-(where the dock fits the shared chat), `panel.js` `CAPTURE` and `VEADO_BOX` (where Tidy puts the game capture and
+(where the dock fits the shared chat), `panel-layout.js` `CAPTURE` and `VEADO_BOX` (where Tidy puts the game capture and
 veadotube), and the position tables above. Change one, change all, and measure the rendered slots (the browser
 tests compare `chatBox()` with the drawn chat slot on every layout, docs/testing.md).
 

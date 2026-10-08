@@ -10,7 +10,11 @@
     const shared = () => P.shared(), chatRows = () => P.chatRows(), sharedTransform = (r) => P.sharedTransform(r);
 
     // ---------------------------------------------------------------- layout (tidy)
+    // the picked game capture on Game: the 1440 × 810 window, or the whole canvas in full screen
     const CAPTURE = { positionX: 12, positionY: 76, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: 1440, boundsHeight: 810, boundsAlignment: 0, alignment: 5, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0, rotation: 0 };
+    const CAPTURE_FULL = { ...CAPTURE, positionX: 0, positionY: 0, boundsWidth: 1920, boundsHeight: 1080 };
+    const captureFor = (layout) => (layout === 'window' ? CAPTURE : CAPTURE_FULL);
+    const captureWhere = (layout) => (layout === 'window' ? 'the 1440 × 810 window (X 12, Y 76)' : 'full screen (1920 × 1080)');
     const VEADO_BOX = { chatting: [760, 174, 980, 880], game: [1470, 530, 440, 534] };
     const veadoTransform = (kind) => { const [x, y, w, h] = VEADO_BOX[kind]; return { positionX: x, positionY: y, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsWidth: w, boundsHeight: h, boundsAlignment: 0, alignment: 5, rotation: 0 }; };
     // Measured (Layout → Measure avatar): scale veadotube's canvas so the avatar's resting outline is the chosen
@@ -92,10 +96,10 @@
           out.push({ where, what: `${r.input.name}: position`, state: 'not filling the canvas', fix: { k: 'place', label: `${r.input.name} in ${where}: fill the canvas`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: r.item.sceneItemId, sceneItemTransform: { ...FULL, boundsType: 'OBS_BOUNDS_NONE' } }) } });
         // your own sources, only if picked
         const pickC = P.s.dock.pick.capture[r.container.uuid], pickV = P.s.dock.pick.veado[r.container.uuid];
-        if (r.kind === 'game' && layoutOf(r) === 'window' && pickC) {
-          const it = r.container.items.find((i) => i.sourceName === pickC);
+        if (r.kind === 'game' && pickC) {
+          const it = r.container.items.find((i) => i.sourceName === pickC), lay = layoutOf(r);
           if (!it) out.push({ where, what: pickC, state: 'not found (renamed or removed?): pick again', bad: true });
-          else if (!sameTransform(it.sceneItemTransform, CAPTURE)) out.push({ where, what: pickC, state: 'not in the game window', fix: { k: 'place', label: `${pickC} in ${where}: the 1440 × 810 window (X 12, Y 76)`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: CAPTURE }) } });
+          else if (!sameTransform(it.sceneItemTransform, captureFor(lay))) out.push({ where, what: pickC, state: lay === 'window' ? 'not in the game window' : 'not full screen', fix: { k: 'place', label: `${pickC} in ${where}: ${captureWhere(lay)}`, run: () => call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId: it.sceneItemId, sceneItemTransform: captureFor(lay) }) } });
           else out.push({ where, what: pickC, state: 'in place', good: true });
         }
         if ((r.kind === 'chatting' || (r.kind === 'game' && layoutOf(r) === 'window')) && pickV) {
@@ -126,6 +130,6 @@
       return veado.states.map((x) => x.name).filter((n) => !(av.states || []).includes(n));
     };
 
-    return { CAPTURE, VEADO_BOX, avatarFit, measure, measureAvatar, checks, unmeasured };
+    return { CAPTURE, captureFor, captureWhere, VEADO_BOX, avatarFit, measure, measureAvatar, checks, unmeasured };
   };
 })();

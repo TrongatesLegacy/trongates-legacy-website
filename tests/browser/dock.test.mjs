@@ -82,6 +82,51 @@ test('Tidy layout fixes what the checks find, and afterwards finds nothing', asy
   await tab.close();
 });
 
+// Changing Game from window to full screen used to leave a picked game capture in the window: Apply only touched
+// the overlay, and the Layout tab only knew the window.
+test('Game\'s layout: Review & apply moves a picked game capture with it, and says so when none is picked', async () => {
+  const tab = await openDock();
+  const capture = () => obs.scenes.find((s) => s.name === 'Game').items.find((i) => i.input.name === 'Game capture').transform;
+  const setLayout = async (v) => {
+    await tab.click('[data-tab="scenes"]');
+    await tab.until(`[...document.querySelectorAll('.tgl-panel .acc .sum')].some((x) => /Game/.test(x.textContent))`, 5000, 'the Game row');
+    if (!await tab.eval(`!!document.querySelector('select[data-set="scenes.game.layout"]')`)) await tab.eval(`[...document.querySelectorAll('.tgl-panel .acc .sum')].find((x) => /Game/.test(x.textContent)).click(); 1`);
+    await tab.until(`document.querySelector('select[data-set="scenes.game.layout"]')`);
+    await tab.eval(`(() => { const s = document.querySelector('select[data-set="scenes.game.layout"]'); s.value = '${v}'; s.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  };
+  const reviewText = async () => {
+    await tab.until(`/waiting/.test(document.querySelector('.tgl-panel .ft span').textContent)`, 5000, 'changes waiting');
+    await tab.click('[data-act="review"]');
+    await tab.until(`document.querySelector('[data-act="apply"]:not([disabled])')`);
+    return tab.eval(`document.querySelector('.review').textContent`);
+  };
+  const applyNow = async () => { await tab.click('[data-act="apply"]'); await tab.until(`!document.querySelector('.review')`, 8000); await sleep(900); };
+
+  // nothing picked: the review says the capture stays, and it does
+  const before = { ...capture() };
+  await setLayout('full');
+  assert.match(await reviewText(), /game capture won't move/);
+  await applyNow();
+  assert.equal(capture().positionX, before.positionX);
+
+  // picked on Layout (offered in full screen too): Checks wants it full screen, and a switch back moves it on Apply
+  await tab.click('[data-tab="layout"]');
+  await tab.until(`document.querySelector('select[data-pick^="capture:"]')`, 5000, 'the game capture picker in full screen');
+  await tab.eval(`(() => { const s = document.querySelector('select[data-pick^="capture:"]'); s.value = 'Game capture'; s.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  await tab.until(`/not full screen/.test(document.querySelector('.tgl-panel').textContent)`, 5000, 'the check: not full screen');
+  await setLayout('window');
+  assert.match(await reviewText(), /Game capture in Game: the 1440 × 810 window/);
+  await applyNow();
+  assert.deepEqual([capture().positionX, capture().positionY, capture().boundsWidth, capture().boundsHeight], [12, 76, 1440, 810]);
+  await setLayout('full');
+  assert.match(await reviewText(), /Game capture in Game: full screen/);
+  await applyNow();
+  assert.deepEqual([capture().positionX, capture().positionY, capture().boundsWidth, capture().boundsHeight], [0, 0, 1920, 1080]);
+  assert.match(await footer(tab), /OBS matches/);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
 test('colour buttons: one veadotube switch per press; the scenes are told once, when the last press is confirmed', async () => {
   const tab = await openDock();
   await tab.click('[data-tab="live"]');
