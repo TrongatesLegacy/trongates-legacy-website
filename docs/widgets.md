@@ -13,7 +13,7 @@ scenes" below).
 ## Files
 
 ```
-public/widgets/index.html                 the widgets list (the site's own style; linked last in the homepage nav)
+public/widgets/index.html                 the widgets page: the streamer's desk (its own look; linked last in the homepage nav)
 public/widgets/lib/settings.js            settings ⇄ link, from a per-widget schema
 public/widgets/lib/chat.js                every platform's chat as one reconnecting stream of messages
 public/widgets/lib/platforms/twitch.js    Twitch: anonymous IRC over WebSocket; is the channel live (its public web API)
@@ -271,6 +271,32 @@ node scripts/build-words.mjs --scowl /tmp/scowl
 - Sizes: `words.txt` ~72 KB and `seeds.txt` ~29 KB compressed, fetched once after the board appears.
 - The builder prints a report; read the seeds for anything that shouldn't be on stream before committing.
 - Credits: the Chatagram page's footer and FAQ.
+
+## The widgets page
+
+`/widgets/` (2026-10-08; the owner picked it from eleven mockups: "On Air", made streaming-native) is a streamer's desk at
+night, its own look (Lilita One, Bungee and Space Grotesk on a warm room; not the main site's neon grid):
+
+- **The stream:** a monitor shows a pretend stream of *your_channel* (made-up viewers and uptime, never the owner's
+  channel): the real widget plays inside at its true size (`play.html?demo=1`, Chatagram 16:9, Chaplinko's 640 × 540
+  centred with Tron as a PNGtuber in the margin), only the one on stream, never with reduced motion (its picture stands
+  in). Labels live in the player's frame, never over the game. Beside it, **one chat** where Twitch and Kick arrive
+  mixed: the widget's own demo chat (`chatagram-chat` / `chaplinko-chat` messages), pretend lines when it's quiet.
+- **The deck:** a Stream Deck-style pad (Chatagram, Chaplinko, Both chats, Coming soon) switches scenes with a stinger
+  (one band per platform, then the house band); keys 1-4 anywhere (never with Cmd/Ctrl), arrows while the deck has
+  focus; announced through an aria-live line. A neon LIVE sign, a plant and a GG mug on the desk.
+- **The lineup:** all the real text (each widget's description, details, "Set up …, free", "Show on stream"); then why
+  (both chats, no login, free) and the three set-up steps. The H1 and every link's words are in the HTML on load (SEO).
+- **Platforms come from one list** (`PLATFORMS` in the page's script): badges, chips, chat sources, the both-chats
+  scene and the stinger bands are built from it, so a third platform is one more entry (the owner may add more; Twitch
+  and Kick are named in the copy for now). A small dashed "+" hints at more later, without promising.
+- **Speed:** the script starts after the first frame (like the homepage), the other scenes' pictures load after the
+  page has, and the decorative glow has fixed sizes (a % moved it when the fonts arrived). Lighthouse 100 on a
+  compressing server; the plain dev server runs a little lower (no compression).
+
+`tests/browser/widgets-page.test.mjs` checks the deck, the lineup and announcement following it, one live widget at
+most (also after quick presses), the keyboard, a phone, and reduced motion. The mockups that led here are in
+`mockups/widgets/` locally (not committed).
 
 ## The Chatagram page
 

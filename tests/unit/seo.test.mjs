@@ -40,6 +40,8 @@ test('Chatagram: the words people search with, a breadcrumb, and the comparison 
 test('the games are linked from the homepage, the widgets page and each other, with words that say what they are', () => {
   assert.match(page('index.html'), /<a href="\/chatagram\/">Chatagram, the anagram chat game<\/a>/);
   assert.match(page('index.html'), /<a href="\/chaplinko\/">Chaplinko<\/a>/);
-  assert.match(page('widgets/index.html'), /<h2><a href="\/chatagram\/">Chatagram<\/a><\/h2><p>The anagram word game/);
+  assert.match(page('widgets/index.html'), /<a href="\/chatagram\/">Chatagram, the anagram chat game<\/a>/);
+  assert.match(page('widgets/index.html'), /<a href="\/chaplinko\/">Chaplinko, the Plinko chat game<\/a>/);
+  assert.match(head(page('widgets/index.html')).h1, /chat games.*Twitch.*Kick/i, 'the widgets page\'s H1 says what and where');
   assert.match(page('chaplinko/index.html'), /<a href="\/chatagram\/">Chatagram, the anagram chat game<\/a>/);
 });

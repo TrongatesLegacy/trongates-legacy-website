@@ -2,105 +2,723 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Free stream widgets for Twitch and Kick · Trongates Legacy</title>
+<title>Free chat games for your stream on Twitch and Kick</title>
 <meta name="description" content="Free chat games for streamers: Chatagram, an anagram word game, and Chaplinko, Plinko for chat. Twitch and Kick at once, one link in OBS, no login.">
 <link rel="canonical" href="https://www.trongateslegacy.com/widgets/">
-<meta name="theme-color" content="#03060d">
+<meta name="theme-color" content="#120b08">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Trongates Legacy">
-<meta property="og:title" content="Free stream widgets for Twitch and Kick">
-<meta property="og:description" content="Chat games and overlays for Twitch and Kick at the same time. Paste one link into OBS.">
+<meta property="og:title" content="Free chat games for your stream, on Twitch and Kick at once">
+<meta property="og:description" content="Chat games that read Twitch and Kick chat at the same time. Paste one link into OBS.">
 <meta property="og:url" content="https://www.trongateslegacy.com/widgets/">
 <meta property="og:image" content="https://www.trongateslegacy.com/chatagram/assets/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
-<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/orbitron.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/chakra-petch-400.woff2" crossorigin>
+<script type="application/ld+json">
+[{"@context":"https://schema.org","@type":"CollectionPage","name":"Free stream widgets","url":"https://www.trongateslegacy.com/widgets/",
+ "description":"Free chat games for streamers that read Twitch and Kick chat at the same time.",
+ "mainEntity":{"@type":"ItemList","itemListElement":[
+  {"@type":"ListItem","position":1,"name":"Chatagram, the anagram chat game","url":"https://www.trongateslegacy.com/chatagram/"},
+  {"@type":"ListItem","position":2,"name":"Chaplinko, the Plinko chat game","url":"https://www.trongateslegacy.com/chaplinko/"}]},
+ "author":{"@type":"Person","name":"Trongates Legacy","url":"https://www.trongateslegacy.com/"}},
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+ {"@type":"ListItem","position":1,"name":"Trongates Legacy","item":"https://www.trongateslegacy.com/"},
+ {"@type":"ListItem","position":2,"name":"Stream widgets","item":"https://www.trongateslegacy.com/widgets/"}]}]
+</script>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/lilita-one.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/space-grotesk.woff2" crossorigin>
 <style>
-/* The main site's look (docs/design-system.md): neon on a dark grid, Orbitron titles, cut corners. */
-@font-face { font-family: Orbitron; src: url(/assets/fonts/orbitron.woff2) format("woff2"); font-weight: 400 900; font-display: swap; }
-@font-face { font-family: "Chakra Petch"; src: url(/assets/fonts/chakra-petch-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Chakra Petch"; src: url(/assets/fonts/chakra-petch-600.woff2) format("woff2"); font-weight: 600; font-display: swap; }
-:root { --bg: #03060d; --panel: #070d18; --line: #12233a; --text: #e8f4ff; --muted: #8ba3bd; --accent: #22e5ff; --kick: #53fc18; --twitch: #9146ff; }
+/* /widgets/: LIVE, the streamer's desk (docs/widgets.md, "The widgets page"): a monitor on a desk shows
+   the stream (player chrome with LIVE, viewers and uptime; the real widget inside at its true size; one merged chat where
+   Twitch and Kick arrive together). A Stream Deck-style pad switches scenes with a stinger. A neon LIVE sign on the wall.
+   The lineup below holds the real text. Platforms come from one list (PLATFORMS in the script): a third is one more entry. */
+@font-face { font-family: Lilita; src: url(/assets/fonts/lilita-one.woff2) format("woff2"); font-display: swap; }
+@font-face { font-family: Bungee; src: url(/assets/fonts/bungee.woff2) format("woff2"); font-display: swap; }
+@font-face { font-family: Grotesk; src: url(/assets/fonts/space-grotesk.woff2) format("woff2"); font-weight: 300 700; font-display: swap; }
+:root { --room: #120b08; --cream: #f4e7d2; --muted: #c2ad94; --amber: #ffb347; --live: #ff2740; --paper: #f5ecd9; --ink: #1d1410; --ink2: #5a4a3e;
+  --hl: #ffe14d; --glow: #7a5cff; --ui: #0f0e13; --ui2: #17151d; --uiline: #ffffff14; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 "Chakra Petch", system-ui, sans-serif; }
-body::before { content: ''; position: fixed; inset: 0; z-index: -1; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 56px 56px; opacity: .55;
-  mask-image: radial-gradient(ellipse at 50% 0, #000 20%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse at 50% 0, #000 20%, transparent 75%); }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: var(--room); color: var(--cream); font: 16px/1.55 Grotesk, system-ui, sans-serif; overflow-x: clip; }
 a { color: inherit; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
-.nav { border-bottom: 1px solid var(--line); background: rgba(3,6,13,.85); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 5; }
-.nav .wrap { display: flex; align-items: center; gap: 24px; height: 62px; }
-.brand { font: 900 15px Orbitron, sans-serif; letter-spacing: .12em; text-decoration: none; white-space: nowrap; }
-.brand span { color: transparent; -webkit-text-stroke: 1px var(--accent); }
-.links { display: flex; gap: 1.6rem; margin-left: auto; font-size: .82rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
-.links a { text-decoration: none; } .links a:hover, .links a[aria-current] { color: var(--text); }
-.links a[aria-current] { box-shadow: 0 1px 0 var(--accent); }
-.pill { font: 700 11px Orbitron, sans-serif; letter-spacing: .12em; padding: 9px 16px; background: var(--kick); color: #03060d; text-decoration: none; white-space: nowrap; clip-path: polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px); }
-main.wrap { padding-top: 46px; padding-bottom: 40px; }
-.eyebrow { font: 700 12px Orbitron, sans-serif; letter-spacing: .3em; color: var(--accent); }
-h1 { font: 900 50px/1.05 Orbitron, sans-serif; letter-spacing: .03em; margin: 12px 0 14px; text-transform: uppercase; }
-h1 .o { color: transparent; -webkit-text-stroke: 1.5px var(--accent); }
-h1 .s { background: linear-gradient(180deg, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.lede { color: var(--muted); font-size: 18px; max-width: 680px; margin: 0 0 34px; }
-.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; padding: 0; margin: 0; list-style: none; }
-.card { background: var(--panel); border: 1px solid var(--line); clip-path: polygon(20px 0,100% 0,100% calc(100% - 20px),calc(100% - 20px) 100%,0 100%,0 20px); display: flex; flex-direction: column; height: 100%; }
-.thumb { height: 190px; position: relative; overflow: hidden; }
-.thumb img { position: absolute; inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px); object-fit: contain; }
-.body { padding: 18px 22px 22px; display: flex; flex-direction: column; flex: 1; }
-.card h2 { font: 700 19px Orbitron, sans-serif; letter-spacing: .06em; margin: 0 0 8px; text-transform: uppercase; }
-.card h2 a { color: inherit; text-decoration: none; } .card h2 a:hover { text-decoration: underline; }
-.card p { color: var(--muted); margin: 0 0 14px; }
-.tags { display: flex; gap: 8px; margin: 0 0 18px; flex-wrap: wrap; padding: 0; list-style: none; }
-.tags li { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; padding: 3px 9px; border: 1px solid var(--line); color: var(--muted); }
-.pf { width: 16px; height: 16px; border-radius: 3px; display: inline-grid; place-items: center; } .pf svg { width: 11px; height: 11px; }
-.pf.kick { background: var(--kick); color: #000; } .pf.twitch { background: var(--twitch); color: #fff; }
-.btn { margin-top: auto; align-self: flex-start; font: 700 12px Orbitron, sans-serif; letter-spacing: .14em; padding: 13px 22px; text-transform: uppercase; background: var(--accent); color: #03060d; text-decoration: none;
-  clip-path: polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px); }
-.soon .thumb { display: grid; place-items: center; font: 900 64px Orbitron, sans-serif; color: var(--line); background: repeating-linear-gradient(45deg, #060b15, #060b15 12px, #08101d 12px, #08101d 24px); }
-.soon h2 { color: var(--muted); }
-.why { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; padding: 0; list-style: none; }
-.why li { border-left: 2px solid var(--accent); padding: 4px 0 4px 16px; color: var(--muted); }
-.why b { display: block; color: var(--text); font: 700 13px Orbitron, sans-serif; letter-spacing: .1em; margin-bottom: 4px; }
-footer { text-align: center; color: var(--muted); font-size: 14px; padding: 20px 0 50px; }
-@media (max-width: 900px) { .grid, .why { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 640px) { .brand { font-size: 12px; letter-spacing: .08em; } .pill { padding: 8px 12px; } .links { display: none; } .pill { margin-left: auto; } h1 { font-size: 34px; } .grid, .why { grid-template-columns: 1fr; } .wrap { padding: 0 18px; } }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+.wrap { max-width: 1400px; margin: 0 auto; padding: 0 clamp(20px, 3vw, 44px); }
+.sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* a platform chip: colours come from the platform list (--pc fill, --pi ink) */
+.pchip { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px 0 4px; border-radius: 5px; background: var(--pc); color: var(--pi);
+  font: 700 11px/1 Grotesk, sans-serif; letter-spacing: .02em; white-space: nowrap; }
+.pchip svg { width: 13px; height: 13px; flex: none; }
+.pchip.later { background: none; color: #ffffff80; border: 1.5px dashed #ffffff3d; padding: 0 7px; }
+.pbadge { width: 16px; height: 16px; border-radius: 4px; display: inline-grid; place-items: center; flex: none; background: var(--pc); color: var(--pi); }
+.pbadge svg { width: 11px; height: 11px; }
+
+/* ---- top bar --------------------------------------------------------------------------------------------------------- */
+.top { position: relative; z-index: 3; }
+.top .wrap { display: flex; align-items: center; gap: 28px; height: 60px; border-bottom: 1px solid #ffffff12; }
+.brand { font: 18px Lilita, sans-serif; letter-spacing: .02em; text-decoration: none; color: var(--cream); }
+.brand span { color: var(--amber); }
+.top nav { display: flex; gap: 22px; margin-left: auto; font: 600 13px Grotesk, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.top nav a { text-decoration: none; } .top nav a:hover { color: var(--cream); }
+.kick-b { font: 12px Bungee, sans-serif; letter-spacing: .04em; padding: 8px 14px 7px; background: #53fc18; color: #0b1a04; text-decoration: none; border-radius: 6px; box-shadow: 0 3px 0 #2d8a0c; }
+
+/* ---- the room: wall, lamp light, the monitor's light ------------------------------------------------------------------ */
+.room { position: relative; overflow: clip; isolation: isolate; padding-top: 22px; }
+.room::before { content: ''; position: absolute; inset: -60px 0 0; z-index: -3;
+  background: radial-gradient(ellipse 30% 52% at 2% 30%, #ffae5a33, transparent 70%),
+    repeating-linear-gradient(90deg, #ffffff05 0 2px, transparent 2px 46px, #00000014 46px 48px, transparent 48px 92px),
+    linear-gradient(180deg, #1c110b, var(--room) 78%); }
+.glowwall { position: absolute; z-index: -2; left: 40%; top: 0; width: 66%; height: 488px; pointer-events: none;   /* fixed sizes: a % moved it when the fonts arrived (layout shift) */
+  background: radial-gradient(ellipse at 50% 52%, color-mix(in srgb, var(--glow) 30%, transparent), transparent 64%); transition: background .8s; }
+
+.stage { display: grid; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); column-gap: clamp(36px, 4vw, 64px); align-items: center; }
+.copy { padding-bottom: 20px; }
+.eyebrow { font: 600 12px Grotesk, sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); margin: 0 0 12px; }
+h1 { font: clamp(40px, 3.5vw, 52px)/1.02 Lilita, sans-serif; letter-spacing: .005em; margin: 0 0 18px; color: #fff4e4; text-wrap: balance; text-shadow: 0 2px 0 #0006; }
+h1 .tw { color: #c4a3ff; } h1 .ki { color: #53fc18; }
+.lede { color: #e2d2bc; font-size: 17px; margin: 0 0 20px; }
+.hint { font: 600 13px/1.9 Grotesk, sans-serif; color: var(--muted); margin: 0 0 8px; }
+kbd { font: 700 12px var(--mono); color: var(--cream); background: #2a1d15; border: 1px solid #47352a; border-bottom-width: 3px; border-radius: 5px; padding: 1px 6px; }
+.nowline { margin: 0; font: 600 14px/1.5 Grotesk, sans-serif; color: var(--muted); }
+.nowline::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 9px; border-radius: 50%; background: var(--live); box-shadow: 0 0 10px var(--live); vertical-align: 1px; }
+.nowline a { color: var(--cream); text-decoration-color: var(--amber); text-underline-offset: 4px; }
+
+/* ---- the rig: neon sign on the wall, the monitor ---------------------------------------------------------------------- */
+.rig { --deskgap: 22px; position: relative; display: grid; justify-items: center; align-self: end; }
+.neon { justify-self: end; margin: 0 9% 18px 0; position: relative; display: flex; align-items: center; gap: 14px; padding: 10px 22px 8px 18px;
+  border-radius: 14px; border: 1px solid #ffffff1c; background: linear-gradient(160deg, #ffffff0d, #ffffff03); box-shadow: 0 10px 24px #0006; }
+.neon::before, .neon::after { content: ''; position: absolute; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: #b9a58f; box-shadow: 0 0 0 1px #0008; }
+.neon::before { left: 7px; } .neon::after { right: 7px; }
+.neon i { width: 22px; height: 22px; border-radius: 50%; border: 4px solid #4a1a1e; flex: none; }
+.neon b { font: 46px/1 Lilita, sans-serif; letter-spacing: .08em; color: #4a1a1e; }
+.neon .cord { position: absolute; left: 50%; top: 100%; width: 2px; height: 46px; background: linear-gradient(#2a201b, #0000); }
+.neon.lit i { border-color: #ffd9de; box-shadow: 0 0 6px #fff, 0 0 14px #ff4a5e, 0 0 30px var(--live), inset 0 0 8px #ff4a5e; }
+.neon.lit b { color: #fff0f2; text-shadow: 0 0 4px #fff, 0 0 12px #ff5a6c, 0 0 26px var(--live), 0 0 52px var(--live), 0 0 90px #ff274088; }
+.neon.lit { box-shadow: 0 10px 24px #0006, 0 0 80px -10px #ff274066; }
+.neon.flick { animation: flick .9s steps(1) both; }
+@keyframes flick { 0%, 14%, 30%, 52% { filter: brightness(.3) saturate(.4); } 8%, 22%, 40%, 60%, 100% { filter: none; } }
+
+.monitor { position: relative; z-index: 1; width: 100%; padding: 12px; border-radius: 16px; background: linear-gradient(180deg, #1d1b1f, #0c0b0d);
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 -2px 0 #000, 0 0 0 1px #000, 0 40px 60px -20px #000e, 0 0 120px -30px color-mix(in srgb, var(--glow) 60%, transparent); }
+.monitor::after { content: ''; position: absolute; left: 50%; bottom: 3px; width: 34px; height: 3px; margin-left: -17px; border-radius: 2px; background: #2b2930; }   /* the maker's mark */
+.neck { position: absolute; left: 50%; top: 100%; width: 74px; height: calc(var(--deskgap) + 14px); margin-left: -37px; z-index: 0; background: linear-gradient(90deg, #0d0c0e, #2a282d 45%, #121114); }
+.neck::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 230px; height: 16px; margin-left: -115px; border-radius: 50%; background: radial-gradient(ellipse at 50% 35%, #2e2c31, #121114 70%); box-shadow: 0 6px 10px #0009; }
+.screen { position: relative; overflow: hidden; border-radius: 5px; background: var(--ui); display: grid; grid-template-columns: minmax(0, 1fr) clamp(200px, 27%, 268px);
+  grid-template-rows: auto auto auto; font-family: Grotesk, sans-serif; }
+/* player chrome (outside the picture) */
+.bar { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; height: 34px; padding: 0 12px; background: #0a090d; border-bottom: 1px solid var(--uiline); font-size: 12px; color: #b9b2c4; white-space: nowrap; }
+.livebadge { font: 800 11px/1 Grotesk, sans-serif; letter-spacing: .08em; color: #fff; background: var(--live); padding: 4px 6px 3px; border-radius: 4px; }
+.bar .chan { font-weight: 700; color: #f1ecf7; }
+.bar .scene { color: #8f88a0; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.bar .scene b { color: #e7e0f2; font-weight: 600; }
+.bar .stat { display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
+.bar .stat svg { width: 13px; height: 13px; }
+.bar .stat.v { margin-left: auto; color: #ff8f9c; font-weight: 700; }
+.vid { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: #08070b; container-type: inline-size; }
+.sc { position: absolute; inset: 0; visibility: hidden; }
+.sc.on { visibility: visible; }
+.sc > img.pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.sc iframe { position: absolute; left: 50%; top: 50%; border: 0; background: transparent; opacity: 0; transition: opacity .5s; }
+.sc iframe.ready { opacity: 1; }
+/* Chaplinko is 640×540: centred, full height, on a stream background; its gutters hold the PNGtuber and a hint */
+.sc.ko { background: radial-gradient(ellipse 60% 70% at 50% 40%, #2f4bff2e, transparent 70%), linear-gradient(180deg, #121637, #0a0c20); }
+.sc.ko::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(#ffffff08 1px, transparent 1px), linear-gradient(90deg, #ffffff08 1px, transparent 1px); background-size: 4.2cqw 4.2cqw; }
+.sc.ko .tuber { position: absolute; left: 0; bottom: 0; width: 16.6%; height: 62%; object-fit: contain; object-position: 50% 100%; }
+.sc.ko .cmd { position: absolute; right: 1.6%; width: 13.4%; bottom: 7%; text-align: center; font: 1.45cqw/1.25 Bungee, sans-serif; color: #dfe4ff; letter-spacing: .02em; }
+.sc.ko .cmd span { display: block; margin-top: .5cqw; padding: .7cqw 0 .5cqw; border-radius: .8cqw; background: #ffffff14; border: 1px solid #ffffff22; font-size: 1.7cqw; color: #fff; }
+/* the both-chats scene: each platform's chat merges into one game */
+.sc.both { background: radial-gradient(ellipse 70% 60% at 50% 40%, #3a2a5a, transparent 70%), linear-gradient(180deg, #17121f, #0b0910); display: grid; place-items: center; }
+.bc { width: 86%; display: grid; justify-items: center; gap: 2.6cqw; text-align: center; }
+.bc h3 { margin: 0; font: 5.4cqw/1 Lilita, sans-serif; color: #fff4e4; letter-spacing: .01em; }
+.bc .ins { display: flex; gap: 2.2cqw; justify-content: center; align-items: stretch; width: 100%; }
+.bc .in { flex: 1 1 0; max-width: 30cqw; border-radius: 1.6cqw; padding: 1.6cqw 1.8cqw; background: color-mix(in srgb, var(--pc) 18%, #0b0910); border: .3cqw solid var(--pc); text-align: left; display: grid; gap: .6cqw; }
+.bc .in .h { display: flex; align-items: center; gap: 1cqw; font: 700 2.1cqw/1 Grotesk, sans-serif; color: #fff; }
+.bc .in .h .pbadge { width: 2.8cqw; height: 2.8cqw; border-radius: .6cqw; } .bc .in .h .pbadge svg { width: 2cqw; height: 2cqw; }
+.bc .in .h em { margin-left: auto; font: 700 2.1cqw/1 var(--mono); font-style: normal; color: #ffffffcc; }
+.bc .in .m { font: 600 1.85cqw/1.2 Grotesk, sans-serif; color: #e6e0ee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 2.3cqw; }
+.bc .in.later { flex: 0 0 auto; width: 8cqw; border-style: dashed; border-color: #ffffff38; background: none; place-items: center; font: 3.4cqw/1 Lilita, sans-serif; color: #ffffff59; }
+.bc .merge { width: 60%; height: 4cqw; }
+.bc .one { display: inline-flex; align-items: center; gap: 1.2cqw; padding: 1.2cqw 2.4cqw 1cqw; border-radius: 1.4cqw; background: var(--hl); color: var(--ink); font: 2.6cqw/1 Bungee, sans-serif; box-shadow: 0 .5cqw 0 #b89a1c; }
+.bc .tot { margin: -.6cqw 0 0; font: 600 1.9cqw/1.2 Grotesk, sans-serif; color: #cfc6dc; } .bc .tot span { font: 700 1em var(--mono); color: var(--hl); }
+/* coming soon: a be-right-back style scene */
+.sc.soon { background: radial-gradient(ellipse 50% 60% at 30% 40%, #ffb34733, transparent 70%), radial-gradient(ellipse 50% 60% at 75% 70%, #ff274026, transparent 70%), linear-gradient(160deg, #241510, #120b08); display: grid; place-items: center; text-align: center; }
+.soonc b { display: block; font: 7.6cqw/1 Lilita, sans-serif; color: #fff4e4; }
+.soonc span { display: block; margin-top: 1.6cqw; font: 600 2.4cqw/1.35 Grotesk, sans-serif; color: #e2d2bc; }
+.soonc .dots { display: inline-flex; gap: 1cqw; margin-top: 2.6cqw; }
+.soonc .dots i { width: 1.4cqw; height: 1.4cqw; border-radius: 50%; background: var(--amber); animation: dot 1.2s ease-in-out infinite; }
+.soonc .dots i:nth-child(2) { animation-delay: .15s; } .soonc .dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes dot { 0%, 60%, 100% { opacity: .25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-.6cqw); } }
+/* the stinger */
+.sting { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+.sting i { position: absolute; top: 0; bottom: 0; left: -25%; width: 150%; transform: translateX(-130%) skewX(-14deg); background: var(--bc); }
+.sting i:last-child { display: grid; place-items: center; }
+.sting i:last-child span { transform: skewX(14deg); font: 4.4cqw/1 Lilita, sans-serif; color: var(--cream); letter-spacing: .02em; }
+.sting i:last-child span em { font-style: normal; color: var(--amber); }
+/* below the picture: what's on, and where it's streaming to */
+.info { grid-column: 1; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 7px 12px; background: var(--ui2); border-top: 1px solid var(--uiline); }
+.info .t { min-width: 0; flex: 1; }
+.info .t b { display: block; font: 15px/1.15 Lilita, sans-serif; letter-spacing: .01em; color: #fff4e4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info .t > span { display: block; font-size: 11.5px; color: #9b93ab; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dest { display: flex; align-items: center; gap: 5px; flex: none; }
+.dest small { font: 700 10px/1 Grotesk, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #8f88a0; margin-right: 3px; }
+.dest .pchip em { font-style: normal; font-weight: 600; opacity: .8; font-variant-numeric: tabular-nums; }
+/* the merged chat */
+.chat { grid-column: 2; grid-row: 2 / 4; display: flex; flex-direction: column; min-height: 0; contain: size; background: #121117; border-left: 1px solid var(--uiline); }
+.chat .ch { display: flex; align-items: center; gap: 6px; height: 36px; flex: none; padding: 0 10px; border-bottom: 1px solid var(--uiline); font: 700 11px/1 Grotesk, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #b9b2c4; }
+.chat .ch .srcs { margin-left: auto; display: flex; gap: 3px; }
+.chat .ch .srcs .pbadge { width: 18px; height: 18px; }
+.chat .ch .srcs .later { width: 18px; height: 18px; border-radius: 4px; border: 1.5px dashed #ffffff40; display: grid; place-items: center; color: #ffffff70; font: 700 11px/1 Grotesk, sans-serif; }
+.log { flex: 1 1 0; min-height: 0; overflow: hidden; margin: 0; padding: 6px 10px 4px; list-style: none; display: flex; flex-direction: column; justify-content: flex-end; gap: 5px; }
+.log li { flex: none; font-size: 12.5px; line-height: 1.35; color: #ddd7e6; overflow-wrap: anywhere; }   /* never squashed: the oldest scroll off the top */
+.log li .pbadge { margin-right: 5px; vertical-align: -3px; }
+.log li b { color: color-mix(in srgb, var(--nc, #c9b8ff) 62%, #fff); font-weight: 700; }
+.log li b::after { content: ': '; color: #9b93ab; font-weight: 400; }
+.log li .ok { padding: 0 4px; border-radius: 3px; font-weight: 700; background: #ffe14d26; color: var(--hl); }
+.log li .ok::after { content: ' ✓'; font-size: .85em; }
+.log li img { width: 20px; height: 20px; vertical-align: -5px; }
+.log li.sys { color: #8f88a0; font-style: italic; font-size: 11.5px; }
+.log li.new { animation: in .25s ease-out; }
+@keyframes in { from { opacity: 0; transform: translateY(6px); } }
+.chat .say { flex: none; margin: 4px 8px 8px; height: 30px; border-radius: 5px; background: #1d1b24; border: 1px solid var(--uiline); font-size: 12px; color: #6f6880; display: flex; align-items: center; padding: 0 9px; }
+
+/* ---- the desk: wood surface, the deck, a mug and a plant -------------------------------------------------------------- */
+.desk { grid-column: 1 / -1; position: relative; display: grid; grid-template-columns: subgrid; padding: 30px 0 36px; margin-top: 22px; }
+.desk::before { content: ''; position: absolute; z-index: -1; top: 0; bottom: 0; left: 50%; width: 100vw; margin-left: -50vw;
+  background: linear-gradient(180deg, #0006 0 2px, transparent 2px), linear-gradient(180deg, transparent calc(100% - 24px), #2c180c calc(100% - 24px), #3a2010 calc(100% - 21px), #1d0f07),
+    repeating-linear-gradient(178deg, #ffffff06 0 2px, transparent 2px 13px, #0000001a 13px 15px, transparent 15px 31px),
+    linear-gradient(180deg, #4a2a15, #6a3f22 60%, #7a4a28 calc(100% - 24px));
+  box-shadow: 0 -30px 60px -30px #0008; }
+.desk .props { position: absolute; left: 100%; bottom: 4px; margin-left: 44px; display: flex; align-items: flex-end; gap: 26px; pointer-events: none; }
+.mug { position: relative; width: 46px; height: 52px; border-radius: 4px 4px 10px 10px; background: linear-gradient(90deg, #d9c9b2, #f4e7d2 40%, #b8a68e); box-shadow: 0 8px 10px -4px #000a; }
+.mug::before { content: ''; position: absolute; right: -15px; top: 11px; width: 15px; height: 24px; border: 5px solid #cdbca4; border-left: 0; border-radius: 0 12px 12px 0; }
+.mug::after { content: 'GG'; position: absolute; inset: 0; display: grid; place-items: center; font: 13px Bungee, sans-serif; color: #c44a2a; }
+.mug .steam { position: absolute; left: 50%; bottom: 100%; width: 30px; height: 40px; margin-left: -15px; }
+.mug .steam i { position: absolute; bottom: 0; width: 6px; height: 26px; border-radius: 50%; background: #fff3; filter: blur(3px); animation: steam 3.2s ease-out infinite; }
+.mug .steam i:nth-child(1) { left: 5px; } .mug .steam i:nth-child(2) { left: 15px; animation-delay: 1.1s; } .mug .steam i:nth-child(3) { left: 22px; animation-delay: 2.1s; }
+@keyframes steam { 0% { opacity: 0; transform: translateY(8px) scaleY(.6); } 30% { opacity: .9; } 100% { opacity: 0; transform: translateY(-22px) scaleY(1.2); } }
+.plant { position: relative; width: 64px; height: 86px; }
+.plant .pot { position: absolute; left: 10px; right: 10px; bottom: 0; height: 30px; border-radius: 3px 3px 9px 9px; background: linear-gradient(90deg, #a1543a, #c8714f 45%, #8a4330); box-shadow: 0 8px 10px -4px #000a; }
+.plant svg { position: absolute; left: 0; bottom: 24px; width: 64px; height: 62px; }
+/* the deck */
+.deck { grid-column: -2; justify-self: center; position: relative; padding: 14px 16px 22px; border-radius: 16px; background: linear-gradient(180deg, #232126, #141316);
+  box-shadow: inset 0 1px 0 #ffffff1f, inset 0 -3px 0 #000, 0 0 0 1px #000, 0 18px 24px -8px #000d; }
+.deck::after { content: 'LEGACY DECK'; position: absolute; left: 0; right: 0; bottom: 5px; text-align: center; font: 8px Bungee, sans-serif; letter-spacing: .3em; color: #5d5862; }
+.keys { display: grid; grid-template-columns: repeat(4, 84px); gap: 12px; }
+.key { all: unset; box-sizing: border-box; cursor: pointer; position: relative; width: 84px; height: 84px; border-radius: 12px; padding: 5px;
+  background: linear-gradient(180deg, #2d2b31, #1b1a1e); box-shadow: inset 0 1px 0 #ffffff24, 0 3px 0 #050506, 0 5px 8px #0009; transition: transform .08s, box-shadow .08s; }
+.key .lcd { position: absolute; inset: 6px; border-radius: 8px; display: grid; grid-template-rows: 1fr 22px; justify-items: center; align-items: center; padding: 10px 3px 4px;
+  background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--kc) 30%, #111), #0b0a0d 80%); filter: brightness(.62) saturate(.8); transition: filter .2s; overflow: hidden; }
+.key .lcd svg { width: 36px; height: 36px; }
+.key .lcd span { font: 700 10px/1.1 Grotesk, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: #fff; text-align: center; }
+.key .n { position: absolute; left: 13px; top: 12px; font: 700 9px/1 var(--mono); color: #ffffff70; z-index: 1; }
+.key:hover .lcd { filter: brightness(.85); }
+.key:active, .key.press { transform: translateY(2px); box-shadow: inset 0 1px 0 #ffffff14, 0 1px 0 #050506, 0 2px 3px #0009; }
+.key[aria-pressed="true"] .lcd { filter: none; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--kc) 80%, #fff), 0 0 0 0 transparent; }
+.key[aria-pressed="true"] { box-shadow: inset 0 1px 0 #ffffff24, 0 3px 0 #050506, 0 5px 8px #0009, 0 0 22px -2px color-mix(in srgb, var(--kc) 70%, transparent); }
+.key[aria-pressed="true"]::after { content: ''; position: absolute; right: 13px; top: 13px; width: 7px; height: 7px; border-radius: 50%; background: var(--live); box-shadow: 0 0 6px var(--live); z-index: 1; }
+.key:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+.cable { position: absolute; z-index: -1; right: calc(100% - 6px); top: 46%; width: 150px; height: calc(100% + 26px); pointer-events: none; overflow: visible; }
+
+/* ---- the lineup ------------------------------------------------------------------------------------------------------- */
+.lineup-wrap { padding: 44px 0 0; }
+.card { background: var(--paper); color: var(--ink); border-radius: 14px; padding: 30px 36px 36px; box-shadow: 0 30px 70px #000a, 0 0 0 1px #00000040; }
+.lhead { display: flex; align-items: end; gap: 24px; justify-content: space-between; flex-wrap: wrap; border-bottom: 3px solid var(--ink); padding-bottom: 14px; }
+.lhead h2 { margin: 0; font: 36px/1.05 Lilita, sans-serif; letter-spacing: .01em; }
+.lhead p { margin: 6px 0 0; font: 600 13px Grotesk, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--ink2); }
+.lhead .works { display: flex; align-items: center; gap: 6px; font: 600 13px Grotesk, sans-serif; color: var(--ink2); flex-wrap: wrap; }
+.lhead .works .pchip.later { color: #6e6052; border-color: #5a4a3e66; }   /* 5.2:1 on the paper */
+.slots { list-style: none; margin: 0; padding: 0; }
+.slot { position: relative; display: grid; grid-template-columns: 208px minmax(0, 1fr) 232px; gap: 26px; align-items: start; padding: 22px 18px 22px 14px; border-bottom: 1px solid #1d141033; transition: background .3s; }
+.slot::before { content: ''; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 2px; background: transparent; }
+.slot.now { background: #ffe14d3a; }
+.slot.now::before { background: var(--live); }
+.thumb { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #0d0c12; box-shadow: 0 0 0 1px #00000030, 0 6px 14px -6px #0007; }
+.thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.thumb.ko { background: linear-gradient(180deg, #121637, #0a0c20); }
+.thumb.bothth { background: linear-gradient(180deg, #2a1f3d, #120e18); display: grid; place-items: center; }
+.thumb.bothth .row { display: flex; align-items: center; gap: 6px; }
+.thumb.bothth .pbadge { width: 26px; height: 26px; border-radius: 6px; } .thumb.bothth .pbadge svg { width: 17px; height: 17px; }
+.thumb.bothth .eq { font: 15px Bungee, sans-serif; color: #fff9; }
+.thumb.bothth .one { font: 12px Bungee, sans-serif; background: var(--hl); color: var(--ink); padding: 5px 7px 3px; border-radius: 5px; }
+.thumb.soonth { background: repeating-linear-gradient(135deg, #f5ecd9 0 10px, #ece0c8 10px 20px); box-shadow: inset 0 0 0 2px #1d141040; display: grid; place-items: center; font: 34px/1 Lilita, sans-serif; color: #1d141066; }
+.meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font: 700 11px/1 Grotesk, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--ink2); margin: 2px 0 8px; }
+.onnow { display: none; align-items: center; gap: 6px; background: #d81b33;   /* a deeper red than --live: white on it is 5:1 */ color: #fff; padding: 4px 7px 3px; border-radius: 4px; letter-spacing: .08em; }
+.onnow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.slot.now .onnow { display: inline-flex; }
+.slot h3 { margin: 0; font: 28px/1.08 Lilita, sans-serif; letter-spacing: .01em; }
+.slot h3 a { text-decoration: none; } .slot h3 a:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.slot h3 .kind { font: 600 15px Grotesk, sans-serif; color: var(--ink2); letter-spacing: 0; margin-left: 4px; }
+.slot p { margin: 6px 0 12px; font-size: 16px; color: #3a2d24; max-width: 660px; }
+.slot code { font: 700 .92em var(--mono); background: #1d14101a; padding: 1px 5px; border-radius: 3px; }
+.specs { display: flex; flex-wrap: wrap; gap: 6px 8px; list-style: none; margin: 0; padding: 0; font: 700 11px/1 Grotesk, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.specs li { border: 1.5px solid #1d141099; border-radius: 4px; padding: 4px 7px 3px; display: inline-flex; gap: 5px; align-items: center; }
+.specs li.plats { border: 0; padding: 0; gap: 5px; }
+.specs li.plats .pchip { height: 20px; letter-spacing: .02em; text-transform: none; font-size: 11.5px; }
+.acts { display: grid; gap: 8px; }
+.go { display: flex; justify-content: center; align-items: center; text-align: center; font: 13px Bungee, sans-serif; letter-spacing: .03em; text-decoration: none; padding: 12px 14px 10px; border-radius: 8px; background: var(--ink); color: var(--paper); box-shadow: 0 3px 0 #000; }
+.go:hover { background: #000; }
+.show { all: unset; box-sizing: border-box; cursor: pointer; text-align: center; font: 700 12px Grotesk, sans-serif; letter-spacing: .1em; text-transform: uppercase; padding: 9px 12px; border-radius: 8px; border: 1.5px solid var(--ink); }
+.show:hover { background: #1d14100f; }
+.show:focus-visible { outline: 3px solid var(--live); outline-offset: 2px; }
+.slot.now .show { background: var(--ink); color: var(--paper); }
+.slot.soon h3 { color: var(--ink2); }
+/* channel panels: why, and set up */
+.panels { margin-top: 44px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.panels h2 { grid-column: 1 / -1; margin: 0; font: 24px Lilita, sans-serif; color: var(--cream); letter-spacing: .01em; }
+.panel { background: #1b130e; border: 1px solid #ffffff12; border-radius: 10px; overflow: hidden; }
+.panel .ph { height: 74px; display: flex; align-items: center; padding: 0 20px; gap: 10px; font: 24px/1 Lilita, sans-serif; color: #fff4e4; letter-spacing: .01em;
+  background: linear-gradient(135deg, #3a2417, #24170f); border-bottom: 1px solid #ffffff12; }
+.panel .ph.multi { background: var(--multi, linear-gradient(135deg, #3a2417, #24170f)); text-shadow: 0 2px 6px #0008; }
+.panel .ph .pbadge { width: 26px; height: 26px; border-radius: 6px; } .panel .ph .pbadge svg { width: 17px; height: 17px; }
+.panel .ph .plus { font: 18px Bungee, sans-serif; opacity: .8; }
+.panel .pb { padding: 16px 20px 20px; font-size: 15.5px; color: #e2d2bc; }
+.panel .pb p { margin: 0; }
+.setup { margin-top: 20px; background: #1b130e; border: 1px solid #ffffff12; border-radius: 10px; padding: 22px 24px 24px; }
+.setup h2 { margin: 0 0 16px; font: 24px Lilita, sans-serif; color: var(--cream); }
+.setup ol { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 28px; }
+.setup li { counter-increment: s; display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 12px; align-items: start; }
+.setup li::before { content: counter(s); font: 18px/1 Bungee, sans-serif; background: var(--amber); color: var(--ink); width: 38px; height: 38px; display: grid; place-items: center; border-radius: 9px; padding-top: 2px; }
+.setup b { display: block; font: 19px/1.15 Lilita, sans-serif; margin-top: 2px; color: #fff4e4; letter-spacing: .01em; }
+.setup span { font-size: 15px; color: #e2d2bc; }
+.setup a { text-decoration-color: var(--amber); text-underline-offset: 3px; }
+footer { font: 600 13px/1.8 Grotesk, sans-serif; color: var(--muted); } footer.wrap { padding-top: 34px; padding-bottom: 56px; }
+footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
+
+/* ---- narrower desktops ------------------------------------------------------------------------------------------------ */
+@media (max-width: 1240px) {
+  .stage { grid-template-columns: minmax(0, 330px) minmax(0, 1fr); }
+  h1 { font-size: 40px; }
+  .lede { font-size: 16px; }
+  .keys { grid-template-columns: repeat(4, 76px); gap: 10px; } .key { width: 76px; height: 76px; } .key .lcd svg { width: 32px; height: 32px; } .key .lcd span { font-size: 9px; }
+  .neon b { font-size: 38px; } .neon i { width: 18px; height: 18px; }
+  .slot { grid-template-columns: 170px minmax(0, 1fr) 210px; gap: 20px; }
+}
+@media (max-width: 1060px) and (min-width: 761px) {
+  .stage { grid-template-columns: 1fr; }
+  .copy { max-width: 640px; order: 0; }
+  .desk .props { display: none; }
+  .slot { grid-template-columns: 150px minmax(0, 1fr); }
+  .slot .acts { grid-column: 2; grid-template-columns: 1fr 1fr; }
+  .panels, .setup ol { grid-template-columns: 1fr; }
+}
+
+/* ---- phones: H1, the player and chat, a 2×2 deck, then the lede and the lineup ---------------------------------------- */
+@media (max-width: 760px) {
+  .top .wrap { height: 54px; gap: 12px; }
+  .top nav { display: none; } .kick-b { margin-left: auto; font-size: 11px; padding: 7px 11px 6px; }
+  .room { padding-top: 18px; }
+  .glowwall { left: -20%; width: 140%; top: 140px; height: 420px; }
+  .stage { display: flex; flex-direction: column; align-items: stretch; }
+  .copy { display: contents; }
+  .eyebrow { order: 0; margin-bottom: 8px; font-size: 11px; display: flex; align-items: center; gap: 10px; }
+  h1 { order: 1; font-size: 33px; line-height: 1.04; margin-bottom: 16px; }
+  .rig { order: 2; align-self: stretch; min-width: 0; }
+  .neck { display: none; }
+  .desk { order: 3; }
+  .lede { order: 4; font-size: 16px; margin: 20px 0 10px; }
+  .nowline { order: 5; font-size: 13.5px; }
+  .hint { display: none; }
+  .neon { display: none; }
+  .eyebrow .mini-live { display: inline-flex; }
+  .monitor { padding: 6px; border-radius: 12px; }
+  .monitor::after { display: none; }
+  .screen { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
+  .bar { height: 30px; gap: 8px; padding: 0 8px; font-size: 11px; }
+  .bar .chan, .bar .scene { display: none; }
+  .bar .stat.v { margin-left: auto; }
+  .info { min-height: 0; padding: 6px 8px; gap: 8px; }
+  .info .t b { font-size: 14px; } .info .t span, .info .t .kd { display: none; }
+  .dest small { display: none; }
+  .dest .pchip em { display: none; }
+  .chat { grid-column: 1; grid-row: auto; contain: none; height: 104px; border-left: 0; border-top: 1px solid var(--uiline); }
+  .chat .ch, .chat .say { display: none; }
+  .log { padding: 5px 9px 7px; gap: 3px; }
+  .log li { font-size: 12px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+  .desk { margin-top: 12px; padding: 0; display: block; }
+  .desk::before { display: none; }
+  .desk .props, .cable { display: none; }
+  .deck { justify-self: stretch; padding: 8px; border-radius: 14px; }
+  .deck::after { display: none; }
+  .keys { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .key { width: auto; height: 54px; }
+  .key .lcd { grid-template-rows: none; grid-template-columns: auto auto; justify-content: center; gap: 8px; padding: 0 8px; }
+  .key .lcd svg { width: 28px; height: 28px; }
+  .key .lcd span { font-size: 11.5px; }
+  .key .n { top: 50%; transform: translateY(-50%); left: 11px; }
+  .lineup-wrap { padding-top: 40px; }
+  .lineup-wrap .wrap { padding: 0 10px; }
+  .card { padding: 20px 14px 22px; border-radius: 12px; }
+  .lhead h2 { font-size: 29px; } .lhead p { font-size: 11.5px; letter-spacing: .1em; }
+  .slot { grid-template-columns: 1fr; gap: 12px; padding: 18px 8px 20px 14px; }
+  .slot .thumb { display: none; }
+  .slot h3 { font-size: 25px; } .slot h3 .kind { display: block; margin: 4px 0 0; font-size: 14px; }
+  .slot p { font-size: 15px; }
+  .slot .acts { grid-template-columns: 1fr; }
+  .panels { grid-template-columns: 1fr; margin-top: 34px; gap: 14px; }
+  .setup ol { grid-template-columns: 1fr; }
+  .panels, .setup { margin-left: 0; margin-right: 0; }
+}
+.mini-live { display: none; align-items: center; gap: 6px; font: 15px/1 Lilita, sans-serif; letter-spacing: .08em; color: #fff0f2; padding: 4px 8px 3px; border-radius: 6px; border: 1px solid #ffffff22;
+  text-shadow: 0 0 4px #fff, 0 0 10px #ff5a6c, 0 0 20px var(--live); }
+.mini-live::before { content: ''; width: 8px; height: 8px; border-radius: 50%; border: 2px solid #ffd9de; box-shadow: 0 0 8px var(--live); }
+
+/* ---- reduced motion: cuts, a lit sign, a still chat ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .mug .steam, .soonc .dots i:nth-child(n) { opacity: .8; }
+  .mug .steam { display: none; }
+}
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <symbol id="i-kick" viewBox="0 0 10 10"><path transform="translate(.4 0)" d="M1 1h2.4v2.2h1.2V2.1h1.2V1H8.2v2.4H7v1.2H5.8v.8H7v1.2h1.2V9H5.8V7.9H4.6V6.8H3.4V9H1z" fill="currentColor"/></symbol>
-  <symbol id="i-twitch" viewBox="0 0 10 10"><path d="M2 1 1.2 2.8v5.4h2V9.3h1.1l1.1-1.1h1.7L9 6.3V1zm6.2 4.9-1.3 1.3H5.1L4 8.3V7.2H2.4V1.8h5.8zM6.9 3v2.2h-.8V3zm-2 0v2.2h-.8V3z" fill="currentColor"/></symbol>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="icons">
+  <symbol id="i-eye" viewBox="0 0 16 16"><path d="M8 3C4.4 3 1.7 5.4.6 8c1.1 2.6 3.8 5 7.4 5s6.3-2.4 7.4-5C14.3 5.4 11.6 3 8 3zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" fill="currentColor"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.5V8l2.4 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
 </defs></svg>
-<header class="nav"><div class="wrap">
-  <a class="brand" href="/"><span>TRONGATES</span> LEGACY</a>
-  <nav class="links" aria-label="Site"><a href="/#stream">Stream</a><a href="/#roster">Roster</a><a href="/#videos">Videos</a><a href="/#socials">Socials</a><a href="/widgets/" aria-current="page">Widgets</a></nav>
-  <a class="pill" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener">Watch on Kick</a>
+
+<header class="top"><div class="wrap">
+  <a class="brand" href="/">Trongates <span>Legacy</span></a>
+  <nav aria-label="Page"><a href="#lineup">Lineup</a><a href="#why">Why</a><a href="#setup">Set up</a></nav>
+  <a class="kick-b" href="https://kick.com/trongateslegacy">Watch on Kick</a>
 </div></header>
-<main class="wrap">
-  <div class="eyebrow">Free stream widgets</div>
-  <h1><span class="o">Stream</span> <span class="s">Widgets</span></h1>
-  <p class="lede">Chat games and overlays that work with Twitch and Kick at the same time. Pick one, type your channel names, paste the link into OBS. Made by Trongates Legacy.</p>
-  <ul class="grid">
-    <li><article class="card">
-      <div class="thumb"><img src="/chatagram/assets/themes/chatagram-full.webp" alt="Chatagram on stream: scrambled letters, a countdown and the word board filling up" width="960" height="540"></div>
-      <div class="body"><h2><a href="/chatagram/">Chatagram</a></h2><p>The anagram word game your whole chat plays: unscramble the letters together and beat the goal to clear the level.</p>
-        <ul class="tags"><li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>8 themes</li></ul>
-        <a class="btn" href="/chatagram/">Set up Chatagram, free</a></div>
-    </article></li>
-    <li><article class="card">
-      <div class="thumb" style="background:radial-gradient(circle at 50% 30%, #2f5bff40, transparent 70%), #0a1233"><img src="/chaplinko/assets/themes/chaplinko.webp" alt="Chaplinko on stream: balls bouncing down a triangle of pegs into scoring slots" width="640" height="540" loading="lazy"></div>
-      <div class="body"><h2><a href="/chaplinko/">Chaplinko</a></h2><p>Plinko for your chat: viewers type <b>!plinko</b>, balls bounce into the slots, and everyone climbs the leaderboard.</p>
-        <ul class="tags"><li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>Leaderboards</li></ul>
-        <a class="btn" href="/chaplinko/">Set up Chaplinko</a></div>
-    </article></li>
-    <li><article class="card soon" aria-label="Coming soon"><div class="thumb" aria-hidden="true">?</div><div class="body"><h2>Coming soon</h2><p>Got an idea for a widget? Say hi on Kick.</p></div></article></li>
-  </ul>
-  <ul class="why">
-    <li><b>BOTH CHATS, ONE GAME</b>Twitch and Kick viewers play together. Multistreaming finally counts everyone.</li>
-    <li><b>NO LOGIN, NOTHING STORED</b>Widgets only read public chat. Your settings live in your OBS link.</li>
-    <li><b>FREE</b>No accounts, no catch. Say hi on Kick if you use one.</li>
-  </ul>
+
+<main>
+<div class="room" id="room">
+  <span class="glowwall" aria-hidden="true"></span>
+  <div class="wrap stage">
+    <div class="copy">
+      <p class="eyebrow"><span class="mini-live" aria-hidden="true">LIVE</span>Free stream widgets</p>
+      <h1>Free chat games for your stream, on <span class="tw">Twitch</span> and <span class="ki">Kick</span> at once</h1>
+      <p class="lede">Chat games that read Twitch chat and Kick chat at the same time, so both audiences play one game. Pick one, type your channel names, paste the link into OBS. No login, nothing stored, free.</p>
+      <p class="hint">Switch scenes on the deck, or press <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>.</p>
+      <p class="nowline">On stream now: <a href="#slot-chatagram" id="now-name">Chatagram</a></p>
+    </div>
+
+    <div class="rig">
+      <div class="neon" id="neon" aria-hidden="true"><i></i><b>LIVE</b></div>
+      <div class="monitor"><span class="neck" aria-hidden="true"></span>
+        <div class="screen" id="screen" role="group" aria-label="A stream playing the current scene, with its chat">
+          <div class="bar" aria-hidden="true">
+            <span class="livebadge">LIVE</span><span class="chan">your_channel</span>
+            <span class="scene">Scene: <b id="scene-name">Chatagram</b></span>
+            <span class="stat v"><svg><use href="#i-eye"/></svg><span id="viewers">1,284</span></span>
+            <span class="stat"><svg><use href="#i-clock"/></svg><span id="uptime">2:14:07</span></span>
+          </div>
+          <div class="vid" id="vid">
+            <div class="sc on" data-scene="chatagram"><img class="pic" src="/chatagram/assets/themes/chatagram-full.webp" alt="Chatagram on stream: scrambled letters, a countdown and the word board filling up" width="960" height="540" fetchpriority="high"></div>
+            <div class="sc ko" data-scene="chaplinko">
+              <img class="tuber" data-src="/assets/img/tron-cyan-mclosed-eopen-400.webp" alt="" width="400" height="600">
+              <img class="pic" data-src="/chaplinko/assets/themes/chaplinko.webp" alt="Chaplinko on stream: balls bouncing down a triangle of pegs into scoring slots" width="640" height="540">
+              <p class="cmd" aria-hidden="true">Type<span>!plinko</span></p>
+            </div>
+            <div class="sc both" data-scene="both" aria-hidden="true">
+              <div class="bc"><h3>Both chats, one game</h3><div class="ins" id="bc-ins"></div>
+                <svg class="merge" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M5 0 Q50 2 50 10 M95 0 Q50 2 50 10" fill="none" stroke="#ffffff55" stroke-width="1" vector-effect="non-scaling-stroke" stroke-dasharray="4 3"/></svg>
+                <div class="one">One game</div><p class="tot"><span id="bc-total">0</span> messages from both chats, one leaderboard</p></div>
+            </div>
+            <div class="sc soon" data-scene="soon"><div class="soonc"><b>Coming soon</b><span>More widgets in the works. Got an idea? Say hi on Kick.</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>
+            <div class="sting" id="sting" aria-hidden="true"></div>
+          </div>
+          <div class="info" aria-hidden="true">
+            <div class="t"><b id="info-name">Chatagram<span class="kd">, the anagram chat game</span></b><span id="info-sub">Free stream widget · reads both chats</span></div>
+            <div class="dest" id="dest"><small>Live on</small></div>
+          </div>
+          <div class="chat" aria-hidden="true">
+            <div class="ch">Stream chat<span class="srcs" id="srcs"></span></div>
+            <ul class="log" id="log"></ul>
+            <div class="say">Send a message</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="desk">
+      <div class="deck" id="deck" role="group" aria-label="Scene deck">
+        <svg class="cable" viewBox="0 0 150 100" preserveAspectRatio="none" aria-hidden="true"><path d="M150 8 C110 8 96 30 80 52 S60 86 52 100" fill="none" stroke="#0b0a0c" stroke-width="5" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+        <div class="keys" id="keys"></div>
+        <div class="props" aria-hidden="true">
+        <div class="plant"><svg viewBox="0 0 64 62"><g fill="#3f7a3a"><path d="M32 62C30 40 18 30 6 28c10 8 18 18 22 34z"/><path d="M32 62c2-22 14-32 26-34-10 8-18 18-22 34z" fill="#4f8f45"/><path d="M31 62C26 36 30 16 34 4c4 16 2 36-1 58z" fill="#5aa04e"/><path d="M32 62c-6-16-16-22-26-20 9 4 17 10 24 20z" fill="#356b31"/></g></svg><span class="pot"></span></div>
+        <div class="mug"><span class="steam"><i></i><i></i><i></i></span></div>
+      </div>
+      </div>
+    </div>
+  </div>
+  <p class="sr" id="announce" aria-live="polite"></p>
+</div>
+
+<div class="lineup-wrap" id="lineup">
+  <div class="wrap">
+    <section class="card" aria-labelledby="lineup-h">
+      <div class="lhead">
+        <div><h2 id="lineup-h">The lineup</h2><p>Free widgets · one link in OBS each</p></div>
+        <p class="works" id="works">Works with Twitch and Kick, at the same time</p>
+      </div>
+      <ol class="slots">
+        <li class="slot now" id="slot-chatagram" data-scene="chatagram">
+          <div class="thumb" aria-hidden="true"><img src="/chatagram/assets/themes/chatagram-full.webp" alt="" width="960" height="540" loading="lazy"></div>
+          <div>
+            <p class="meta"><span>Scene 1 · Word game</span><span class="onnow">On stream now</span></p>
+            <h3><a href="/chatagram/">Chatagram<span class="sr">, </span><span class="kind">the anagram chat game</span></a></h3>
+            <p>The anagram word game your whole chat plays: unscramble the letters together and beat the goal to clear the level.</p>
+            <ul class="specs"><li class="plats" data-plats>Twitch and Kick</li><li>8 themes</li><li>960 × 540</li><li>No login</li></ul>
+          </div>
+          <div class="acts"><a class="go" href="/chatagram/">Set up Chatagram, free</a><button class="show" type="button" data-scene="chatagram">Show on stream</button></div>
+        </li>
+        <li class="slot" id="slot-chaplinko" data-scene="chaplinko">
+          <div class="thumb ko" aria-hidden="true"><img src="/chaplinko/assets/themes/chaplinko.webp" alt="" width="640" height="540" loading="lazy"></div>
+          <div>
+            <p class="meta"><span>Scene 2 · Game show</span><span class="onnow">On stream now</span></p>
+            <h3><a href="/chaplinko/">Chaplinko<span class="sr">, </span><span class="kind">the Plinko chat game</span></a></h3>
+            <p>Plinko for your chat: viewers type <code>!plinko</code>, balls bounce into the slots, and everyone climbs the leaderboard.</p>
+            <ul class="specs"><li class="plats" data-plats>Twitch and Kick</li><li>Leaderboard</li><li>640 × 540</li><li>No login</li></ul>
+          </div>
+          <div class="acts"><a class="go" href="/chaplinko/">Set up Chaplinko, free</a><button class="show" type="button" data-scene="chaplinko">Show on stream</button></div>
+        </li>
+        <li class="slot" id="slot-both" data-scene="both">
+          <div class="thumb bothth" aria-hidden="true"><div class="row" id="th-both"></div></div>
+          <div>
+            <p class="meta"><span>Scene 3 · Every widget</span><span class="onnow">On stream now</span></p>
+            <h3>Both chats, one game</h3>
+            <p>Every widget reads Twitch chat and Kick chat at the same time, so both audiences play together. Multistreaming finally counts everyone.</p>
+            <ul class="specs"><li class="plats" data-plats>Twitch and Kick</li><li>At the same time</li></ul>
+          </div>
+          <div class="acts"><button class="show" type="button" data-scene="both">Show on stream</button></div>
+        </li>
+        <li class="slot soon" id="slot-soon" data-scene="soon">
+          <div class="thumb soonth" aria-hidden="true">+</div>
+          <div>
+            <p class="meta"><span>Scene 4 · New</span><span class="onnow">On stream now</span></p>
+            <h3>Coming soon <span class="kind">more widgets in the works</span></h3>
+            <p>This slot is free. Got an idea for a chat game? Tell us on Kick and it might go live here next.</p>
+            <ul class="specs"><li>Both chats, as always</li><li>Ideas welcome</li></ul>
+          </div>
+          <div class="acts"><a class="go" href="https://kick.com/trongateslegacy">Say hi on Kick</a><button class="show" type="button" data-scene="soon">Show on stream</button></div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="panels" id="why" aria-labelledby="why-h">
+      <h2 id="why-h">Why streamers use them</h2>
+      <div class="panel"><div class="ph multi" id="ph-both">Both chats</div><div class="pb"><h3 class="sr">Both chats, one game</h3><p>Twitch and Kick viewers play together. Multistreaming finally counts everyone.</p></div></div>
+      <div class="panel"><div class="ph">No login</div><div class="pb"><h3 class="sr">No login, nothing stored</h3><p>Nothing stored. Widgets only read public chat, and your settings live in your OBS link.</p></div></div>
+      <div class="panel"><div class="ph">Free</div><div class="pb"><h3 class="sr">Free</h3><p>No accounts, no catch. Say hi on Kick if you use one.</p></div></div>
+    </section>
+
+    <section class="setup" id="setup" aria-labelledby="setup-h">
+      <h2 id="setup-h">Set up in three steps</h2>
+      <ol>
+        <li><div><b>Pick a widget</b><span>Open <a href="/chatagram/">Chatagram, the anagram chat game</a> or <a href="/chaplinko/">Chaplinko, the Plinko chat game</a>.</span></div></li>
+        <li><div><b>Type your channel names</b><span>Twitch, Kick, or both. No login.</span></div></li>
+        <li><div><b>Paste the link into OBS</b><span>Add a browser source and paste. Your settings live in the link.</span></div></li>
+      </ol>
+    </section>
+  </div>
+</div>
 </main>
-<footer class="wrap">Made by <a href="/">Trongates Legacy</a> · <a href="https://kick.com/trongateslegacy">kick.com/trongateslegacy</a></footer>
+<footer class="wrap">Made by <a href="/">Trongates Legacy</a> · <a href="https://kick.com/trongateslegacy">kick.com/trongateslegacy</a> · Chill streams, gaming with friends.</footer>
+
+<script>
+// Starts after the first frame is painted (like the homepage): Lighthouse's slow-phone model counts all main-thread work
+// before the first paint against it. The deck and chips have their room reserved in CSS, so nothing moves when they arrive.
+const boot = () => {
+  // after the page's load (it may already have happened: this starts after the first frame)
+  const loaded = (fn) => (document.readyState === 'complete' ? fn() : addEventListener('load', fn, { once: true }));
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const BASE = '/';
+
+  // ---- the platforms: everything that means "a chat" is built from this list. A third platform is one more entry. -------
+  const PLATFORMS = [
+    { id: 'twitch', name: 'Twitch', color: '#9146ff', ink: '#fff', viewers: 812,
+      icon: 'M2 1 1.2 2.8v5.4h2V9.3h1.1l1.1-1.1h1.7L9 6.3V1zm6.2 4.9-1.3 1.3H5.1L4 8.3V7.2H2.4V1.8h5.8zM6.9 3v2.2h-.8V3zm-2 0v2.2h-.8V3z' },
+    { id: 'kick', name: 'Kick', color: '#53fc18', ink: '#0b1a04', viewers: 472,
+      icon: 'M1.4 1h2.4v2.2H5V2.1h1.2V1h2.4v2.4H7.4v1.2H6.2v.8h1.2v1.2h1.2V9H6.2V7.9H5V6.8H3.8V9H1.4z' },
+  ];
+  const LATER = 'More platforms later';
+  const byId = Object.fromEntries(PLATFORMS.map((p) => [p.id, p]));
+  $('#icons').insertAdjacentHTML('beforeend', PLATFORMS.map((p) => `<symbol id="i-${p.id}" viewBox="0 0 10 10"><path d="${p.icon}" fill="currentColor"/></symbol>`).join(''));
+  const vars = (p) => `--pc:${p.color};--pi:${p.ink}`;
+  const icon = (p) => `<svg aria-hidden="true"><use href="#i-${p.id}"/></svg>`;
+  const badge = (p) => `<span class="pbadge" style="${vars(p)}">${icon(p)}</span>`;
+  const chip = (p, extra = '') => `<span class="pchip" style="${vars(p)}">${icon(p)}${p.name}${extra}</span>`;
+  const later = `<span class="pchip later" title="${LATER}">+</span>`;
+  const names = PLATFORMS.map((p) => p.name).join(' and ');
+
+  // the decor: where the stream goes, the chat's sources, the both-chats scene, the lineup's chips and thumb
+  $('#dest').insertAdjacentHTML('beforeend', PLATFORMS.map((p) => chip(p, ` <em data-v="${p.id}">${p.viewers}</em>`)).join('') + later);
+  $('#srcs').innerHTML = PLATFORMS.map(badge).join('') + `<span class="later" title="${LATER}">+</span>`;
+  $('#bc-ins').innerHTML = PLATFORMS.map((p) => `<div class="in" style="${vars(p)}"><span class="h">${badge(p)}${p.name} chat<em data-n="${p.id}">0</em></span><span class="m" data-m="${p.id}">&nbsp;</span></div>`).join('') + `<div class="in later" title="${LATER}">+</div>`;
+  $('#th-both').innerHTML = PLATFORMS.map(badge).join('<span class="eq">+</span>') + '<span class="eq">=</span><span class="one">1 game</span>';
+  $$('[data-plats]').forEach((li) => { li.innerHTML = PLATFORMS.map((p) => chip(p)).join(''); li.setAttribute('aria-label', `Works with ${names}`); });
+  $('#works').innerHTML = `Works with ${PLATFORMS.map((p) => chip(p)).join('')} at once <span class="pchip later" title="${LATER}">+ more later</span>`;
+  $('#ph-both').innerHTML = PLATFORMS.map(badge).join('<span class="plus">+</span>') + ' Both chats';
+  $('#ph-both').style.setProperty('--multi', `linear-gradient(120deg, ${PLATFORMS.map((p, i) => `color-mix(in srgb, ${p.color} 55%, #1b130e) ${Math.round(i / Math.max(1, PLATFORMS.length - 1) * 100)}%`).join(', ')})`);
+
+  // ---- scenes -------------------------------------------------------------------------------------------------------------
+  const SC = {
+    chatagram: { n: 1, name: 'Chatagram', full: 'Chatagram, the anagram chat game', now: 'Chatagram, the anagram chat game', sub: 'Free stream widget · 960 × 540 · reads both chats', glow: '#7a5cff', key: '#9b7bff', w: 960, h: 540,
+      play: BASE + 'chatagram/play.html?demo=1', say: ['grade', 'garden', 'range', 'read', 'dare', 'grand', 'danger', 'near', 'gear', 'red'] },
+    chaplinko: { n: 2, name: 'Chaplinko', full: 'Chaplinko, the Plinko chat game', now: 'Chaplinko, the Plinko chat game', sub: 'Free stream widget · 640 × 540 · reads both chats', glow: '#2f6bff', key: '#4f8bff', w: 640, h: 540,
+      play: BASE + 'chaplinko/play.html?demo=1', say: ['!plinko', '!plinko', '!plinko', 'jackpot pls', '!plinko', 'LETS GO'] },
+    both: { n: 3, name: 'Both chats', full: 'Both chats, one game', now: 'Both chats, one game', sub: `${names} chat at the same time, one game`, glow: '#b07cff', key: '#d0a6ff',
+      say: ['hi from Twitch', 'Kick gang o7', 'we are all here', 'both chats lets go', 'o7', 'gg'] },
+    soon: { n: 4, name: 'Coming soon', full: 'Coming soon: more widgets in the works', now: 'Coming soon', sub: 'Got an idea for a chat game? Say hi on Kick', glow: '#ffb347', key: '#ffb347',
+      say: ['what is next?', 'a trivia one pls', 'o7', 'hype', 'brb snacks'] },
+  };
+  const ORDER = Object.keys(SC);
+  const ICONS = {
+    chatagram: `<svg viewBox="0 0 36 36"><g font-family="Bungee, sans-serif" font-size="9" text-anchor="middle">${['C', 'H', 'A'].map((l, i) => `<rect x="${2 + i * 11}" y="${i === 1 ? 8 : 12}" width="10" height="12" rx="2" fill="#f4e7d2"/><text x="${7 + i * 11}" y="${i === 1 ? 17.5 : 21.5}" fill="#1d1410">${l}</text>`).join('')}</g><rect x="4" y="28" width="28" height="3" rx="1.5" fill="#ffe14d"/></svg>`,
+    chaplinko: `<svg viewBox="0 0 36 36"><g fill="#cfd6ff">${[[18, 8], [13, 15], [23, 15], [8, 22], [18, 22], [28, 22]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8"/>`).join('')}</g><circle cx="15.5" cy="11" r="3.2" fill="#ff5fa2"/><g fill="#4f8bff"><rect x="3" y="28" width="6" height="5" rx="1"/><rect x="11" y="28" width="6" height="5" rx="1"/><rect x="19" y="28" width="6" height="5" rx="1"/><rect x="27" y="28" width="6" height="5" rx="1"/></g></svg>`,
+    both: `<svg viewBox="0 0 36 36">${PLATFORMS.map((p, i, a) => { const x = 3 + i * (16 / Math.max(1, a.length - 1)); return `<path d="M${x} 6h15a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-4 4v-4h-2a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" fill="${p.color}" opacity=".95" transform="translate(0 ${i * 4})"/>`; }).join('')}<rect x="9" y="28" width="18" height="5" rx="2" fill="#ffe14d"/></svg>`,
+    soon: `<svg viewBox="0 0 36 36"><rect x="5" y="5" width="26" height="26" rx="5" fill="none" stroke="#ffb347" stroke-width="2" stroke-dasharray="4 3"/><path d="M18 12v12M12 18h12" stroke="#ffb347" stroke-width="3" stroke-linecap="round"/></svg>`,
+  };
+  $('#keys').innerHTML = ORDER.map((k) => `<button class="key" type="button" data-scene="${k}" aria-pressed="false" style="--kc:${SC[k].key}"><span class="n" aria-hidden="true">${SC[k].n}</span><span class="lcd">${ICONS[k].replace('<svg', '<svg aria-hidden="true"')}<span>${SC[k].name}</span></span></button>`).join('');
+
+  const vid = $('#vid'), sting = $('#sting'), room = $('#room');
+  let cur = 'chatagram', liveFrame = null, busy = 0, lastReal = 0, visible = true;
+  const scEl = (k) => $(`.sc[data-scene="${k}"]`);
+
+  function fit(f) { const b = vid.getBoundingClientRect(); f.style.transform = `translate(-50%,-50%) scale(${Math.min(b.width / f.width, b.height / f.height)})`; }
+  new ResizeObserver(() => { if (liveFrame) fit(liveFrame); }).observe(vid);
+  function goLive() {   // the real widget, only for the scene on stream (never with reduced motion: the picture stands in)
+    const s = SC[cur]; if (RM || !s.play) return;
+    const host = scEl(cur); if (host.querySelector('iframe')) return;
+    const f = document.createElement('iframe');
+    Object.assign(f, { width: s.w, height: s.h, title: `${s.name} playing with a pretend chat`, tabIndex: -1 });
+    f.setAttribute('aria-hidden', 'true');
+    f.src = s.play; host.append(f); fit(f); liveFrame = f;
+    const poll = setInterval(() => {
+      if (!f.isConnected) return clearInterval(poll);
+      let ok = false; try { ok = f.contentDocument.documentElement.dataset.ready === '1'; } catch {}
+      if (ok) { clearInterval(poll); requestAnimationFrame(() => f.classList.add('ready')); }
+    }, 200);
+  }
+  const pics = (k) => $$(`.sc${k ? `[data-scene="${k}"]` : ''} img[data-src]`).forEach((i) => { i.src = i.dataset.src; i.removeAttribute('data-src'); });
+  loaded(() => (window.requestIdleCallback || setTimeout)(() => pics()));
+  function show(k) {
+    pics(k);
+    $$('.sc').forEach((e) => e.classList.toggle('on', e.dataset.scene === k));
+    $$('.sc iframe').forEach((f) => { if (f.parentElement.dataset.scene !== k) f.remove(); });
+    if (!liveFrame?.isConnected) liveFrame = null;
+    $('#scene-name').textContent = SC[k].name; $('#info-name').innerHTML = `${esc(SC[k].name)}<span class="kd">${esc(SC[k].full.slice(SC[k].name.length))}</span>`; $('#info-sub').textContent = SC[k].sub;
+    room.style.setProperty('--glow', SC[k].glow);
+  }
+  function paint(k) {
+    $$('.key').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.scene === k)));
+    $$('.slot').forEach((s) => s.classList.toggle('now', s.dataset.scene === k));
+    const nn = $('#now-name'); nn.textContent = SC[k].now; nn.href = '#slot-' + k;
+  }
+
+  // the stinger: one band per platform, then the house band, sweep across; the scene swaps while it's covered
+  const BANDS = [...PLATFORMS.map((p) => p.color), '#ffb347', '#1d1410'];
+  sting.innerHTML = BANDS.map((c, i) => `<i style="--bc:${c}">${i === BANDS.length - 1 ? '<span>Trongates <em>Legacy</em></span>' : ''}</i>`).join('');
+  const D = 640, LAG = 45;
+  async function take(k, from) {
+    if (k === cur) { pressKey(k); return; }
+    const my = ++busy; cur = k;
+    paint(k); pressKey(k);
+    $('#announce').textContent = `On stream now: ${SC[k].full}.`;
+    sys(`Scene: ${SC[k].name}`);
+    if (RM) { show(k); goLive(); return; }
+    const bands = [...sting.children];
+    bands.forEach((b, i) => b.animate([{ transform: 'translateX(-130%) skewX(-14deg)' }, { transform: 'translateX(0) skewX(-14deg)', offset: .42 }, { transform: 'translateX(0) skewX(-14deg)', offset: .58 }, { transform: 'translateX(130%) skewX(-14deg)' }],
+      { duration: D, delay: i * LAG, easing: 'cubic-bezier(.6,0,.4,1)' }));
+    await wait(D * .45 + (bands.length - 1) * LAG);
+    if (my !== busy) return;
+    show(k);
+    setTimeout(() => { if (my === busy) goLive(); }, D * .6);
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  function pressKey(k) { const b = $(`.key[data-scene="${k}"]`); b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 130); }
+
+  // ---- the merged chat: the widget's own demo chat when it's playing, a pretend one when it's quiet -------------------------
+  const log = $('#log'), count = Object.fromEntries(PLATFORMS.map((p) => [p.id, 0]));
+  let total = 0;
+  function line(html, cls) {
+    const li = document.createElement('li'); li.innerHTML = html; if (cls) li.className = cls;
+    log.append(li); while (log.children.length > 14) log.firstElementChild.remove();
+    return li;
+  }
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function message(pid, name, text, o = {}) {
+    const p = byId[pid] || PLATFORMS[0];
+    let body = esc(text);
+    if (o.emote) body = body.replace(esc(o.emote.name), `<img src="${esc(o.emote.url)}" alt="">`);
+    if (o.found && text.trim().toLowerCase() === String(o.found).toLowerCase()) body = `<span class="ok">${body}</span>`;
+    line(`${badge(p)}<b style="--nc:${esc(o.color || '#c9b8ff')}">${esc(name)}</b>${body}`, RM || o.still ? '' : 'new');
+    count[p.id]++; total++;
+    const n = $(`[data-n="${p.id}"]`); if (n) n.textContent = count[p.id];
+    const m = $(`[data-m="${p.id}"]`); if (m) m.textContent = `${name}: ${text}`;
+    $('#bc-total').textContent = total;
+  }
+  function sys(t) { if (!RM) line(esc(t), 'sys new'); }
+  addEventListener('message', (e) => {
+    const d = e.data;
+    if (!liveFrame || e.source !== liveFrame.contentWindow || !d || (d.type !== 'chatagram-chat' && d.type !== 'chaplinko-chat')) return;
+    lastReal = performance.now();
+    message(d.platform, d.name, d.text, { color: d.color, found: d.found, emote: d.emote });
+  });
+  const PEOPLE = [['LunaLlama', '#ff7eb6'], ['ByteSizeBea', '#7ee0ff'], ['TurboTofu', '#ffb347'], ['PixelPanda', '#a3ff7e'], ['NeonNacho', '#ffe14d'], ['MossyMoose', '#7effc8'], ['CaptainQuack', '#c9a3ff'], ['SleepyWaffle', '#ff9f7e']];
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  function pretend() {
+    if (visible && !document.hidden && performance.now() - lastReal > 2600) {
+      const [name, color] = pick(PEOPLE); message(PLATFORMS[PEOPLE.findIndex((x) => x[0] === name) % PLATFORMS.length].id, name, pick(SC[cur].say), { color });
+    }
+    setTimeout(pretend, 700 + Math.random() * 1100);
+  }
+
+  // ---- viewers and uptime --------------------------------------------------------------------------------------------------
+  const fmt = (n) => n.toLocaleString('en-US');
+  const views = Object.fromEntries(PLATFORMS.map((p) => [p.id, p.viewers]));
+  function paintViews() {
+    $('#viewers').textContent = fmt(Object.values(views).reduce((a, b) => a + b, 0));
+    PLATFORMS.forEach((p) => { $(`[data-v="${p.id}"]`).textContent = fmt(views[p.id]); });
+  }
+  const up0 = 2 * 3600 + 14 * 60 + 7, t0 = Date.now(), pad = (n) => String(n).padStart(2, '0');
+  function tick() {
+    const s = up0 + Math.floor((Date.now() - t0) / 1000);
+    $('#uptime').textContent = `${Math.floor(s / 3600)}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
+    setTimeout(tick, 1000 - ((Date.now() - t0) % 1000));
+  }
+
+  // ---- wiring ---------------------------------------------------------------------------------------------------------------
+  $$('.key').forEach((b) => b.addEventListener('click', () => take(b.dataset.scene)));
+  $$('.show').forEach((b) => b.addEventListener('click', () => { take(b.dataset.scene); $('.rig').scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' }); }));
+  addEventListener('keydown', (e) => {
+    const t = e.target instanceof Element ? e.target : document.body;
+    if (e.metaKey || e.ctrlKey || e.altKey || t.closest('input, textarea, select')) return;
+    const n = +e.key;
+    if (n >= 1 && n <= ORDER.length) { take(ORDER[n - 1]); return; }
+    if (!t.closest('#deck')) return;   // arrows switch scenes only while the deck has focus, so they still scroll the page
+    const fk = t.closest('.key'), i = ORDER.indexOf(fk ? fk.dataset.scene : cur), go = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    let j = null;
+    if (go) j = (i + go + ORDER.length) % ORDER.length; else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = ORDER.length - 1;
+    if (j === null) return;
+    e.preventDefault(); take(ORDER[j]); $(`.key[data-scene="${ORDER[j]}"]`).focus();
+  });
+  new IntersectionObserver((es) => { visible = es[es.length - 1].isIntersecting; }).observe($('#screen'));
+
+  // ---- go -------------------------------------------------------------------------------------------------------------------
+  paint(cur); show(cur); paintViews();
+  // the chat starts with a few lines, both chats mixed (with reduced motion it stays this sample)
+  [['twitch', 'LunaLlama', 'grade', '#ff7eb6', 'grade'], ['kick', 'ByteSizeBea', 'garden', '#7ee0ff', 'garden'], ['twitch', 'TurboTofu', 'hi from Twitch', '#ffb347'], ['kick', 'PixelPanda', 'Kick gang o7', '#a3ff7e'], ['twitch', 'NeonNacho', 'range', '#ffe14d', 'range'], ['kick', 'MossyMoose', 'danger', '#7effc8']]
+    .forEach(([p, n, t, c, f]) => message(PLATFORMS.some((x) => x.id === p) ? p : PLATFORMS[0].id, n, t, { color: c, found: f, still: true }));
+  const neon = $('#neon');
+  if (RM) {
+    neon.classList.add('lit');
+    $('#uptime').textContent = '2:14';
+  } else {
+    setTimeout(() => neon.classList.add('lit', 'flick'), 400);
+    tick();
+    setInterval(() => { if (document.hidden) return; PLATFORMS.forEach((p) => { views[p.id] = Math.max(1, views[p.id] + Math.round((Math.random() - .45) * 6)); }); paintViews(); }, 4000);
+    setTimeout(pretend, 900);
+    loaded(() => {
+      const io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { io.disconnect(); (window.requestIdleCallback || setTimeout)(goLive); } });
+      io.observe(vid);
+    });
+  }
+};
+requestAnimationFrame(() => setTimeout(boot, 0));
+</script>
 </body></html>
