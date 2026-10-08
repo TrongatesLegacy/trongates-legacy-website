@@ -308,9 +308,22 @@
   if (document.readyState === 'complete') afterLoad(); else addEventListener('load', afterLoad);
 
   // ---- the menu shows where you are -------------------------------------------------------------------------------------------------
-  const links = $$('.menu a');
-  const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) for (const a of links) a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id); }, { rootMargin: '-45% 0px -50% 0px' });
-  for (const id of ['how', 'themes', 'setup', 'faq']) io.observe(document.getElementById(id));
+  // The section whose top has passed under the menu bar (the last one at the very bottom, as it may never get there);
+  // a clicked link stays lit while the page scrolls to it, as a short section can't reach the top of a tall window.
+  const links = $$('.menu a'), secs = ['how', 'themes', 'setup', 'faq'].map((id) => document.getElementById(id));
+  const light = (id) => { for (const a of links) a.classList.toggle('on', a.getAttribute('href') === '#' + id); };
+  let held = 0, queued = false;
+  const spot = () => {
+    queued = false;
+    if (held) return;
+    const line = $('.nav').offsetHeight + 24, el = document.documentElement;
+    const atEnd = innerHeight + scrollY >= el.scrollHeight - 4;
+    light(atEnd && scrollY > 0 ? secs[secs.length - 1].id : (secs.filter((x) => x.getBoundingClientRect().top <= line).pop() || {}).id);
+  };
+  const settle = () => { clearTimeout(held); held = setTimeout(() => { held = 0; }, 250); };
+  addEventListener('scroll', () => { if (held) settle(); else if (!queued) { queued = true; requestAnimationFrame(spot); } }, { passive: true });
+  for (const a of links) a.addEventListener('click', () => { light(a.getAttribute('href').slice(1)); settle(); });
+  spot();
 
   fill(); update();
   if (s.twitch) check('twitch');
