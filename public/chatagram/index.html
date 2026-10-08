@@ -2,8 +2,8 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chatagram: free Twitch and Kick chat word game for OBS · Trongates Legacy</title>
-<meta name="description" content="Chatagram is a free anagram game for streamers: chat unscrambles the letters by typing words. Twitch and Kick at the same time, or just one. No login, nothing to install: paste one link into OBS.">
+<title>Chatagram: free anagram chat game for Twitch and Kick</title>
+<meta name="description" content="A free anagram word game for your stream: chat unscrambles the letters together, on Twitch and Kick at once. No login, nothing to install, one link in OBS.">
 <link rel="canonical" href="https://www.trongateslegacy.com/chatagram/">
 <meta name="theme-color" content="#16122b">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
@@ -18,10 +18,18 @@
 <link rel="preload" href="/assets/fonts/lilita-one.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/chakra-petch-400.woff2" as="font" type="font/woff2" crossorigin>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"Chatagram","url":"https://www.trongateslegacy.com/chatagram/",
- "applicationCategory":"GameApplication","operatingSystem":"Any (OBS browser source)","description":"A free anagram game for Twitch and Kick chat, played on stream through an OBS browser source.",
+[{"@context":"https://schema.org","@type":"WebApplication","name":"Chatagram","url":"https://www.trongateslegacy.com/chatagram/",
+ "applicationCategory":"GameApplication","operatingSystem":"Any (OBS browser source)","browserRequirements":"Any browser source: OBS, Streamlabs, Meld, XSplit",
+ "description":"A free anagram word game for Twitch and Kick chat, played on stream through an OBS browser source. Chat unscrambles the letters together; no login, nothing to install.",
+ "image":"https://www.trongateslegacy.com/chatagram/assets/og.jpg","screenshot":"https://www.trongateslegacy.com/chatagram/assets/themes/chatagram-full.webp",
+ "featureList":["Twitch and Kick chat on the same board","No login: type your channel names","8 themes and any accent colour","Leaderboards for this stream and all time","Full and compact layouts"],
+ "inLanguage":"en","isAccessibleForFree":true,
  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
- "author":{"@type":"Person","name":"Trongates Legacy","url":"https://www.trongateslegacy.com/"}}
+ "author":{"@type":"Person","name":"Trongates Legacy","url":"https://www.trongateslegacy.com/"}},
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+ {"@type":"ListItem","position":1,"name":"Trongates Legacy","item":"https://www.trongateslegacy.com/"},
+ {"@type":"ListItem","position":2,"name":"Stream widgets","item":"https://www.trongateslegacy.com/widgets/"},
+ {"@type":"ListItem","position":3,"name":"Chatagram","item":"https://www.trongateslegacy.com/chatagram/"}]}]
 </script>
 <style>
 @font-face { font-family: "Lilita One"; src: url(/assets/fonts/lilita-one.woff2) format("woff2"); font-display: swap; }
@@ -248,17 +256,17 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
 <main id="top">
 <section class="wrap hero">
   <div>
-    <h1>The word game your <em>whole chat</em> plays.</h1>
-    <p class="lede">Unscramble the letters together, live on stream. Twitch and Kick at the same time, or just one. Free, no login, nothing to install: paste one link into OBS.</p>
+    <h1>The anagram game your <em>whole chat</em> plays.</h1>
+    <p class="lede">A chat word game: unscramble the letters together, live on stream. Twitch and Kick at the same time, or just one. Free, no login, nothing to install: paste one link into OBS.</p>
     <div class="ctas"><a class="btn" href="#setup">Set it up free</a><a class="btn ghost" href="#themes">See the themes</a></div>
     <ul class="chips" aria-label="Features">
       <li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>8 themes</li><li>Leaderboards</li><li>Free</li>
     </ul>
   </div>
-  <div class="screen" id="hero-screen"><img class="poster" src="assets/themes/chatagram-full.webp" alt="" width="960" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chatagram playing with a pretend chat" width="960" height="540" style="transform: translate(-50%,-50%) scale(.55)" tabindex="-1"></iframe><div class="chat" id="chat" aria-hidden="true"></div></div>
+  <div class="screen" id="hero-screen"><img class="poster" src="assets/themes/chatagram-full.webp" alt="Chatagram on stream: scrambled letters, the words chat has found and who found them" width="960" height="540" fetchpriority="high"><iframe id="hero-frame" title="Chatagram playing with a pretend chat" width="960" height="540" style="transform: translate(-50%,-50%) scale(.55)" tabindex="-1"></iframe><div class="chat" id="chat" aria-hidden="true"></div></div>
 </section>
 
-<section class="wrap sec" id="how"><h2>How it <span>works</span></h2>
+<section class="wrap sec" id="how"><h2>How the chat <span>word game</span> works</h2>
   <ol class="steps">
     <li><i>1</i><h3>Letters appear</h3><p>A scrambled word shows on stream and reshuffles every few seconds.</p></li>
     <li><i>2</i><h3>Chat types words</h3><p>Anyone on Twitch or Kick types words they can make from the letters. First to find one gets the points.</p></li>
@@ -266,11 +274,11 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   </ol>
 </section>
 
-<section class="wrap sec" id="themes"><h2>8 <span>themes</span></h2><p class="sub">Pick one, then any accent colour. Your viewers see it exactly like this.</p>
+<section class="wrap sec" id="themes"><h2>8 overlay <span>themes</span></h2><p class="sub">Pick one, then any accent colour. Your viewers see it exactly like this.</p>
   <ul class="tgrid" id="tgrid"></ul>
 </section>
 
-<section class="wrap sec" id="setup"><h2>Set up <span>in under a minute</span></h2>
+<section class="wrap sec" id="setup"><h2>Set up in OBS <span>in under a minute</span></h2>
 <form class="cols" id="form" onsubmit="return false">
   <div class="left">
     <fieldset class="card"><legend>1 · Your channels</legend>
@@ -362,7 +370,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
 </form>
 </section>
 
-<section class="wrap sec" id="faq"><h2>FAQ</h2>
+<section class="wrap sec" id="faq"><h2>Chatagram <span>FAQ</span></h2>
 <div class="faq">
   <details open><summary>Is it really free?</summary><p>Yes. No account, no login, no catch. It's a web page you add to OBS as a browser source. The small “Made by” line can be turned off in Advanced settings.</p></details>
   <details><summary>Does it need my Twitch or Kick password?</summary><p>No. It only reads your public chat, the way a viewer does, and never posts anything.</p></details>
@@ -371,6 +379,8 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
   <details><summary>How do the leaderboards work?</summary><p>Type <code>!cg top</code> (or just <code>!cg</code>) to show this stream's and all-time top players for a few seconds. This stream starts fresh each time you go live: Chatagram asks Twitch or Kick whether you're live, so a crash and a quick restart still count as one stream. All time is kept for good. You can hide it in Advanced settings, or wipe both with <code>!cg clearscores</code> (only you can).</p></details>
   <details><summary>What happens if OBS refreshes mid-game?</summary><p>It carries on where it was: the game and the leaderboards are saved in OBS's browser as it goes.</p></details>
   <details><summary>Does it work in Streamlabs, Meld or XSplit?</summary><p>Anything with a browser source works.</p></details>
+  <details><summary>Is there a chat word game for Kick?</summary><p>This one. Chatagram reads Kick chat on its own or together with Twitch, so multistreamers get one game for both chats.</p></details>
+  <details><summary>How is it different from Words on Stream?</summary><p>Chatagram plays <b>both chats at once</b>: Twitch and Kick viewers find words on the same board, so when you multistream nobody's left out. Words on Stream (wos.gg) reads one chat at a time. It's the original stream word game and it's great, with extras like YouTube and playing along on phones. Chatagram is also lighter: you don't sign in with your streaming account, you just type your channel names, and it comes in 8 themes with any accent colour.</p></details>
   <details><summary>Where do the words come from?</summary><p>The SCOWL English word lists (by how common each word is), with rude words taken out using SCOWL's own tags, the LDNOOBW list and our own. You can add words to leave out in Advanced settings.</p></details>
 </div>
 </section>

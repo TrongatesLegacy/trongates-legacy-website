@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Free stream widgets for Twitch and Kick · Trongates Legacy</title>
-<meta name="description" content="Free chat games and overlays for streamers that work with Twitch and Kick at the same time. Type your channel names, paste one link into OBS. Made by Trongates Legacy.">
+<meta name="description" content="Free chat games for streamers: Chatagram, an anagram word game, and Chaplinko, Plinko for chat. Twitch and Kick at once, one link in OBS, no login.">
 <link rel="canonical" href="https://www.trongateslegacy.com/widgets/">
 <meta name="theme-color" content="#03060d">
 <meta property="og:type" content="website">
@@ -49,6 +49,7 @@ h1 .s { background: linear-gradient(180deg, #fff, var(--accent)); -webkit-backgr
 .thumb img { position: absolute; inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px); object-fit: contain; }
 .body { padding: 18px 22px 22px; display: flex; flex-direction: column; flex: 1; }
 .card h2 { font: 700 19px Orbitron, sans-serif; letter-spacing: .06em; margin: 0 0 8px; text-transform: uppercase; }
+.card h2 a { color: inherit; text-decoration: none; } .card h2 a:hover { text-decoration: underline; }
 .card p { color: var(--muted); margin: 0 0 14px; }
 .tags { display: flex; gap: 8px; margin: 0 0 18px; flex-wrap: wrap; padding: 0; list-style: none; }
 .tags li { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; padding: 3px 9px; border: 1px solid var(--line); color: var(--muted); }
@@ -83,13 +84,13 @@ footer { text-align: center; color: var(--muted); font-size: 14px; padding: 20px
   <ul class="grid">
     <li><article class="card">
       <div class="thumb"><img src="/chatagram/assets/themes/chatagram-full.webp" alt="Chatagram on stream: scrambled letters, a countdown and the word board filling up" width="960" height="540"></div>
-      <div class="body"><h2>Chatagram</h2><p>The word game your whole chat plays: unscramble the letters together and beat the goal to clear the level.</p>
+      <div class="body"><h2><a href="/chatagram/">Chatagram</a></h2><p>The anagram word game your whole chat plays: unscramble the letters together and beat the goal to clear the level.</p>
         <ul class="tags"><li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>8 themes</li></ul>
-        <a class="btn" href="/chatagram/">Set up Chatagram</a></div>
+        <a class="btn" href="/chatagram/">Set up Chatagram, free</a></div>
     </article></li>
     <li><article class="card">
       <div class="thumb" style="background:radial-gradient(circle at 50% 30%, #2f5bff40, transparent 70%), #0a1233"><img src="/chaplinko/assets/themes/chaplinko.webp" alt="Chaplinko on stream: balls bouncing down a triangle of pegs into scoring slots" width="640" height="540" loading="lazy"></div>
-      <div class="body"><h2>Chaplinko</h2><p>Plinko for your chat: viewers type <b>!plinko</b>, balls bounce into the slots, and everyone climbs the leaderboard.</p>
+      <div class="body"><h2><a href="/chaplinko/">Chaplinko</a></h2><p>Plinko for your chat: viewers type <b>!plinko</b>, balls bounce into the slots, and everyone climbs the leaderboard.</p>
         <ul class="tags"><li><span class="pf twitch"><svg><use href="#i-twitch"/></svg></span>Twitch</li><li><span class="pf kick"><svg><use href="#i-kick"/></svg></span>Kick</li><li>Leaderboards</li></ul>
         <a class="btn" href="/chaplinko/">Set up Chaplinko</a></div>
     </article></li>

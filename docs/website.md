@@ -88,7 +88,7 @@ verification.md). Keep it there:
 Canonical `https://www.trongateslegacy.com/`, full Open Graph + Twitter card tags, `og.jpg` (1200×630, a
 dedicated design rendered by `artwork/og/render.mjs`, see artwork/og/README.md; the render bumps the `?v=` date on the image URL
 because platforms cache previews by URL), JSON-LD `WebSite` + `Person` with every social profile in `sameAs`, robots.txt and
-sitemap.xml. `www` is the primary domain; the apex redirects to it (DNS: A record to Netlify's load balancer
+sitemap.xml. The footer links the widgets (Chatagram, Chaplinko) so search engines reach them from the homepage. `www` is the primary domain; the apex redirects to it (DNS: A record to Netlify's load balancer
 on the apex, CNAME for `www`, at OVH).
 
 ## Widgets and Chatagram

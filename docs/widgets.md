@@ -303,6 +303,14 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
   game over; **Copy OBS link** sits under it; the full link hides behind "Show link". On phones the preview goes first (no
   sticky Copy bar: the owner removed it). The preview is re-themed by message, so changing theme or accent never reloads it.
 - Indexed (in `sitemap.xml`) with its own title, description, canonical, share image and JSON-LD. The overlay isn't.
+- **Search (2026-10-08):** aimed at searches Chatagram can win ("kick chat word game", "anagram game for twitch and
+  kick", "free OBS chat word game"), not "words on stream" itself (wos.gg's brand). The title, description, H1 and
+  headings carry *anagram*, *chat word game*, *Twitch*, *Kick* and *OBS*; JSON-LD has the features and a breadcrumb
+  (Home › Widgets › Chatagram); the homepage footer, `/widgets/` and Chaplinko link to it as "Chatagram, the anagram
+  chat game". The FAQ's Words on Stream answer leads with the main difference (the owner, 2026-10-08): Chatagram reads both chats
+  at once, Words on Stream one at a time. It stays fair and only claims what's known (from the owner, and wos.gg: it signs
+  in with a streaming account, does YouTube and playing along on phones); re-check before adding claims. The words and links
+  are guarded by `tests/unit/seo.test.mjs` (titles ≤ 65 and descriptions ≤ 160 characters on every widget page).
 - **Pictures before live games**: the hero and the set-up preview show a picture at once (sized exactly like the live
   board, no backdrop or frame around it) and the live game fades in over it when it has drawn, while the picture fades out (both showing at once looked
   like two games stacked; a browser test guards it); the theme gallery and the widgets page only ever show pictures (click a theme to use it).
