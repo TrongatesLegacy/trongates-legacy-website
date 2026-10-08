@@ -274,7 +274,8 @@
   addEventListener('message', (e) => {
     const d = e.data; if (!d || d.type !== 'chatagram-chat' || e.source !== hero.contentWindow) return;
     const m = document.createElement('div'); m.className = 'b' + (d.found ? ' hit' : '');
-    const color = /^#[0-9a-f]{6}$/i.test(d.color || '') ? d.color : 'var(--ink)', pf = d.platform === 'kick' ? 'kick' : 'twitch';
+    // a find's name in ink: chat colours are often too weak on the sun-yellow bubble (contrast)
+    const color = !d.found && /^#[0-9a-f]{6}$/i.test(d.color || '') ? d.color : 'var(--ink)', pf = d.platform === 'kick' ? 'kick' : 'twitch';
     m.innerHTML = `<span class="pf ${pf}"><svg><use href="#i-${pf}"/></svg></span><b style="color:${color}">${esc(d.name)}</b>`
       + (d.found ? `<span class="tiles">${[...String(d.found).toUpperCase()].map((c) => `<i>${esc(c)}</i>`).join('')}</span><span class="pts">+${+d.pts || 0}</span>` : `<span>${esc(d.text)}</span>`);
     // Chatagram's own motion: the bubble pops out of its tail corner and its letters flip in like the board's tiles; the

@@ -430,10 +430,14 @@ test('the hero shows its game\'s pretend chat as bubbles: the last three, finds 
   const last = await tab.eval(`(() => { const b = [...document.querySelectorAll('#chat .b')].at(-1); return { hit: b.classList.contains('hit'), name: b.querySelector('b').textContent, tiles: [...b.querySelectorAll('.tiles i')].map((i) => i.textContent).join(''), pts: b.querySelector('.pts')?.textContent }; })()`);
   assert.deepEqual(last, { hit: true, name: 'HeroPerson', tiles: word.toUpperCase(), pts: last.pts });
   assert.match(last.pts, /^\+\d+$/);
+  // the chatter's colour fails contrast on the sun-yellow find (Lighthouse, #3b5bdb at 3.68): a find's name is in ink
+  const nameColour = `getComputedStyle([...document.querySelectorAll('#chat .b')].at(-1).querySelector('b')).color`;
+  assert.equal(await tab.eval(nameColour), 'rgb(22, 18, 43)', 'a find\'s name in ink, readable on yellow');
   assert.ok(!(await tab.eval('document.getElementById("chat").textContent.includes("PreviewPerson")')), 'the preview\'s chat stays out of the hero');
   await say('hero-frame', 'HeroPerson', 'lol');
   assert.ok(await tab.eval('document.querySelectorAll("#chat .b:not(.out)").length <= 3'));
   assert.ok(!(await tab.eval('[...document.querySelectorAll("#chat .b")].at(-1).classList.contains("hit")')), 'a miss is a plain bubble');
+  assert.equal(await tab.eval(nameColour), 'rgb(25, 113, 194)', 'a plain bubble keeps the chatter\'s colour');
   noErrors(tab, 'hero chat');
   await tab.close();
   // on phones the game is too small for it
