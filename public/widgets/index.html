@@ -120,6 +120,7 @@ kbd { font: 700 12px var(--mono); color: var(--cream); background: #2a1d15; bord
 .sc > img.pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .sc iframe { position: absolute; left: 50%; top: 50%; border: 0; background: transparent; opacity: 0; transition: opacity .5s; }
 .sc iframe.ready { opacity: 1; }
+.sc .pic { transition: opacity .5s; } .sc.live .pic { opacity: 0; }   /* the live widget replaces its picture (Chaplinko's board is see-through) */
 /* Chaplinko is 640×540: centred, full height, on a stream background; its gutters hold the PNGtuber and a hint */
 .sc.ko { background: radial-gradient(ellipse 60% 70% at 50% 40%, #2f4bff2e, transparent 70%), linear-gradient(180deg, #121637, #0a0c20); }
 .sc.ko::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(#ffffff08 1px, transparent 1px), linear-gradient(90deg, #ffffff08 1px, transparent 1px); background-size: 4.2cqw 4.2cqw; }
@@ -591,7 +592,7 @@ const boot = () => {
     const poll = setInterval(() => {
       if (!f.isConnected) return clearInterval(poll);
       let ok = false; try { ok = f.contentDocument.documentElement.dataset.ready === '1'; } catch {}
-      if (ok) { clearInterval(poll); requestAnimationFrame(() => f.classList.add('ready')); }
+      if (ok) { clearInterval(poll); requestAnimationFrame(() => { f.classList.add('ready'); host.classList.add('live'); }); }
     }, 200);
   }
   const pics = (k) => $$(`.sc${k ? `[data-scene="${k}"]` : ''} img[data-src]`).forEach((i) => { i.src = i.dataset.src; i.removeAttribute('data-src'); });
@@ -599,7 +600,7 @@ const boot = () => {
   function show(k) {
     pics(k);
     $$('.sc').forEach((e) => e.classList.toggle('on', e.dataset.scene === k));
-    $$('.sc iframe').forEach((f) => { if (f.parentElement.dataset.scene !== k) f.remove(); });
+    $$('.sc iframe').forEach((f) => { if (f.parentElement.dataset.scene !== k) { f.parentElement.classList.remove('live'); f.remove(); } });
     if (!liveFrame?.isConnected) liveFrame = null;
     $('#scene-name').textContent = SC[k].name; $('#info-name').innerHTML = `${esc(SC[k].name)}<span class="kd">${esc(SC[k].full.slice(SC[k].name.length))}</span>`; $('#info-sub').textContent = SC[k].sub;
     room.style.setProperty('--glow', SC[k].glow);
@@ -690,10 +691,10 @@ const boot = () => {
     if (e.metaKey || e.ctrlKey || e.altKey || t.closest('input, textarea, select')) return;
     const n = +e.key;
     if (n >= 1 && n <= ORDER.length) { take(ORDER[n - 1]); return; }
-    if (!t.closest('#deck')) return;   // arrows switch scenes only while the deck has focus, so they still scroll the page
-    const fk = t.closest('.key'), i = ORDER.indexOf(fk ? fk.dataset.scene : cur), go = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (!t.closest('#deck')) return;   // left and right switch scenes only while the deck has focus (no wrapping), so the page still scrolls
+    const fk = t.closest('.key'), i = ORDER.indexOf(fk ? fk.dataset.scene : cur), go = { ArrowRight: 1, ArrowLeft: -1 }[e.key];   // up and down stay the page's
     let j = null;
-    if (go) j = (i + go + ORDER.length) % ORDER.length; else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = ORDER.length - 1;
+    if (go) j = i + go < 0 || i + go >= ORDER.length ? null : i + go; else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = ORDER.length - 1;
     if (j === null) return;
     e.preventDefault(); take(ORDER[j]); $(`.key[data-scene="${ORDER[j]}"]`).focus();
   });

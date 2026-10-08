@@ -59,6 +59,45 @@ test('the deck switches scenes: the stream, the keys, the lineup and the announc
   await tab.close();
 });
 
+// Bug (owner, 2026-10-09): Chaplinko's board is transparent, so its still picture stayed visible behind the live board.
+test('a live widget replaces its picture: the picture fades out once the widget is ready, and comes back without it', async () => {
+  const tab = await chrome.open(site.origin + '/widgets/', { width: 1440, height: 900 });
+  await tab.until(`document.querySelectorAll('.key').length === 4`, 8000, 'the deck');
+  const pic = (k) => `+getComputedStyle(document.querySelector('.sc[data-scene="${k}"] .pic')).opacity`;
+  for (const k of ['chaplinko', 'chatagram']) {
+    await tab.click(`.key[data-scene="${k}"]`);
+    await tab.until(`document.querySelector('.sc[data-scene="${k}"] iframe.ready')`, 10000, `${k} live`);
+    await tab.until(`${pic(k)} === 0`, 3000, `${k}'s picture gone once it's live`);
+  }
+  assert.equal(await tab.eval(pic('chaplinko')), 1, 'Chaplinko\'s picture back once it isn\'t live');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+// Bug (owner, 2026-10-09): Down on the last key went back to the first, and the deck kept Up and Down from scrolling.
+test('the deck\'s arrows: left and right step between keys and stop at the ends; up and down scroll the page', async () => {
+  const tab = await chrome.open(site.origin + '/widgets/', { width: 1440, height: 900 });
+  await tab.until(`document.querySelectorAll('.key').length === 4`, 8000, 'the deck');
+  const press = (key) => tab.eval(`(() => { const e = new KeyboardEvent('keydown', { key: '${key}', bubbles: true, cancelable: true }); document.activeElement.dispatchEvent(e); return e.defaultPrevented; })()`);
+  const on = `document.querySelector('.key[aria-pressed="true"]').dataset.scene`;
+  await tab.eval(`document.querySelector('.key[data-scene="soon"]').focus(); 1`);
+  await press('End'); await sleep(900);
+  assert.equal(await press('ArrowRight'), false, 'Right on the last key does nothing');
+  await sleep(900);
+  assert.equal(await tab.eval(on), 'soon', 'no wrapping back to the first');
+  assert.equal(await press('ArrowDown'), false, 'Down is left to the page (scrolls)');
+  assert.equal(await press('ArrowUp'), false, 'Up is left to the page');
+  assert.equal(await tab.eval(on), 'soon');
+  assert.equal(await press('ArrowLeft'), true);
+  await tab.until(`${on} === 'both' && document.activeElement.dataset.scene === 'both'`, 3000, 'Left steps back one');
+  await tab.eval(`document.querySelector('.key[data-scene="chatagram"]').focus(); 1`);
+  await press('Home'); await sleep(900);
+  assert.equal(await press('ArrowLeft'), false, 'Left on the first key does nothing');
+  assert.equal(await tab.eval(on), 'chatagram');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
 test('on a phone it fits, the deck works and the text is all there', async () => {
   const tab = await chrome.open(site.origin + '/widgets/', { width: 390, height: 844, mobile: true });
   await tab.until(`document.querySelectorAll('.key').length === 4`, 8000, 'the deck');

@@ -279,12 +279,12 @@ night, its own look (Lilita One, Bungee and Space Grotesk on a warm room; not th
 
 - **The stream:** a monitor shows a pretend stream of *your_channel* (made-up viewers and uptime, never the owner's
   channel): the real widget plays inside at its true size (`play.html?demo=1`, Chatagram 16:9, Chaplinko's 640 × 540
-  centred with Tron as a PNGtuber in the margin), only the one on stream, never with reduced motion (its picture stands
+  centred with Tron as a PNGtuber in the margin; its picture fades out once it's live, as Chaplinko's board is see-through), only the one on stream, never with reduced motion (its picture stands
   in). Labels live in the player's frame, never over the game. Beside it, **one chat** where Twitch and Kick arrive
   mixed: the widget's own demo chat (`chatagram-chat` / `chaplinko-chat` messages), pretend lines when it's quiet.
 - **The deck:** a Stream Deck-style pad (Chatagram, Chaplinko, Both chats, Coming soon) switches scenes with a stinger
-  (one band per platform, then the house band); keys 1-4 anywhere (never with Cmd/Ctrl), arrows while the deck has
-  focus; announced through an aria-live line. A neon LIVE sign, a plant and a GG mug on the desk.
+  (one band per platform, then the house band); keys 1-4 anywhere (never with Cmd/Ctrl), ← → while the deck has
+  focus (stopping at the ends; ↑ ↓ always scroll the page); announced through an aria-live line. A neon LIVE sign, a plant and a GG mug on the desk.
 - **The lineup:** all the real text (each widget's description, details, "Set up …, free", "Show on stream"); then why
   (both chats, no login, free) and the three set-up steps. The H1 and every link's words are in the HTML on load (SEO).
 - **Platforms come from one list** (`PLATFORMS` in the page's script): badges, chips, chat sources, the both-chats
