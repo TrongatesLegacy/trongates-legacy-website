@@ -45,7 +45,7 @@ data from older versions, so a change that stops old data loading fails a test (
 Chaplinko has its own in each tier too: `chaplinko-physics`, `chaplinko-game` and `chaplinko-assets` (unit: the odds table
 replays exactly against the physics, so re-run `scripts/chaplinko-odds.mjs` after changing `physics.js`), `chaplinko-flow`
 (loops: spam and raids on the virtual clock), `chaplinko` (browser: the separate leaderboard is tested against the board in
-a second tab, as two OBS sources sharing one browser).
+a second tab, as two OBS sources sharing one browser). `widget-menus` (browser) checks both pages' section menu: the link you click stays lit, and scrolling lights the section at the top.
 
 ## How a loop gets caught
 
