@@ -17,10 +17,9 @@
   --radius: 12px; --tile-ring: transparent; --tile-glow: none; --edge: none;
 }
 [data-theme=chatagram] {
-  --frame: 3px;   /* the frame's width (overlays sit inside it) */
+  /* no coral frame round the card (the owner, 2026-10-09): the card's ink is enough */
   --bg: rgb(22 18 43 / var(--bgo, 1)); --panel: #221b40; --slot: #2f2656; --text: #fff7ec; --muted: #b4acd6; --accent: #ffc93c; --accent-ink: #16122b;
   --tile: #fff7ec; --tile-text: #16122b; --tile-edge: #ff5a5f; --radius: 12px;
-  --edge: inset 0 0 0 3px #ff5a5f, 0 6px 0 #c73a40;
 }
 [data-theme=neutral] {
   --bg: rgb(20 22 28 / var(--bgo, 1)); --panel: #262a35; --slot: #323746; --text: #f3f5f9; --muted: #9aa3b4; --accent: #4f8cff; --accent-ink: #fff;
