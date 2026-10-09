@@ -9,14 +9,14 @@ would pay for itself, the owner wants to be told (CLAUDE.md lists the signs). Ma
 
 | Section | What it does | Notes |
 |---|---|---|
-| Nav | brand, section links, Kick pill | pill shows "Live · N watching" when live; on phones ≤480px it shrinks so it never touches the edge |
+| Nav | brand, section links (Widgets with the widgets' mark), Kick pill; stays at the top while scrolling | pill shows "Live · N watching" when live; on phones ≤480px it shrinks so it never touches the edge; on phones (≤760px) the links move into a menu (☰: the same links, closed by a link, Esc or a tap outside). `body` uses `overflow-x: clip`, not `hidden` (hidden broke the sticky header) |
 | Hero | title, tagline, Kick + Latest videos buttons, Lulu Gang Discord card, social icon row, the interactive character, form chips | the character talks when clicked (or opens Kick when live) |
 | Ticker | scrolling list of games + "GGs" | decorative, `aria-hidden` |
 | Stream (`#stream`) | Kick player behind a click-to-load facade, status panel, follower panel, Follow button | player auto-loads (muted) when live and scrolled near |
 | Roster (`#roster`) | three character cards with joke stats | clicking a card switches the site to that form; Tron card has armour dots |
 | Videos (`#videos`) | featured VOD, list, shorts rail | YouTube lite embeds (thumbnail until clicked) |
 | Socials (`#socials`) | bento grid: big Kick tile, Lulu Gang Discord tile, platform tiles | |
-| Footer | "See you on the Grid", Kick button, fan-made disclaimer | |
+| Footer | "See you on the Grid", Kick button, the free stream widgets' links, fan-made disclaimer | |
 
 ## Live state
 

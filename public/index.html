@@ -114,7 +114,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { overflow-x: clip; background: var(--bg); color-scheme: dark; scroll-behavior: smooth; scroll-padding-top: 5rem; -webkit-text-size-adjust: 100%; }
-body { margin: 0; font: 400 1.0625rem/1.6 var(--body); color: var(--text); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+body { margin: 0; font: 400 1.0625rem/1.6 var(--body); color: var(--text); overflow-x: clip;   /* clip, not hidden: hidden makes body a scroll box and the sticky header scrolled away */ -webkit-font-smoothing: antialiased; }
 img { display: block; max-width: 100%; height: auto; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -159,6 +159,20 @@ svg.i { width: 1.25em; height: 1.25em; fill: currentColor; flex: none; }
 .nav-links a::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--accent); transform: scaleX(0); transition: transform .25s; box-shadow: 0 0 8px var(--accent); }
 .nav-links a:hover { color: var(--text); }
 .nav-links a:hover::after { transform: scaleX(1); }
+/* the widgets' own mark (a little deck, as on /widgets/): an outline at rest, its keys light up one by one on hover or focus */
+.wl { display: inline-flex; align-items: center; gap: .45em; }
+.fine .wl { display: inline; } .fine .wmark { vertical-align: -.3em; margin-right: .4em; }   /* in a line of text: on its baseline */
+.wmark { width: 1.35em; height: 1.35em; flex: none; overflow: visible; }
+.wm-body { fill: none; stroke: currentColor; stroke-width: 2; opacity: .55; transition: opacity .2s; }
+.wm-k { fill: none; stroke: currentColor; stroke-width: 1.6; transition: fill .2s, stroke .2s; }
+.wm-dot { fill: #ff2740; opacity: 0; transition: opacity .2s .25s; }
+.wl:hover .wm-body, .wl:focus-visible .wm-body { opacity: .9; }
+.wl:hover .wm-k, .wl:focus-visible .wm-k { stroke: transparent; }
+.wl:hover .k1, .wl:focus-visible .k1 { fill: #ffb347; }
+.wl:hover .k2, .wl:focus-visible .k2 { fill: #b07cff; transition-delay: .07s; }
+.wl:hover .k3, .wl:focus-visible .k3 { fill: #53fc18; transition-delay: .14s; }
+.wl:hover .k4, .wl:focus-visible .k4 { fill: #f4e7d2; transition-delay: .21s; }
+.wl:hover .wm-dot, .wl:focus-visible .wm-dot { opacity: 1; }
 .pill { display: inline-flex; align-items: center; gap: .55rem; padding: .55rem .95rem; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); background: color-mix(in srgb, var(--panel) 70%, transparent); white-space: nowrap; transition: border-color .3s, color .3s; }
 .pill:hover { border-color: var(--kick); color: var(--text); }
 .dot { width: .5rem; height: .5rem; border-radius: 50%; background: #4a5b70; flex: none; }
@@ -166,7 +180,28 @@ svg.i { width: 1.25em; height: 1.25em; fill: currentColor; flex: none; }
 [data-live="true"] .dot { position: relative; background: var(--kick); }
 [data-live="true"] .dot::after { background: rgba(83,252,24,.7); animation: pulse-sm 1.6s infinite; }
 @keyframes pulse-sm { from { transform: scale(1); opacity: 1; } to { transform: scale(3.4); opacity: 0; } }
-@media (max-width: 760px) { .nav-links { display: none; } .pill { margin-left: auto; } }
+/* phones: the links move into a menu under the header (the same links, big) */
+.menu-btn { display: none; position: relative; width: 2.75rem; height: 2.75rem; flex: none; border: 1px solid var(--line); border-radius: .7rem; background: none; color: var(--text); cursor: pointer; }
+.menu-btn i { position: absolute; left: 50%; top: 50%; width: 1.1rem; height: 2px; margin: -1px 0 0 -.55rem; border-radius: 2px; background: currentColor; transition: transform .25s, opacity .2s; }
+.menu-btn i:nth-child(1) { transform: translateY(-6px); } .menu-btn i:nth-child(3) { transform: translateY(6px); }
+.menu-btn[aria-expanded="true"] { border-color: var(--a40); color: var(--accent); }
+.menu-btn[aria-expanded="true"] i:nth-child(1) { transform: rotate(45deg); }
+.menu-btn[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
+.menu-btn[aria-expanded="true"] i:nth-child(3) { transform: rotate(-45deg); }
+.m-nav { position: absolute; left: 0; right: 0; top: 100%; padding: .5rem 0 1.25rem; background: color-mix(in srgb, var(--bg) 98%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--a40); box-shadow: 0 18px 40px #000a; animation: mnav .25s ease-out; }
+.m-nav[hidden] { display: none; }
+.m-nav a { display: flex; align-items: center; gap: .8rem; width: var(--wrap); margin: auto; padding: .95rem 0; border-bottom: 1px solid var(--line);
+  font: 700 1rem/1 var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--text); counter-increment: mnav; }
+.m-nav { counter-reset: mnav; }
+.m-nav a::before { content: counter(mnav, decimal-leading-zero); font: 600 .7rem/1 var(--body); letter-spacing: .1em; color: var(--accent); width: 1.4rem; }
+.m-nav a:last-child { border-bottom: 0; }
+.m-nav .wl .wmark { width: 1.3em; height: 1.3em; }
+.m-nav .wl .wm-body { opacity: .9; } .m-nav .wl .wm-k { stroke: transparent; }   /* no hover on a phone: the keys are always lit */
+.m-nav .wl .k1 { fill: #ffb347; } .m-nav .wl .k2 { fill: #b07cff; } .m-nav .wl .k3 { fill: #53fc18; } .m-nav .wl .k4 { fill: #f4e7d2; } .m-nav .wl .wm-dot { opacity: 1; }
+@keyframes mnav { from { opacity: 0; transform: translateY(-8px); } }
+@media (max-width: 760px) { .nav-links { display: none; } .pill { margin-left: auto; } .menu-btn { display: block; } }
+@media (min-width: 761px) { .m-nav { display: none !important; } }
 @media (max-width: 480px) {
   .nav-in { gap: .6rem; }
   .brand { min-width: 0; gap: .5rem; font-size: .8rem; letter-spacing: .1em; }
@@ -687,10 +722,14 @@ h1 .ch { display: inline-block; }
       <span>TRONGATES <span>LEGACY</span></span>
     </a>
     <nav class="nav-links" aria-label="Sections">
-      <a href="#stream">Stream</a><a href="#roster">Roster</a><a href="#videos">Videos</a><a href="#socials">Socials</a><a href="/widgets/">Widgets</a>
+      <a href="#stream">Stream</a><a href="#roster">Roster</a><a href="#videos">Videos</a><a href="#socials">Socials</a><a class="wl" href="/widgets/"><svg class="wmark" viewBox="0 0 32 32" aria-hidden="true"><rect class="wm-body" x="1.5" y="2.5" width="29" height="27" rx="7"/><rect class="wm-k k1" x="5.5" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k2" x="17" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k3" x="5.5" y="17.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k4" x="17" y="17.5" width="9.5" height="9" rx="2.2"/><circle class="wm-dot" cx="12.6" cy="9" r="1.5"/></svg>Widgets</a>
     </nav>
     <a class="pill" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><i class="dot"></i><span data-live-text>Watch on Kick</span></a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav" aria-label="Menu"><i></i><i></i><i></i></button>
   </div>
+  <nav class="m-nav" id="mnav" aria-label="Menu" hidden>
+    <a href="#stream">Stream</a><a href="#roster">Roster</a><a href="#videos">Videos</a><a href="#socials">Socials</a><a class="wl" href="/widgets/"><svg class="wmark" viewBox="0 0 32 32" aria-hidden="true"><rect class="wm-body" x="1.5" y="2.5" width="29" height="27" rx="7"/><rect class="wm-k k1" x="5.5" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k2" x="17" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k3" x="5.5" y="17.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k4" x="17" y="17.5" width="9.5" height="9" rx="2.2"/><circle class="wm-dot" cx="12.6" cy="9" r="1.5"/></svg>Widgets</a>
+  </nav>
 </header>
 
 <main id="top">
@@ -924,7 +963,7 @@ h1 .ch { display: inline-block; }
   <div class="end">
     <p class="huge reveal">See you on<span>the Grid</span></p>
     <a class="btn btn-kick reveal" href="https://kick.com/trongateslegacy" target="_blank" rel="noopener"><svg class="i"><use href="#i-kick"/></svg><span data-cta-text>Watch on Kick</span></a>
-    <div class="fine"><span>© <span id="yr">2026</span> Trongates Legacy. End of line.</span><span>Free stream widgets: <a href="/chatagram/">Chatagram, the anagram chat game</a> · <a href="/chaplinko/">Chaplinko</a></span><span>Fan-made aesthetic — not affiliated with Kick or Disney's TRON.</span></div>
+    <div class="fine"><span>© <span id="yr">2026</span> Trongates Legacy. End of line.</span><span><a class="wl" href="/widgets/"><svg class="wmark" viewBox="0 0 32 32" aria-hidden="true"><rect class="wm-body" x="1.5" y="2.5" width="29" height="27" rx="7"/><rect class="wm-k k1" x="5.5" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k2" x="17" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k3" x="5.5" y="17.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k4" x="17" y="17.5" width="9.5" height="9" rx="2.2"/><circle class="wm-dot" cx="12.6" cy="9" r="1.5"/></svg>Free stream widgets</a>: <a href="/chatagram/">Chatagram, the anagram chat game</a> · <a href="/chaplinko/">Chaplinko</a></span><span>Fan-made aesthetic — not affiliated with Kick or Disney's TRON.</span></div>
   </div>
 </footer>
 
@@ -947,6 +986,18 @@ const boot = () => {
   const nav = $('#nav');
   const onScroll = () => nav.classList.toggle('stuck', scrollY > 12);
   addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  // phones: the menu (closes on a link, Esc, a tap outside, or the window widening past phone size)
+  const mbtn = $('.menu-btn'), mnav = $('#mnav');
+  const menu = (open, focus) => {
+    mbtn.setAttribute('aria-expanded', String(open)); mnav.hidden = !open;
+    if (open && focus) mnav.querySelector('a').focus();
+    if (!open && focus) mbtn.focus();
+  };
+  mbtn.addEventListener('click', (e) => menu(mnav.hidden, e.detail === 0));   // keyboard: focus moves into the menu
+  mnav.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && !mnav.hidden) menu(false, true); });
+  addEventListener('click', (e) => { if (!mnav.hidden && !e.target.closest('#nav')) menu(false); });
+  matchMedia('(min-width: 761px)').addEventListener('change', (m) => { if (m.matches) menu(false); });
 
   /* ── reveal on scroll ── */
   const io = new IntersectionObserver((entries) => entries.forEach((e) => {

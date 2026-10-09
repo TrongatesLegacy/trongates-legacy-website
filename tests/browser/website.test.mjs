@@ -98,3 +98,41 @@ test('reduced motion: switching still works, with no glitch', async () => {
   noErrors(tab, 'reduced motion');
   await tab.close();
 });
+
+// The phone menu (owner, 2026-10-09: on phones the nav links used to vanish, leaving only scrolling and the footer)
+test('phones get a menu: the same links, opened by the button, closed by a link, Esc or a tap outside; desktops never show it', async () => {
+  const tab = await chrome.open(site.origin + '/', { width: 390, height: 844, mobile: true });
+  await tab.until(`document.querySelector('.menu-btn') && getComputedStyle(document.querySelector('.menu-btn')).display !== 'none'`, 8000, 'the menu button');
+  const st = `({ open: document.querySelector('.menu-btn').getAttribute('aria-expanded'), hidden: document.getElementById('mnav').hidden, focus: document.activeElement?.getAttribute('href') || document.activeElement?.className || '' })`;
+  const links = (sel) => tab.eval(`[...document.querySelectorAll('${sel} a')].map((a) => a.getAttribute('href')).join(' ')`);
+  assert.equal(await links('#mnav'), await links('.nav-links'), 'the menu has the nav\'s links');
+  await sleep(600);                                                                              // the page's script starts after the first frame
+  await tab.click('.menu-btn');
+  assert.deepEqual(await tab.eval(st), { open: 'true', hidden: false, focus: '#stream' }, 'opened (a click with no pointer, as from the keyboard): focus goes into the menu');
+  await tab.click('#mnav a[href="#roster"]');
+  assert.equal((await tab.eval(st)).hidden, true, 'a link closes it');
+  await tab.click('.menu-btn');
+  await tab.eval(`dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); 1`);
+  assert.deepEqual(await tab.eval(st), { open: 'false', hidden: true, focus: 'menu-btn' }, 'Esc closes it and focus goes back to the button');
+  await tab.click('.menu-btn');
+  await tab.eval(`document.querySelector('main').click(); 1`);
+  assert.equal((await tab.eval(st)).hidden, true, 'a tap outside closes it');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+  const desk = await chrome.open(site.origin + '/', { width: 1280, height: 800 });
+  assert.equal(await desk.eval(`getComputedStyle(document.querySelector('.menu-btn')).display`), 'none');
+  await desk.close();
+});
+
+// Bug (found 2026-10-09 adding the phone menu): the header was meant to stay at the top (it gets a background once you
+// scroll), but body's overflow-x: hidden made the body a scroll box, so it scrolled away on every screen.
+test('the header stays at the top while scrolling, on desktop and phone', async () => {
+  for (const o of [{ width: 1280, height: 800 }, { width: 390, height: 844, mobile: true }]) {
+    const tab = await chrome.open(site.origin + '/', o);
+    await tab.eval(`document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, 1500); 1`);
+    await tab.until(`document.getElementById('nav').classList.contains('stuck')`, 3000, 'the header\'s scrolled look');
+    assert.equal(await tab.eval(`Math.round(document.getElementById('nav').getBoundingClientRect().top)`), 0, `${o.width}px: the header at the top`);
+    assert.equal(await tab.eval(`document.documentElement.scrollWidth - innerWidth`), 0, `${o.width}px: still no sideways scroll`);
+    await tab.close();
+  }
+});
