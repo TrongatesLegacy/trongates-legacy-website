@@ -8,7 +8,7 @@
 //   node scripts/test.mjs tests/loops/colour-sync.test.mjs   just these files
 //
 // Every test has a time limit, and each tier has one too: a test that runs away (a loop, a hung page) fails and
-// is killed instead of spinning. The browser tier uses one Chrome at a time and always closes it.
+// is killed instead of spinning. Browser files run a few at a time (TGL_BROWSER_JOBS), each with its own Chrome, always closed.
 import { spawn, execFileSync } from 'node:child_process';
 import { readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -20,10 +20,16 @@ const files = (dir) => (existsSync(ROOT + dir) ? readdirSync(ROOT + dir).filter(
 // Node 21 needs a flag for WebSocket (the browser tests' Chrome connection); 22+ has it built in
 const ws = typeof WebSocket === 'undefined' ? ['--experimental-websocket', '--no-warnings=ExperimentalWarning'] : [];
 
+const JOBS = Math.max(1, +process.env.TGL_BROWSER_JOBS || (process.env.CI ? 4 : 2));
+const SLOW = ['chatagram', 'obs-looks', 'chaplinko', 'chaplinko-page', 'widgets-page'];   // the slowest, measured 2026-10-09
+const slowFirst = (fs) => [...fs].sort((a, b) => ((i) => (i < 0 ? 99 : i))(SLOW.findIndex((n) => a.endsWith(`/${n}.test.mjs`))) - ((i) => (i < 0 ? 99 : i))(SLOW.findIndex((n) => b.endsWith(`/${n}.test.mjs`))));
 const TIERS = {
   fast: { files: [...files('tests/unit'), ...files('tests/loops')], testTimeout: 30000, tierTimeout: 120000, concurrency: [] },
-  // the browser tier's limit: 10 min (it takes ~5 locally, longer on GitHub, 2026-10-09); each test's 90 s still catches a loop
-  browser: { files: files('tests/browser'), testTimeout: 90000, tierTimeout: 600000, concurrency: ['--test-concurrency=1'] },
+  // browser files run side by side, each with its own Chrome: 2 at a time here (light on the owner's Mac), 4 on GitHub,
+  // TGL_BROWSER_JOBS=n to choose; the slowest files start first so none is left running alone at the end
+  browser: { files: slowFirst(files('tests/browser')), testTimeout: 90000,
+    tierTimeout: 120000 + 360000 / JOBS,   // ~2.5× what it takes (2 jobs: 2.5 min of 5; 4: 1.5 of 3.5), so a hang still shows
+    concurrency: [`--test-concurrency=${JOBS}`] },
 };
 
 let run = [];
@@ -31,7 +37,7 @@ const explicit = args.filter((a) => !a.startsWith('--'));
 if (explicit.length) {
   const browser = explicit.filter((f) => f.includes('tests/browser/')), fast = explicit.filter((f) => !f.includes('tests/browser/'));
   if (fast.length) run.push({ name: 'fast', ...TIERS.fast, files: fast });
-  if (browser.length) run.push({ name: 'browser', ...TIERS.browser, files: browser });
+  if (browser.length) run.push({ name: 'browser', ...TIERS.browser, files: slowFirst(browser) });
 } else if (flag('fast')) run = [{ name: 'fast', ...TIERS.fast }];
 else if (flag('browser')) run = [{ name: 'browser', ...TIERS.browser }];
 else if (flag('changed')) {

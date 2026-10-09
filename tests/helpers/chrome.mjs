@@ -10,7 +10,7 @@
 // waiting); Chrome is killed on close, on process exit and on Ctrl-C; at most MAX_TABS tabs at once; requests to
 // anywhere but the test server are blocked (no YouTube, Kick, Botrix or fonts from the internet).
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -23,8 +23,9 @@ export async function launch({ allow = ['http://127.0.0.1'] } = {}) {
   const bin = chromePath();
   if (!bin) throw new Error('Chrome not found (set CHROME_PATH)');
   const profile = mkdtempSync(join(tmpdir(), 'tgl-test-chrome-'));
-  const port = 9500 + Math.floor(Math.random() * 400);
-  const flags = ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check',
+  // port 0: the OS picks a free one and Chrome writes it to DevToolsActivePort (test files run side by side, so a
+  // random fixed port could clash and a test would drive another file's Chrome)
+  const flags = ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--disable-component-update', '--disable-sync', '--mute-audio', '--hide-scrollbars',
     ...(process.env.CI ? ['--no-sandbox'] : []), 'about:blank'];
   const proc = spawn(bin, flags, { stdio: 'ignore' });
@@ -36,9 +37,14 @@ export async function launch({ allow = ['http://127.0.0.1'] } = {}) {
   process.once('SIGINT', onSignal); process.once('SIGTERM', onSignal);
 
   // nothing here waits unbounded: every request to Chrome has a time limit too
+  let port = 0;
   const http = (path, method = 'GET') => fetch(`http://127.0.0.1:${port}${path}`, { method, signal: AbortSignal.timeout(5000) }).then((r) => r.json());
   let version;
-  for (let i = 0; i < 100 && !version; i++) { await sleep(200); version = await http('/json/version').catch(() => null); }   // a cold start on CI can take 10 s
+  for (let i = 0; i < 100 && !version; i++) {
+    await sleep(200);
+    if (!port) try { port = +readFileSync(join(profile, 'DevToolsActivePort'), 'utf8').split('\n')[0] || 0; } catch {}
+    if (port) version = await http('/json/version').catch(() => null);
+  }   // a cold start on CI can take 10 s
   if (!version) { kill(); throw new Error('Chrome did not start'); }
   const tabs = new Set();
 

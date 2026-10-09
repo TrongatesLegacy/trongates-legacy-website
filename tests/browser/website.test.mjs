@@ -146,7 +146,8 @@ test('a menu link lands the section just under the header, on phone and desktop'
     for (const id of ['stream', 'roster', 'videos', 'socials']) {
       await tab.eval(`location.hash = ''; scrollTo(0, 0); location.hash = '#${id}'; 1`);
       await sleep(200);
-      const gap = await tab.eval(`(() => { const s = document.getElementById('${id}'), first = s.querySelector('.sec-head, h2'); return Math.round(first.getBoundingClientRect().top - document.getElementById('nav').getBoundingClientRect().bottom); })()`);
+      // where the first line's slot is (its content box), not the heading itself: headings slide up as they're revealed
+      const gap = await tab.eval(`(() => { const sec = document.getElementById('${id}').querySelector('.sec'); return Math.round(sec.getBoundingClientRect().top + parseFloat(getComputedStyle(sec).paddingTop) - document.getElementById('nav').getBoundingClientRect().bottom); })()`);
       assert.ok(gap >= 8 && gap <= 40, `${o.width}px #${id}: ${gap}px between the header and the section's first line`);
     }
     await tab.close();

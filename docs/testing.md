@@ -9,7 +9,8 @@ Lighthouse catch how things look and load.
 ## Running them
 
 ```
-node scripts/test.mjs              # everything: unit, loops, browser (~5 min)
+node scripts/test.mjs              # everything: unit, loops, browser (~2.5 min; ~1.5 on GitHub, 4 at a time)
+TGL_BROWSER_JOBS=4 node scripts/test.mjs --browser   # browser files 4 at a time (default 2 here, 4 on GitHub)
 node scripts/test.mjs --fast       # unit + loops, no browser (~2 s)
 node scripts/test.mjs --browser    # browser tests only
 node scripts/test.mjs tests/loops/colour-sync.test.mjs    # one file
@@ -61,7 +62,7 @@ a second tab, as two OBS sources sharing one browser). `widget-menus` (browser) 
 - **No flicker:** a page changes colour at most once per input, however many routes the input reaches it by.
 - **Budgets:** one veadotube switch per button press; a bounded number of rescans for a flood of OBS events;
   timers created per second on a settled website page; connection attempts per minute while something is down.
-- **Time limits:** every test has one (30 s fast, 90 s browser), each tier has one (2 and 10 minutes; the browser tier takes ~5 locally and more on GitHub), and every
+- **Time limits:** every test has one (30 s fast, 90 s browser), each tier has one (2 minutes; the browser tier's follows how many files run at once: 5 minutes at 2, 3.5 at 4), and every
   call into a browser page has one (15 s). A page stuck in a loop can't answer, so the test fails, and the runner
   kills the whole process group, Chrome included.
 - **Proofs:** `colour-sync.test.mjs` and `obs-scenes.test.mjs` each run their test against the code from before the fix
@@ -70,7 +71,10 @@ a second tab, as two OBS sources sharing one browser). `widget-menus` (browser) 
 
 ## Staying light
 
-One Chrome at a time, at most four tabs, browser files one after another, a fresh temporary profile that's deleted
+Browser files run two at a time on the owner's Mac (four on GitHub; `TGL_BROWSER_JOBS`), each with one Chrome of at
+most four tabs on its own free port (Chrome picks it, so two never clash), slowest files first. Speed came from that
+(2026-10-09: 5 minutes → 2.5 here, 1.5 on GitHub), not from faking time: the slow tests watch real balls fall. A file
+whose tests lean on what earlier ones left (the Chaplinko leaderboard) keeps its order when split. A fresh temporary profile that's deleted
 afterwards, and every request to anywhere but the local test server blocked (no YouTube, Kick, Botrix or fonts
 from the internet). The dock is only ever pointed at the fake OBS and veadotube on free local ports, never at a
 real OBS on 4455.
