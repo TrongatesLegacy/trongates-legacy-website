@@ -41,3 +41,17 @@ for (const [page, want] of Object.entries(PAGES)) {
     await desk.close();
   });
 }
+
+// Owner (2026-10-09, a phone screenshot): on Chatagram and Chaplinko the ☰ sat beside the logo, and the hero touched the
+// bar (the phone rule's `.wrap { padding: 0 16px }` wiped the hero's top padding).
+test('phones: the ☰ is at the right edge, and the first content keeps its space under the bar', async () => {
+  for (const page of Object.keys(PAGES)) for (const width of [390, 600]) {
+    const tab = await chrome.open(site.origin + page, { width, height: 844, mobile: true });
+    await tab.until(`document.getElementById('mpanel')`, 8000, 'the menu');
+    const r = await tab.eval(`(() => { const b = document.querySelector('.mbtn').getBoundingClientRect(), h = document.querySelector('header').getBoundingClientRect();
+      return { edge: Math.round(innerWidth - b.right), gap: Math.round(document.querySelector('main h1').getBoundingClientRect().top - h.bottom) }; })()`);
+    assert.ok(r.edge <= 24, `${page} ${width}px: the ☰ is ${r.edge}px from the right edge`);
+    assert.ok(r.gap >= 24, `${page} ${width}px: ${r.gap}px between the bar and the H1`);
+    await tab.close();
+  }
+});

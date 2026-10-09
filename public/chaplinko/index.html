@@ -216,12 +216,13 @@ footer.site { text-align: center; color: var(--mist); font-size: 14px; padding: 
 footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6px 0; }
 
 @media (max-width: 1080px) {
+  .brandlock { margin-right: auto; }   /* the links hide: the CTA and the ☰ go to the right edge */
   .menu { display: none; }
   .hero { grid-template-columns: 1fr; } .hero .screen { height: 440px; max-width: 600px; width: 100%; } .chat { left: 0; top: auto; bottom: 10px; }
   .cols { grid-template-columns: 1fr; } .right { position: static; order: -1; }
 }
 @media (max-width: 720px) {
-  .wrap { padding: 0 16px; } .more { display: none; }
+  .wrap { padding-left: 16px; padding-right: 16px; }   /* not the padding shorthand: it wiped the hero's top padding */ .more { display: none; }
   h1 { font-size: 54px; }
   .steps, .tgrid { grid-template-columns: 1fr 1fr; } .left, .agrid, .cmdrow { grid-template-columns: 1fr; } .cmdlist { margin-top: 0; }
   .clearnote { grid-template-columns: 1fr; }
