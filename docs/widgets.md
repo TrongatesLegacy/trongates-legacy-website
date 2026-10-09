@@ -20,6 +20,7 @@ public/widgets/lib/platforms/twitch.js    Twitch: anonymous IRC over WebSocket; 
 public/widgets/lib/platforms/kick.js      Kick: Pusher, chatroom looked up from the channel name; is the channel live
 public/widgets/lib/theme.js, themes.css   the nine themes, the accent, the live theme message, reduced motion
 public/widgets/lib/scores.js              the leaderboards: All time, This stream, which stream is on (both games; unit-tested)
+public/widgets/lib/menu.js                the phone menu on /widgets/, /chatagram/, /chaplinko/ (a ☰ button in the header; each page colours it)
 public/chatagram/index.html + setup.js    the Chatagram page: hero, how it works, themes, set-up with live preview, FAQ
 public/chatagram/play.html/.css/.js       the overlay OBS loads (noindex)
 public/chatagram/game.js                  the rules only: no drawing, no timers (unit-tested)
@@ -277,6 +278,10 @@ node scripts/build-words.mjs --scowl /tmp/scowl
 `/widgets/` (2026-10-08; the owner picked it from eleven mockups: "On Air", made streaming-native) is a streamer's desk at
 night, its own look (Lilita One, Bungee and Space Grotesk on a warm room; not the main site's neon grid):
 
+- **Phone menu** (all three pages, 2026-10-09): `lib/menu.js` turns a static ☰ button (`data-at`: the width where the
+  page's own links hide, `data-links`: which links, in order) into a panel under the header, coloured by the page's
+  `--mb-*` variables. Sections carry a negative `scroll-margin-top` so a jump lands the heading just under the bar.
+  Moving things in these pages' chats never fades text: a half-faded line fails Lighthouse's colour contrast.
 - **Into the widgets:** the game on the stream, its title under the stream and "Scene: …" open that widget's page;
   the chat box is real: what you type goes to the game on stream as "You" (`chatagram.hear` / `chaplinko.hear` in its
   frame) from the chat picked on its badge (click to switch platform), and comes back into the chat like everyone else's.

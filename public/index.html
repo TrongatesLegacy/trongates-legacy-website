@@ -381,6 +381,8 @@ h1 .l2::after  { color: var(--g2); animation: glitch-b 7s infinite steps(1); }
 
 /* ───────── sections ───────── */
 section { position: relative; }
+/* a menu link lands the section's first line just under the header, not its top padding (a big empty band) */
+section[id] { scroll-margin-top: calc(.5rem - clamp(4.5rem, 10vw, 8rem)); }
 .sec { width: var(--wrap); margin: auto; padding: clamp(4.5rem, 10vw, 8rem) 0; }
 .sec-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem 2rem; margin-bottom: clamp(2rem, 4vw, 3.2rem); }
 .kicker { font: 700 .74rem/1 var(--display); letter-spacing: .3em; color: var(--accent); text-transform: uppercase; }

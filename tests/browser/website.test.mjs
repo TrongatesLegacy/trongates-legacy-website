@@ -136,3 +136,19 @@ test('the header stays at the top while scrolling, on desktop and phone', async 
     await tab.close();
   }
 });
+
+// Bug (owner, 2026-10-09, a screen recording): a menu link landed with a big empty band between the header and the
+// section, its top padding plus the scroll offset. Now the section's first line sits just under the header.
+test('a menu link lands the section just under the header, on phone and desktop', async () => {
+  for (const o of [{ width: 390, height: 844, mobile: true }, { width: 1280, height: 800 }]) {
+    const tab = await chrome.open(site.origin + '/', o);
+    await tab.eval(`document.documentElement.style.scrollBehavior = 'auto'; 1`);
+    for (const id of ['stream', 'roster', 'videos', 'socials']) {
+      await tab.eval(`location.hash = ''; scrollTo(0, 0); location.hash = '#${id}'; 1`);
+      await sleep(200);
+      const gap = await tab.eval(`(() => { const s = document.getElementById('${id}'), first = s.querySelector('.sec-head, h2'); return Math.round(first.getBoundingClientRect().top - document.getElementById('nav').getBoundingClientRect().bottom); })()`);
+      assert.ok(gap >= 8 && gap <= 40, `${o.width}px #${id}: ${gap}px between the header and the section's first line`);
+    }
+    await tab.close();
+  }
+});

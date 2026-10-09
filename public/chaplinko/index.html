@@ -46,7 +46,8 @@ h1, h2, h3, .bg { font-family: Bungee, system-ui, sans-serif; font-weight: 400; 
 .word .o { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-left: .04em; background: radial-gradient(circle at 35% 30%, #fff9 0 12%, transparent 36%), var(--tangerine); box-shadow: 0 .07em 0 -.025em var(--pink); }
 
 /* header */
-.nav { position: sticky; top: 0; z-index: 10; background: rgb(10 18 51 / .86); backdrop-filter: blur(10px); border-bottom: 1px solid #2f5bff33; }
+.nav { --mb-bg: #0d1640; --mb-fg: var(--ice); --mb-muted: var(--mist); --mb-accent: var(--tangerine); --mb-line: #2f5bff44; --mb-font: Bungee, sans-serif;
+  position: sticky; top: 0; z-index: 10; background: rgb(10 18 51 / .86); backdrop-filter: blur(10px); border-bottom: 1px solid #2f5bff33; }
 .nav .in { height: var(--nav); display: flex; align-items: center; gap: 22px; }
 .brandlock { display: flex; align-items: center; gap: 12px; }
 .brandlock img { width: 38px; height: 38px; display: block; }
@@ -87,6 +88,7 @@ h1 em { font-style: normal; color: var(--tangerine); text-shadow: 0 0 30px #ff7a
 
 /* sections */
 section.sec { position: relative; padding-top: 48px; padding-bottom: 8px; }
+section.sec[id] { scroll-margin-top: -40px; }   /* a link lands the heading just under the menu bar, not the section's top padding */
 h2 { font-size: 36px; margin: 0 0 14px; } h2 span { color: var(--tangerine); }
 .sub { color: var(--mist); margin: -6px 0 20px; max-width: 760px; }
 .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 0; margin: 0; list-style: none; }
@@ -235,6 +237,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
   <nav class="menu" aria-label="Sections"><a href="#how">How it works</a><a href="#looks">Looks</a><a href="#setup">Set up</a><a href="#faq">FAQ</a></nav>
   <a class="more" href="/widgets/">More widgets ↗</a>
   <a class="btn small" href="#setup">Set it up</a>
+  <button class="mbtn" type="button" aria-expanded="false" aria-label="Menu" data-at="1080" data-links=".menu a, .more, .by"><i></i><i></i><i></i></button>
 </div></header>
 
 <main id="top">
@@ -381,4 +384,5 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
 <script src="settings.js"></script>
 <script src="odds.js"></script>
 <script src="setup.js"></script>
+<script src="../widgets/lib/menu.js"></script>
 </body></html>

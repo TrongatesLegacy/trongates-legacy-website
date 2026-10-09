@@ -54,7 +54,7 @@ a { color: inherit; }
 .pbadge svg { width: 11px; height: 11px; }
 
 /* ---- top bar --------------------------------------------------------------------------------------------------------- */
-.top { position: relative; z-index: 3; }
+.top { --mb-bg: #1a120d; --mb-fg: var(--cream); --mb-muted: var(--muted); --mb-accent: var(--amber); --mb-line: #ffffff1c; --mb-font: Lilita, sans-serif; position: relative; z-index: 3; }
 .top .wrap { display: flex; align-items: center; gap: 28px; height: 60px; border-bottom: 1px solid #ffffff12; }
 /* the widgets logo: a little deck (one key lit, its LIVE dot), "widgets", and under it by Trongates Legacy (the homepage) */
 .brandlock { --mk: 34px; position: relative; padding-left: calc(var(--mk) + 9px); }
@@ -189,7 +189,7 @@ kbd { font: 700 12px var(--mono); color: var(--cream); background: #2a1d15; bord
 .log li img { width: 20px; height: 20px; vertical-align: -5px; }
 .log li.sys { color: #8f88a0; font-style: italic; font-size: 11.5px; }
 .log li.new { animation: in .25s ease-out; }
-@keyframes in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes in { from { clip-path: inset(0 0 100% 0); transform: translateY(6px); } }   /* revealed, not faded: a dimmed line fails colour contrast */
 .chat .say { flex: none; margin: 4px 8px 8px; height: 32px; border-radius: 5px; background: #1d1b24; border: 1px solid var(--uiline); display: flex; align-items: center; gap: 7px; padding: 0 4px 0 6px; }
 .chat .say:focus-within { border-color: #ffb34799; box-shadow: 0 0 0 2px #ffb34733; }
 .chat .say .as { all: unset; cursor: pointer; display: grid; place-items: center; flex: none; border-radius: 4px; }
@@ -406,6 +406,7 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
   <div class="brandlock"><a class="wbrand" href="/widgets/"><svg class="wmark" viewBox="0 0 32 32" aria-hidden="true"><rect class="wm-body" x="1.5" y="2.5" width="29" height="27" rx="7"/><rect class="wm-k k1" x="5.5" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k2" x="17" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k3" x="5.5" y="17.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k4" x="17" y="17.5" width="9.5" height="9" rx="2.2"/><circle class="wm-dot" cx="12.6" cy="9" r="1.5"/></svg><span>widgets</span></a><a class="by" href="/">by <b>Trongates <span>Legacy</span></b></a></div>
   <nav aria-label="Page"><a href="#lineup">Lineup</a><a href="#why">Why</a><a href="#setup">Set up</a></nav>
   <a class="kick-b" href="https://kick.com/trongateslegacy">Watch on Kick</a>
+  <button class="mbtn" type="button" aria-expanded="false" aria-label="Menu" data-at="760" data-links=".top nav a, #lineup h3 a, .by"><i></i><i></i><i></i></button>
 </div></header>
 
 <main>
@@ -783,4 +784,5 @@ const boot = () => {
 };
 requestAnimationFrame(() => setTimeout(boot, 0));
 </script>
+<script src="/widgets/lib/menu.js" defer></script>
 </body></html>

@@ -286,7 +286,8 @@
     for (const old of stay.slice(0, Math.max(0, stay.length - 2))) {
       old.classList.add('out');
       if (calm) old.remove();
-      else old.animate([{ opacity: 1 }, { opacity: 0, translate: '-6px -14px' }], { duration: 320, easing: 'ease-in', fill: 'forwards' }).finished.then(() => old.remove(), () => old.remove());
+      // wiped away upwards as it lifts off, in full colour (a fade dims it, and Lighthouse fails a dimmed bubble's contrast)
+      else old.animate([{ clipPath: 'inset(-20px -20px -20px -20px)' }, { clipPath: 'inset(-20px -20px 100% -20px)', translate: '-6px -14px' }], { duration: 320, easing: 'ease-in', fill: 'forwards' }).finished.then(() => old.remove(), () => old.remove());
     }
     if (calm) return;
     stay.forEach((b, i) => {
@@ -296,8 +297,8 @@
     // the pop waits until the glide has cleared its spot, so the new bubble never lands on the one moving up
     const wait = stay.length ? 170 : 0;
     // it swings into its tilt and settles like a card set down: past it, back, a little past, then still (each step eased)
-    m.animate([{ opacity: 0, scale: .4, rotate: '9deg' }, { opacity: 1, scale: 1.05, rotate: '-5deg', offset: .38 }, { scale: .99, rotate: '.5deg', offset: .6 },
-      { scale: 1.01, rotate: '-2.8deg', offset: .8 }, { opacity: 1, scale: 1, rotate: '-2deg' }], { duration: 680, delay: wait, easing: 'ease-in-out', composite: 'replace', fill: 'backwards' });
+    m.animate([{ scale: 0, rotate: '9deg' }, { scale: 1.05, rotate: '-5deg', offset: .38 }, { scale: .99, rotate: '.5deg', offset: .6 },
+      { scale: 1.01, rotate: '-2.8deg', offset: .8 }, { scale: 1, rotate: '-2deg' }], { duration: 680, delay: wait, easing: 'ease-in-out', composite: 'replace', fill: 'backwards' });
     [...m.querySelectorAll('.tiles i, .pts')].forEach((t, i) => t.animate([{ transform: 'rotateX(90deg) scale(.6)' }, { transform: 'rotateX(-12deg) scale(1.1)', offset: .7 }, { transform: 'none' }],
       { duration: 300, delay: wait + 90 + i * 45, easing: 'ease-out', fill: 'backwards' }));
   });

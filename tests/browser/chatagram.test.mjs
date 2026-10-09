@@ -449,7 +449,9 @@ test('the hero shows its game\'s pretend chat as bubbles: the last three, finds 
 // Bug (owner, 2026-09-30, a screen recording): a new bubble felt stiff. The stack jumped up a row at once, the oldest
 // vanished, and the newest finished its pop flat and then snapped to its tilt (the animation and the CSS both set
 // transform). Now the ones above glide up, the oldest fades out, and the pop ends exactly where the bubble rests.
-test('a new hero chat bubble: the ones above glide up, the oldest fades out, the pop ends where it rests', async () => {
+// Lighthouse (2026-10-09): a bubble mid-fade failed colour contrast now and then, so nothing fades: the oldest is wiped
+// away upwards and the newest pops from nothing, each in full colour the whole time.
+test('a new hero chat bubble: the ones above glide up, the oldest floats off, the pop ends where it rests, nothing fades', async () => {
   const tab = await chrome.open(site.origin + '/chatagram/', { width: 1354, height: 860 });
   await tab.until('document.querySelectorAll("#chat .b:not(.out)").length === 3', 15000, 'three bubbles');
   // the pretend chat keeps talking: stop it hearing the hero game so only this test's message arrives
@@ -461,11 +463,13 @@ test('a new hero chat bubble: the ones above glide up, the oldest fades out, the
     const now = [...chat.querySelectorAll('.b')], newest = now.at(-1), oldest = before[0];
     const moves = before.slice(1).map((b) => b.getAnimations().some((a) => a.effect.getKeyframes().some((k) => k.translate && k.translate !== '0px' && k.translate !== 'none')));
     const pop = newest.getAnimations()[0]?.effect.getKeyframes().at(-1);
-    return { moves, oldestStays: oldest.isConnected, oldestFades: oldest.classList.contains('out') && oldest.getAnimations().some((a) => a.effect.getKeyframes().at(-1).opacity === '0'),
-      popEnd: pop && pop.rotate };
+    const frames = [oldest, newest].flatMap((b) => b.getAnimations().flatMap((a) => a.effect.getKeyframes()));
+    return { moves, oldestStays: oldest.isConnected, oldestLeaves: oldest.classList.contains('out') && oldest.getAnimations().some((a) => /100%/.test(a.effect.getKeyframes().at(-1).clipPath || '')),
+      fades: frames.some((k) => k.opacity !== undefined && +k.opacity < 1), popEnd: pop && pop.rotate };
   })()`);
   assert.deepEqual(r.moves, [true, true], 'the bubbles above glide up');
-  assert.ok(r.oldestStays && r.oldestFades, 'the oldest fades out rather than vanishing');
+  assert.ok(r.oldestStays && r.oldestLeaves, 'the oldest floats off rather than vanishing');
+  assert.equal(r.fades, false, 'nothing fades (a dimmed bubble fails colour contrast)');
   await sleep(900);
   // the tilt the newest bubble rests at, read from the style sheet: the pretend chat keeps talking, and under load another
   // bubble can arrive in the 900 ms, so neither "the newest" (2026-09-30) nor this test's own bubble, no longer the newest

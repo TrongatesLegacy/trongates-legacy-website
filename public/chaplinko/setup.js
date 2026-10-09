@@ -333,7 +333,7 @@
     m.innerHTML = `<b style="color:${/^#[0-9a-f]{6}$/i.test(d.color || '') ? d.color : '#ff7a1a'}">${esc(d.name)}</b>${text}`;
     chat.appendChild(m);
     while (chat.children.length > 3) chat.firstElementChild.remove();
-    if (m.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) m.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 250, easing: 'ease-out' });
+    if (m.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) m.animate([{ clipPath: 'inset(0 0 100% 0)', transform: 'translateY(10px)' }, { clipPath: 'inset(0 0 0 0)', transform: 'none' }]   /* revealed, not faded: a dimmed bubble fails colour contrast */, { duration: 250, easing: 'ease-out' });
   });
   const afterLoad = () => setTimeout(() => { loaded = true; heroSrc(); preview(); }, 300);
   if (document.readyState === 'complete') afterLoad(); else addEventListener('load', afterLoad);

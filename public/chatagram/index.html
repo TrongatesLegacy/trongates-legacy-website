@@ -52,7 +52,8 @@ h1, h2, h3, .lil { font-family: "Lilita One", system-ui, sans-serif; font-weight
 .logo .g { color: var(--sun); }
 
 /* header */
-.nav { position: sticky; top: 0; z-index: 10; background: rgba(22,18,43,.88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--ink3); }
+.nav { --mb-bg: #1b1636; --mb-fg: var(--paper); --mb-muted: var(--muted); --mb-accent: var(--sun); --mb-line: var(--ink3); --mb-font: "Lilita One", sans-serif;
+  position: sticky; top: 0; z-index: 10; background: rgba(22,18,43,.88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--ink3); }
 .nav .in { height: var(--nav); display: flex; align-items: center; gap: 22px; }
 .brandlock { display: flex; align-items: center; gap: 12px; }
 .brandlock a { text-decoration: none; }
@@ -100,6 +101,7 @@ h1 { font-size: 62px; line-height: 1.02; margin: 0 0 16px; } h1 em { font-style:
 
 /* sections */
 section.sec { padding-top: 40px; padding-bottom: 10px; }
+section.sec[id] { scroll-margin-top: -32px; }   /* a link lands the heading just under the menu bar, not the section's top padding */
 h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .sub { color: var(--muted); margin: -8px 0 18px; }
 .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 0; margin: 0; list-style: none; }
@@ -250,7 +252,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
 <header class="nav"><div class="wrap in">
   <div class="brandlock"><a class="logo" href="#top"><img src="assets/icon.svg" alt="" width="35" height="35"><span>chat<span class="g">agram</span></span></a><a class="by" href="/">made by <b>TrongatesLegacy</b></a></div>
   <nav class="menu" aria-label="Sections"><a href="#how">How it works</a><a href="#themes">Themes</a><a href="#setup">Set up</a><a href="#faq">FAQ</a></nav>
-  <div class="navr"><a class="more" href="/widgets/">More widgets ↗</a><a class="btn small" href="#setup">Set it up free</a></div>
+  <div class="navr"><a class="more" href="/widgets/">More widgets ↗</a><a class="btn small" href="#setup">Set it up free</a><button class="mbtn" type="button" aria-expanded="false" aria-label="Menu" data-at="1020" data-links=".menu a, .more, .by"><i></i><i></i><i></i></button></div>
 </div></header>
 
 <main id="top">
@@ -397,4 +399,5 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
 <script src="../widgets/lib/platforms/kick.js"></script>
 <script src="settings.js"></script>
 <script src="setup.js"></script>
+<script src="../widgets/lib/menu.js"></script>
 </body></html>

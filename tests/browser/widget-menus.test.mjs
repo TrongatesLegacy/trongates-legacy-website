@@ -21,6 +21,9 @@ for (const [page, ids] of [['/chatagram/', ['how', 'themes', 'setup', 'faq']], [
       await tab.until(`${lit} === '#${id}'`, 4000, `${id} lit after its click`);
       await sleep(1200);                                                     // the smooth scroll has finished
       assert.equal(await tab.eval(lit), `#${id}`, `${id} still lit once the scroll settles`);
+      // and the heading sits just under the menu bar (owner, 2026-10-09: a big empty band showed above it)
+      const gap = await tab.eval(`Math.round(document.getElementById('${id}').querySelector('h2').getBoundingClientRect().top - document.querySelector('.nav').getBoundingClientRect().bottom)`);
+      if (id !== 'faq') assert.ok(gap >= 8 && gap <= 32, `${id}: ${gap}px between the menu bar and its heading`);   // FAQ is last: the page may end first
     }
     // scrolling by hand: the section whose top has passed under the menu bar
     await tab.eval(`document.documentElement.style.scrollBehavior = 'auto'; scrollTo(0, document.getElementById('${ids[1]}').offsetTop + 40); 1`);
