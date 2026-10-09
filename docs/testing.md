@@ -9,7 +9,7 @@ Lighthouse catch how things look and load.
 ## Running them
 
 ```
-node scripts/test.mjs              # everything: unit, loops, browser (~1.5 min)
+node scripts/test.mjs              # everything: unit, loops, browser (~5 min)
 node scripts/test.mjs --fast       # unit + loops, no browser (~2 s)
 node scripts/test.mjs --browser    # browser tests only
 node scripts/test.mjs tests/loops/colour-sync.test.mjs    # one file
@@ -61,7 +61,7 @@ a second tab, as two OBS sources sharing one browser). `widget-menus` (browser) 
 - **No flicker:** a page changes colour at most once per input, however many routes the input reaches it by.
 - **Budgets:** one veadotube switch per button press; a bounded number of rescans for a flood of OBS events;
   timers created per second on a settled website page; connection attempts per minute while something is down.
-- **Time limits:** every test has one (30 s fast, 90 s browser), each tier has one (2 and 5 minutes), and every
+- **Time limits:** every test has one (30 s fast, 90 s browser), each tier has one (2 and 10 minutes; the browser tier takes ~5 locally and more on GitHub), and every
   call into a browser page has one (15 s). A page stuck in a loop can't answer, so the test fails, and the runner
   kills the whole process group, Chrome included.
 - **Proofs:** `colour-sync.test.mjs` and `obs-scenes.test.mjs` each run their test against the code from before the fix

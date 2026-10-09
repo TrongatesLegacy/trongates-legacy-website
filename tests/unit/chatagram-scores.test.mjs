@@ -196,7 +196,10 @@ test('a save from before the leaderboards resumes mid-round in the new game, as 
   assert.equal(g.held, false);
 });
 
-test('an older overlay (a cached copy) still reads what the new one saves: the game resumes, All time is there', () => {
+test('an older overlay (a cached copy) still reads what the new one saves: the game resumes, All time is there', (t) => {
+  // the old code comes from git history: a shallow clone (the daily feed update) doesn't have it, like the proof tests
+  const oldSettings = readAt('6d8e97d', 'public/chatagram/settings.js'), oldGame = readAt('6d8e97d', 'public/chatagram/game.js');
+  if (!oldSettings || !oldGame) return t.skip('git history not available');
   // the new overlay's save: the game's snapshot with All time written back in, plus the new fields
   let at = FIXTURE.savedAt + 3000;
   const g = C.game(S.defaults(C.settings.SCHEMA), { dict, seeds, now: () => at, random: rng(1) });
@@ -210,8 +213,8 @@ test('an older overlay (a cached copy) still reads what the new one saves: the g
   // …read by the game as it was before the leaderboards
   const old = vm.createContext({ URLSearchParams, JSON }); old.window = old;
   for (const f of ['public/widgets/lib/settings.js', 'public/chatagram/words.js']) vm.runInContext(read(f), old);
-  vm.runInContext(readAt('6d8e97d', 'public/chatagram/settings.js'), old);
-  vm.runInContext(readAt('6d8e97d', 'public/chatagram/game.js'), old);
+  vm.runInContext(oldSettings, old);
+  vm.runInContext(oldGame, old);
   const O = old.Chatagram;
   const og = O.game(old.Widgets.settings.defaults(O.settings.SCHEMA), { dict: O.words.parseWords(read('public/chatagram/words/words.txt')), seeds: O.words.parseSeeds(read('public/chatagram/words/seeds.txt')), now: () => at + 2000, random: rng(1) });
   og.boot(saved);

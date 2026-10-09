@@ -22,7 +22,7 @@ const ws = typeof WebSocket === 'undefined' ? ['--experimental-websocket', '--no
 
 const TIERS = {
   fast: { files: [...files('tests/unit'), ...files('tests/loops')], testTimeout: 30000, tierTimeout: 120000, concurrency: [] },
-  browser: { files: files('tests/browser'), testTimeout: 90000, tierTimeout: 300000, concurrency: ['--test-concurrency=1'] },
+  browser: { files: files('tests/browser'), testTimeout: 90000, tierTimeout: 600000,   // 10 min: the tier takes ~5 min locally and longer on GitHub (2026-10-09); each test's 90 s still catches a loop concurrency: ['--test-concurrency=1'] },
 };
 
 let run = [];
