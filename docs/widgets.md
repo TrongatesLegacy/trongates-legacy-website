@@ -277,18 +277,29 @@ node scripts/build-words.mjs --scowl /tmp/scowl
 `/widgets/` (2026-10-08; the owner picked it from eleven mockups: "On Air", made streaming-native) is a streamer's desk at
 night, its own look (Lilita One, Bungee and Space Grotesk on a warm room; not the main site's neon grid):
 
-- **The stream:** a monitor shows a pretend stream of *your_channel* (made-up viewers and uptime, never the owner's
+- **Into the widgets:** the game on the stream, its title under the stream and "Scene: …" open that widget's page;
+  the chat box is real: what you type goes to the game on stream as "You" (`chatagram.hear` / `chaplinko.hear` in its
+  frame) from the chat picked on its badge (click to switch platform), and comes back into the chat like everyone else's.
+
+- **Its logo** (2026-10-09): a little deck (2×2 keys, one lit amber with a red LIVE dot) and "widgets", with "by
+  Trongates Legacy" (linking home) under it; `/widgets/icon.svg` is its favicon. The homepage uses the same mark before
+  "Widgets" in its nav, phone menu and footer: an outline at rest, its keys lighting up in the widgets' colours on
+  hover or focus (always lit in the phone menu). The copies are inline SVG kept identical by `tests/unit/widgets-brand.test.mjs`.
+
+- **The stream:** a monitor shows a pretend stream by *GridRunner*, a made-up streamer (made-up viewers and uptime, never the owner's
   channel): the real widget plays inside at its true size (`play.html?demo=1`, Chatagram 16:9, Chaplinko's 640 × 540
   centred with Tron as a PNGtuber in the margin; its picture fades out once it's live, as Chaplinko's board is see-through), only the one on stream, never with reduced motion (its picture stands
   in). Labels live in the player's frame, never over the game. Beside it, **one chat** where Twitch and Kick arrive
   mixed: the widget's own demo chat (`chatagram-chat` / `chaplinko-chat` messages), pretend lines when it's quiet.
-- **The deck:** a Stream Deck-style pad (Chatagram, Chaplinko, Both chats, Coming soon) switches scenes with a stinger
-  (one band per platform, then the house band); keys 1-4 anywhere (never with Cmd/Ctrl), ← → while the deck has
-  focus (stopping at the ends; ↑ ↓ always scroll the page); announced through an aria-live line. A neon LIVE sign, a plant and a GG mug on the desk.
+- **The deck:** a Stream Deck-style pad (Chatagram, Chaplinko, Both chats, Coming soon) switches scenes with a soft cut
+  (the old scene dims and blurs, one light streak in the platforms' colours crosses, the new one fades in, ~0.45 s;
+  the first full-colour stinger was too jarring); keys 1-4 anywhere (never with Cmd/Ctrl), ← → while the deck has
+  focus (stopping at the ends; ↑ ↓ always scroll the page); announced through an aria-live line. A neon LIVE sign (flickers on at load, then every 9-20 s the dot buzzes or a letter stutters, only while it's on
+  screen; steady with reduced motion), a plant and a GG mug on the desk.
 - **The lineup:** all the real text (each widget's description, details, "Set up …, free", "Show on stream"); then why
   (both chats, no login, free) and the three set-up steps. The H1 and every link's words are in the HTML on load (SEO).
 - **Platforms come from one list** (`PLATFORMS` in the page's script): badges, chips, chat sources, the both-chats
-  scene and the stinger bands are built from it, so a third platform is one more entry (the owner may add more; Twitch
+  scene and the switch's light streak are built from it, so a third platform is one more entry (the owner may add more; Twitch
   and Kick are named in the copy for now). A small dashed "+" hints at more later, without promising.
 - **Speed:** the script starts after the first frame (like the homepage), the other scenes' pictures load after the
   page has, and the decorative glow has fixed sizes (a % moved it when the fonts arrived). Lighthouse 100 on a

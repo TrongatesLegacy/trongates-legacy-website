@@ -14,7 +14,7 @@
 <meta property="og:image" content="https://www.trongateslegacy.com/chatagram/assets/og.jpg">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/widgets/icon.svg" type="image/svg+xml">
 <script type="application/ld+json">
 [{"@context":"https://schema.org","@type":"CollectionPage","name":"Free stream widgets","url":"https://www.trongateslegacy.com/widgets/",
  "description":"Free chat games for streamers that read Twitch and Kick chat at the same time.",
@@ -31,7 +31,7 @@
 <style>
 /* /widgets/: LIVE, the streamer's desk (docs/widgets.md, "The widgets page"): a monitor on a desk shows
    the stream (player chrome with LIVE, viewers and uptime; the real widget inside at its true size; one merged chat where
-   Twitch and Kick arrive together). A Stream Deck-style pad switches scenes with a stinger. A neon LIVE sign on the wall.
+   Twitch and Kick arrive together). A Stream Deck-style pad switches scenes with a soft cut. A neon LIVE sign on the wall.
    The lineup below holds the real text. Platforms come from one list (PLATFORMS in the script): a third is one more entry. */
 @font-face { font-family: Lilita; src: url(/assets/fonts/lilita-one.woff2) format("woff2"); font-display: swap; }
 @font-face { font-family: Bungee; src: url(/assets/fonts/bungee.woff2) format("woff2"); font-display: swap; }
@@ -56,8 +56,14 @@ a { color: inherit; }
 /* ---- top bar --------------------------------------------------------------------------------------------------------- */
 .top { position: relative; z-index: 3; }
 .top .wrap { display: flex; align-items: center; gap: 28px; height: 60px; border-bottom: 1px solid #ffffff12; }
-.brand { font: 18px Lilita, sans-serif; letter-spacing: .02em; text-decoration: none; color: var(--cream); }
-.brand span { color: var(--amber); }
+/* the widgets logo: a little deck (one key lit, its LIVE dot), "widgets", and under it by Trongates Legacy (the homepage) */
+.brandlock { --mk: 34px; position: relative; padding-left: calc(var(--mk) + 9px); }
+.wbrand { display: block; text-decoration: none; color: var(--cream); font: 23px/1 Lilita, sans-serif; letter-spacing: .01em; }
+.wmark { position: absolute; left: 0; top: 50%; width: var(--mk); height: var(--mk); margin-top: calc(var(--mk) / -2); }
+.wm-body { fill: #232027; stroke: #5a5260; } .wm-k { fill: #4a4450; } .wm-k.k1 { fill: var(--amber); filter: drop-shadow(0 0 3px #ffb34799); } .wm-dot { fill: var(--live); }
+.by { display: block; margin-top: 1px; font: 600 11px/1.3 Grotesk, sans-serif; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.by b { font: 13px/1 Lilita, sans-serif; letter-spacing: .02em; color: var(--cream); } .by b span { color: var(--amber); }
+.by:hover b { color: #fff; }
 .top nav { display: flex; gap: 22px; margin-left: auto; font: 600 13px Grotesk, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .top nav a { text-decoration: none; } .top nav a:hover { color: var(--cream); }
 .kick-b { font: 12px Bungee, sans-serif; letter-spacing: .04em; padding: 8px 14px 7px; background: #53fc18; color: #0b1a04; text-decoration: none; border-radius: 6px; box-shadow: 0 3px 0 #2d8a0c; }
@@ -97,6 +103,12 @@ kbd { font: 700 12px var(--mono); color: var(--cream); background: #2a1d15; bord
 .neon.lit { box-shadow: 0 10px 24px #0006, 0 0 80px -10px #ff274066; }
 .neon.flick { animation: flick .9s steps(1) both; }
 @keyframes flick { 0%, 14%, 30%, 52% { filter: brightness(.3) saturate(.4); } 8%, 22%, 40%, 60%, 100% { filter: none; } }
+/* now and then, like real neon: the dot buzzes, or one letter stutters (the sign is split into letters for it) */
+.neon b span { display: inline-block; }
+.neon.buzz i { animation: buzz .5s steps(1) both; }
+.neon b span.stutter { animation: stutter .7s steps(1) both; }
+@keyframes buzz { 0%, 30% { opacity: .35; } 15%, 45%, 100% { opacity: 1; } }
+@keyframes stutter { 0%, 20%, 46% { opacity: .2; text-shadow: none; } 10%, 34%, 60%, 100% { opacity: 1; } }
 
 .monitor { position: relative; z-index: 1; width: 100%; padding: 12px; border-radius: 16px; background: linear-gradient(180deg, #1d1b1f, #0c0b0d);
   box-shadow: inset 0 1px 0 #ffffff1f, inset 0 -2px 0 #000, 0 0 0 1px #000, 0 40px 60px -20px #000e, 0 0 120px -30px color-mix(in srgb, var(--glow) 60%, transparent); }
@@ -110,7 +122,7 @@ kbd { font: 700 12px var(--mono); color: var(--cream); background: #2a1d15; bord
 .livebadge { font: 800 11px/1 Grotesk, sans-serif; letter-spacing: .08em; color: #fff; background: var(--live); padding: 4px 6px 3px; border-radius: 4px; }
 .bar .chan { font-weight: 700; color: #f1ecf7; }
 .bar .scene { color: #8f88a0; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.bar .scene b { color: #e7e0f2; font-weight: 600; }
+.bar .scene b, .bar .scene a { color: #e7e0f2; font-weight: 600; }
 .bar .stat { display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
 .bar .stat svg { width: 13px; height: 13px; }
 .bar .stat.v { margin-left: auto; color: #ff8f9c; font-weight: 700; }
@@ -149,12 +161,10 @@ kbd { font: 700 12px var(--mono); color: var(--cream); background: #2a1d15; bord
 .soonc .dots i { width: 1.4cqw; height: 1.4cqw; border-radius: 50%; background: var(--amber); animation: dot 1.2s ease-in-out infinite; }
 .soonc .dots i:nth-child(2) { animation-delay: .15s; } .soonc .dots i:nth-child(3) { animation-delay: .3s; }
 @keyframes dot { 0%, 60%, 100% { opacity: .25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-.6cqw); } }
-/* the stinger */
+/* the switch's light streak */
 .sting { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
-.sting i { position: absolute; top: 0; bottom: 0; left: -25%; width: 150%; transform: translateX(-130%) skewX(-14deg); background: var(--bc); }
-.sting i:last-child { display: grid; place-items: center; }
-.sting i:last-child span { transform: skewX(14deg); font: 4.4cqw/1 Lilita, sans-serif; color: var(--cream); letter-spacing: .02em; }
-.sting i:last-child span em { font-style: normal; color: var(--amber); }
+.sting i { position: absolute; top: -10%; bottom: -10%; left: 0; width: 22%; transform: translateX(-120%) skewX(-16deg); opacity: 0;
+  filter: blur(6px); mix-blend-mode: screen; }   /* its colours: the platforms (set by the script) */
 /* below the picture: what's on, and where it's streaming to */
 .info { grid-column: 1; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 7px 12px; background: var(--ui2); border-top: 1px solid var(--uiline); }
 .info .t { min-width: 0; flex: 1; }
@@ -180,7 +190,17 @@ kbd { font: 700 12px var(--mono); color: var(--cream); background: #2a1d15; bord
 .log li.sys { color: #8f88a0; font-style: italic; font-size: 11.5px; }
 .log li.new { animation: in .25s ease-out; }
 @keyframes in { from { opacity: 0; transform: translateY(6px); } }
-.chat .say { flex: none; margin: 4px 8px 8px; height: 30px; border-radius: 5px; background: #1d1b24; border: 1px solid var(--uiline); font-size: 12px; color: #6f6880; display: flex; align-items: center; padding: 0 9px; }
+.chat .say { flex: none; margin: 4px 8px 8px; height: 32px; border-radius: 5px; background: #1d1b24; border: 1px solid var(--uiline); display: flex; align-items: center; gap: 7px; padding: 0 4px 0 6px; }
+.chat .say:focus-within { border-color: #ffb34799; box-shadow: 0 0 0 2px #ffb34733; }
+.chat .say .as { all: unset; cursor: pointer; display: grid; place-items: center; flex: none; border-radius: 4px; }
+.chat .say .as:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.chat .say input { all: unset; flex: 1; min-width: 0; height: 100%; font: 13px Grotesk, sans-serif; color: #f1ecf7; }
+.chat .say input::placeholder { color: #8d86a0; }
+/* the widget's page from the stream: its picture, its title, the scene's name */
+.vid.tolink { cursor: pointer; } .vid iframe { pointer-events: none; }
+.vid.tolink:hover { box-shadow: inset 0 0 0 2px #ffb347aa; }
+a.tolink { color: inherit; text-decoration: none; } a.tolink:hover, a.tolink:focus-visible { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--amber); }
+.info .t a.tolink { display: block; font: 15px/1.15 Lilita, sans-serif; letter-spacing: .01em; color: #fff4e4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---- the desk: wood surface, the deck, a mug and a plant -------------------------------------------------------------- */
 .desk { grid-column: 1 / -1; position: relative; display: grid; grid-template-columns: subgrid; padding: 30px 0 36px; margin-top: 22px; }
@@ -305,6 +325,10 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
 
 /* ---- phones: H1, the player and chat, a 2×2 deck, then the lede and the lineup ---------------------------------------- */
 @media (max-width: 760px) {
+  .top .wrap { gap: 12px; }
+  .brandlock { --mk: 31px; } .wbrand { font-size: 21px; }
+  .by { font-size: 10px; } .by b { font-size: 12px; }
+  .kick-b { white-space: nowrap; font-size: 11px; padding: 7px 11px 6px; }
   .top .wrap { height: 54px; gap: 12px; }
   .top nav { display: none; } .kick-b { margin-left: auto; font-size: 11px; padding: 7px 11px 6px; }
   .room { padding-top: 18px; }
@@ -328,11 +352,11 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
   .bar .chan, .bar .scene { display: none; }
   .bar .stat.v { margin-left: auto; }
   .info { min-height: 0; padding: 6px 8px; gap: 8px; }
-  .info .t b { font-size: 14px; } .info .t span, .info .t .kd { display: none; }
+  .info .t b, .info .t a.tolink { font-size: 14px; } .info .t span, .info .t .kd { display: none; }
   .dest small { display: none; }
   .dest .pchip em { display: none; }
   .chat { grid-column: 1; grid-row: auto; contain: none; height: 104px; border-left: 0; border-top: 1px solid var(--uiline); }
-  .chat .ch, .chat .say { display: none; }
+  .chat .ch { display: none; }
   .log { padding: 5px 9px 7px; gap: 3px; }
   .log li { font-size: 12px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
   .desk { margin-top: 12px; padding: 0; display: block; }
@@ -379,7 +403,7 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
 </defs></svg>
 
 <header class="top"><div class="wrap">
-  <a class="brand" href="/">Trongates <span>Legacy</span></a>
+  <div class="brandlock"><a class="wbrand" href="/widgets/"><svg class="wmark" viewBox="0 0 32 32" aria-hidden="true"><rect class="wm-body" x="1.5" y="2.5" width="29" height="27" rx="7"/><rect class="wm-k k1" x="5.5" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k2" x="17" y="6.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k3" x="5.5" y="17.5" width="9.5" height="9" rx="2.2"/><rect class="wm-k k4" x="17" y="17.5" width="9.5" height="9" rx="2.2"/><circle class="wm-dot" cx="12.6" cy="9" r="1.5"/></svg><span>widgets</span></a><a class="by" href="/">by <b>Trongates <span>Legacy</span></b></a></div>
   <nav aria-label="Page"><a href="#lineup">Lineup</a><a href="#why">Why</a><a href="#setup">Set up</a></nav>
   <a class="kick-b" href="https://kick.com/trongateslegacy">Watch on Kick</a>
 </div></header>
@@ -401,8 +425,8 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
       <div class="monitor"><span class="neck" aria-hidden="true"></span>
         <div class="screen" id="screen" role="group" aria-label="A stream playing the current scene, with its chat">
           <div class="bar" aria-hidden="true">
-            <span class="livebadge">LIVE</span><span class="chan">your_channel</span>
-            <span class="scene">Scene: <b id="scene-name">Chatagram</b></span>
+            <span class="livebadge">LIVE</span><span class="chan">GridRunner</span>
+            <span class="scene">Scene: <a class="tolink" id="scene-name" href="/chatagram/" tabindex="-1">Chatagram</a></span>
             <span class="stat v"><svg><use href="#i-eye"/></svg><span id="viewers">1,284</span></span>
             <span class="stat"><svg><use href="#i-clock"/></svg><span id="uptime">2:14:07</span></span>
           </div>
@@ -421,14 +445,14 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
             <div class="sc soon" data-scene="soon"><div class="soonc"><b>Coming soon</b><span>More widgets in the works. Got an idea? Say hi on Kick.</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>
             <div class="sting" id="sting" aria-hidden="true"></div>
           </div>
-          <div class="info" aria-hidden="true">
-            <div class="t"><b id="info-name">Chatagram<span class="kd">, the anagram chat game</span></b><span id="info-sub">Free stream widget · reads both chats</span></div>
-            <div class="dest" id="dest"><small>Live on</small></div>
+          <div class="info">
+            <div class="t"><a class="tolink" id="info-name" href="/chatagram/">Chatagram<span class="kd">, the anagram chat game</span></a><span id="info-sub">Free stream widget · reads both chats</span></div>
+            <div class="dest" id="dest" aria-hidden="true"><small>Live on</small></div>
           </div>
-          <div class="chat" aria-hidden="true">
-            <div class="ch">Stream chat<span class="srcs" id="srcs"></span></div>
-            <ul class="log" id="log"></ul>
-            <div class="say">Send a message</div>
+          <div class="chat">
+            <div class="ch" aria-hidden="true">Stream chat<span class="srcs" id="srcs"></span></div>
+            <ul class="log" id="log" aria-hidden="true"></ul>
+            <form class="say" id="say"><button class="as" id="as" type="button" title="Which chat you're typing in (click to switch)"></button><label class="sr" for="say-in">Play along: type in the stream chat</label><input id="say-in" autocomplete="off" maxlength="60" enterkeyhint="send" placeholder="Type a word to play"></form>
           </div>
         </div>
       </div>
@@ -558,13 +582,13 @@ const boot = () => {
 
   // ---- scenes -------------------------------------------------------------------------------------------------------------
   const SC = {
-    chatagram: { n: 1, name: 'Chatagram', full: 'Chatagram, the anagram chat game', now: 'Chatagram, the anagram chat game', sub: 'Free stream widget · 960 × 540 · reads both chats', glow: '#7a5cff', key: '#9b7bff', w: 960, h: 540,
+    chatagram: { hint: 'Type a word to play', href: '/chatagram/', n: 1, name: 'Chatagram', full: 'Chatagram, the anagram chat game', now: 'Chatagram, the anagram chat game', sub: 'Free stream widget · 960 × 540 · reads both chats', glow: '#7a5cff', key: '#9b7bff', w: 960, h: 540,
       play: BASE + 'chatagram/play.html?demo=1', say: ['grade', 'garden', 'range', 'read', 'dare', 'grand', 'danger', 'near', 'gear', 'red'] },
-    chaplinko: { n: 2, name: 'Chaplinko', full: 'Chaplinko, the Plinko chat game', now: 'Chaplinko, the Plinko chat game', sub: 'Free stream widget · 640 × 540 · reads both chats', glow: '#2f6bff', key: '#4f8bff', w: 640, h: 540,
+    chaplinko: { hint: 'Type !plinko to drop', href: '/chaplinko/', n: 2, name: 'Chaplinko', full: 'Chaplinko, the Plinko chat game', now: 'Chaplinko, the Plinko chat game', sub: 'Free stream widget · 640 × 540 · reads both chats', glow: '#2f6bff', key: '#4f8bff', w: 640, h: 540,
       play: BASE + 'chaplinko/play.html?demo=1', say: ['!plinko', '!plinko', '!plinko', 'jackpot pls', '!plinko', 'LETS GO'] },
-    both: { n: 3, name: 'Both chats', full: 'Both chats, one game', now: 'Both chats, one game', sub: `${names} chat at the same time, one game`, glow: '#b07cff', key: '#d0a6ff',
+    both: { hint: 'Say hi from either chat', n: 3, name: 'Both chats', full: 'Both chats, one game', now: 'Both chats, one game', sub: `${names} chat at the same time, one game`, glow: '#b07cff', key: '#d0a6ff',
       say: ['hi from Twitch', 'Kick gang o7', 'we are all here', 'both chats lets go', 'o7', 'gg'] },
-    soon: { n: 4, name: 'Coming soon', full: 'Coming soon: more widgets in the works', now: 'Coming soon', sub: 'Got an idea for a chat game? Say hi on Kick', glow: '#ffb347', key: '#ffb347',
+    soon: { hint: 'Got an idea? Type it', n: 4, name: 'Coming soon', full: 'Coming soon: more widgets in the works', now: 'Coming soon', sub: 'Got an idea for a chat game? Say hi on Kick', glow: '#ffb347', key: '#ffb347',
       say: ['what is next?', 'a trivia one pls', 'o7', 'hype', 'brb snacks'] },
   };
   const ORDER = Object.keys(SC);
@@ -602,7 +626,12 @@ const boot = () => {
     $$('.sc').forEach((e) => e.classList.toggle('on', e.dataset.scene === k));
     $$('.sc iframe').forEach((f) => { if (f.parentElement.dataset.scene !== k) { f.parentElement.classList.remove('live'); f.remove(); } });
     if (!liveFrame?.isConnected) liveFrame = null;
-    $('#scene-name').textContent = SC[k].name; $('#info-name').innerHTML = `${esc(SC[k].name)}<span class="kd">${esc(SC[k].full.slice(SC[k].name.length))}</span>`; $('#info-sub').textContent = SC[k].sub;
+    const href = SC[k].href || '#lineup';
+    $('#scene-name').textContent = SC[k].name; $('#scene-name').href = href;
+    const iname = $('#info-name'); iname.innerHTML = `${esc(SC[k].name)}<span class="kd">${esc(SC[k].full.slice(SC[k].name.length))}</span>`; iname.href = href;
+    $('#info-sub').textContent = SC[k].sub;
+    vid.classList.toggle('tolink', !!SC[k].href); vid.title = SC[k].href ? `Open ${SC[k].full}` : '';
+    $('#say-in').placeholder = SC[k].hint;
     room.style.setProperty('--glow', SC[k].glow);
   }
   function paint(k) {
@@ -611,23 +640,27 @@ const boot = () => {
     const nn = $('#now-name'); nn.textContent = SC[k].now; nn.href = '#slot-' + k;
   }
 
-  // the stinger: one band per platform, then the house band, sweep across; the scene swaps while it's covered
-  const BANDS = [...PLATFORMS.map((p) => p.color), '#ffb347', '#1d1410'];
-  sting.innerHTML = BANDS.map((c, i) => `<i style="--bc:${c}">${i === BANDS.length - 1 ? '<span>Trongates <em>Legacy</em></span>' : ''}</i>`).join('');
-  const D = 640, LAG = 45;
+  // the switch (soft, like a camera cut, after the owner found the full-colour stinger jarring): the old scene dims and
+  // blurs a touch, one light streak in the platforms' colours crosses, and the new scene fades in; about 0.45 s
+  sting.innerHTML = '<i></i>';
+  sting.firstChild.style.background = `linear-gradient(90deg, transparent, ${PLATFORMS.map((p) => p.color + 'aa').join(', ')}, transparent)`;
+  const D = 460;
   async function take(k, from) {
     if (k === cur) { pressKey(k); return; }
-    const my = ++busy; cur = k;
+    const my = ++busy, prev = cur; cur = k;
     paint(k); pressKey(k);
     $('#announce').textContent = `On stream now: ${SC[k].full}.`;
     sys(`Scene: ${SC[k].name}`);
     if (RM) { show(k); goLive(); return; }
-    const bands = [...sting.children];
-    bands.forEach((b, i) => b.animate([{ transform: 'translateX(-130%) skewX(-14deg)' }, { transform: 'translateX(0) skewX(-14deg)', offset: .42 }, { transform: 'translateX(0) skewX(-14deg)', offset: .58 }, { transform: 'translateX(130%) skewX(-14deg)' }],
-      { duration: D, delay: i * LAG, easing: 'cubic-bezier(.6,0,.4,1)' }));
-    await wait(D * .45 + (bands.length - 1) * LAG);
+    const from_ = scEl(prev);
+    sting.firstChild.animate([{ transform: 'translateX(-120%) skewX(-16deg)', opacity: 0 }, { opacity: .9, offset: .35 }, { opacity: .9, offset: .65 }, { transform: 'translateX(560%) skewX(-16deg)', opacity: 0 }],
+      { duration: D, easing: 'cubic-bezier(.45,0,.25,1)' });
+    from_.animate([{ opacity: 1, filter: 'none' }, { opacity: .25, filter: 'blur(3px) brightness(.8)' }], { duration: D * .42, easing: 'ease-in', fill: 'forwards' })
+      .finished.then(() => from_.getAnimations().forEach((a) => a.cancel()), () => {});
+    await wait(D * .42);
     if (my !== busy) return;
     show(k);
+    scEl(k).animate([{ opacity: 0, filter: 'blur(3px)', transform: 'scale(1.015)' }, { opacity: 1, filter: 'none', transform: 'none' }], { duration: D * .58, easing: 'ease-out' });
     setTimeout(() => { if (my === busy) goLive(); }, D * .6);
   }
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -683,6 +716,23 @@ const boot = () => {
     setTimeout(tick, 1000 - ((Date.now() - t0) % 1000));
   }
 
+  // ---- you in the chat: what you type goes to the game on stream, as "You", from the chat picked on the badge -------------
+  let as = 0;
+  const asBtn = $('#as'), sayIn = $('#say-in');
+  const paintAs = () => { const p = PLATFORMS[as]; asBtn.innerHTML = badge(p); asBtn.setAttribute('aria-label', `Typing in ${p.name} chat (switch)`); };
+  asBtn.addEventListener('click', () => { as = (as + 1) % PLATFORMS.length; paintAs(); sayIn.focus(); });
+  $('#say').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = sayIn.value.trim(); if (!text) return;
+    sayIn.value = '';
+    const m = { platform: PLATFORMS[as].id, user: 'you', name: 'You', text, color: '#ffb347', mod: false, owner: false, emotes: [] };
+    const g = liveFrame?.classList.contains('ready') && liveFrame.contentWindow[cur];   // the game on stream (its own test hook)
+    if (g && g.hear) { try { g.hear(m); return; } catch {} }                         // it echoes the message back into this chat
+    message(m.platform, m.name, m.text, { color: m.color });
+  });
+  paintAs();
+  vid.addEventListener('click', () => { if (SC[cur].href) location.href = SC[cur].href; });
+
   // ---- wiring ---------------------------------------------------------------------------------------------------------------
   $$('.key').forEach((b) => b.addEventListener('click', () => take(b.dataset.scene)));
   $$('.show').forEach((b) => b.addEventListener('click', () => { take(b.dataset.scene); $('.rig').scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' }); }));
@@ -711,6 +761,17 @@ const boot = () => {
     $('#uptime').textContent = '2:14';
   } else {
     setTimeout(() => neon.classList.add('lit', 'flick'), 400);
+    // now and then (every 9-20 s, only while it's on screen and the tab is showing): the dot buzzes, or a letter stutters
+    const word = neon.querySelector('b'); word.innerHTML = [...word.textContent].map((c) => `<span>${c}</span>`).join('');
+    let seen = true; new IntersectionObserver((es) => { seen = es[es.length - 1].isIntersecting; }).observe(neon);
+    const glitch = () => {
+      if (seen && !document.hidden && getComputedStyle(neon).display !== 'none') {
+        const el = Math.random() < .4 ? neon : pick([...word.children]), cls = el === neon ? 'buzz' : 'stutter';
+        el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 800);
+      }
+      setTimeout(glitch, 9000 + Math.random() * 11000);
+    };
+    setTimeout(glitch, 6000);
     tick();
     setInterval(() => { if (document.hidden) return; PLATFORMS.forEach((p) => { views[p.id] = Math.max(1, views[p.id] + Math.round((Math.random() - .45) * 6)); }); paintViews(); }, 4000);
     setTimeout(pretend, 900);

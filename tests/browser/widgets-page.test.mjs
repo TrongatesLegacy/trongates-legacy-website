@@ -98,6 +98,38 @@ test('the deck\'s arrows: left and right step between keys and stop at the ends;
   await tab.close();
 });
 
+// The owner (2026-10-09): the stream should lead to the widget's page, and you should be able to play from its chat.
+test('the stream leads to the widget\'s page, and typing in its chat plays the game on stream', async () => {
+  const tab = await chrome.open(site.origin + '/widgets/', { width: 1440, height: 900 });
+  await tab.until(`document.querySelector('#vid iframe.ready')`, 10000, 'Chatagram live');
+  assert.deepEqual(await tab.eval(`[document.getElementById('info-name').getAttribute('href'), document.getElementById('scene-name').getAttribute('href')]`), ['/chatagram/', '/chatagram/']);
+  // type a word the board wants: it's found, by You, and shows in the stream's chat
+  const word = await tab.eval(`document.querySelector('#vid iframe').contentWindow.chatagram.game.state.round.answers.find((a) => !a.by).word`);
+  await tab.eval(`(() => { const i = document.getElementById('say-in'); i.value = '${word}'; document.getElementById('say').requestSubmit(); return 1; })()`);
+  await tab.until(`document.querySelector('#vid iframe').contentWindow.chatagram.game.state.round.answers.find((a) => a.word === '${word}').by?.name === 'You'`, 3000, 'the word found by You');
+  await tab.until(`[...document.querySelectorAll('#log li')].some((l) => /You/.test(l.textContent) && l.querySelector('.ok'))`, 3000, 'You in the chat, ticked');
+  // number keys typed into the chat don't switch scenes
+  await tab.eval(`document.getElementById('say-in').focus(); document.getElementById('say-in').dispatchEvent(new KeyboardEvent('keydown', { key: '2', bubbles: true })); 1`);
+  await sleep(900);
+  assert.equal(await tab.eval(`document.querySelector('.key[aria-pressed="true"]').dataset.scene`), 'chatagram');
+  // Chaplinko: the links follow, and !plinko from the chat drops
+  await tab.click('.key[data-scene="chaplinko"]');
+  await tab.until(`document.querySelector('.sc[data-scene="chaplinko"] iframe.ready')`, 10000, 'Chaplinko live');
+  assert.equal(await tab.eval(`document.getElementById('info-name').getAttribute('href')`), '/chaplinko/');
+  await tab.eval(`(() => { const i = document.getElementById('say-in'); i.value = '!plinko'; document.getElementById('say').requestSubmit(); return 1; })()`);
+  await tab.until(`[...document.querySelectorAll('#log li')].some((l) => /You/.test(l.textContent) && /!plinko/.test(l.textContent))`, 3000, 'You dropped');
+  // the both-chats scene has no page: its title goes to the lineup, the picture isn't a link
+  await tab.click('.key[data-scene="both"]');
+  await tab.until(`document.getElementById('info-name').getAttribute('href') === '#lineup' && !document.getElementById('vid').classList.contains('tolink')`, 3000);
+  // a click on the game opens its page
+  await tab.click('.key[data-scene="chatagram"]');
+  await tab.until(`document.getElementById('vid').classList.contains('tolink')`, 3000);
+  await tab.eval(`document.getElementById('vid').click(); 1`);
+  await tab.until(`location.pathname === '/chatagram/'`, 5000, 'on the Chatagram page');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
 test('on a phone it fits, the deck works and the text is all there', async () => {
   const tab = await chrome.open(site.origin + '/widgets/', { width: 390, height: 844, mobile: true });
   await tab.until(`document.querySelectorAll('.key').length === 4`, 8000, 'the deck');
@@ -118,6 +150,7 @@ test('with reduced motion: cuts straight away and never starts a live widget', a
   assert.equal(await tab.eval(`document.querySelector('.sc.on')?.dataset.scene`), 'chaplinko', 'a cut, at once');
   await sleep(2500);
   assert.equal((await tab.eval(state)).frames, 0, 'pictures stand in for the live widgets');
+  assert.equal(await tab.eval(`document.querySelectorAll('#neon b span').length`), 0, 'the neon sign is steady: never split for its flickers');
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
