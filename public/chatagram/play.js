@@ -328,7 +328,8 @@
   // counted in a "+N more". Measured, so short words show more; again once fonts load and when the theme changes.
   const missedSec = (title, words) => words.length ? `<div class="missed-sec"><h4><span>${title}</span></h4><div class="missed">${words.map((w, i) => `<span class="${i ? '' : 'best'}">${esc(w)}</span>`).join('')}<span class="more" hidden></span></div></div>` : '';
   function fitMissed() {
-    const sec = back.querySelector('.missed-sec'); if (!sec) return;
+    // looked up here, not through `back`: the theme listener (top of the file) can call this before `back` exists
+    const sec = document.querySelector('.back .missed-sec'); if (!sec) return;
     const col = sec.parentElement, chips = [...sec.querySelectorAll('.missed span:not(.more)')], more = sec.querySelector('.more');
     const over = () => col.scrollHeight > col.clientHeight + 1;
     sec.hidden = false; more.hidden = true; for (const c of chips) c.hidden = false;
