@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- The widgets page's link-preview image (1200 × 630): rendered by render.mjs, served next to public/ so both games
+     inside are real (their seeded stills). The page's own look: the warm room at night (docs/widgets.md, "The widgets page"). -->
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: Lilita; src: url(/assets/fonts/lilita-one.woff2) format("woff2"); }
+@font-face { font-family: Bungee; src: url(/assets/fonts/bungee.woff2) format("woff2"); }
+@font-face { font-family: Grotesk; src: url(/assets/fonts/space-grotesk.woff2) format("woff2"); font-weight: 300 700; }
+html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+body { position: relative; color: #f4e7d2; font-family: Grotesk, sans-serif;
+  background: radial-gradient(ellipse 34% 60% at 0 30%, #ffae5a33, transparent 70%), radial-gradient(ellipse 50% 60% at 78% 50%, #7a5cff40, transparent 70%),
+    repeating-linear-gradient(90deg, #ffffff05 0 2px, transparent 2px 46px, #00000014 46px 48px, transparent 48px 92px), linear-gradient(180deg, #1c110b, #120b08 78%); }
+.lock { position: absolute; left: 64px; top: 56px; display: flex; align-items: center; gap: 16px; }
+.lock img { width: 72px; height: 72px; }
+.lock b { display: block; font: 54px/1 Lilita; }
+.lock small { display: block; margin-top: 4px; font: 600 20px Grotesk; color: #c2ad94; } .lock small span { font: 22px Lilita; color: #f4e7d2; } .lock small em { font-style: normal; color: #ffb347; }
+h1 { position: absolute; left: 64px; top: 200px; width: 420px; margin: 0; font: 52px/1.04 Lilita; }
+h1 .tw { color: #a970ff; } h1 .k { color: #53fc18; }
+.chips { position: absolute; left: 64px; bottom: 56px; display: flex; gap: 12px; }
+.chips span { display: inline-flex; gap: 8px; align-items: center; background: #ffffff10; box-shadow: inset 0 0 0 1px #ffffff22; border-radius: 99px; padding: 8px 16px; font-size: 21px; font-weight: 600; }
+.chips i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+/* two screens, each a real game in its still: Chatagram behind, Chaplinko in front */
+.mon { position: absolute; background: #0f0e13; border: 8px solid #1d1b22; border-radius: 14px; box-shadow: 0 0 0 1px #ffffff14, 0 24px 60px #000a; overflow: hidden; }
+.mon iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; background: transparent; }
+.cg { right: 150px; top: 70px; width: 528px; height: 297px; }
+.cg iframe { width: 960px; height: 540px; transform: scale(.55); }
+.cp { right: 40px; top: 250px; width: 352px; height: 297px; background: radial-gradient(circle at 70% 25%, #2f5bff55, transparent 55%), #0a1233; }
+.cp iframe { width: 640px; height: 540px; transform: scale(.55); }
+.url { position: absolute; right: 48px; bottom: 34px; font-size: 21px; color: #c2ad94; } .url b { color: #f4e7d2; }
+</style></head><body>
+<div class="lock"><img src="/widgets/icon.svg" alt=""><div><b>widgets</b><small>by <span>Trongates <em>Legacy</em></span></small></div></div>
+<h1>Free chat games for your stream, on <span class="tw">Twitch</span> and <span class="k">Kick</span> at once</h1>
+<div class="chips"><span><i style="background:#9146ff"></i>Twitch</span><span><i style="background:#53fc18"></i>Kick</span><span>Free</span><span>No login</span></div>
+<div class="mon cg"><iframe src="/chatagram/play.html?still=1&diff=easy"></iframe></div>
+<div class="mon cp"><iframe src="/chaplinko/play.html?still=1&credit=0"></iframe></div>
+<div class="url"><b>trongateslegacy.com</b>/widgets</div>
+</body></html>

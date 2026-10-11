@@ -1,7 +1,7 @@
 # Chatagram link-preview image
 
-`og.html` → `public/chatagram/assets/og.jpg` (1200 × 630), the image shown when `/chatagram/` (or `/widgets/`) is
-shared. It uses Chatagram's own brand (docs/widgets.md, "The Chatagram page") and has the real overlay inside, in its
+`og.html` → `public/chatagram/assets/og.jpg` (1200 × 630), the image shown when `/chatagram/` is shared
+(`/widgets/` has its own, `artwork/widgets/`). It uses Chatagram's own brand (docs/widgets.md, "The Chatagram page") and has the real overlay inside, in its
 seeded "still" mode (`play.html?still=1`), so it always matches the game.
 
 ```

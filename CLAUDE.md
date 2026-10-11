@@ -22,6 +22,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [artwork/og/README.md](artwork/og/README.md) | the link-preview image shown when the site is shared |
 | [artwork/chatagram/README.md](artwork/chatagram/README.md) | Chatagram's link-preview image |
 | [artwork/chaplinko/README.md](artwork/chaplinko/README.md) | Chaplinko's link-preview image and pictures |
+| [artwork/widgets/README.md](artwork/widgets/README.md) | the widgets page's link-preview image |
 | [obs/README.md](obs/README.md) | the OBS scene overlays, control dock and Botrix CSS (hosted under /obs/) |
 
 Project skills in `.claude/skills/` hold the step-by-step procedures: **verify-site-change** (after any
@@ -98,6 +99,7 @@ artwork/                     images made for other places, all built the same wa
   og/                          the link-preview (Open Graph) image; renders into public/assets/img/og.jpg
   chatagram/                   Chatagram's link-preview image; renders into public/chatagram/assets/og.jpg
   chaplinko/                   Chaplinko's link-preview image and pictures; render into public/chaplinko/assets/
+  widgets/                     the widgets page's link-preview image; renders into public/widgets/assets/og.jpg
 ```
 
 ## Commands
@@ -113,6 +115,7 @@ node --experimental-websocket artwork/chatagram/render.mjs     # re-render Chata
 node --experimental-websocket artwork/chatagram/render-previews.mjs  # re-render Chatagram's theme pictures (after any overlay look change)
 node --experimental-websocket artwork/chaplinko/render.mjs     # re-render Chaplinko's link-preview image
 node --experimental-websocket artwork/chaplinko/render-previews.mjs  # re-render Chaplinko's pictures (after any board look change)
+node --experimental-websocket artwork/widgets/render.mjs       # re-render the widgets page's link-preview image (after either game's look changes)
 node scripts/chaplinko-odds.mjs                                # re-make Chaplinko's odds table (after any physics.js change; ~1 min)
 node scripts/build-words.mjs --scowl /tmp/scowl                # rebuild Chatagram's word lists (docs/widgets.md, "Words")
 python3 obs/build-scenes.py                                    # regenerate the OBS scene overlays

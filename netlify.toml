@@ -32,6 +32,12 @@
     Cache-Control = "public, max-age=86400"
 
 [[headers]]
+  # The widgets page's link preview: the same (it changes with either game's look)
+  for = "/widgets/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
   # Chaplinko's pictures and link preview: the same (they change with the board's look)
   for = "/chaplinko/assets/*"
   [headers.values]

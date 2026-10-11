@@ -3,7 +3,7 @@
 // the words people search with, structured data that parses, and plain links to the games from the rest of the site.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 
 const page = (p) => readFileSync(new URL(`../../public/${p}`, import.meta.url), 'utf8');
 const text = (html) => html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
@@ -44,4 +44,13 @@ test('the games are linked from the homepage, the widgets page and each other, w
   assert.match(page('widgets/index.html'), /<a href="\/chaplinko\/">Chaplinko, the Plinko chat game<\/a>/);
   assert.match(head(page('widgets/index.html')).h1, /chat games.*Twitch.*Kick/i, 'the widgets page\'s H1 says what and where');
   assert.match(page('chaplinko/index.html'), /<a href="\/chatagram\/">Chatagram, the anagram chat game<\/a>/);
+});
+
+// /widgets/ shared Chatagram's link preview from when Chatagram was the only game (the owner noticed, 2026-10-11).
+test('each widget page shares its own link-preview image, and the image is there', () => {
+  for (const [p, dir] of [['widgets/index.html', 'widgets'], ['chatagram/index.html', 'chatagram'], ['chaplinko/index.html', 'chaplinko']]) {
+    const img = page(p).match(/<meta property="og:image" content="([^"]*)"/)[1];
+    assert.equal(img, `https://www.trongateslegacy.com/${dir}/assets/og.jpg`, p);
+    assert.ok(existsSync(new URL(`../../public/${dir}/assets/og.jpg`, import.meta.url)), `${dir}/assets/og.jpg is missing`);
+  }
 });

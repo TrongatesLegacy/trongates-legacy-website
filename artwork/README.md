@@ -20,6 +20,7 @@ Images made for places other than the website itself. Every piece is built the s
 | `youtube/` | YouTube channel banner | `node --experimental-websocket artwork/youtube/render.mjs` |
 | `club/` | club.com profile cover (animated) | `node --experimental-websocket artwork/club/render.mjs 72 12` |
 | `og/` | link-preview image (`public/assets/img/og.jpg`) | `node --experimental-websocket artwork/og/render.mjs` |
+| `widgets/` | `/widgets/`'s link-preview image (`public/widgets/assets/og.jpg`) | `node --experimental-websocket artwork/widgets/render.mjs` |
 
 Needs Google Chrome and ffmpeg. Changes here don't trigger a website deploy, except the OG render, which writes
 into `public/`.

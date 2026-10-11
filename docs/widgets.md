@@ -20,6 +20,7 @@ public/widgets/lib/platforms/twitch.js    Twitch: anonymous IRC over WebSocket; 
 public/widgets/lib/platforms/kick.js      Kick: Pusher, chatroom looked up from the channel name; is the channel live
 public/widgets/lib/theme.js, themes.css   the nine themes, the accent, the live theme message, reduced motion
 public/widgets/lib/scores.js              the leaderboards: All time, This stream, which stream is on (both games; unit-tested)
+public/widgets/assets/og.jpg              the widgets page's link preview (artwork/widgets/render.mjs)
 public/widgets/lib/menu.js                the phone menu on /widgets/, /chatagram/, /chaplinko/ (a ☰ button in the header; each page colours it)
 public/chatagram/index.html + setup.js    the Chatagram page: hero, how it works, themes, set-up with live preview, FAQ
 public/chatagram/play.html/.css/.js       the overlay OBS loads (noindex)
@@ -34,6 +35,7 @@ public/chaplinko/                         Chaplinko: see "Chaplinko" below for i
 public/obs/chaplinko.html                 Chaplinko (board, or part=leaderboard) in the form colours (OBS)
 scripts/build-words.mjs, scripts/words/   builds the word lists; the LDNOOBW list and our blocklist
 artwork/chatagram/                        the link-preview image's design and render script
+artwork/widgets/                          the widgets page's link-preview image (both games' stills, in the page's look)
 ```
 
 ## Reading chat
