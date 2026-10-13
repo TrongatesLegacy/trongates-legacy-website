@@ -116,6 +116,12 @@ test('Kick: Pusher housekeeping frames, other events and broken frames', () => {
   assert.equal(P.kick.parse(JSON.stringify({ event: 'App\\Events\\ChatMessageEvent', data: '{broken' })), null);
 });
 
+// Kick moved its Pusher app (2026-10-13): the old key got "App key … not in this cluster" and Kick chat went silent.
+// The current key is what kick.com's own site is handed (docs/widgets.md, "If Kick chat stops working").
+test('Kick: the Pusher app key is the one Kick uses now', () => {
+  assert.equal(P.kick.KEY, '34bf7a0ff419a2a775b9');
+});
+
 test('Kick: the chatroom id comes from Kick\'s channel API, and a missing channel gives null', async () => {
   const fake = (status, body) => async (url) => { fake.url = url; return { ok: status === 200, json: async () => body }; };
   assert.equal(await P.kick.chatroom('gridrunner', fake(200, { chatroom: { id: 67706967 } })), 67706967);

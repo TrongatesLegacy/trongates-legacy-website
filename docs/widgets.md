@@ -55,9 +55,14 @@ than a few attempts a minute), goes back to quick retries after 30 s connected, 
   `chatrooms.<id>.v2`, event `App\Events\ChatMessageEvent`. The chatroom id comes from
   `kick.com/api/v2/channels/<name>` (Kick allows browsers on other sites to ask); the set-up page looks it up and puts
   it in the link (`kickid=`) so the overlay doesn't need to, and it can be typed by hand in Advanced settings.
-  Unofficial but public. **If Kick chat stops working**: Kick has changed its Pusher app key before; it's `KEY` at the
-  top of `platforms/kick.js`. Find the current one in the Network tab of kick.com (the `ws-us2.pusher.com/app/…`
-  socket) and update it. Badges come from both `identity.badges[].type` and `identity.badges_v2[].name`.
+  Unofficial but public. **If Kick chat stops working**: Kick has changed its Pusher app key before (last on
+  2026-10-13: the old key got "App key … not in this cluster"); it's `KEY` at the top of `platforms/kick.js`, pinned by
+  a test in `tests/unit/widgets-lib.test.mjs`. Kick's site is handed the current key by
+  `POST https://web.kick.com/api/v1/realtime/channels/<channel id>/chat/connection` with the body
+  `{"client":{"id":"x","type":"web"},"capabilities":{"accepted_providers":[{"provider":"pusher"}]}}` (the channel id is
+  the top-level `id` from the channel API, not the chatroom id); the answer's `credentials.app_key` and `cluster` are
+  what to use. That endpoint doesn't allow other sites to ask, so the overlay can't look it up itself. Kick also
+  offers a second provider there ("centrifugo"); if Pusher ever disappears from that answer, that's the one to move to. Badges come from both `identity.badges[].type` and `identity.badges_v2[].name`.
 - **Adding a platform**: one file in `platforms/` with `channel()` (tidy what was typed), `parse()` (one frame → a
   message) and `connect()` (describe the socket to `chat.js`), its label and brand colour; add it to `chat.js` and a
   schema field in each widget. The games only ever see the one message shape.

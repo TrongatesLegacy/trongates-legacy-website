@@ -4,7 +4,7 @@
 // already looked it up. Kick has changed its Pusher app key before: it's KEY below, the one thing to update if it does.
 (() => {
   const W = (window.Widgets = window.Widgets || {});
-  const KEY = '32cbd69e4b950bf97679', CLUSTER = 'us2';
+  const KEY = '34bf7a0ff419a2a775b9', CLUSTER = 'us2';
   const URL_ = `wss://ws-${CLUSTER}.pusher.com/app/${KEY}?protocol=7&client=js&version=8.4.0&flag=true`;
 
   /** whatever someone typed (kick.com/Name, @Name, Name) → the channel's slug */
