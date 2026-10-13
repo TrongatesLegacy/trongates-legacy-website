@@ -7,7 +7,7 @@
 //
 //   const chat = Widgets.chat({ twitch: 'name', kick: 'name', kickId: 123 }, onMessage, onStatus);   chat.close();
 //
-// env (tests): { WebSocket, setTimeout, clearTimeout, setInterval, clearInterval, fetch } instead of the browser's.
+// env (tests): { WebSocket, setTimeout, clearTimeout, setInterval, clearInterval, fetch, storage } instead of the browser's.
 (() => {
   const W = (window.Widgets = window.Widgets || {});
   const DELAYS = [1000, 2000, 5000, 10000, 30000], ERROR_DELAY = 60000, STEADY = 30000;
@@ -80,11 +80,11 @@
    * @param {(m: any) => void} onMessage @param {(all: Record<string, { state: string, detail?: string }>) => void} [onStatus]
    */
   function chat(o, onMessage, onStatus = () => {}) {
-    const env = o.env || { WebSocket, setTimeout: setTimeout.bind(window), clearTimeout: clearTimeout.bind(window), setInterval: setInterval.bind(window), clearInterval: clearInterval.bind(window), fetch: window.fetch && window.fetch.bind(window) };
+    const env = o.env || { WebSocket, setTimeout: setTimeout.bind(window), clearTimeout: clearTimeout.bind(window), setInterval: setInterval.bind(window), clearInterval: clearInterval.bind(window), fetch: window.fetch && window.fetch.bind(window), storage: (() => { try { return window.localStorage; } catch { return null; } })() };
     const socket = socketMaker(env), P = W.platforms, all = {}, conns = [];
     const report = (name, state, detail) => { all[name] = { state, detail }; onStatus({ ...all }); };
     if (o.twitch && P.twitch.channel(o.twitch)) { all.twitch = { state: 'connecting' }; conns.push(P.twitch.connect({ channel: o.twitch, socket }, onMessage, report)); }
-    if (o.kick && P.kick.channel(o.kick)) { all.kick = { state: 'connecting' }; conns.push(P.kick.connect({ channel: o.kick, chatroomId: o.kickId, socket, fetch: env.fetch }, onMessage, report)); }
+    if (o.kick && P.kick.channel(o.kick)) { all.kick = { state: 'connecting' }; conns.push(P.kick.connect({ channel: o.kick, chatroomId: o.kickId, socket, fetch: env.fetch, storage: env.storage }, onMessage, report)); }
     return { close() { conns.forEach((c) => c.close()); }, get status() { return { ...all }; }, platforms: Object.keys(all) };
   }
 

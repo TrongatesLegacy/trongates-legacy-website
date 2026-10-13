@@ -117,9 +117,25 @@ test('Kick: Pusher housekeeping frames, other events and broken frames', () => {
 });
 
 // Kick moved its Pusher app (2026-10-13): the old key got "App key … not in this cluster" and Kick chat went silent.
-// The current key is what kick.com's own site is handed (docs/widgets.md, "If Kick chat stops working").
-test('Kick: the Pusher app key is the one Kick uses now', () => {
-  assert.equal(P.kick.KEY, '34bf7a0ff419a2a775b9');
+// The daily check (scripts/check-kick.mjs) keeps KEY current and tests it against Kick for real; here, only its shape.
+test('Kick: the built-in Pusher key looks like one, and isn\'t the one Kick switched off', () => {
+  assert.match(P.kick.KEY, /^[0-9a-f]{20}$/); assert.match(P.kick.CLUSTER, /^[a-z]{2}[0-9]{1,2}$/);
+  assert.notEqual(P.kick.KEY, '32cbd69e4b950bf97679');
+});
+
+test('Kick: a Pusher error frame becomes { type: error, code }', () => {
+  assert.deepEqual(plain(P.kick.parse('{"event":"pusher:error","data":{"code":4001,"message":"App key 1 not in this cluster."}}')), { type: 'error', code: 4001 });
+  assert.deepEqual(plain(P.kick.parse('{"event":"pusher:error","data":"{\\"code\\":4003}"}')), { type: 'error', code: 4003 });
+});
+
+test('Kick: the current key comes from /api/kick-chat, and anything odd gives null', async () => {
+  const fake = (status, body) => async (url) => { fake.url = url; return { ok: status === 200, json: async () => body }; };
+  assert.deepEqual(plain(await P.kick.currentKey(fake(200, { key: '34bf7a0ff419a2a775b9', cluster: 'us2' }))), { key: '34bf7a0ff419a2a775b9', cluster: 'us2' });
+  assert.equal(fake.url, 'https://www.trongateslegacy.com/api/kick-chat');
+  assert.equal(await P.kick.currentKey(fake(502, { error: 'x' })), null);
+  assert.equal(await P.kick.currentKey(fake(200, { key: 'x"/../evil', cluster: 'us2' })), null, 'only a real-looking key goes in the socket address');
+  assert.equal(await P.kick.currentKey(fake(200, { key: '34bf7a0ff419a2a775b9', cluster: 'evil.example' })), null);
+  assert.equal(await P.kick.currentKey(async () => { throw new Error('offline'); }), null);
 });
 
 test('Kick: the chatroom id comes from Kick\'s channel API, and a missing channel gives null', async () => {

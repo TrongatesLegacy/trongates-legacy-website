@@ -55,14 +55,32 @@ than a few attempts a minute), goes back to quick retries after 30 s connected, 
   `chatrooms.<id>.v2`, event `App\Events\ChatMessageEvent`. The chatroom id comes from
   `kick.com/api/v2/channels/<name>` (Kick allows browsers on other sites to ask); the set-up page looks it up and puts
   it in the link (`kickid=`) so the overlay doesn't need to, and it can be typed by hand in Advanced settings.
-  Unofficial but public. **If Kick chat stops working**: Kick has changed its Pusher app key before (last on
-  2026-10-13: the old key got "App key … not in this cluster"); it's `KEY` at the top of `platforms/kick.js`, pinned by
-  a test in `tests/unit/widgets-lib.test.mjs`. Kick's site is handed the current key by
-  `POST https://web.kick.com/api/v1/realtime/channels/<channel id>/chat/connection` with the body
-  `{"client":{"id":"x","type":"web"},"capabilities":{"accepted_providers":[{"provider":"pusher"}]}}` (the channel id is
-  the top-level `id` from the channel API, not the chatroom id); the answer's `credentials.app_key` and `cluster` are
-  what to use. That endpoint doesn't allow other sites to ask, so the overlay can't look it up itself. Kick also
-  offers a second provider there ("centrifugo"); if Pusher ever disappears from that answer, that's the one to move to. Badges come from both `identity.badges[].type` and `identity.badges_v2[].name`.
+  Unofficial but public, so it watches for Kick changing things and **repairs itself**:
+  - *The key.* Kick changes its Pusher app key now and then (last on 2026-10-13: the old one got "App key … not in this
+    cluster", error 4001). `KEY` at the top of `platforms/kick.js` is the one we know. When Pusher refuses it (any
+    4000–4099 error), the widget asks `/api/kick-chat` (`netlify/functions/kick-chat.mjs`) for the one Kick uses now
+    and reconnects with it: a second or two of "retrying". A key learned that way is remembered once it works
+    (`localStorage` `widgets:kick-pusher`: key, cluster, and the built-in key it replaced), so a refreshed overlay starts
+    with it; once a deploy changes `KEY`, the saved one is dropped. Kick hands its site the key from
+    `POST https://web.kick.com/api/v1/realtime/connection` (body
+    `{"client":{"id":"x","type":"web"},"capabilities":{"accepted_providers":[{"provider":"pusher"}]}}`; the answer's
+    `credentials.app_key` and `cluster`), which doesn't allow other sites to ask, so the function asks for them; Netlify's
+    CDN keeps its answer 10 minutes.
+  - *The daily check* (`.github/workflows/check-kick.yml`, `scripts/check-kick.mjs`; run it by hand with
+    `node --experimental-websocket scripts/check-kick.mjs --dry`) asks Kick the same thing and really subscribes to a
+    chatroom with the key. A new key is written into `kick.js`, tested and pushed. Anything a person has to fix opens one
+    GitHub issue labelled `kick-chat` (which emails the repo's watchers), closed again by the next check that's ok:
+    `no-pusher` (Kick stopped offering Pusher), `broken` (the key it offers doesn't work), `unreachable` (Kick couldn't
+    be asked).
+  - *Centrifugo.* Kick's own site has already moved to its other provider, Centrifugo (offered both, Kick picks it);
+    Pusher is still served to a client that asks for it alone. Centrifugo can't be a fallback for the widgets: its socket
+    (`wss://realtime.us-west-2.platform.kick.com/connection/websocket`, guest token from
+    `web.kick.com/api/v1/realtime/auth/connection`) refuses any page that isn't on kick.com (403 on the origin), and a
+    browser can't change its origin. If Kick drops Pusher (`no-pusher`), the choices are a relay server (which would
+    have to pretend to be kick.com: advised against, 2026-10-13) or Kick's official API (dev.kick.com: chat events
+    sent to a server, by a registered app).
+
+  Badges come from both `identity.badges[].type` and `identity.badges_v2[].name`.
 - **Adding a platform**: one file in `platforms/` with `channel()` (tidy what was typed), `parse()` (one frame → a
   message) and `connect()` (describe the socket to `chat.js`), its label and brand colour; add it to `chat.js` and a
   schema field in each widget. The games only ever see the one message shape.
@@ -184,6 +202,7 @@ and the browser test "saved data".
 | `chatagram:v1:<twitch>\|<kick>` | the game, as it goes (a refresh resumes it; over 10 minutes old starts a new game) | the game's state (`game.js` `fresh()`): phase, level, round, this game's players, … `allTime` (a copy of the leaderboards' All time, written back for older overlays), `heldAt` (added 2026-09-28: the leaderboard holding the game), `lbAt` (added 2026-09-28: the last viewer `!cg top`, for the cooldown) |
 | `chatagram:scores:v1:<twitch>\|<kick>` | the leaderboards (added 2026-09-28) | `allTime` {`platform:user`: name, platform, score, words}, `stream` (ids per platform, started, lastSeen, players), `log` (points not yet placed), `status` (live, offline, unknown), `checkedAt`, `primary` (the platform asked first) |
 | `chatagram:setup` | the set-up page's last settings (the page, not OBS) | the settings, as `settings.js` |
+| `widgets:kick-pusher` | the Kick Pusher key learned from `/api/kick-chat` (added 2026-10-13; shared by every widget, see "Reading chat") | `key`, `cluster`, `replaced` (the built-in `KEY` it stood in for: when that changes, it's dropped) |
 
 **The move to separate leaderboards (2026-09-28):** the first load with no leaderboards record takes All time from the
 game's save (`allTime`, whatever it held, whatever "remember" was set to), and This stream starts with the first live

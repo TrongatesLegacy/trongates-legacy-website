@@ -1,0 +1,68 @@
+name: Check Kick chat
+
+# Daily: can the widgets still read Kick chat? (scripts/check-kick.mjs; docs/widgets.md, "Reading chat")
+# A new Pusher key is committed and pushed (one Netlify deploy, only when Kick changes it). Anything needing a person
+# (Kick dropping Pusher, a key that doesn't work, Kick unreachable) opens one issue labelled kick-chat, which emails
+# the repo's watchers; it's closed by the next check that's ok.
+on:
+  schedule:
+    - cron: "41 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: check-kick
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - id: check
+        run: node scripts/check-kick.mjs
+
+      - name: New key - test, commit and push
+        if: steps.check.outputs.status == 'key-changed'
+        run: |
+          node scripts/test.mjs --fast
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/widgets/lib/platforms/kick.js
+          git commit -m "Kick chat: Kick changed its Pusher key, kick.js updated by the daily check" -m "$SUMMARY"
+          git push
+        env:
+          SUMMARY: ${{ steps.check.outputs.summary }}
+
+      - name: Needs a person - open an issue (once)
+        if: contains(fromJSON('["no-pusher","broken","unreachable"]'), steps.check.outputs.status)
+        run: |
+          gh label create kick-chat --color 53fc18 --description "Kick chat in the widgets (daily check)" --force
+          open=$(gh issue list --label kick-chat --state open --json number --jq '.[0].number')
+          body="$SUMMARY
+
+          Status: \`$STATUS\`. Run: $RUN_URL
+          How Kick chat is read, and what to do: docs/widgets.md, \"Reading chat\". This issue closes itself once a daily check is ok."
+          if [ -n "$open" ]; then gh issue comment "$open" --body "Still failing ($STATUS): $SUMMARY $RUN_URL"
+          else gh issue create --label kick-chat --title "Kick chat check: $STATUS" --body "$body"; fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS: ${{ steps.check.outputs.status }}
+          SUMMARY: ${{ steps.check.outputs.summary }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: All good - close any open issue
+        if: steps.check.outputs.status == 'ok' || steps.check.outputs.status == 'key-changed'
+        run: |
+          for n in $(gh issue list --label kick-chat --state open --json number --jq '.[].number'); do
+            gh issue close "$n" --comment "Fixed: $SUMMARY"
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUMMARY: ${{ steps.check.outputs.summary }}

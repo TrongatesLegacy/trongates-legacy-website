@@ -79,10 +79,12 @@ public/widgets/              free stream widgets for any streamer: the list page
 public/chatagram/            Chatagram: the page, the OBS overlay (play.html), the game, the word lists (docs/widgets.md)
 public/chaplinko/            Chaplinko: the page, the board (play.html), the leaderboard source, physics, odds (docs/widgets.md)
 netlify/functions/feed.mjs   GET /api/feed: live YouTube list + Kick live status
+netlify/functions/kick-chat.mjs  GET /api/kick-chat: Kick's current Pusher key, for the widgets (docs/widgets.md)
 netlify.toml                 publish dir, functions dir, headers, build-skip rule
 tests/                       unit, loop (simulated OBS browser) and browser tests; see docs/testing.md
 .githooks/pre-push           runs the tests before every push
 scripts/update-feed.mjs      refreshes public/feed.json (run by .github/workflows/update-feed.yml)
+scripts/check-kick.mjs       daily: can the widgets still read Kick chat? updates the key, or opens an issue (check-kick.yml)
 scripts/build-words.mjs      builds Chatagram's word lists from SCOWL (hand-run; scripts/words/ has the blocklists)
 scripts/shot.mjs             headless-Chrome screenshots for checking changes
 scripts/test.mjs             runs the tests (--fast, --browser, --changed=<range>)

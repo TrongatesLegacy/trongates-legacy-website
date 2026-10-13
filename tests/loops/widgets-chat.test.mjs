@@ -9,6 +9,8 @@ import { read, Clock } from '../helpers/sim.mjs';
 function world() {
   const clock = new Clock(), servers = { twitch: true, kick: true }, opened = [], sockets = new Set();
   let chatroomLookups = 0, chatroomOk = true;
+  // Kick's Pusher app: the key it takes (null: whatever the widget has built in), and our /api/kick-chat
+  const pusher = { key: null, lookups: 0, lookupOk: true };
   class FakeWebSocket {
     constructor(url) {
       this.url = url; this.readyState = 0; this.sent = []; sockets.add(this);
@@ -17,6 +19,10 @@ function world() {
       clock.at(5, () => {
         if (!servers[which]) { this.readyState = 3; sockets.delete(this); this.onclose && this.onclose({}); return; }
         this.readyState = 1; this.onopen && this.onopen({});
+        if (which === 'kick' && pusher.key && !url.includes(`/app/${pusher.key}?`)) {   // like Pusher: an error, then it hangs up
+          this.recv({ event: 'pusher:error', data: { code: 4001, message: 'App key not in this cluster' } });
+          return this.drop();
+        }
         if (which === 'kick') this.recv({ event: 'pusher:connection_established', data: '{}' });
       });
     }
@@ -37,11 +43,15 @@ function world() {
     setTimeout: (fn, ms) => clock.at(ms, fn, 'timeout'), clearTimeout: (id) => clock.cancel(id),
     setInterval: (fn, ms) => { const box = {}; const tick = () => { box.id = clock.at(ms, tick, 'interval'); fn(); }; box.id = clock.at(ms, tick, 'interval'); return box; },
     clearInterval: (box) => box && clock.cancel(box.id),
-    fetch: async () => { chatroomLookups++; return { ok: chatroomOk, json: async () => ({ chatroom: { id: 715 } }) }; },
+    storage: (() => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k), m }; })(),
+    fetch: async (url) => {
+      if (String(url).endsWith('/api/kick-chat')) { pusher.lookups++; return { ok: pusher.lookupOk, json: async () => ({ key: pusher.key, cluster: 'us2' }) }; }
+      chatroomLookups++; return { ok: chatroomOk, json: async () => ({ chatroom: { id: 715 } }) };
+    },
   };
   const ctx = vm.createContext({ URLSearchParams, JSON, Math, String, Promise }); ctx.window = ctx;
   for (const f of ['platforms/twitch.js', 'platforms/kick.js', 'chat.js']) vm.runInContext(read('public/widgets/lib/' + f), ctx);
-  return { clock, servers, opened, sockets, env, W: ctx.Widgets, lookups: () => chatroomLookups, setChatroomOk: (v) => { chatroomOk = v; } };
+  return { clock, servers, opened, sockets, env, pusher, W: ctx.Widgets, lookups: () => chatroomLookups, setChatroomOk: (v) => { chatroomOk = v; } };
 }
 // let pending promises (the Kick lookup) settle between clock steps
 async function runFor(w, ms) { const end = w.clock.now + ms; while (w.clock.now < end) { await new Promise((r) => setImmediate(r)); const next = w.clock.q[0]; w.clock.run({ until: Math.min(end, next ? next.when : end) }); } await new Promise((r) => setImmediate(r)); }
@@ -148,5 +158,67 @@ test('Twitch saying it is about to restart (RECONNECT) reconnects straight away'
   await runFor(w, 3000);
   assert.equal(w.opened.length, 2);
   assert.equal(chat.status.twitch.state, 'live');
+  chat.close();
+});
+
+test('Kick changes its Pusher key: the refused widget asks /api/kick-chat for the new one and reconnects with it', async () => {
+  const w = world(); w.pusher.key = 'abcdef0123456789abcd';
+  const chat = w.W.chat({ kick: 'gridrunner', env: w.env }, () => {});
+  await runFor(w, 5000);
+  assert.equal(chat.status.kick.state, 'live');
+  const live = [...w.sockets].find((s) => s.which === 'kick');
+  assert.ok(live.url.includes('/app/abcdef0123456789abcd?'), live.url);
+  assert.ok(live.sent.some((d) => d.includes('chatrooms.715.v2')), 'subscribed to the chatroom');
+  assert.equal(w.pusher.lookups, 1, 'asked once');
+  assert.equal(w.opened.length, 2, 'one refused connection, then the right one');
+  // a later drop reconnects with the new key, without asking again
+  live.drop(); await runFor(w, 5000);
+  assert.equal(chat.status.kick.state, 'live');
+  assert.equal(w.pusher.lookups, 1);
+  chat.close();
+  assert.equal(w.clock.q.length, 0, 'nothing left running');
+});
+
+test('Kick changes its key while /api/kick-chat is down: a few tries a minute, then it recovers when the lookup does', async () => {
+  const w = world(); w.pusher.key = 'abcdef0123456789abcd'; w.pusher.lookupOk = false;
+  const chat = w.W.chat({ kick: 'gridrunner', env: w.env }, () => {});
+  await runFor(w, 10 * 60000);
+  assert.notEqual(chat.status.kick.state, 'live');
+  const lastMinute = w.opened.filter(([t]) => t > w.clock.now - 60000).length;
+  assert.ok(w.opened.length < 30, `${w.opened.length} attempts in 10 minutes`);
+  assert.ok(lastMinute <= 3, `${lastMinute} attempts in the last minute`);
+  assert.ok(w.pusher.lookups <= w.opened.length, 'at most one lookup per attempt');
+  w.pusher.lookupOk = true;
+  await runFor(w, 65000);
+  assert.equal(chat.status.kick.state, 'live');
+  chat.close();
+});
+
+test('a key learned from /api/kick-chat is remembered: after a refresh the widget connects with it first time', async () => {
+  const w = world(); w.pusher.key = 'abcdef0123456789abcd';
+  let chat = w.W.chat({ kick: 'gridrunner', env: w.env }, () => {});
+  await runFor(w, 5000); chat.close();
+  assert.equal(w.pusher.lookups, 1); assert.equal(w.opened.length, 2);
+  chat = w.W.chat({ kick: 'gridrunner', env: w.env }, () => {});            // OBS refreshes the source
+  await runFor(w, 5000);
+  assert.equal(chat.status.kick.state, 'live');
+  assert.equal(w.opened.length, 3, 'straight in: no refused connection');
+  assert.equal(w.pusher.lookups, 1, 'no second lookup');
+  chat.close();
+});
+
+test('a remembered key is dropped once the built-in key changes (a newer deploy), and a bad saved value is ignored', async () => {
+  const w = world(), K = w.W.platforms.kick;
+  w.env.storage.setItem('widgets:kick-pusher', JSON.stringify({ key: 'abcdef0123456789abcd', cluster: 'us2', replaced: '0000000000000000dead' }));
+  let chat = w.W.chat({ kick: 'gridrunner', env: w.env }, () => {});
+  await runFor(w, 5000);
+  assert.ok([...w.sockets][0].url.includes(`/app/${K.KEY}?`), 'the built-in key, not the stale saved one');
+  assert.equal(w.env.storage.getItem('widgets:kick-pusher'), null, 'and the stale one is cleared');
+  chat.close();
+  w.env.storage.setItem('widgets:kick-pusher', '{"key":"x\\"/../evil","cluster":"us2","replaced":"' + K.KEY + '"}');
+  chat = w.W.chat({ kick: 'gridrunner', env: w.env }, () => {});
+  await runFor(w, 5000);
+  assert.equal(chat.status.kick.state, 'live');
+  assert.ok([...w.sockets][0].url.includes(`/app/${K.KEY}?`));
   chat.close();
 });
