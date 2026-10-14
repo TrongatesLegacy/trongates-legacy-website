@@ -189,6 +189,22 @@ test('jackpots in quick succession grow one live card (a streak, never a queue o
   await tab.close();
 });
 
+test('the big prompt never shows over !plinko top: top ends it, and it waits while the lists are up', async () => {
+  const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
+  await ready(tab); await sleep(200);
+  const on = () => tab.eval('document.getElementById("prompt").classList.contains("on")');
+  await tab.eval('chaplinko.quietFor(31000); 1');
+  await tab.until('document.getElementById("prompt").classList.contains("on")', 3000, 'the prompt');
+  await tab.eval(`__chat.twitch('ModMan', '!plinko top', { mod: true }); 1`);
+  await tab.until('document.querySelector(".toplist")', 2000, 'the lists');
+  assert.equal(await on(), false, 'top ends the prompt at once (no falling out over the lists)');
+  await tab.eval('chaplinko.quietFor(200000); 1'); await sleep(1500);
+  assert.ok(await tab.eval('!!document.querySelector(".toplist")'), 'the lists still up');
+  assert.equal(await on(), false, 'no prompt while the lists are up');
+  noErrors(tab, 'prompt and top');
+  await tab.close();
+});
+
 test('combined: the leaderboard beside the board can have its own theme and its own background', async () => {
   const tab = await chrome.open(site.origin + '/chaplinko/play.html?demo=1&layout=combined&theme=chaplinko&bgo=0&lbtheme=royal&lbbgo=100', { width: 960, height: 540 });
   await ready(tab);

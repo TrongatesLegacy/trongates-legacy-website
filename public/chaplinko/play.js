@@ -259,7 +259,7 @@
     const el = $('#prompt'), FIRST = 30000, EVERY = 90000, EMOJI = '🔥';
     let shownAt = 0, timers = [], on = false;
     const later = (ms, f) => timers.push(setTimeout(f, ms));
-    const quiet = () => !game.paused && !game.queued && !world.balls.length && !jc;
+    const quiet = () => !game.paused && !game.queued && !world.balls.length && !jc && !topEl;   // never over !plinko top's lists
     function show() {
       on = true; shownAt = Date.now();
       el.innerHTML = `<span class="word">${[...cmdName].map((c) => `<i>${esc(c)}</i>`).join('')}</span><i class="emo">${EMOJI}</i>`;
@@ -298,7 +298,7 @@
       const since = Date.now() - Math.max(lastDropAt, shownAt);
       if (since >= (shownAt > lastDropAt ? EVERY : FIRST)) show();
     }, 1000);
-    return { get on() { return on; }, end: () => leave(450), show, quietFor(ms) { lastDropAt -= ms; shownAt -= ms; } };
+    return { get on() { return on; }, end: () => leave(450), hide, show, quietFor(ms) { lastDropAt -= ms; shownAt -= ms; } };
   })();
 
   let lastGulp = 0;
@@ -571,6 +571,7 @@
   let topEl = null;
   function showTop() {
     if (topEl) return;
+    if (prompt.on) prompt.hide();                                            // gone at once: never the big prompt over the lists
     const { stream, all } = K.leaderboard.lists(scores, 5);
     // the exact scores here (chat asked for them), unlike the leaderboard's three figures
     const rows = (list) => list.length ? list.map((p, i) => `<div class="row"><b class="rk">${i + 1}</b><span class="n">${esc(p.name)}</span><span class="p">${Math.round(p.score).toLocaleString('en')}</span></div>`).join('') : '<div class="row"><span class="n">No drops yet</span></div>';

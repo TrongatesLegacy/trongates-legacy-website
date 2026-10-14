@@ -502,7 +502,8 @@ opened; 2 s in Frenzy), so it's always about what just happened. Other moments: 
 the board loads; the commands shine every 30 s after a minute idle (only with the idle prompt off); PAUSED / GO! in the chute; `!plinko clear` pops every
 ball. **The idle prompt** (`hint=`, on by default; the owner,
 2026-09-30): after 30 s with nothing dropping, the command big over the pegs, then every 90 s while it stays quiet
-(about 7 s each; not while balls fall, a card shows or it's paused). Its letters drop in and bounce, a 🔥 joins (an emoji
+(about 7 s each; not while balls fall, a card shows, `!plinko top`'s lists are up or it's paused; `!plinko top` clears it at once:
+the owner, 2026-10-14). Its letters drop in and bounce, a 🔥 joins (an emoji
 drops in any channel, unlike an emote), then everything falls out through the pegs; any drop ends it. Two big beats and no
 small print, because most streams show the board small. Calm: it fades; reduced motion: it just shows. **Motion** (`motion=` in the link, Advanced): auto/full, **calm** (no shake, slow motion, beam, confetti, trails
 or hot pegs), **reduce** (nothing falls: each ball's landing is worked out at once and the `+N` shows; the leaderboard
