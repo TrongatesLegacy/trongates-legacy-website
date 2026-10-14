@@ -50,7 +50,8 @@
     // advanced: other. remember: show the All time leaderboard (it's always recorded; the name is from when this switch
     // decided whether it was kept, so old links still mean the same thing to their streamer)
     remember: { type: 'bool', def: true },
-    bgo: { type: 'int', def: 95, min: 50, max: 100 },                // the background's opacity, % (default a hint of the game behind; 100: solid)
+    bgo: { type: 'int', def: 95, min: 0, max: 100 },                 // the background's opacity, % (default a hint of the game behind; 100: solid, 0: none)
+    gbo: { type: 'int', def: 100, min: 0, max: 100 },                // the guess columns' background opacity, % (its own, so they can stay solid over no background)
     credit: { type: 'bool', def: true },
   };
   /** the command as typed in chat: lowercase, one word (the default if it's empty) */

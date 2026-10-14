@@ -189,6 +189,7 @@ fieldset.card { border: 0; margin: 0; display: grid; gap: 14px; align-content: s
 .right h3 { margin: 0; font-size: 17px; display: flex; justify-content: space-between; align-items: baseline; }
 .right h3 small { font: 12px "Space Grotesk", sans-serif; color: var(--mist); }
 .right .screen { border-radius: 14px; overflow: hidden; }
+.bgs { --bgs-tile: var(--night); --bgs-fg: var(--ice); --bgs-muted: var(--mist); --bgs-on: var(--tangerine); --bgs-on-fg: #1a0a00; }   /* the preview backdrop picker (widgets/lib/backdrops.js) */
 #pv-screen { height: 330px; } #lb-screen { height: 170px; }
 /* reduced motion: over the board, why it drops nothing and a way to see it anyway; once chosen, a small way back */
 .rm { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; padding: 16px; border-radius: 22px; background: #0a1233b3; }
@@ -284,12 +285,10 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
         <label><input type="radio" name="side" value="left"><span>Left</span></label><label><input type="radio" name="side" value="right"><span>Right</span></label><label><input type="radio" name="side" value="off"><span>Off</span></label></div></div>
     </fieldset>
     <fieldset class="card"><legend>3 · Look</legend>
-      <div class="field"><span class="lab" id="l-bgo">Board background</span><div class="seg" role="radiogroup" aria-labelledby="l-bgo">
-        <label><input type="radio" name="bgo" value="0"><span>Transparent</span></label><label><input type="radio" name="bgo" value="80"><span>80%</span></label><label><input type="radio" name="bgo" value="95"><span>95%</span></label><label><input type="radio" name="bgo" value="100"><span>Solid</span></label></div></div>
+      <label class="field"><span>Board background</span><span class="box"><select name="bgo"><option value="0">Transparent</option><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="95">95%</option><option value="100">Solid</option></select></span></label>
       <div class="field"><span class="lab" id="l-theme">Theme: <b id="theme-name" style="color:var(--ice);font-weight:600"></b></span><div class="themes" id="theme-pick" role="radiogroup" aria-labelledby="l-theme"></div></div>
       <div class="field"><span class="lab" id="l-accent">Accent colour</span><div class="accents" id="accents" role="radiogroup" aria-labelledby="l-accent"></div></div>
-      <div class="field" id="lbbgo-field"><span class="lab" id="l-lbbgo">Leaderboard background</span><div class="seg" role="radiogroup" aria-labelledby="l-lbbgo">
-        <label><input type="radio" name="lbbgo" value="0"><span>Transparent</span></label><label><input type="radio" name="lbbgo" value="80"><span>80%</span></label><label><input type="radio" name="lbbgo" value="95"><span>95%</span></label><label><input type="radio" name="lbbgo" value="100"><span>Solid</span></label></div></div>
+      <label class="field" id="lbbgo-field"><span>Leaderboard background</span><span class="box"><select name="lbbgo"><option value="0">Transparent</option><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="95">95%</option><option value="100">Solid</option></select></span></label>
       <label class="sw" id="own-field">Leaderboard custom theme <input type="checkbox" role="switch" id="own"></label>
       <div class="field" id="own-look" hidden><span class="lab" id="l-lbtheme">Leaderboard theme</span><div class="themes" id="lbtheme-pick" role="radiogroup" aria-labelledby="l-lbtheme"></div></div>
       <div class="field" id="own-accent" hidden><span class="lab" id="l-lbaccent">Leaderboard accent</span><div class="accents" id="lbaccents" role="radiogroup" aria-labelledby="l-lbaccent"></div></div>
@@ -347,6 +346,7 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
   </div>
   <aside class="right" aria-label="Live preview and your OBS links">
     <h3>LIVE PREVIEW <small>pretend chat, over a pretend game</small></h3>
+    <div class="bgs" data-frames="#pv, #lbpv"></div>
     <div class="screen game" id="pv-screen"><img class="poster" id="pv-poster" src="assets/themes/clear.webp" alt="" loading="lazy"><iframe id="pv" title="Preview of your Chaplinko board" width="640" height="540" tabindex="-1"></iframe><div class="rm" id="pv-rm" hidden></div></div>
     <p class="pvlab" id="lb-lab">The leaderboard, its own source:</p>
     <div class="screen game" id="lb-screen"><iframe id="lbpv" title="Preview of your Chaplinko leaderboard" width="300" height="270" tabindex="-1"></iframe></div>
@@ -386,4 +386,5 @@ footer.site b { color: var(--ice); font-weight: 600; } footer.site p { margin: 6
 <script src="odds.js"></script>
 <script src="setup.js"></script>
 <script src="../widgets/lib/menu.js"></script>
+<script src="../widgets/lib/backdrops.js"></script>
 </body></html>

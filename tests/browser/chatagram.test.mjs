@@ -480,6 +480,27 @@ test('a new hero chat bubble: the ones above glide up, the oldest floats off, th
   await tab.close();
 });
 
+test('the preview backdrop picker: one row, changes only what the preview plays over, never the link (the owner, 2026-10-14)', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/?twitch=pixelpanda&bgo=40&gbo=70', { width: 1280, height: 900, init: `localStorage.removeItem('chatagram:setup');` });
+  await tab.until('document.querySelector("#link").textContent.includes("gbo=70")', 5000);
+  const before = await tab.eval('[document.querySelector("#link").textContent, document.querySelector("#pv").src]');
+  assert.equal(await tab.eval('document.querySelector("#pv").dataset.bg'), 'shapes', 'busy by default');
+  assert.equal(await tab.eval('new Set([...document.querySelectorAll(".bgs button")].map((b) => b.getBoundingClientRect().top)).size'), 1, 'one row on desktop');
+  assert.equal(await tab.eval('document.querySelector(".bgs p").getBoundingClientRect().height < 24'), true, 'the label on one line on desktop');
+  for (const bg of ['checker', 'scene', 'plaid', 'none', 'shapes']) {
+    await tab.eval(`document.querySelector('.bgs [data-pick=${bg}]').click(); 1`);
+    assert.equal(await tab.eval('document.querySelector("#pv").dataset.bg'), bg);
+    assert.deepEqual(await tab.eval('[...document.querySelectorAll(".bgs button")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.pick)'), [bg]);
+    assert.notEqual(await tab.eval('getComputedStyle(document.querySelector("#pv")).backgroundImage'), bg === 'none' ? 'x' : 'none', `${bg} draws`);
+  }
+  assert.deepEqual(await tab.eval('[document.querySelector("#link").textContent, document.querySelector("#pv").src]'), before, 'the link and the preview game untouched');
+  noErrors(tab, 'backdrop picker');
+  await tab.close();
+  const phone = await chrome.open(site.origin + '/chatagram/', { width: 375, height: 667, mobile: true });
+  assert.equal(await phone.eval('new Set([...document.querySelectorAll(".bgs button")].map((b) => b.getBoundingClientRect().top)).size'), 1, 'one row on a phone');
+  await phone.close();
+});
+
 test('phones have no sticky Copy bar (the owner removed it)', async () => {
   const tab = await chrome.open(site.origin + '/chatagram/', { width: 390, height: 844, mobile: true });
   assert.equal(await tab.eval('document.querySelectorAll(".copybar, #copy2").length'), 0);
@@ -674,7 +695,7 @@ test('reduced motion: the leaderboard just appears and goes, with nothing animat
   await tab.close();
 });
 
-test('backgrounds: every theme 95% opaque by default, solid at bgo=100, see-through as set (the owner, 2026-09-28)', async () => {
+test('backgrounds: every theme 95% opaque by default, solid at bgo=100, see-through as set down to 0% (the owner, 2026-09-28, 2026-10-14)', async () => {
   const alpha = (tab) => tab.eval(`(() => { const cs = getComputedStyle(document.querySelector('.front')); const all = (cs.backgroundColor + ' ' + cs.backgroundImage).match(/rgba?\\([^)]*\\)/g) || []; return all.filter((c) => c !== 'rgba(0, 0, 0, 0)').map((c) => { const p = c.match(/[\\d.]+/g).map(Number); return p.length > 3 ? p[3] : 1; }); })()`);
   for (const theme of ['chatagram', 'neutral', 'light', 'neon', 'candy', 'royal', 'deep', 'cozy']) {
     for (const [q, want] of [['', 0.95], ['&bgo=100', 1]]) {
@@ -685,11 +706,23 @@ test('backgrounds: every theme 95% opaque by default, solid at bgo=100, see-thro
       await tab.close();
     }
   }
-  for (const theme of ['chatagram', 'candy']) {
-    const tab = await chrome.open(site.origin + `/chatagram/play.html?still=1&theme=${theme}&bgo=70`, { width: 960, height: 540 });
+  // down to 0%: fully see-through (the owner, 2026-10-14; it used to stop at 50%)
+  for (const [theme, bgo] of [['chatagram', 70], ['candy', 70], ['deep', 20], ['neutral', 0]]) {
+    const tab = await chrome.open(site.origin + `/chatagram/play.html?still=1&theme=${theme}&bgo=${bgo}`, { width: 960, height: 540 });
     await ready(tab);
     const a = await alpha(tab);
-    assert.ok(a.length && a.every((x) => Math.abs(x - 0.7) < 0.01), `${theme} at 70%: ${a}`);
+    assert.ok(bgo === 0 ? a.every((x) => x < 0.01) : a.length && a.every((x) => Math.abs(x - bgo / 100) < 0.01), `${theme} at ${bgo}%: ${a}`);
+    await tab.close();
+  }
+});
+
+test('the guesses background (word columns) has its own setting: solid by default, even over no background, see-through as set (the owner, 2026-10-14)', async () => {
+  const alphas = (tab) => tab.eval(`[...document.querySelectorAll('.col')].map((el) => { const p = getComputedStyle(el).backgroundColor.match(/[\\d.]+/g).map(Number); return p.length > 3 ? p[3] : 1; })`);
+  for (const [q, want] of [['', 1], ['&bgo=0', 1], ['&gbo=40', 0.4], ['&bgo=0&gbo=0', 0]]) {
+    const tab = await chrome.open(site.origin + `/chatagram/play.html?still=1&theme=chatagram${q}`, { width: 960, height: 540 });
+    await ready(tab);
+    const a = await alphas(tab);
+    assert.ok(a.length && a.every((x) => Math.abs(x - want) < 0.01), `${q || 'default'}: ${a}, want ${want}`);
     await tab.close();
   }
 });

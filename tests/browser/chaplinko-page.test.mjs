@@ -63,7 +63,7 @@ test('the set-up page: defaults make short links, the leaderboard link carries i
   await type('kick', 'GridRunner');
   assert.equal(await tab.eval('chaplinkoSetup.boardLink()'), site.origin + '/chaplinko/play?kick=gridrunner');
   assert.equal(await tab.eval('chaplinkoSetup.lbLink()'), site.origin + '/chaplinko/leaderboard?kick=gridrunner');
-  await click('input[name=rows][value="12"]'); await click('input[name=bgo][value="100"]');
+  await click('input[name=rows][value="12"]'); await type('bgo', '100');
   await click('#own'); await click('input[name=lbtheme][value="neon"]'); await click('input[name=lbshape][value="strip"]');
   const board = new URL(await tab.eval('chaplinkoSetup.boardLink()')).searchParams, lb = new URL(await tab.eval('chaplinkoSetup.lbLink()')).searchParams;
   assert.equal(board.get('rows'), '12'); assert.equal(board.get('bgo'), '100'); assert.equal(board.get('theme'), null);
@@ -141,4 +141,38 @@ test('the set-up page: the leaderboard\'s own accent; Reset to defaults resets e
   assert.equal(await tab.eval('document.getElementById("reset").disabled'), true, 'nothing left to reset');
   noErrors(tab, 'reset');
   await tab.close();
+});
+
+test('backgrounds go in steps of 10, Transparent to Solid, for the board and the leaderboard (the owner, 2026-10-14)', async () => {
+  const tab = await chrome.open(site.origin + '/chaplinko/?kick=gridrunner', { width: 1280, height: 900, init: `localStorage.removeItem('chaplinko:setup');` });
+  await tab.until('window.chaplinkoSetup', 5000, 'the set-up');
+  const want = ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '95', '100'];
+  for (const n of ['bgo', 'lbbgo']) assert.deepEqual((await tab.eval(`[...document.querySelectorAll('select[name=${n}] option')].map((o) => o.value)`)).sort((a, b) => a - b), want, n);
+  await tab.eval(`(() => { const el = document.querySelector('[name=bgo]'); el.value = '30'; el.dispatchEvent(new Event('input', { bubbles: true })); return 1; })()`);
+  assert.equal(new URL(await tab.eval('chaplinkoSetup.boardLink()')).searchParams.get('bgo'), '30');
+  noErrors(tab, 'steps');
+  await tab.close();
+});
+
+test('the preview backdrop picker: above the preview, one row, changes only what the previews play over, never the links (the owner, 2026-10-14)', async () => {
+  const tab = await chrome.open(site.origin + '/chaplinko/?kick=gridrunner', { width: 1280, height: 900, init: `localStorage.removeItem('chaplinko:setup');` });
+  await tab.until('window.chaplinkoSetup', 5000, 'the set-up');
+  const links = () => tab.eval('[chaplinkoSetup.boardLink(), chaplinkoSetup.lbLink(), document.querySelector("#pv").src]');
+  const before = await links();
+  assert.equal(await tab.eval('document.querySelector(".bgs").getBoundingClientRect().bottom <= document.querySelector("#pv-screen").getBoundingClientRect().top'), true, 'above the preview');
+  assert.equal(await tab.eval('document.querySelector("#pv").dataset.bg'), 'shapes', 'busy by default');
+  assert.equal(await tab.eval('new Set([...document.querySelectorAll(".bgs button")].map((b) => b.getBoundingClientRect().top)).size'), 1, 'one row');
+  assert.equal(await tab.eval('document.querySelector(".bgs p").getBoundingClientRect().height < 24'), true, 'the label on one line on desktop');
+  for (const bg of ['checker', 'scene', 'plaid', 'none', 'shapes']) {
+    await tab.eval(`document.querySelector('.bgs [data-pick=${bg}]').click(); 1`);
+    assert.deepEqual(await tab.eval('[document.querySelector("#pv").dataset.bg, document.querySelector("#lbpv").dataset.bg]'), [bg, bg], 'the board and the leaderboard');
+    assert.deepEqual(await tab.eval('[...document.querySelectorAll(".bgs button")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.pick)'), [bg]);
+    if (bg !== 'none') assert.notEqual(await tab.eval('getComputedStyle(document.querySelector("#pv")).backgroundImage'), 'none', `${bg} draws`);
+  }
+  assert.deepEqual(await links(), before, 'the links and the preview untouched');
+  noErrors(tab, 'backdrop picker');
+  await tab.close();
+  const phone = await chrome.open(site.origin + '/chaplinko/', { width: 375, height: 667, mobile: true });
+  assert.equal(await phone.eval('new Set([...document.querySelectorAll(".bgs button")].map((b) => b.getBoundingClientRect().top)).size'), 1, 'one row on a phone');
+  await phone.close();
 });

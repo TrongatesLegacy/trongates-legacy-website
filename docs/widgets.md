@@ -22,6 +22,7 @@ public/widgets/lib/theme.js, themes.css   the nine themes, the accent, the live 
 public/widgets/lib/scores.js              the leaderboards: All time, This stream, which stream is on (both games; unit-tested)
 public/widgets/assets/og.jpg              the widgets page's link preview (artwork/widgets/render.mjs)
 public/widgets/lib/menu.js                the phone menu on /widgets/, /chatagram/, /chaplinko/ (a ☰ button in the header; each page colours it)
+public/widgets/lib/backdrops.js           the set-up pages' Preview backdrop picker: what the live preview plays over (each page colours it)
 public/chatagram/index.html + setup.js    the Chatagram page: hero, how it works, themes, set-up with live preview, FAQ
 public/chatagram/play.html/.css/.js       the overlay OBS loads (noindex)
 public/chatagram/game.js                  the rules only: no drawing, no timers (unit-tested)
@@ -105,8 +106,10 @@ block in `themes.css` plus its name and accent in `theme.js`, and every widget g
 
 **Backgrounds**: each theme's `--bg` is solid on its own (they used to be 93–97% opaque, differing by theme) and carries
 `/ var(--bgo, 1)`, so a widget sets how see-through it is by setting `--bgo` on the same element. Chatagram's Advanced →
-Background (`bgo=`, 50–100%) defaults to **95%**, a hint of the game behind, the same for every theme (the owner,
-2026-09-28); Solid is 100. Frames and edges stay as they are. A new theme's `--bg` must do the same (a browser test checks
+Background (`bgo=`, 0–100% in tens; 0 is no background at all, the owner, 2026-10-14) defaults to **95%**, a hint of the game behind, the same for every theme (the owner,
+2026-09-28); Solid is 100. Advanced → Guess columns background (`gbo=`, 0–100%, default **Solid**) is the word
+columns' own (and the compact layout's recent-find pills): `color-mix` of `--panel` with `--gbo`, so they can stay solid
+over no background (the owner, 2026-10-14). Frames and edges stay as they are. A new theme's `--bg` must do the same (a browser test checks
 every theme follows the setting: 95% by default, solid at 100).
 
 **Live theme message**: the page a widget is embedded in can change its look without a reload (a reload would
@@ -370,6 +373,10 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
   settings is opened). The **live preview** stays in view beside the settings with tabs for playing / level cleared /
   game over; **Copy OBS link** sits under it; the full link hides behind "Show link". On phones the preview goes first (no
   sticky Copy bar: the owner removed it). The preview is re-themed by message, so changing theme or accent never reloads it.
+  Above the preview, **Preview backdrop** (Plain, Shapes, Checker, Scene, Plaid; Shapes by default) picks what the preview
+  plays over: busy, hard-edged pretend games drawn in CSS on the iframe itself (`widgets/lib/backdrops.js`, shared with Chaplinko), so Background and Guess columns background
+  show how see-through they really are. Preview only, never in the link; the tiles stay on one row, phones too (the owner,
+  2026-10-14).
 - Indexed (in `sitemap.xml`) with its own title, description, canonical, share image and JSON-LD. The overlay isn't.
 - **Search (2026-10-08):** aimed at searches Chatagram can win ("kick chat word game", "anagram game for twitch and
   kick", "free OBS chat word game"), not "words on stream" itself (wos.gg's brand). The title, description, H1 and
@@ -573,10 +580,12 @@ in and the jackpot slot lit. Tagline "Let chat drop." Credit as Chatagram: "made
 - Sections: hero (the board transparent over the page's glow with a pretend chat beside it), how it works, the looks
   (every theme as a picture, click to use; transparent is the default), set up, FAQ ("Is this gambling?" first).
 - **Set up**: channels (checked as typed, as Chatagram), layout (separate / combined, the leaderboard's side), look
-  (the board's background, the leaderboard's background, theme, accent), the board (rows, with an ⓘ tooltip of each value's
+  (the board's background, the leaderboard's background: Transparent, 10–90% in tens, 95%, Solid, the owner,
+  2026-10-14; theme, accent), the board (rows, with an ⓘ tooltip of each value's
   points and real chance per ball; balls per drop, ball colour), the leaderboard (show, switch every, how many, shape,
   its own theme), Advanced. The **live preview** shows the board and
-  the leaderboard over a pretend game, playing with a pretend chat; **Copy board link** and **Copy leaderboard link**
+  the leaderboard over a pretend game, playing with a pretend chat; above it, the same **Preview backdrop** picker as
+  Chatagram's (Plain is the green pretend game; it paints both previews); **Copy board link** and **Copy leaderboard link**
   (one **Copy OBS link** for combined). The preview is re-themed by message, so theme and accent never reload it.
 - Pictures before live boards, as Chatagram (`artwork/chaplinko/render-previews.mjs`; a test checks they're all there).
 - Indexed (sitemap), with its own title, description, canonical, share image and JSON-LD; the board and leaderboard

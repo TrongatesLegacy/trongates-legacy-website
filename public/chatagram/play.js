@@ -18,6 +18,7 @@
   if (rm) document.documentElement.classList.add('rm');
   W.theme.apply(board, { theme: cfg.theme, accent: cfg.accent });
   if (cfg.bgo < 100) board.style.setProperty('--bgo', String(cfg.bgo / 100));   // Advanced → Background: see-through
+  if (cfg.gbo < 100) board.style.setProperty('--gbo', cfg.gbo + '%');               // Advanced → Guess columns background: the word columns
   W.theme.listen(board, () => { fitMissed(); document.fonts && document.fonts.ready.then(() => fitMissed()); });   // a theme's font changes the missed words' widths
   board.classList.toggle('compact', cfg.layout === 'compact');
   const [BW, BH] = C.settings.SIZES[cfg.layout];
