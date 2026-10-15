@@ -26,7 +26,7 @@
       repeating-linear-gradient(30deg, #ffd23f 0 3px, transparent 3px 17px), linear-gradient(90deg, #1b1f4a, #5a1e6e, #0f5a5a)`,
     'repeating-linear-gradient(30deg, #ffd23f 0 1.5px, transparent 1.5px 5px), linear-gradient(90deg, #1b1f4a, #5a1e6e, #0f5a5a)'],
   };
-  const DEFAULT = 'shapes';
+  const DEFAULT = 'none';                                     // Plain (the owner, 2026-10-15)
   // :not(.bgs *) also lifts the backdrops over a page's own "iframe { background: transparent }"
   const css = document.createElement('style');
   css.textContent = `

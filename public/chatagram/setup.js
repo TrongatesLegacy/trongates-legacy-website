@@ -231,6 +231,7 @@
     const keys = ADVANCED.filter((k) => !((k === 'next' || k === 'restart') && s.next === 0 && s.restart === 0));
     const n = W.settings.changed(SCHEMA, s, keys) + (manualKickId && s.kickid ? 1 : 0);
     $('#chg').hidden = !n; $('#chg').textContent = `${n} changed`;
+    $('#reset').disabled = !W.settings.changed(SCHEMA, s, resettable());
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
     readyToCopy();
     setPoster();
@@ -259,6 +260,15 @@
   $('#copy').addEventListener('click', (e) => copy(e.currentTarget));
   $('#open').addEventListener('click', (e) => { if (!hasChannel()) e.preventDefault(); });
   $('#show').addEventListener('click', (e) => { if (!hasChannel()) return; const l = $('#link'); l.hidden = !l.hidden; e.currentTarget.setAttribute('aria-expanded', String(!l.hidden)); e.currentTarget.textContent = l.hidden ? 'Show link' : 'Hide link'; });
+  // Reset to defaults (Advanced, top right), as on Chaplinko: every setting back to its default, except the channels
+  // (wiping the channel names too is never what anyone wants)
+  const KEEP = ['twitch', 'kick', 'kickid'];
+  function resettable() { return Object.keys(SCHEMA).filter((k) => !KEEP.includes(k)); }
+  $('#reset').addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    for (const k of resettable()) s[k] = Array.isArray(SCHEMA[k].def) ? [...SCHEMA[k].def] : SCHEMA[k].def;
+    update();
+  });
   if (fromLink && W.settings.changed(SCHEMA, s, ADVANCED)) $('#adv').open = true;   // coming back with advanced settings: show them
 
   // ---- theme gallery (pictures, made by artwork/chatagram/render.mjs) and the hero ----------------------------------------------

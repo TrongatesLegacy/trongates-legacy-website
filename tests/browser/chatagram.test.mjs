@@ -480,14 +480,32 @@ test('a new hero chat bubble: the ones above glide up, the oldest floats off, th
   await tab.close();
 });
 
+test('Reset to defaults (Advanced, top right): every setting back to its default but the channels, like Chaplinko (the owner, 2026-10-15)', async () => {
+  const tab = await chrome.open(site.origin + '/chatagram/?twitch=pixelpanda&kick=gridrunner&kickid=123&theme=neon&time=120&bgo=40&gbo=70&locks=2&next=0&restart=0', { width: 1280, height: 900, init: `localStorage.removeItem('chatagram:setup');` });
+  await tab.until('document.querySelector("#link").textContent.includes("gbo=70")', 5000);
+  assert.equal(await tab.eval('document.querySelector("#adv summary #reset").disabled'), false, 'in the Advanced summary, ready');
+  await tab.eval('document.getElementById("reset").click(); 1');
+  assert.equal(await tab.eval('document.getElementById("adv").open'), true, 'pressing it doesn\'t fold Advanced away');
+  const l = new URL(await tab.eval('document.querySelector("#link").textContent'));
+  assert.deepEqual([...l.searchParams.keys()].sort(), ['kick', 'kickid', 'twitch'], 'only the channels are left');
+  assert.equal(l.searchParams.get('twitch'), 'pixelpanda'); assert.equal(l.searchParams.get('kick'), 'gridrunner');
+  assert.equal(await tab.eval('document.querySelector("[name=bgo]").value'), '95', 'the form shows the defaults');
+  assert.equal(await tab.eval('document.getElementById("auto").checked'), true, 'auto next back on');
+  assert.equal(await tab.eval('document.getElementById("reset").disabled'), true, 'nothing left to reset');
+  await tab.eval('(() => { const el = document.querySelector("[name=gbo]"); el.value = "50"; el.dispatchEvent(new Event("input", { bubbles: true })); return 1; })()');
+  assert.equal(await tab.eval('document.getElementById("reset").disabled'), false, 'a change wakes it again');
+  noErrors(tab, 'reset');
+  await tab.close();
+});
+
 test('the preview backdrop picker: one row, changes only what the preview plays over, never the link (the owner, 2026-10-14)', async () => {
   const tab = await chrome.open(site.origin + '/chatagram/?twitch=pixelpanda&bgo=40&gbo=70', { width: 1280, height: 900, init: `localStorage.removeItem('chatagram:setup');` });
   await tab.until('document.querySelector("#link").textContent.includes("gbo=70")', 5000);
   const before = await tab.eval('[document.querySelector("#link").textContent, document.querySelector("#pv").src]');
-  assert.equal(await tab.eval('document.querySelector("#pv").dataset.bg'), 'shapes', 'busy by default');
+  assert.equal(await tab.eval('document.querySelector("#pv").dataset.bg'), 'none', 'Plain by default (the owner, 2026-10-15)');
   assert.equal(await tab.eval('new Set([...document.querySelectorAll(".bgs button")].map((b) => b.getBoundingClientRect().top)).size'), 1, 'one row on desktop');
   assert.equal(await tab.eval('document.querySelector(".bgs p").getBoundingClientRect().height < 24'), true, 'the label on one line on desktop');
-  for (const bg of ['checker', 'scene', 'plaid', 'none', 'shapes']) {
+  for (const bg of ['shapes', 'checker', 'scene', 'plaid', 'none']) {
     await tab.eval(`document.querySelector('.bgs [data-pick=${bg}]').click(); 1`);
     assert.equal(await tab.eval('document.querySelector("#pv").dataset.bg'), bg);
     assert.deepEqual(await tab.eval('[...document.querySelectorAll(".bgs button")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.pick)'), [bg]);

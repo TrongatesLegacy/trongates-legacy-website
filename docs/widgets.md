@@ -370,10 +370,11 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
   until a channel is in. Ignored users and blocked words are **tag fields** (type, Enter or comma adds, × removes, Backspace removes the
   last). The Kick chatroom ID box only appears when Kick couldn't confirm the channel. The
   rest under **Advanced settings** (closed; a badge counts what's changed; opens itself when a link with advanced
-  settings is opened). The **live preview** stays in view beside the settings with tabs for playing / level cleared /
+  settings is opened; **Reset to defaults** at its top right puts every setting back but the channels, as on Chaplinko
+  (the owner, 2026-10-15)). The **live preview** stays in view beside the settings with tabs for playing / level cleared /
   game over; **Copy OBS link** sits under it; the full link hides behind "Show link". On phones the preview goes first (no
   sticky Copy bar: the owner removed it). The preview is re-themed by message, so changing theme or accent never reloads it.
-  Above the preview, **Preview backdrop** (Plain, Shapes, Checker, Scene, Plaid; Shapes by default) picks what the preview
+  Above the preview, **Preview backdrop** (Plain, Shapes, Checker, Scene, Plaid; Plain by default) picks what the preview
   plays over: busy, hard-edged pretend games drawn in CSS on the iframe itself (`widgets/lib/backdrops.js`, shared with Chaplinko), so Background and Guess columns background
   show how see-through they really are. Preview only, never in the link; the tiles stay on one row, phones too (the owner,
   2026-10-14).

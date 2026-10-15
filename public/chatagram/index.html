@@ -171,7 +171,10 @@ h2 { font-size: 36px; margin: 0 0 16px; } h2 span { color: var(--coral); }
 .adv .abtn::after { content: ' ▾'; color: var(--sun); } .adv[open] .abtn::after { content: ' ▴'; }
 .adv .chg { font-size: 13px; background: var(--coral); color: var(--ink); padding: 2px 10px; border-radius: 99px; font-weight: 700; }
 .adv .chg[hidden] { display: none; }
-.adv .hint { font-size: 14px; color: var(--muted); }
+.adv .hint { font-size: 14px; color: var(--muted); flex: 1 1 150px; }   /* wraps its own text before pushing Reset down */
+.reset { margin-left: auto; font: 600 13px "Chakra Petch", sans-serif; color: var(--paper); background: none; border: 0; box-shadow: inset 0 0 0 1.5px #ffffff33; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.reset:hover:not([disabled]) { box-shadow: inset 0 0 0 1.5px var(--sun); color: var(--sun); }
+.reset[disabled] { opacity: .4; cursor: default; }
 .agrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 16px; }
 .agrid .wide { grid-column: 1 / -1; }
 .chatcols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px 28px; align-items: start; }
@@ -306,7 +309,7 @@ footer.site b { color: var(--paper); font-weight: 600; } footer.site p { margin:
       <label class="sw" style="align-self:end">Keep playing by itself <input type="checkbox" role="switch" id="auto"></label>
       <p class="note" style="align-self:start">Next level and new games start on their own. Turn off to run them with chat commands.</p>
     </fieldset>
-    <details class="adv" id="adv"><summary><span class="abtn">⚙ Advanced settings</span><span class="chg" id="chg" hidden></span><span class="hint">rules, padlocks, commands, credit…</span></summary>
+    <details class="adv" id="adv"><summary><span class="abtn">⚙ Advanced settings</span><span class="chg" id="chg" hidden></span><span class="hint">rules, padlocks, commands, credit…</span><button type="button" class="reset" id="reset" disabled>Reset to defaults</button></summary>
       <div class="agrid">
         <fieldset class="card"><legend>Rules</legend>
           <label class="field"><span>Shuffle the letters</span><span class="box"><select name="shuffle"><option value="0">Never</option><option value="5">Every 5 seconds</option><option value="10">Every 10 seconds</option><option value="15">Every 15 seconds</option><option value="20">Every 20 seconds</option><option value="30">Every 30 seconds</option></select></span></label>

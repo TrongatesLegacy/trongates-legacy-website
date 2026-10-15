@@ -160,10 +160,10 @@ test('the preview backdrop picker: above the preview, one row, changes only what
   const links = () => tab.eval('[chaplinkoSetup.boardLink(), chaplinkoSetup.lbLink(), document.querySelector("#pv").src]');
   const before = await links();
   assert.equal(await tab.eval('document.querySelector(".bgs").getBoundingClientRect().bottom <= document.querySelector("#pv-screen").getBoundingClientRect().top'), true, 'above the preview');
-  assert.equal(await tab.eval('document.querySelector("#pv").dataset.bg'), 'shapes', 'busy by default');
+  assert.equal(await tab.eval('document.querySelector("#pv").dataset.bg'), 'none', 'Plain by default (the owner, 2026-10-15)');
   assert.equal(await tab.eval('new Set([...document.querySelectorAll(".bgs button")].map((b) => b.getBoundingClientRect().top)).size'), 1, 'one row');
   assert.equal(await tab.eval('document.querySelector(".bgs p").getBoundingClientRect().height < 24'), true, 'the label on one line on desktop');
-  for (const bg of ['checker', 'scene', 'plaid', 'none', 'shapes']) {
+  for (const bg of ['shapes', 'checker', 'scene', 'plaid', 'none']) {
     await tab.eval(`document.querySelector('.bgs [data-pick=${bg}]').click(); 1`);
     assert.deepEqual(await tab.eval('[document.querySelector("#pv").dataset.bg, document.querySelector("#lbpv").dataset.bg]'), [bg, bg], 'the board and the leaderboard');
     assert.deepEqual(await tab.eval('[...document.querySelectorAll(".bgs button")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.pick)'), [bg]);
