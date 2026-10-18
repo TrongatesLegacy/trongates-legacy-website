@@ -138,6 +138,8 @@ test('hovering the game on stream shows an overlay to its page; the scene with n
     return { op: +getComputedStyle(o).opacity, name: document.getElementById('open-name').textContent, go: document.getElementById('open-go').textContent,
       x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`;
   const hover = async (x, y) => { await tab.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y }); };
+  // CI's Linux Chrome has no mouse unless the helper gives it one (chrome.mjs, blink-settings): without it this timed out on CI only
+  assert.ok(await tab.eval(`matchMedia('(hover: hover)').matches`), 'the test Chrome has a mouse: (hover: hover) matches');
   let o = await tab.eval(look);
   assert.equal(o.op, 0, 'hidden at rest');
   await hover(o.x, o.y);

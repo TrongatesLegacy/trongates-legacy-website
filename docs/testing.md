@@ -92,7 +92,9 @@ real OBS on 4455.
 - Helpers: `sim.mjs` (clock, pages, storage, fake network, fake veadotube and OBS), `obs-world.mjs` (the dock and all
   scenes wired up), `real-net.mjs` (the same fakes on real sockets), `obs-model.mjs` (a fake OBS with scenes and
   sources), `server.mjs` (the site, faked `/api/*`, and `files:` to serve an older file for a proof),
-  `chrome.mjs` (`launch`, `open`, `eval`, `until`, `click`, `errors`, and `TIMERS` to count a page's timers).
+  `chrome.mjs` (`launch`, `open`, `eval`, `until`, `click`, `errors`, and `TIMERS` to count a page's timers). Its
+  Chrome always has a mouse (`(hover: hover)` on desktop tabs, none on `mobile` tabs), on a Mac and on CI's Linux
+  alike: Linux headless Chrome has no pointer of its own, so hover-only styles passed locally and failed on CI.
 
 ## What the tests don't cover
 

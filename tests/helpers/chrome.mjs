@@ -24,9 +24,12 @@ export async function launch({ allow = ['http://127.0.0.1'] } = {}) {
   if (!bin) throw new Error('Chrome not found (set CHROME_PATH)');
   const profile = mkdtempSync(join(tmpdir(), 'tgl-test-chrome-'));
   // port 0: the OS picks a free one and Chrome writes it to DevToolsActivePort (test files run side by side, so a
-  // random fixed port could clash and a test would drive another file's Chrome)
+  // random fixed port could clash and a test would drive another file's Chrome).
+  // blink-settings: a mouse on every OS. Headless Chrome on Linux (CI) has no pointer, so (hover: hover) never matched
+  // there and hover-only styles failed on CI but passed on a Mac. Phone tabs still get touch (no hover) from emulation.
   const flags = ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--disable-component-update', '--disable-sync', '--mute-audio', '--hide-scrollbars',
+    '--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4',
     ...(process.env.CI ? ['--no-sandbox'] : []), 'about:blank'];
   const proc = spawn(bin, flags, { stdio: 'ignore' });
   proc.unref();                        // a test that fails before closing Chrome mustn't keep Node alive (exit kills it)
