@@ -311,7 +311,11 @@ night, its own look (Lilita One, Bungee and Space Grotesk on a warm room; not th
   page's own links hide, `data-links`: which links, in order) into a panel under the header, coloured by the page's
   `--mb-*` variables. Sections carry a negative `scroll-margin-top` so a jump lands the heading just under the bar.
   Moving things in these pages' chats never fades text: a half-faded line fails Lighthouse's colour contrast.
-- **Into the widgets:** the game on the stream, its title under the stream and "Scene: …" open that widget's page;
+- **Into the widgets:** the game on the stream, its title under the stream and "Scene: …" open that widget's page.
+  Hovering the game (or focusing its title) shows an overlay saying so (2026-10-18): the picture dims and blurs in the
+  scene's glow, amber corner brackets close in, and the game's deck icon, name, what it is and an "Open …" button rise
+  into the middle. It's a picture only (`aria-hidden`; the title is the real link), never on a scene with no page, and
+  never on phones (no hover: a tap opens the page);
   the chat box is real: what you type goes to the game on stream as "You" (`chatagram.hear` / `chaplinko.hear` in its
   frame) from the chat picked on its badge (click to switch platform), and comes back into the chat like everyone else's.
 

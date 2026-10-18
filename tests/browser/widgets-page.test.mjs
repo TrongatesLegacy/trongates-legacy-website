@@ -130,6 +130,41 @@ test('the stream leads to the widget\'s page, and typing in its chat plays the g
   await tab.close();
 });
 
+// The owner (2026-10-18): hovering the game on the stream shows an overlay leading to its page, in that game's name.
+test('hovering the game on stream shows an overlay to its page; the scene with no page has none', async () => {
+  const tab = await chrome.open(site.origin + '/widgets/', { width: 1440, height: 900 });
+  await tab.until(`document.querySelectorAll('.key').length === 4`, 8000, 'the deck');
+  const look = `(() => { const o = document.getElementById('open'), r = document.getElementById('vid').getBoundingClientRect();
+    return { op: +getComputedStyle(o).opacity, name: document.getElementById('open-name').textContent, go: document.getElementById('open-go').textContent,
+      x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`;
+  const hover = async (x, y) => { await tab.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y }); };
+  let o = await tab.eval(look);
+  assert.equal(o.op, 0, 'hidden at rest');
+  await hover(o.x, o.y);
+  await tab.until(`+getComputedStyle(document.getElementById('open')).opacity === 1`, 2000, 'the overlay up on hover');
+  o = await tab.eval(look);
+  assert.deepEqual([o.name, o.go], ['Chatagram', 'Open Chatagram']);
+  // it follows the scene
+  await tab.click('.key[data-scene="chaplinko"]');
+  await tab.until(`document.getElementById('open-name').textContent === 'Chaplinko'`, 3000, 'Chaplinko\'s overlay');
+  assert.match(await tab.eval(`document.getElementById('open-kind').textContent`), /Plinko chat game/);
+  // the both-chats scene has no page: no overlay, even hovered
+  await tab.click('.key[data-scene="both"]');
+  await tab.until(`!document.getElementById('vid').classList.contains('tolink')`, 3000);
+  await hover(o.x + 1, o.y + 1);
+  await sleep(500);
+  assert.equal(await tab.eval(`+getComputedStyle(document.getElementById('open')).opacity`), 0, 'no overlay without a page');
+  // moving off the stream hides it; focusing the game's title (the keyboard way in) shows it
+  await tab.click('.key[data-scene="chatagram"]');
+  await hover(5, 5);
+  await tab.until(`+getComputedStyle(document.getElementById('open')).opacity === 0`, 2000, 'hidden off the stream');
+  await tab.eval(`document.getElementById('info-name').focus(); 1`);
+  await tab.until(`+getComputedStyle(document.getElementById('open')).opacity === 1`, 2000, 'the overlay up while the title has focus');
+  assert.equal(await tab.eval(`document.getElementById('open').getAttribute('aria-hidden')`), 'true', 'a picture only: the title is the link');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
 test('on a phone it fits, the deck works and the text is all there', async () => {
   const tab = await chrome.open(site.origin + '/widgets/', { width: 390, height: 844, mobile: true });
   await tab.until(`document.querySelectorAll('.key').length === 4`, 8000, 'the deck');
