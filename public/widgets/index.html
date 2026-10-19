@@ -20,7 +20,8 @@
  "description":"Free chat games for streamers that read Twitch and Kick chat at the same time.",
  "mainEntity":{"@type":"ItemList","itemListElement":[
   {"@type":"ListItem","position":1,"name":"Chatagram, the anagram chat game","url":"https://www.trongateslegacy.com/chatagram/"},
-  {"@type":"ListItem","position":2,"name":"Chaplinko, the Plinko chat game","url":"https://www.trongateslegacy.com/chaplinko/"}]},
+  {"@type":"ListItem","position":2,"name":"Chaplinko, the Plinko chat game","url":"https://www.trongateslegacy.com/chaplinko/"},
+  {"@type":"ListItem","position":3,"name":"Inputty, the keyboard and controller overlay","url":"https://www.trongateslegacy.com/inputty/"}]},
  "author":{"@type":"Person","name":"Trongates Legacy","url":"https://www.trongateslegacy.com/"}},
 {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
  {"@type":"ListItem","position":1,"name":"Trongates Legacy","item":"https://www.trongateslegacy.com/"},
@@ -153,13 +154,19 @@ kbd { font: 700 12px var(--mono); color: var(--cream); background: #2a1d15; bord
 .bc .merge { width: 60%; height: 4cqw; }
 .bc .one { display: inline-flex; align-items: center; gap: 1.2cqw; padding: 1.2cqw 2.4cqw 1cqw; border-radius: 1.4cqw; background: var(--hl); color: var(--ink); font: 2.6cqw/1 Bungee, sans-serif; box-shadow: 0 .5cqw 0 #b89a1c; }
 .bc .tot { margin: -.6cqw 0 0; font: 600 1.9cqw/1.2 Grotesk, sans-serif; color: #cfc6dc; } .bc .tot span { font: 700 1em var(--mono); color: var(--hl); }
-/* coming soon: a be-right-back style scene */
-.sc.soon { background: radial-gradient(ellipse 50% 60% at 30% 40%, #ffb34733, transparent 70%), radial-gradient(ellipse 50% 60% at 75% 70%, #ff274026, transparent 70%), linear-gradient(160deg, #241510, #120b08); display: grid; place-items: center; text-align: center; }
-.soonc b { display: block; font: 7.6cqw/1 Lilita, sans-serif; color: #fff4e4; }
-.soonc span { display: block; margin-top: 1.6cqw; font: 600 2.4cqw/1.35 Grotesk, sans-serif; color: #e2d2bc; }
-.soonc .dots { display: inline-flex; gap: 1cqw; margin-top: 2.6cqw; }
-.soonc .dots i { width: 1.4cqw; height: 1.4cqw; border-radius: 50%; background: var(--amber); animation: dot 1.2s ease-in-out infinite; }
-.soonc .dots i:nth-child(2) { animation-delay: .15s; } .soonc .dots i:nth-child(3) { animation-delay: .3s; }
+/* Inputty: a game with the keyboard and mouse overlay in its corner, as a streamer would place it. The live overlay
+   takes the visitor's own key presses (the page passes them in), so pressing W lights W on stream. The backdrop is the
+   same as in its picture (artwork/inputty/scene.html), so the picture can fade out under the live overlay */
+/* the pretend game: the same as in artwork/inputty/scene.html (keep the two identical) */
+.gbg { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(circle at 63% 50%, #fff1c9 0 4.5%, #ffd69a 5.5%, transparent 16%), linear-gradient(180deg, #2f2f6e 0%, #7a5fb0 30%, #e98fa6 52%, #ffc79a 62%); }
+.gbg i { position: absolute; display: block; }
+.gbg .h1 { left: -5%; right: -5%; bottom: 0; height: 46%; background: #5a3f7c; clip-path: polygon(0 40%, 12% 22%, 24% 38%, 37% 14%, 50% 34%, 63% 18%, 76% 36%, 88% 20%, 100% 32%, 100% 100%, 0 100%); }
+.gbg .h2 { left: -5%; right: -5%; bottom: 0; height: 30%; background: #2e2347; clip-path: polygon(0 34%, 9% 52%, 20% 26%, 33% 48%, 45% 22%, 58% 44%, 70% 30%, 83% 50%, 100% 28%, 100% 100%, 0 100%); }
+.gbg .x { left: 50%; top: 50%; width: 3.2%; aspect-ratio: 1; translate: -50% -50%; background: linear-gradient(#fff, #fff) 50% 0 / 12% 36% no-repeat, linear-gradient(#fff, #fff) 50% 100% / 12% 36% no-repeat, linear-gradient(#fff, #fff) 0 50% / 36% 12% no-repeat, linear-gradient(#fff, #fff) 100% 50% / 36% 12% no-repeat; opacity: .85; filter: drop-shadow(0 0 2px #0008); }
+.gbg .hp { left: 3%; top: 5%; width: 17%; height: 2.2%; border-radius: 99px; background: linear-gradient(90deg, #7df0b4 0 72%, #ffffff33 72%); box-shadow: 0 0 0 2px #0004; }
+.sc.it iframe { left: 76%; top: 72%; }
+.sc.it .cmd { position: absolute; left: 3%; bottom: 7%; text-align: center; font: 1.9cqw/1.25 Bungee, sans-serif; color: #fff; letter-spacing: .02em; text-shadow: 0 1px 6px #0006; }
+.sc.it .cmd span { display: block; margin-top: .5cqw; padding: .7cqw 1.2cqw .5cqw; border-radius: .8cqw; background: #2b2a4a99; border: 1px solid #ffffff44; font-size: 2.4cqw; }
 @keyframes dot { 0%, 60%, 100% { opacity: .25; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-.6cqw); } }
 /* the switch's light streak */
 .sting { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
@@ -285,7 +292,6 @@ a.tolink { color: inherit; text-decoration: none; } a.tolink:hover, a.tolink:foc
 .thumb.bothth .pbadge { width: 26px; height: 26px; border-radius: 6px; } .thumb.bothth .pbadge svg { width: 17px; height: 17px; }
 .thumb.bothth .eq { font: 15px Bungee, sans-serif; color: #fff9; }
 .thumb.bothth .one { font: 12px Bungee, sans-serif; background: var(--hl); color: var(--ink); padding: 5px 7px 3px; border-radius: 5px; }
-.thumb.soonth { background: repeating-linear-gradient(135deg, #f5ecd9 0 10px, #ece0c8 10px 20px); box-shadow: inset 0 0 0 2px #1d141040; display: grid; place-items: center; font: 34px/1 Lilita, sans-serif; color: #1d141066; }
 .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font: 700 11px/1 Grotesk, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--ink2); margin: 2px 0 8px; }
 .onnow { display: none; align-items: center; gap: 6px; background: #d81b33;   /* a deeper red than --live: white on it is 5:1 */ color: #fff; padding: 4px 7px 3px; border-radius: 4px; letter-spacing: .08em; }
 .onnow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
@@ -306,7 +312,6 @@ a.tolink { color: inherit; text-decoration: none; } a.tolink:hover, a.tolink:foc
 .show:hover { background: #1d14100f; }
 .show:focus-visible { outline: 3px solid var(--live); outline-offset: 2px; }
 .slot.now .show { background: var(--ink); color: var(--paper); }
-.slot.soon h3 { color: var(--ink2); }
 /* channel panels: why, and set up */
 .panels { margin-top: 44px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .panels h2 { grid-column: 1 / -1; margin: 0; font: 24px Lilita, sans-serif; color: var(--cream); letter-spacing: .01em; }
@@ -415,7 +420,7 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .mug .steam, .soonc .dots i:nth-child(n) { opacity: .8; }
+  .mug .steam { opacity: .8; }
   .mug .steam { display: none; }
 }
 </style>
@@ -467,7 +472,11 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
                 <svg class="merge" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M5 0 Q50 2 50 10 M95 0 Q50 2 50 10" fill="none" stroke="#ffffff55" stroke-width="1" vector-effect="non-scaling-stroke" stroke-dasharray="4 3"/></svg>
                 <div class="one">One game</div><p class="tot"><span id="bc-total">0</span> messages from both chats, one leaderboard</p></div>
             </div>
-            <div class="sc soon" data-scene="soon"><div class="soonc"><b>Coming soon</b><span>More widgets in the works. Got an idea? Say hi on Kick.</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div></div>
+            <div class="sc it" data-scene="inputty">
+              <div class="gbg" aria-hidden="true"><i class="h1"></i><i class="h2"></i><i class="x"></i><i class="hp"></i></div>
+              <img class="pic" data-src="/inputty/assets/scene.webp" alt="Inputty on stream: a keyboard and mouse in the corner of a game, lighting up as keys are pressed" width="960" height="540">
+              <p class="cmd" aria-hidden="true">Try it<span>W A S D</span></p>
+            </div>
             <div class="open" id="open" aria-hidden="true"><i class="cn"></i><i class="cn"></i><i class="cn"></i><i class="cn"></i>
               <div class="oc"><span class="oi" id="open-icon"></span><small>Free stream widget</small><b id="open-name">Chatagram</b><span id="open-kind">The anagram chat game</span>
                 <em><span id="open-go">Open Chatagram</span><svg viewBox="0 0 16 16"><path d="M3 8h9M8.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></em></div></div>
@@ -533,20 +542,20 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
           <div>
             <p class="meta"><span>Scene 3 · Every widget</span><span class="onnow">On stream now</span></p>
             <h3>Both chats, one game</h3>
-            <p>Every widget reads Twitch chat and Kick chat at the same time, so both audiences play together. Multistreaming finally counts everyone.</p>
+            <p>Every chat game reads Twitch chat and Kick chat at the same time, so both audiences play together. Multistreaming finally counts everyone.</p>
             <ul class="specs"><li class="plats" data-plats>Twitch and Kick</li><li>At the same time</li></ul>
           </div>
           <div class="acts"><button class="show" type="button" data-scene="both">Show on stream</button></div>
         </li>
-        <li class="slot soon" id="slot-soon" data-scene="soon">
-          <div class="thumb soonth" aria-hidden="true">+</div>
+        <li class="slot" id="slot-inputty" data-scene="inputty">
+          <div class="thumb" aria-hidden="true"><img src="/inputty/assets/scene.webp" alt="" width="960" height="540" loading="lazy"></div>
           <div>
-            <p class="meta"><span>Scene 4 · New</span><span class="onnow">On stream now</span></p>
-            <h3>Coming soon <span class="kind">more widgets in the works</span></h3>
-            <p>This slot is free. Got an idea for a chat game? Tell us on Kick and it might go live here next.</p>
-            <ul class="specs"><li>Both chats, as always</li><li>Ideas welcome</li></ul>
+            <p class="meta"><span>Scene 4 · Overlay · New</span><span class="onnow">On stream now</span></p>
+            <h3><a href="/inputty/">Inputty<span class="sr">, </span><span class="kind">the keyboard and controller overlay</span></a></h3>
+            <p>Show chat every key you press: your keyboard, mouse or controller in the corner of the stream, in eight looks or any colour. No preset files, a guided set-up.</p>
+            <ul class="specs"><li>Keys, mouse, controller</li><li>8 looks</li><li>Any platform</li><li>No login</li></ul>
           </div>
-          <div class="acts"><a class="go" href="https://kick.com/trongateslegacy">Say hi on Kick</a><button class="show" type="button" data-scene="soon">Show on stream</button></div>
+          <div class="acts"><a class="go" href="/inputty/">Set up Inputty, free</a><button class="show" type="button" data-scene="inputty">Show on stream</button></div>
         </li>
       </ol>
     </section>
@@ -554,15 +563,15 @@ footer a { text-decoration: none; } footer a:hover { color: var(--cream); }
     <section class="panels" id="why" aria-labelledby="why-h">
       <h2 id="why-h">Why streamers use them</h2>
       <div class="panel"><div class="ph multi" id="ph-both">Both chats</div><div class="pb"><h3 class="sr">Both chats, one game</h3><p>Twitch and Kick viewers play together. Multistreaming finally counts everyone.</p></div></div>
-      <div class="panel"><div class="ph">No login</div><div class="pb"><h3 class="sr">No login, nothing stored</h3><p>Nothing stored. Widgets only read public chat, and your settings live in your OBS link.</p></div></div>
+      <div class="panel"><div class="ph">No login</div><div class="pb"><h3 class="sr">No login, nothing stored</h3><p>Nothing stored. The chat games only read public chat, and your settings live in your OBS link.</p></div></div>
       <div class="panel"><div class="ph">Free</div><div class="pb"><h3 class="sr">Free</h3><p>No accounts, no catch. Say hi on Kick if you use one.</p></div></div>
     </section>
 
     <section class="setup" id="setup" aria-labelledby="setup-h">
       <h2 id="setup-h">Set up in three steps</h2>
       <ol>
-        <li><div><b>Pick a widget</b><span>Open <a href="/chatagram/">Chatagram, the anagram chat game</a> or <a href="/chaplinko/">Chaplinko, the Plinko chat game</a>.</span></div></li>
-        <li><div><b>Type your channel names</b><span>Twitch, Kick, or both. No login.</span></div></li>
+        <li><div><b>Pick a widget</b><span>Open <a href="/chatagram/">Chatagram, the anagram chat game</a>, <a href="/chaplinko/">Chaplinko, the Plinko chat game</a> or <a href="/inputty/">Inputty, the keyboard overlay</a>.</span></div></li>
+        <li><div><b>Make it yours</b><span>Your Twitch and Kick channels for the games, your keyboard or controller for Inputty. No login.</span></div></li>
         <li><div><b>Paste the link into OBS</b><span>Add a browser source and paste. Your settings live in the link.</span></div></li>
       </ol>
     </section>
@@ -616,15 +625,15 @@ const boot = () => {
       play: BASE + 'chaplinko/play.html?demo=1', say: ['!plinko', '!plinko', '!plinko', 'jackpot pls', '!plinko', 'LETS GO'] },
     both: { hint: 'Say hi from either chat', n: 3, name: 'Both chats', full: 'Both chats, one game', now: 'Both chats, one game', sub: `${names} chat at the same time, one game`, glow: '#b07cff', key: '#d0a6ff',
       say: ['hi from Twitch', 'Kick gang o7', 'we are all here', 'both chats lets go', 'o7', 'gg'] },
-    soon: { hint: 'Got an idea? Type it', n: 4, name: 'Coming soon', full: 'Coming soon: more widgets in the works', now: 'Coming soon', sub: 'Got an idea for a chat game? Say hi on Kick', glow: '#ffb347', key: '#ffb347',
-      say: ['what is next?', 'a trivia one pls', 'o7', 'hype', 'brb snacks'] },
+    inputty: { hint: 'Press W A S D to try it', href: '/inputty/', n: 4, name: 'Inputty', full: 'Inputty, the keyboard and controller overlay', now: 'Inputty, the keyboard and controller overlay', sub: 'Free stream widget · keys, mouse or controller · any platform', glow: '#ff9fc6', key: '#ff9fc6', w: 960, h: 540, k: 0.44,
+      play: BASE + 'inputty/play.html?demo=1&bgo=0', say: ['why is shift always held', 'W key on fire', 'that crouch spam lol', 'so THAT is how you strafe', 'clean flick', 'mouse 4 bind?'] },
   };
   const ORDER = Object.keys(SC);
   const ICONS = {
     chatagram: `<svg viewBox="0 0 36 36"><g font-family="Bungee, sans-serif" font-size="9" text-anchor="middle">${['C', 'H', 'A'].map((l, i) => `<rect x="${2 + i * 11}" y="${i === 1 ? 8 : 12}" width="10" height="12" rx="2" fill="#f4e7d2"/><text x="${7 + i * 11}" y="${i === 1 ? 17.5 : 21.5}" fill="#1d1410">${l}</text>`).join('')}</g><rect x="4" y="28" width="28" height="3" rx="1.5" fill="#ffe14d"/></svg>`,
     chaplinko: `<svg viewBox="0 0 36 36"><g fill="#cfd6ff">${[[18, 8], [13, 15], [23, 15], [8, 22], [18, 22], [28, 22]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.8"/>`).join('')}</g><circle cx="15.5" cy="11" r="3.2" fill="#ff5fa2"/><g fill="#4f8bff"><rect x="3" y="28" width="6" height="5" rx="1"/><rect x="11" y="28" width="6" height="5" rx="1"/><rect x="19" y="28" width="6" height="5" rx="1"/><rect x="27" y="28" width="6" height="5" rx="1"/></g></svg>`,
     both: `<svg viewBox="0 0 36 36">${PLATFORMS.map((p, i, a) => { const x = 3 + i * (16 / Math.max(1, a.length - 1)); return `<path d="M${x} 6h15a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-9l-4 4v-4h-2a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" fill="${p.color}" opacity=".95" transform="translate(0 ${i * 4})"/>`; }).join('')}<rect x="9" y="28" width="18" height="5" rx="2" fill="#ffe14d"/></svg>`,
-    soon: `<svg viewBox="0 0 36 36"><rect x="5" y="5" width="26" height="26" rx="5" fill="none" stroke="#ffb347" stroke-width="2" stroke-dasharray="4 3"/><path d="M18 12v12M12 18h12" stroke="#ffb347" stroke-width="3" stroke-linecap="round"/></svg>`,
+    inputty: `<svg viewBox="0 0 36 36"><g stroke="#2b2a4a" stroke-width="1.6"><rect x="2.5" y="10" width="14" height="18" rx="4" fill="#ddd5f9"/><rect x="2.5" y="7" width="14" height="18" rx="4" fill="#fff"/><rect x="19.5" y="12.5" width="14" height="18" rx="4" fill="#e0679a"/><rect x="19.5" y="10" width="14" height="18" rx="4" fill="#ff9fc6"/></g><g font-family="Bungee, sans-serif" font-size="10" text-anchor="middle" fill="#2b2a4a"><text x="9.5" y="20">t</text><text x="26.5" y="23">t</text></g></svg>`,
   };
   $('#keys').innerHTML = ORDER.map((k) => `<button class="key" type="button" data-scene="${k}" aria-pressed="false" style="--kc:${SC[k].key}"><span class="n" aria-hidden="true">${SC[k].n}</span><span class="lcd">${ICONS[k].replace('<svg', '<svg aria-hidden="true"')}<span>${SC[k].name}</span></span></button>`).join('');
 
@@ -632,7 +641,7 @@ const boot = () => {
   let cur = 'chatagram', liveFrame = null, busy = 0, lastReal = 0, visible = true;
   const scEl = (k) => $(`.sc[data-scene="${k}"]`);
 
-  function fit(f) { const b = vid.getBoundingClientRect(); f.style.transform = `translate(-50%,-50%) scale(${Math.min(b.width / f.width, b.height / f.height)})`; }
+  function fit(f) { const b = vid.getBoundingClientRect(); f.style.transform = `translate(-50%,-50%) scale(${Math.min(b.width / f.width, b.height / f.height) * (+f.dataset.k || 1)})`; }
   new ResizeObserver(() => { if (liveFrame) fit(liveFrame); }).observe(vid);
   function goLive() {   // the real widget, only for the scene on stream (never with reduced motion: the picture stands in)
     const s = SC[cur]; if (RM || !s.play) return;
@@ -640,6 +649,7 @@ const boot = () => {
     const f = document.createElement('iframe');
     Object.assign(f, { width: s.w, height: s.h, title: `${s.name} playing with a pretend chat`, tabIndex: -1 });
     f.setAttribute('aria-hidden', 'true');
+    if (s.k) f.dataset.k = s.k;
     f.src = s.play; host.append(f); fit(f); liveFrame = f;
     const poll = setInterval(() => {
       if (!f.isConnected) return clearInterval(poll);
@@ -769,6 +779,12 @@ const boot = () => {
   // ---- wiring ---------------------------------------------------------------------------------------------------------------
   $$('.key').forEach((b) => b.addEventListener('click', () => take(b.dataset.scene)));
   $$('.show').forEach((b) => b.addEventListener('click', () => { take(b.dataset.scene); $('.rig').scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'center' }); }));
+  // Inputty on stream: the visitor's own keys light up its overlay (numbers still switch scenes)
+  const toInputty = (m) => { if (cur === 'inputty' && liveFrame?.isConnected) liveFrame.contentWindow.postMessage({ type: 'io-input', ...m }, '*'); };
+  const typing = (e) => e.target instanceof Element && e.target.closest('input, textarea, select');
+  addEventListener('keydown', (e) => { if (!e.repeat && !typing(e) && !/^Digit[1-9]$/.test(e.code) && !e.metaKey && !e.ctrlKey) toInputty({ kind: 'key', code: e.code, down: true }); });
+  addEventListener('keyup', (e) => toInputty({ kind: 'key', code: e.code, down: false }));
+  addEventListener('blur', () => toInputty({ kind: 'blur' }));
   addEventListener('keydown', (e) => {
     const t = e.target instanceof Element ? e.target : document.body;
     if (e.metaKey || e.ctrlKey || e.altKey || t.closest('input, textarea, select')) return;

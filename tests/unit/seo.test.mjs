@@ -14,7 +14,7 @@ const head = (html) => ({
   h1: text(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)[1]),
 });
 
-for (const p of ['chatagram/index.html', 'chaplinko/index.html', 'widgets/index.html', 'index.html']) {
+for (const p of ['chatagram/index.html', 'chaplinko/index.html', 'inputty/index.html', 'widgets/index.html', 'index.html']) {
   test(`${p}: a title and description that fit in a search result, and structured data that parses`, () => {
     const h = head(page(p));
     assert.ok(h.title.length <= 65, `title is ${h.title.length} characters: ${h.title}`);
@@ -44,11 +44,26 @@ test('the games are linked from the homepage, the widgets page and each other, w
   assert.match(page('widgets/index.html'), /<a href="\/chaplinko\/">Chaplinko, the Plinko chat game<\/a>/);
   assert.match(head(page('widgets/index.html')).h1, /chat games.*Twitch.*Kick/i, 'the widgets page\'s H1 says what and where');
   assert.match(page('chaplinko/index.html'), /<a href="\/chatagram\/">Chatagram, the anagram chat game<\/a>/);
+  assert.match(page('index.html'), /<a href="\/inputty\/">Inputty, the keyboard overlay<\/a>/);
+  assert.match(page('widgets/index.html'), /<a href="\/inputty\/">Inputty<span class="sr">, <\/span><span class="kind">the keyboard and controller overlay<\/span><\/a>/);
+  assert.match(page('inputty/index.html'), /<a [^>]*href="\/widgets\/">More widgets<\/a>/);
+});
+
+test('Inputty: the words people search with, a breadcrumb, in the sitemap, and its overlay kept out of search', () => {
+  const h = head(page('inputty/index.html'));
+  for (const w of [/keyboard/i, /controller/i, /OBS/]) { assert.match(h.title, w); }
+  for (const w of [/keyboard/i, /controller/i, /OBS/]) assert.match(h.description, w);
+  const app = h.ld.find((d) => d['@type'] === 'WebApplication');
+  assert.equal(app.isAccessibleForFree, true);
+  const crumbs = h.ld.find((d) => d['@type'] === 'BreadcrumbList').itemListElement.map((i) => i.item);
+  assert.deepEqual(crumbs, ['https://www.trongateslegacy.com/', 'https://www.trongateslegacy.com/widgets/', 'https://www.trongateslegacy.com/inputty/']);
+  assert.match(page('sitemap.xml'), /<loc>https:\/\/www\.trongateslegacy\.com\/inputty\/<\/loc>/);
+  assert.match(page('inputty/play.html'), /<meta name="robots" content="noindex">/);
 });
 
 // /widgets/ shared Chatagram's link preview from when Chatagram was the only game (the owner noticed, 2026-10-11).
 test('each widget page shares its own link-preview image, and the image is there', () => {
-  for (const [p, dir] of [['widgets/index.html', 'widgets'], ['chatagram/index.html', 'chatagram'], ['chaplinko/index.html', 'chaplinko']]) {
+  for (const [p, dir] of [['widgets/index.html', 'widgets'], ['chatagram/index.html', 'chatagram'], ['chaplinko/index.html', 'chaplinko'], ['inputty/index.html', 'inputty']]) {
     const img = page(p).match(/<meta property="og:image" content="([^"]*)"/)[1];
     assert.equal(img, `https://www.trongateslegacy.com/${dir}/assets/og.jpg`, p);
     assert.ok(existsSync(new URL(`../../public/${dir}/assets/og.jpg`, import.meta.url)), `${dir}/assets/og.jpg is missing`);

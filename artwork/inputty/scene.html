@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<style>
+/* Inputty's scene on the widgets page, as a picture (public/inputty/assets/scene.webp): the same backdrop as .sc.it
+   there, and the overlay placed exactly as the live one (960 x 540 at .44, centred at 76% / 72%) */
+html, body { margin: 0; width: 960px; height: 540px; overflow: hidden; }
+body { position: relative; }
+/* the pretend game: the same as .gbg on the widgets page (keep the two identical) */
+.gbg { position: absolute; inset: 0; overflow: hidden; background: radial-gradient(circle at 63% 50%, #fff1c9 0 4.5%, #ffd69a 5.5%, transparent 16%), linear-gradient(180deg, #2f2f6e 0%, #7a5fb0 30%, #e98fa6 52%, #ffc79a 62%); }
+.gbg i { position: absolute; display: block; }
+.gbg .h1 { left: -5%; right: -5%; bottom: 0; height: 46%; background: #5a3f7c; clip-path: polygon(0 40%, 12% 22%, 24% 38%, 37% 14%, 50% 34%, 63% 18%, 76% 36%, 88% 20%, 100% 32%, 100% 100%, 0 100%); }
+.gbg .h2 { left: -5%; right: -5%; bottom: 0; height: 30%; background: #2e2347; clip-path: polygon(0 34%, 9% 52%, 20% 26%, 33% 48%, 45% 22%, 58% 44%, 70% 30%, 83% 50%, 100% 28%, 100% 100%, 0 100%); }
+.gbg .x { left: 50%; top: 50%; width: 3.2%; aspect-ratio: 1; translate: -50% -50%; background: linear-gradient(#fff, #fff) 50% 0 / 12% 36% no-repeat, linear-gradient(#fff, #fff) 50% 100% / 12% 36% no-repeat, linear-gradient(#fff, #fff) 0 50% / 36% 12% no-repeat, linear-gradient(#fff, #fff) 100% 50% / 36% 12% no-repeat; opacity: .85; filter: drop-shadow(0 0 2px #0008); }
+.gbg .hp { left: 3%; top: 5%; width: 17%; height: 2.2%; border-radius: 99px; background: linear-gradient(90deg, #7df0b4 0 72%, #ffffff33 72%); box-shadow: 0 0 0 2px #0004; }
+iframe { position: absolute; left: 76%; top: 72%; width: 960px; height: 540px; border: 0; transform: translate(-50%, -50%) scale(.44); color-scheme: normal; }
+</style></head><body>
+<div class="gbg" aria-hidden="true"><i class="h1"></i><i class="h2"></i><i class="x"></i><i class="hp"></i></div>
+<iframe src="/inputty/play.html?bgo=0" title="Inputty"></iframe>
+</body></html>

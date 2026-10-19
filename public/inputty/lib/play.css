@@ -1,0 +1,69 @@
+/* Inputty's overlay, the OBS browser source (docs/widgets.md, "Inputty"). The shared widget themes come from
+   /widgets/lib/themes.css; Zojie is Inputty's own and is defined here with the same variables, plus the window frame's colours. */
+@font-face { font-family: Fredoka; src: url(/assets/fonts/fredoka.woff2) format("woff2"); font-weight: 500 700; font-display: swap; }
+[data-theme=zojie] {
+  --frame: 3px;
+  --bg: linear-gradient(180deg, rgb(196 172 255 / var(--bgo, 1)), rgb(224 206 255 / var(--bgo, 1))); --panel: #f3e8ff; --slot: #e7d6ff; --text: #5b3fb0; --muted: #8f78d6;
+  --accent: #ff7fdc; --accent-ink: #4a2a9a;
+  --tile: #d5c0ff; --tile-text: #5b3fb0; --tile-edge: #ebc8fb; --radius: 18px;
+  --font: "Fredoka", "Chakra Petch", system-ui, sans-serif; --display: "Fredoka", system-ui, sans-serif; --display-weight: 700;
+  --bar: linear-gradient(180deg, #ffd3ff, #ffc0fb); --bar-ink: #fffdf0; --bar-stroke: #a77de8;
+  --edge: inset 0 0 0 3px #fff, 0 0 0 3px #d9b8f7, 0 10px 30px rgb(140 90 220 / .25);
+}
+[data-theme] { --bar: var(--panel); --bar-ink: var(--text); --bar-stroke: transparent; }
+[data-theme=zojie] { --bar: linear-gradient(180deg, #ffd3ff, #ffc0fb); --bar-ink: #fffdf0; --bar-stroke: #a77de8; }
+
+html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+body { font-family: var(--font); }
+#stage { position: fixed; inset: 0; }
+#fit { position: absolute; left: 50%; top: 50%; width: max-content; transform-origin: center; translate: -50% -50%; }
+
+.box { display: inline-flex; flex-direction: column; }
+.box.panel, .box.window { background: var(--bg); border-radius: var(--radius); box-shadow: var(--edge); overflow: hidden; }
+.box .bar { display: none; }
+.box.window .bar {
+  display: flex; align-items: center; gap: 14px; height: 54px; padding: 0 12px 0 22px;
+  background: var(--bar); border-bottom: 3px solid color-mix(in srgb, var(--bar-stroke) 60%, white);
+}
+.bar .title {
+  flex: 1; font: var(--display-weight) 30px/1 var(--display); color: var(--bar-ink); letter-spacing: .5px;
+  -webkit-text-stroke: 6px var(--bar-stroke); paint-order: stroke fill; white-space: nowrap;
+}
+.bar .btns { display: flex; gap: 8px; }
+.bar .btns i {
+  width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+  background: color-mix(in srgb, white 55%, transparent); border: 3px solid var(--bar-stroke);
+  font: 700 18px/1 system-ui, sans-serif; font-style: normal; color: var(--bar-stroke);
+}
+.views { display: flex; align-items: center; gap: 40px; padding: 0; }
+.box.panel .views, .box.window .views { padding: 26px 32px; }
+.view, .history { position: relative; flex-shrink: 0; }
+.view canvas { display: block; width: 100%; height: 100%; }
+.view.pixel canvas { image-rendering: pixelated; }
+body.outlined .view canvas { filter: drop-shadow(0 0 1px var(--outline-c)) drop-shadow(0 0 1px var(--outline-c)) drop-shadow(0 3px 6px rgb(0 0 0 / .3)); }
+body.outlined[data-theme=neon] .view canvas { filter: drop-shadow(0 0 1px var(--outline-c)) drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent)); }
+[data-theme=neon] .view canvas { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent)); }
+
+/* Zojie's sparkles: a lightning bolt or a star pops off a key as it's pressed */
+.spark {
+  position: absolute; pointer-events: none; font: 700 34px/1 system-ui, sans-serif; translate: -50% -50%;
+  animation: spark .7s ease-out forwards; text-shadow: 0 0 8px #fff;
+}
+@keyframes spark {
+  0% { opacity: 0; transform: scale(.4) translate(0, 0) rotate(0deg); }
+  25% { opacity: 1; transform: scale(1.15) translate(var(--dx), var(--dy)) rotate(var(--rot)); }
+  100% { opacity: 0; transform: scale(.7) translate(calc(var(--dx) * 2.2), calc(var(--dy) * 2.2)) rotate(calc(var(--rot) * 2)); }
+}
+
+/* the key history: recent keys as chips, newest at the bottom, fading out */
+.history { display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 12px; padding: 8px; }
+.history .chip {
+  display: inline-flex; gap: 8px; align-items: center; padding: 10px 18px; border-radius: var(--radius);
+  background: var(--tile); color: var(--tile-text); box-shadow: 0 0 0 3px var(--tile-edge), var(--tile-glow, none);
+  font: var(--display-weight) 34px/1 var(--display); animation: chip-in .18s ease-out;
+}
+.history .chip b { color: var(--accent); filter: brightness(.85); font-weight: inherit; }
+.history .chip.old { opacity: 0; transition: opacity .6s; }
+@keyframes chip-in { from { opacity: 0; transform: translateY(10px) scale(.95); } }
+
+@media (prefers-reduced-motion: reduce) { .history .chip { animation: none; } }

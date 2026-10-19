@@ -10,7 +10,7 @@ let chrome, site;
 test.before(async () => { chrome = await launch(); site = await siteServer(); });
 test.after(async () => { await chrome?.close(); await site?.close(); });
 
-const PAGES = { '/widgets/': ['#lineup', '#why', '#setup', '/chatagram/', '/chaplinko/', '/'],
+const PAGES = { '/widgets/': ['#lineup', '#why', '#setup', '/chatagram/', '/chaplinko/', '/inputty/', '/'],
   '/chatagram/': ['#how', '#themes', '#setup', '#faq', '/widgets/', '/'], '/chaplinko/': ['#how', '#looks', '#setup', '#faq', '/widgets/', '/'] };
 for (const [page, want] of Object.entries(PAGES)) {
   test(`${page}: a phone menu with the page's links; closed by a link, Esc or a tap outside; none on a desktop`, async () => {

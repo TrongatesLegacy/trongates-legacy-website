@@ -38,7 +38,7 @@ test('the deck switches scenes: the stream, the keys, the lineup and the announc
   assert.match(s.said, /Chaplinko, the Plinko chat game/);
 
   // quick presses: it settles on the last one, still one live widget at most
-  for (const k of ['both', 'chatagram', 'soon', 'chaplinko', 'chatagram']) await tab.click(`.key[data-scene="${k}"]`);
+  for (const k of ['both', 'chatagram', 'inputty', 'chaplinko', 'chatagram']) await tab.click(`.key[data-scene="${k}"]`);
   await tab.until(`document.querySelector('.sc.on')?.dataset.scene === 'chatagram' && document.querySelectorAll('#vid iframe').length === 1`, 6000, 'settled on Chatagram');
   await sleep(1500);
   s = await tab.eval(state);
@@ -52,8 +52,8 @@ test('the deck switches scenes: the stream, the keys, the lineup and the announc
   assert.deepEqual((await tab.eval(state)).keys, ['both'], 'Cmd/Ctrl+2 left alone');
 
   // the lineup's "Show on stream"
-  await tab.click('.slot[data-scene="soon"] .show');
-  await tab.until(`document.querySelector('.slot.now')?.dataset.scene === 'soon'`, 3000, 'coming soon from the lineup');
+  await tab.click('.slot[data-scene="inputty"] .show');
+  await tab.until(`document.querySelector('.slot.now')?.dataset.scene === 'inputty'`, 3000, 'Inputty from the lineup');
   assert.equal((await tab.eval(state)).overflow, 0);
   assert.deepEqual(tab.errors, []);
   await tab.close();
@@ -80,14 +80,14 @@ test('the deck\'s arrows: left and right step between keys and stop at the ends;
   await tab.until(`document.querySelectorAll('.key').length === 4`, 8000, 'the deck');
   const press = (key) => tab.eval(`(() => { const e = new KeyboardEvent('keydown', { key: '${key}', bubbles: true, cancelable: true }); document.activeElement.dispatchEvent(e); return e.defaultPrevented; })()`);
   const on = `document.querySelector('.key[aria-pressed="true"]').dataset.scene`;
-  await tab.eval(`document.querySelector('.key[data-scene="soon"]').focus(); 1`);
+  await tab.eval(`document.querySelector('.key[data-scene="inputty"]').focus(); 1`);
   await press('End'); await sleep(900);
   assert.equal(await press('ArrowRight'), false, 'Right on the last key does nothing');
   await sleep(900);
-  assert.equal(await tab.eval(on), 'soon', 'no wrapping back to the first');
+  assert.equal(await tab.eval(on), 'inputty', 'no wrapping back to the first');
   assert.equal(await press('ArrowDown'), false, 'Down is left to the page (scrolls)');
   assert.equal(await press('ArrowUp'), false, 'Up is left to the page');
-  assert.equal(await tab.eval(on), 'soon');
+  assert.equal(await tab.eval(on), 'inputty');
   assert.equal(await press('ArrowLeft'), true);
   await tab.until(`${on} === 'both' && document.activeElement.dataset.scene === 'both'`, 3000, 'Left steps back one');
   await tab.eval(`document.querySelector('.key[data-scene="chatagram"]').focus(); 1`);

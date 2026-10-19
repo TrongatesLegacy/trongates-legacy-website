@@ -1,0 +1,92 @@
+/* The guide's building blocks (guide.js, class names g-*). Each page sets the --g-* colours and its own fonts. */
+:root { --g-ink: #fff; --g-muted: #b9b2d6; --g-card: #1c1830; --g-line: #3a3360; --g-acc: #ff7fdc; --g-acc-ink: #1a1030; --g-good: #3ddc84; --g-warn: #ffc93c; --g-radius: 14px; }
+.g-device { display: grid; gap: 4px; justify-items: start; text-align: left; padding: 16px 18px; border-radius: var(--g-radius); cursor: pointer; font: inherit; color: var(--g-ink); background: var(--g-card); border: 2px solid var(--g-line); transition: transform .15s, border-color .15s; }
+.g-device:hover { transform: translateY(-2px); }
+.g-device[aria-pressed=true] { border-color: var(--g-acc); box-shadow: 0 0 0 4px color-mix(in srgb, var(--g-acc) 25%, transparent); }
+.g-device .g-ico { font-size: 28px; line-height: 1; }
+.g-device b { font-size: 18px; }
+.g-device small { color: var(--g-muted); font-size: 13px; }
+.g-layouts { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.g-layout { position: relative; display: grid; gap: 6px; padding: 8px; border-radius: calc(var(--g-radius) - 4px); cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; text-align: left; color: var(--g-ink); background: var(--g-card); border: 2px solid var(--g-line); }
+.g-layout canvas { width: 100%; height: auto; aspect-ratio: 220 / 120; display: block; border-radius: 6px; background: color-mix(in srgb, var(--g-ink) 6%, transparent); }
+.g-layout[aria-pressed=true] { border-color: var(--g-acc); }
+.g-ours { position: absolute; top: 12px; left: 12px; font: 700 10px/1 system-ui, sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: .5px; padding: 3px 6px; border-radius: 99px; background: var(--g-acc); color: var(--g-acc-ink); }
+.g-styles { display: grid; gap: 8px; margin-top: 10px; }
+.g-styles:empty { display: none; }
+.g-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.g-pills button { font: inherit; font-size: 13px; font-weight: 600; padding: 6px 11px; border-radius: 99px; cursor: pointer; color: var(--g-ink); background: var(--g-card); border: 1px solid var(--g-line); }
+.g-pills button[aria-pressed=true] { background: var(--g-acc); color: var(--g-acc-ink); border-color: var(--g-acc); }
+.g-theme { display: inline-flex; flex-direction: column; gap: 6px; align-items: flex-start; padding: 9px 11px; border-radius: 12px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--g-ink); background: var(--g-card); border: 2px solid var(--g-line); }
+.g-theme[aria-pressed=true] { border-color: var(--g-acc); }
+.g-dots { display: flex; }
+.g-dots i { width: 16px; height: 16px; border-radius: 50%; margin-right: -4px; box-shadow: 0 0 0 2px var(--g-card); }
+.g-dots i:nth-child(1) { background: var(--t-edge); } .g-dots i:nth-child(2) { background: var(--t-key); } .g-dots i:nth-child(3) { background: var(--t-hi); } .g-dots i:nth-child(4) { background: var(--t-acc); }
+.g-sw { width: 30px; height: 30px; border-radius: 50%; padding: 0; cursor: pointer; background: var(--c); border: 3px solid var(--g-card); box-shadow: 0 0 0 1px var(--g-line); display: inline-grid; place-items: center; font-size: 12px; color: #fff; text-shadow: 0 0 3px #000; vertical-align: middle; }
+.g-sw[aria-pressed=true] { box-shadow: 0 0 0 3px var(--g-ink); }
+.g-any { background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); overflow: hidden; position: relative; }
+.g-any input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.g-download { display: inline-flex; gap: 14px; align-items: center; padding: 16px 22px; border-radius: var(--g-radius); text-decoration: none; color: var(--g-acc-ink); background: var(--g-acc); font-size: 18px; box-shadow: 0 8px 24px color-mix(in srgb, var(--g-acc) 35%, transparent); }
+.g-download b { display: block; }
+.g-download small { display: block; font-size: 13px; opacity: .8; }
+.g-dl-ico { font-size: 26px; }
+.g-small { font-size: 13px; color: var(--g-muted); margin: 8px 0 0; }
+.g-small a { color: inherit; }
+.g-note { padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--g-warn) 14%, transparent); color: var(--g-ink); }
+.g-status { padding: 11px 14px; border-radius: 12px; font-size: 15px; display: flex; gap: 8px; align-items: center; }
+.g-status.is-wait { background: color-mix(in srgb, var(--g-ink) 7%, transparent); color: var(--g-muted); }
+.g-status.is-good { background: color-mix(in srgb, var(--g-good) 16%, transparent); color: var(--g-ink); }
+.g-status.is-good b { color: var(--g-good); filter: brightness(.9); }
+.g-status.is-warn { background: color-mix(in srgb, var(--g-warn) 16%, transparent); color: var(--g-ink); }
+.g-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: g-spin 1s linear infinite; flex: none; }
+@keyframes g-spin { to { transform: rotate(1turn); } }
+.g-copy { font: inherit; font-weight: 700; font-size: 17px; padding: 14px 22px; border: 0; border-radius: var(--g-radius); cursor: pointer; color: var(--g-acc-ink); background: var(--g-acc); }
+.g-url { display: block; margin-top: 10px; font-size: 12px; word-break: break-all; color: var(--g-muted); background: color-mix(in srgb, var(--g-ink) 6%, transparent); padding: 8px 10px; border-radius: 8px; }
+.g-size { display: block; margin-top: 6px; color: var(--g-muted); }
+@media (prefers-reduced-motion: reduce) { .g-spin { animation: none; } .g-device { transition: none; } }
+
+/* a preset's styles and colours, opened as a full-width row right under its card, with a notch pointing at it */
+.g-layouts > .g-detail { grid-column: 1 / -1; }
+.g-detail { position: relative; display: grid; gap: 12px; padding: 14px 16px 16px; margin: 4px 0 6px; border-radius: var(--g-radius); background: color-mix(in srgb, var(--g-acc) 10%, var(--g-card)); border: 2px solid var(--g-acc); }
+.g-detail::before { content: ""; position: absolute; top: -9px; left: calc(var(--notch-x, 50%) - 8px); width: 14px; height: 14px; background: inherit; border: inherit; border-right: 0; border-bottom: 0; rotate: 45deg; border-radius: 3px 0 0 0; }
+.g-detail-h b { font-size: 15px; }
+.g-detail-row { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 10px; align-items: start; }
+.g-detail-k { font-size: 13px; font-weight: 700; color: var(--g-muted); padding-top: 8px; }
+.g-tiles { display: grid; gap: 8px; }
+.g-tile { display: grid; gap: 4px; padding: 6px; border-radius: 10px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; text-align: left; color: var(--g-ink); background: var(--g-card); border: 2px solid var(--g-line); }
+.g-tile canvas { width: 100%; height: auto; aspect-ratio: 176 / 96; display: block; border-radius: 6px; background: color-mix(in srgb, var(--g-ink) 6%, transparent); }
+.g-tile[aria-pressed=true] { border-color: var(--g-acc); }
+@media (max-width: 560px) { .g-detail-row { grid-template-columns: minmax(0, 1fr); } }
+/* the frame row (after the themes) */
+.g-frame { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; margin-top: 12px; }
+.g-frame-k { font-size: 13px; font-weight: 700; color: var(--g-muted); }
+.g-seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.g-seg button { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 12px; border-radius: 99px; cursor: pointer; color: var(--g-ink); background: var(--g-card); border: 1px solid var(--g-line); }
+.g-seg button[aria-pressed=true] { background: var(--g-acc); color: var(--g-acc-ink); border-color: var(--g-acc); }
+.g-title { font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 10px; color: var(--g-ink); background: var(--g-card); border: 1px solid var(--g-line); width: 170px; }
+
+/* white line art in its own colours, on a light card: a dark backing so it shows (guide.js sets .g-dark) */
+.g-tile canvas.g-dark { background: #26232f; }
+
+/* the theme buttons sit in a balanced grid (g.balance) */
+.g-themes { display: grid; gap: 8px; }
+.g-themes .g-theme { width: 100%; }
+/* the look block: theme, pressed colour, frame, sparkles */
+.g-look { display: grid; gap: 14px; }
+.g-look-row { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 10px; align-items: center; }
+.g-look-row > .g-frame-k { align-self: start; padding-top: 10px; }
+.g-look-f, .g-look-x { display: flex; margin-top: 0; }
+.g-look-f .g-frame-k, .g-look-x .g-frame-k { width: 118px; }
+.g-look-acc { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 560px) { .g-look-row { grid-template-columns: minmax(0, 1fr); } .g-look-f .g-frame-k, .g-look-x .g-frame-k { width: auto; } }
+
+/* the pressed-colour swatches: a balanced grid, so a narrow screen splits them 5 + 5, never 9 + 1 */
+.g-swatches { display: grid !important; gap: 8px; justify-content: start; }
+
+/* device titles stay on one line ("Keyboard & mouse" never leaves "mouse" alone) */
+.g-device b { white-space: nowrap; font-size: clamp(15px, 1.15vw, 18px); }
+/* phones: the frame row stacks (label, choices, title box), so the title box never wraps alone */
+@media (max-width: 560px) { .g-look-f { display: grid !important; grid-template-columns: minmax(0, 1fr); } .g-look-f .g-title { width: 100%; box-sizing: border-box; } }
+
+/* device cards: icon, title and line always start at the same heights, whatever the emoji's size */
+.g-device { align-content: start; grid-template-rows: 36px auto auto; }
+.g-device .g-ico { height: 36px; display: flex; align-items: center; }

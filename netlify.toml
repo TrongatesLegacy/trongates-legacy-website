@@ -44,6 +44,17 @@
     Cache-Control = "public, max-age=86400"
 
 [[headers]]
+  # Inputty's preset pictures and link preview: they change only when the presets are rebuilt
+  for = "/inputty/presets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/inputty/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
   # OBS browser sources load Botrix widgets from botrix.live; the injected CSS (public/obs/botrix/) pulls
   # these fonts cross-origin, which browsers only allow with this header.
   for = "/assets/fonts/*"

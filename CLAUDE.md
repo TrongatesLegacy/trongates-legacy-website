@@ -11,7 +11,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [docs/content-and-voice.md](docs/content-and-voice.md) | writing any copy, speech lines or names |
 | [docs/verification.md](docs/verification.md) | finishing any change: how to check it actually works and looks right |
 | [docs/testing.md](docs/testing.md) | any code change: the automated tests, how loops get caught, adding a test |
-| [docs/widgets.md](docs/widgets.md) | the stream widgets (`/widgets/`), Chatagram (`/chatagram/`) and Chaplinko (`/chaplinko/`): chat reading, settings links, themes, the games, words, physics and odds |
+| [docs/widgets.md](docs/widgets.md) | the stream widgets (`/widgets/`), Chatagram (`/chatagram/`), Chaplinko (`/chaplinko/`) and Inputty (`/inputty/`, the keyboard/controller overlay): chat reading, settings links, themes, the games, words, physics and odds, presets |
 | [artwork/README.md](artwork/README.md) | making or changing any artwork: how every piece is built |
 | [artwork/kick/README.md](artwork/kick/README.md) | Kick about panels, channel banner, offline banner |
 | [artwork/discord/README.md](artwork/discord/README.md) | Discord profile banner |
@@ -23,6 +23,7 @@ this file is the entry point. Read the doc for the area you're touching before c
 | [artwork/chatagram/README.md](artwork/chatagram/README.md) | Chatagram's link-preview image |
 | [artwork/chaplinko/README.md](artwork/chaplinko/README.md) | Chaplinko's link-preview image and pictures |
 | [artwork/widgets/README.md](artwork/widgets/README.md) | the widgets page's link-preview image |
+| [artwork/inputty/README.md](artwork/inputty/README.md) | Inputty's link-preview image and widgets-page scene |
 | [obs/README.md](obs/README.md) | the OBS scene overlays, control dock and Botrix CSS (hosted under /obs/) |
 
 Project skills in `.claude/skills/` hold the step-by-step procedures: **verify-site-change** (after any
@@ -78,6 +79,7 @@ public/obs/                  OBS scene overlays, index page, control dock, Botri
 public/widgets/              free stream widgets for any streamer: the list page and the shared library (docs/widgets.md)
 public/chatagram/            Chatagram: the page, the OBS overlay (play.html), the game, the word lists (docs/widgets.md)
 public/chaplinko/            Chaplinko: the page, the board (play.html), the leaderboard source, physics, odds (docs/widgets.md)
+public/inputty/              Inputty: the page, the overlay (play.html), lib/, the preset pictures (docs/widgets.md)
 netlify/functions/feed.mjs   GET /api/feed: live YouTube list + Kick live status
 netlify/functions/kick-chat.mjs  GET /api/kick-chat: Kick's current Pusher key, for the widgets (docs/widgets.md)
 netlify.toml                 publish dir, functions dir, headers, build-skip rule
@@ -102,6 +104,7 @@ artwork/                     images made for other places, all built the same wa
   chatagram/                   Chatagram's link-preview image; renders into public/chatagram/assets/og.jpg
   chaplinko/                   Chaplinko's link-preview image and pictures; render into public/chaplinko/assets/
   widgets/                     the widgets page's link-preview image; renders into public/widgets/assets/og.jpg
+  inputty/                     Inputty's link preview and scene picture; the full-size preset originals
 ```
 
 ## Commands
@@ -120,6 +123,8 @@ node --experimental-websocket artwork/chaplinko/render-previews.mjs  # re-render
 node --experimental-websocket artwork/widgets/render.mjs       # re-render the widgets page's link-preview image (after either game's look changes)
 node scripts/chaplinko-odds.mjs                                # re-make Chaplinko's odds table (after any physics.js change; ~1 min)
 node scripts/build-words.mjs --scowl /tmp/scowl                # rebuild Chatagram's word lists (docs/widgets.md, "Words")
+node scripts/inputty-presets.mjs /tmp/input-overlay/presets    # rebuild Inputty's presets from a clone of input-overlay (needs cwebp)
+node --experimental-websocket artwork/inputty/render.mjs       # re-render Inputty's link preview and widgets-page scene
 python3 obs/build-scenes.py                                    # regenerate the OBS scene overlays
 scripts/lighthouse.sh --local                                  # Lighthouse before pushing (needs dev.mjs running; +Princess/Blobfish when their theme changed, --forms to force)
 scripts/lighthouse.sh                                          # Lighthouse on the live site after deploy
