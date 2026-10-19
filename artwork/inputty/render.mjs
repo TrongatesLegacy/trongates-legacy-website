@@ -1,7 +1,8 @@
 // Renders Inputty's pictures from the real overlay, with a few keys held down: artwork/inputty/og.html to
 // public/inputty/assets/og.jpg (1200 × 630, the link preview) and artwork/inputty/scene.html to
 // public/inputty/assets/scene.webp (960 × 540, its scene and lineup picture on the widgets page). The pages are served
-// next to public/ (the test server).
+// next to public/ (the test server). Dates the preview's address in public/inputty/index.html (?v=), so sites that
+// cached the old one fetch it again.
 // Usage: node --experimental-websocket artwork/inputty/render.mjs   (needs Google Chrome + ffmpeg). Look at it after.
 import { readFileSync, writeFileSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -29,5 +30,8 @@ try {
   const og = join(root, 'public/inputty/assets/og.jpg'), scene = join(root, 'public/inputty/assets/scene.webp');
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', await shoot('/og-compose.html', 1200, 630), '-q:v', '3', og]);
   execFileSync('cwebp', ['-quiet', '-q', '84', await shoot('/scene-compose.html', 960, 540), '-o', scene]);
-  console.log(`og.jpg (${Math.round(statSync(og).size / 1024)} KB), scene.webp (${Math.round(statSync(scene).size / 1024)} KB) in public/inputty/assets/. Look at them before committing.`);
+  // sites keep a link preview by its address: a new date makes them fetch this one
+  const page = join(root, 'public/inputty/index.html'), v = new Date().toISOString().slice(0, 10);
+  writeFileSync(page, readFileSync(page, 'utf8').replace(/(inputty\/assets\/og\.jpg)(\?v=[\w-]+)?"/g, `$1?v=${v}"`));
+  console.log(`og.jpg (${Math.round(statSync(og).size / 1024)} KB), scene.webp (${Math.round(statSync(scene).size / 1024)} KB) in public/inputty/assets/, the preview's address dated ?v=${v}. Look at them before committing.`);
 } finally { await chrome.close(); await site.close(); }

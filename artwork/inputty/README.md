@@ -12,7 +12,8 @@ page: keep the two identical, so the picture can fade out under the live overlay
 node --experimental-websocket artwork/inputty/render.mjs
 ```
 
-Re-run after any change to the overlay's look or the starting layout (also in the `SC.inputty` link in
+It also dates the preview's address in `public/inputty/index.html` (`og.jpg?v=…`): X, Discord and the rest keep a
+preview by its address, so without a new one they go on showing the old picture. Re-run after any change to the overlay's look or the starting layout (also in the `SC.inputty` link in
 `public/widgets/index.html`), and look at both before committing.
 
 `presets/` holds the full-size original preset pictures from input-overlay (GPL-2.0, see `public/inputty/presets/LICENSE.txt`),

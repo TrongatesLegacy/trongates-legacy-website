@@ -65,7 +65,14 @@ test('Inputty: the words people search with, a breadcrumb, in the sitemap, and i
 test('each widget page shares its own link-preview image, and the image is there', () => {
   for (const [p, dir] of [['widgets/index.html', 'widgets'], ['chatagram/index.html', 'chatagram'], ['chaplinko/index.html', 'chaplinko'], ['inputty/index.html', 'inputty']]) {
     const img = page(p).match(/<meta property="og:image" content="([^"]*)"/)[1];
-    assert.equal(img, `https://www.trongateslegacy.com/${dir}/assets/og.jpg`, p);
+    assert.match(img, new RegExp(`^https://www\\.trongateslegacy\\.com/${dir}/assets/og\\.jpg(\\?v=[\\w-]+)?$`), p);
     assert.ok(existsSync(new URL(`../../public/${dir}/assets/og.jpg`, import.meta.url)), `${dir}/assets/og.jpg is missing`);
   }
+});
+
+// Inputty's preview was re-rendered after it had been shared, and X and Discord kept the old one (the owner,
+// 2026-10-19): they cache a preview by its address, so render.mjs dates it, as the home page's is
+test("Inputty's link-preview image is versioned, so a re-rendered one is fetched again", () => {
+  assert.match(page('inputty/index.html'), /<meta property="og:image" content="[^"]*\/inputty\/assets\/og\.jpg\?v=\d{4}-\d{2}-\d{2}">/);
+  assert.match(readFileSync(new URL('../../artwork/inputty/render.mjs', import.meta.url), 'utf8'), /\?v=/, 'render.mjs bumps it');
 });
