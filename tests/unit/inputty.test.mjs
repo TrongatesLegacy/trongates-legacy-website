@@ -126,3 +126,17 @@ test('colours: a chosen key colour is line art\'s line colour exactly; the named
   assert.equal(L.look({ ...L.DEFAULTS, theme: 'neutral' }).lines, L.THEMES.neutral.lines);
   assert.equal(L.look({ ...L.DEFAULTS, ink: '123456' }).ink, '123456', 'Letters ride in the link');
 });
+
+// Owner (2026-10-19): Two big keys (made for osu!) keeps Z and X, but you can pick your own two
+test('Two big keys take any two keys from the link (keys=KeyA,KeyS), with their own letters; an unknown key keeps the default', () => {
+  const { IO_PRESETS: P, IOOurs: O, IOLooks: L } = lib(['presets.js', 'ours.js', 'looks.js']);
+  const v = P.find((p) => p.id === 'game-keys').variants.find((x) => x.name === 'Two big keys');
+  assert.equal(v.pick, 2);
+  const keys = (s) => Array.from(O.withKeys(v.drawn, s).keys, (k) => k[0] + ':' + k[1]).join(' ');
+  assert.equal(keys(''), 'KeyZ:Z KeyX:X');
+  assert.equal(keys('KeyA,KeyS'), 'KeyA:A KeyS:S');
+  assert.equal(keys('Space,Digit1'), 'Space:Space Digit1:1');
+  assert.equal(keys('Nope,KeyS'), 'KeyZ:Z KeyS:S');
+  assert.equal(L.read(new URLSearchParams('keys=KeyA,KeyS')).keys, 'KeyA,KeyS');
+  assert.equal(L.query(L.DEFAULTS), '', 'no keys in a link that keeps Z and X');
+});

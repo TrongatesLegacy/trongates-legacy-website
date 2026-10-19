@@ -33,7 +33,8 @@
       { name: 'WASD', drawn: keyboard(pick('KeyQ KeyW KeyE KeyA KeyS KeyD ShiftLeft ControlLeft Space', { Space: 2.75, ControlLeft: 1.25 }).map((k) => (k[0] === 'Space' ? [k[0], k[1], 1.25, k[3], 3.25, k[5]] : k))) },
       { name: 'MOBA', drawn: keyboard(pick('Digit1 Digit2 Digit3 Digit4 Digit5 Digit6 Digit7 KeyQ KeyW KeyE KeyR KeyA KeyS KeyD KeyF KeyB Space', { Space: 4 })) },
       { name: 'Arrows + Z X C', drawn: keyboard(own([['ShiftLeft', 'Shift', 0, 1, 1.5], ['KeyZ', 'Z', 1.5, 1], ['KeyX', 'X', 2.5, 1], ['KeyC', 'C', 3.5, 1], ['ArrowUp', '↑', 6, 0], ['ArrowLeft', '←', 5, 1], ['ArrowDown', '↓', 6, 1], ['ArrowRight', '→', 7, 1]])) },
-      { name: 'Two big keys', drawn: keyboard(own([['KeyZ', 'Z', 0, 0, 1.75, 1.75], ['KeyX', 'X', 2, 0, 1.75, 1.75]])) },
+      // pick: how many of its keys you can choose (the link's keys=, withKeys below)
+      { name: 'Two big keys', pick: 2, drawn: keyboard(own([['KeyZ', 'Z', 0, 0, 1.75, 1.75], ['KeyX', 'X', 2, 0, 1.75, 1.75]])) },
     ] },
     { id: 'keyboard', group: 'Keyboard', name: 'Keyboard', licence: 'ours', ours: true, variants: [
       { name: 'No number pad', drawn: keyboard(K.map((k) => [...k])) },
@@ -57,5 +58,14 @@
       { name: 'With movement', drawn: { kind: 'mouse', move: true } },
     ] },
   ];
+  /** a key's letter as our keyboards print it ('' when it isn't one of their keys) */
+  const known = new Map([...K, ...NUMPAD].map((k) => [k[0], k[1] || 'Space']));
+  const label = (code) => known.get(code) || '';
+  /** a layout with its keys swapped for the chosen ones ('KeyA,KeyS'), in order; an unknown one keeps its own */
+  const withKeys = (spec, keys) => {
+    const codes = String(keys || '').split(',');
+    return { ...spec, keys: spec.keys.map((k, i) => (label(codes[i]) ? [codes[i], label(codes[i]), ...k.slice(2)] : [...k])) };
+  };
+  window.IOOurs = { label, withKeys };
   window.IO_PRESETS.push(...OURS);   // after input-overlay's presets (the owner: WASD and Mouse are the defaults)
 })();

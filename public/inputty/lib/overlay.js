@@ -56,7 +56,7 @@
         views.push({ kind: 'history', el });
         continue;
       }
-      const view = variant.drawn ? new window.IODrawn.DrawnView(variant.drawn)
+      const view = variant.drawn ? new window.IODrawn.DrawnView(variant.pick ? window.IOOurs.withKeys(variant.drawn, s.keys) : variant.drawn)
         : ((art) => new PresetView(variant.layout, art.src, { pixel: variant.pixel, aw: art.aw }))(variant.arts[Math.min(ai, variant.arts.length - 1)]);
       const el = document.createElement('div');
       el.className = 'view' + (variant.pixel ? ' pixel' : '');

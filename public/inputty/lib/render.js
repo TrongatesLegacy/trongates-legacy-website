@@ -151,19 +151,21 @@
     levels() {
       if (this._levels) return this._levels;
       const { px, mask } = this.pressedMask();
-      const hist = new Uint32Array(256);
-      let n = 0, sum = 0, rest = 0, restSum = 0;
+      const hist = new Uint32Array(256), pHist = new Uint32Array(256);
+      let n = 0, sum = 0, rest = 0, restSum = 0, pN = 0;
       for (let i = 0, p = 0; i < px.length; i += 4, p++) {
         if (px[i + 3] < 128) continue;
         const l = (px[i] * 77 + px[i + 1] * 150 + px[i + 2] * 29) >> 8;
         hist[l]++; n++; sum += l;
         // "light line art" is judged on the resting look only (pressed sprites are often filled and darker)
-        if (!mask[p]) { rest++; restSum += l; }
+        if (!mask[p]) { rest++; restSum += l; } else if (px[i + 3] > 40) { pHist[l]++; pN++; }
       }
-      const at = (q) => { let c = 0; for (let l = 0; l < 256; l++) { c += hist[l]; if (c >= q * n) return l; } return 255; };
+      const at = (q, h = hist, m = n) => { let c = 0; for (let l = 0; l < 256; l++) { c += h[l]; if (c >= q * m) return l; } return 255; };
       let lo = at(0.02), hi = at(0.98);
       if (hi - lo < 40) { lo = Math.max(0, lo - 20); hi = Math.min(255, hi + 20); }
-      return (this._levels = { lo, hi, light: rest > 0 ? restSum / rest > 185 : n > 0 && sum / n > 185 });
+      // flat: the pressed parts are one shade (often a see-through black fill, as in WASD + number pad), which the
+      // ramp would put at its dark end (the accent mixed into the edge colour): drawn as the accent itself instead
+      return (this._levels = { lo, hi, light: rest > 0 ? restSum / rest > 185 : n > 0 && sum / n > 185, flat: pN > 0 && at(0.95, pHist, pN) - at(0.05, pHist, pN) < 40 });
     }
 
     /** look: null (the art's own colours) or { edge, key, hi, accent } */
@@ -174,7 +176,7 @@
       if (!look) { this.atlas = this.img; return; }
       const { mask, px, W, H } = this.pressedMask();
       let { base, accent } = luts(look);
-      const { lo, hi, light } = this.levels();
+      const { lo, hi, light, flat } = this.levels();
       // light line art (white outlines) on a light theme would vanish: draw it dark instead
       const flip = light && look.lightBg;
       // light line art on dark: lines take the theme's key colour (not its near-white shine), so the theme shows
@@ -194,6 +196,7 @@
         let l = (px[i] * 77 + px[i + 1] * 150 + px[i + 2] * 29) >> 8;
         l = Math.max(0, Math.min(255, Math.round(((l - lo) * 255) / (hi - lo || 1))));
         if (flip && !mask[p]) l = 255 - l;
+        if (flat && mask[p]) l = 128;
         const lut = mask[p] ? accent : base;
         o[i] = lut[l * 3]; o[i + 1] = lut[l * 3 + 1]; o[i + 2] = lut[l * 3 + 2];
         // some presets draw the pressed look see-through, which muddies the accent: make it near-solid

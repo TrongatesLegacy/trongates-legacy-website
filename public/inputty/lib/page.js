@@ -152,7 +152,16 @@
     g.ui.layouts($('layouts1'), d === 'pad' ? 'controller' : 'keyboard', 'p');
     $('layouts2wrap').hidden = d === 'pad';
     if (d !== 'pad') { $('lay2').textContent = d === 'both' ? 'And your controller' : 'And your mouse'; g.ui.layouts($('layouts2'), d === 'both' ? 'controller' : 'mouse', 'p2'); }
+    showLayouts();
   }
+  // keyboard & mouse can be just one of them: the other's pictures are put away
+  function showLayouts() {
+    const d = g.s.device || 'kbm', w = d === 'kbm' ? g.kbmParts() : 'both';
+    $('layouts1wrap').hidden = w === 'mouse';
+    $('layouts2wrap').hidden = d === 'pad' || w === 'keyboard';
+    if (d === 'kbm') $('lay2').textContent = w === 'mouse' ? 'Mouse' : 'And your mouse';
+  }
+  g.ui.kbmParts($('which'));
   // built when a device is picked (step 2 is hidden until then): its pictures are drawn off the page's load
   if (g.s.device) buildLayouts();
   g.ui.download($('dl'));
@@ -192,13 +201,13 @@
   // ---- progress: parts list, steps, the desk filling up, what the little person says ----
   function parts() {
     const d = g.s.device;
-    const on = { keyboard: d === 'kbm' || d === 'both', mouse: d === 'kbm', controller: d === 'pad' || d === 'both', helper: g.needsHelper() || !d, obs: true, link: true };
+    const on = { keyboard: (d === 'kbm' && !!g.s.p) || d === 'both', mouse: d === 'kbm' && !!g.s.p2, controller: d === 'pad' || d === 'both', helper: g.needsHelper() || !d, obs: true, link: true };
     const got = { keyboard: on.keyboard && !!d, mouse: on.mouse && !!d, controller: on.controller && !!d, helper: g.ws.status === 'found', obs: g.ws.status === 'found' || copied, link: copied };
     document.querySelectorAll('#parts li[data-part]').forEach((li) => { const k = li.dataset.part; li.classList.toggle('off', !!d && !on[k]); li.classList.toggle('got', !!got[k]); });
   }
   function desk() {
     const d = g.s.device, pad = d === 'pad';
-    const on = { kb: d === 'kbm' || d === 'both', mouse: d === 'kbm', 'pad-a': pad, 'pad-b': d === 'both', finish: done.has(3), tower: done.has(4) || (pad && done.has(1)), lamp: done.has(6), 'box-open': !done.has(7), 'box-flat': done.has(7) };
+    const on = { kb: (d === 'kbm' && !!g.s.p) || d === 'both', mouse: d === 'kbm' && !!g.s.p2, 'pad-a': pad, 'pad-b': d === 'both', finish: done.has(3), tower: done.has(4) || (pad && done.has(1)), lamp: done.has(6), 'box-open': !done.has(7), 'box-flat': done.has(7) };
     const cableOn = done.has(5) || (pad && done.has(3));
     stage.querySelectorAll('.part').forEach((p) => p.classList.toggle('out', !on[p.dataset.part]));
     $('peek').classList.toggle('gone', !!d);
@@ -212,8 +221,8 @@
   }
   const TIPS = {
     1: ['guy-point', "Start with step 1. Pick what you play with and it drops onto the desk."],
-    2: ['guy-point', 'Pick your keyboard and mouse. Try your own keys and watch the desk screen.'],
-    3: ['guy-point', 'Now the fun part: make it yours. One set of colours for both.'],
+    2: ['guy-point', 'Pick your keyboard and mouse, or just one. Try your own keys and watch the desk screen.'],
+    3: ['guy-point', 'Now the fun part: make it yours. A theme, your colours, a frame.'],
     4: ['guy-point', 'Close OBS, grab the helper, click Next a few times. Have a practice run first if you like.'],
     5: ['guy-point', "Tools → input-overlay settings. Tick the box. Restart OBS. I'll spot it."],
     6: ['guy-point', 'Copy the link, then Sources ＋ → Browser. Paste, set the size, OK.'],
@@ -274,7 +283,7 @@
       clearTimeout(faceT);
       faceT = setTimeout(() => { if (!flat) { flat = true; placeScreen(); } }, reduced ? 0 : 950);
     }
-    if (why === 'layout') marked.add(2);
+    if (why === 'layout') { marked.add(2); showLayouts(); }
     else if (LOOK.includes(why)) marked.add(3);
     if (why === 'theme' || why === 'accent') keyAccent();
     if (why === 'copied') { copied = true; marked.add(6); }

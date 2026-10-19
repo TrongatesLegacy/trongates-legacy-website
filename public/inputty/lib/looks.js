@@ -26,6 +26,7 @@
     theme: 'zojie', accent: '', key: '', edge: '', hi: '', ink: '',   // ink: the letters (our drawn presets only)
     orig: 0,                          // 1 = the art's own colours (theme still draws the frame)
     frame: '',                        // none | panel | window ('' = the theme's own)
+    keys: '',                         // Two big keys' own keys, as codes ('KeyA,KeyS'; '' = Z and X)
     title: 'my inputs', bgo: 90, fx: '', outline: 1, port: 16899, demo: 0,
   };
   function read(q = new URLSearchParams(location.search)) {

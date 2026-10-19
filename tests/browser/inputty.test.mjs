@@ -189,3 +189,155 @@ test("the overlay: a chosen key colour is exactly the colour of WASD's lines", a
   assert.equal(top, 'ff3366');
   await tab.close();
 });
+
+test('keyboard and mouse: just the keyboard or just the mouse leaves the other out of the link and off the desk; switching back brings it back', async () => {
+  const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width: 1536, height: 960, reducedMotion: true });
+  await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+  assert.equal(await tab.eval(`document.getElementById('which').hidden`), true, 'nothing to choose before a device');
+  await tab.click('.g-device[data-d="kbm"]');
+  await tab.until(`!!document.querySelector('#which [data-w="keyboard"]')`, 4000, 'the choice');
+  const url = () => tab.eval(`document.querySelector('.g-url').textContent`);
+  const out = (part) => tab.eval(`document.querySelector('[data-part="${part}"]').classList.contains('out')`);
+  const pressed = `document.querySelector('#which [aria-pressed=true]').dataset.w`;
+  assert.equal(await tab.eval(pressed), 'both');
+  await tab.click('#layouts2 .g-layout[data-id="game-mouse"]');
+  await tab.click('#which [data-w="keyboard"]');
+  assert.match(await url(), /[?&]p2=(&|$)/, 'no mouse in the link');
+  assert.match(await url(), /[?&]p=wasd/);
+  assert.equal(await tab.eval(`document.getElementById('layouts2wrap').hidden`), true);
+  assert.equal(await out('mouse'), true, 'the mouse leaves the desk');
+  assert.equal(await out('kb'), false);
+  await tab.click('#which [data-w="mouse"]');
+  assert.match(await url(), /[?&]p=(&|$)/, 'no keyboard in the link');
+  // the mouse picked before comes back (Gaming mouse is the link's default second layout, so the link leaves it out)
+  assert.doesNotMatch(await url(), /[?&]p2=/);
+  assert.equal(await tab.eval(`document.querySelector('#layouts2 .g-layout[aria-pressed=true]').dataset.id`), 'game-mouse');
+  assert.equal(await tab.eval(`document.getElementById('layouts1wrap').hidden`), true);
+  assert.equal(await tab.eval(`document.getElementById('layouts2wrap').hidden`), false);
+  assert.equal(await out('kb'), true);
+  assert.equal(await out('mouse'), false);
+  assert.equal(await tab.eval(pressed), 'mouse');
+  await tab.click('#which [data-w="both"]');
+  assert.match(await url(), /[?&]p=wasd/, 'both back as they were');
+  assert.doesNotMatch(await url(), /[?&]p2=/);
+  // a controller has no such choice
+  await tab.click('.g-device[data-d="pad"]');
+  assert.equal(await tab.eval(`document.getElementById('which').hidden`), true);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+test('the overlay draws just the keyboard or just the mouse when the other is left out of the link', async () => {
+  for (const q of ['p=wasd&v=0&p2=', 'p=&p2=mouse']) {
+    const tab = await chrome.open(site.origin + '/inputty/play.html?demo=1&' + q, { width: 900, height: 420 });
+    await tab.until(`document.documentElement.dataset.ready === '1'`, 8000, 'the overlay drawn');
+    assert.equal(await tab.eval(`document.querySelectorAll('.views .view').length`), 1, q);
+    assert.deepEqual(tab.errors, []);
+    await tab.close();
+  }
+});
+
+test('on a phone the layouts are a grid, never one long column, and every card in a grid is the same width', async () => {
+  const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width: 390, height: 844, mobile: true, reducedMotion: true });
+  await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+  const grids = `[...document.querySelectorAll('#s2 .g-layouts, #s2 .g-tiles')].filter((g) => g.offsetParent).map((g) => {
+    const items = [...g.children].filter((c) => !c.classList.contains('g-detail'));
+    return { cols: getComputedStyle(g).gridTemplateColumns.split(' ').length, widths: [...new Set(items.map((c) => Math.round(c.getBoundingClientRect().width)))] };
+  })`;
+  for (const d of ['pad', 'kbm']) {
+    await tab.click(`.g-device[data-d="${d}"]`);
+    await tab.until(`!!document.querySelector('#s2 .g-tiles')`, 4000, 'the styles');
+    await sleep(300);
+    for (const g of await tab.eval(grids)) {
+      assert.ok(g.cols >= 2, `${d}: two or more columns`);
+      assert.equal(g.widths.length, 1, `${d}: one width (${g.widths})`);
+    }
+  }
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+test("a pressed key is the theme's pressed colour, even where the picture draws presses as a dark fill (WASD + number pad)", async () => {
+  const tab = await chrome.open(site.origin + '/inputty/play.html?demo=1&p=wasd-numpad&p2=', { width: 900, height: 420 });
+  await tab.until(`document.documentElement.dataset.ready === '1'`, 8000, 'the overlay drawn');
+  // the pressed parts of the recoloured picture, by colour: Candy's pressed colour, not mixed with its deep violet
+  const top = await tab.eval(`(async () => {
+    const p = IO_PRESETS.find((x) => x.id === 'wasd-numpad'), v = p.variants[0], art = v.arts[0];
+    const view = new IORender.PresetView(v.layout, art.src, { pixel: v.pixel, aw: art.aw });
+    await view.load();
+    view.setLook(IOLooks.look({ ...IOLooks.DEFAULTS, theme: 'candy' }));
+    const { mask, W, H } = view.pressedMask();
+    const d = view.atlas.getContext('2d').getImageData(0, 0, W, H).data, m = new Map();
+    for (let q = 0; q < W * H; q++) if (mask[q] && d[q * 4 + 3] > 200) { const k = ((d[q * 4] << 16) | (d[q * 4 + 1] << 8) | d[q * 4 + 2]).toString(16).padStart(6, '0'); m.set(k, (m.get(k) || 0) + 1); }
+    return [...m].sort((a, b) => b[1] - a[1])[0][0];
+  })()`);
+  const near = (a, b) => [0, 2, 4].every((i) => Math.abs(parseInt(a.slice(i, i + 2), 16) - parseInt(b.slice(i, i + 2), 16)) <= 3);
+  assert.ok(near(top, 'ffd23f'), `Candy's pressed colour, not ${top}`);
+  await tab.close();
+});
+
+test('Two big keys: click a key, press the one you use; it goes in the link (and the preview), taking the other\'s place swaps them', async () => {
+  const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width: 1536, height: 960, reducedMotion: true });
+  await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+  await tab.click('.g-device[data-d="kbm"]');
+  await tab.until(`!!document.querySelector('#layouts1 .g-layout[data-id="game-keys"]')`, 4000, 'Game keys');
+  await tab.click('#layouts1 .g-layout[data-id="game-keys"]');
+  await tab.until(`!!document.querySelector('#layouts1 .g-tile[data-v="5"]')`, 4000, 'its styles');
+  assert.equal(await tab.eval(`!!document.querySelector('#layouts1 .g-key')`), false, 'only Two big keys has keys to pick');
+  await tab.click('#layouts1 .g-tile[data-v="5"]');
+  const keys = `[...document.querySelectorAll('#layouts1 .g-key')].map((b) => b.textContent).join(' ')`;
+  assert.equal(await tab.eval(keys), 'Z X');
+  const press = async (code, key) => { await tab.send('Input.dispatchKeyEvent', { type: 'keyDown', code, key }); await tab.send('Input.dispatchKeyEvent', { type: 'keyUp', code, key }); };
+  const url = () => tab.eval(`document.querySelector('.g-url').textContent`);
+  await tab.click('#layouts1 .g-key[data-ki="0"]');
+  assert.equal(await tab.eval(`document.querySelector('#layouts1 .g-key[data-ki="0"]').textContent`), 'Press a key…');
+  await press('KeyA', 'a');
+  assert.equal(await tab.eval(keys), 'A X');
+  assert.match(await url(), /[?&]keys=KeyA%2CKeyX/);
+  assert.match(await tab.eval(`document.getElementById('preview').src`), /keys=KeyA%2CKeyX/, 'the preview shows them');
+  await tab.click('#layouts1 .g-key[data-ki="1"]');
+  await press('KeyA', 'a');
+  assert.equal(await tab.eval(keys), 'X A', 'the same key twice swaps them');
+  await tab.click('#layouts1 .g-key[data-ki="0"]');
+  await press('Escape', 'Escape');
+  assert.equal(await tab.eval(keys), 'X A', 'Escape keeps what was there');
+  // Space, which would click the focused button, is just a key here
+  await tab.eval(`document.querySelector('#layouts1 .g-key[data-ki="1"]').focus()`);
+  await tab.click('#layouts1 .g-key[data-ki="1"]');
+  await press('Space', ' ');
+  await sleep(100);
+  assert.equal(await tab.eval(keys), 'X Space');
+  // back to Z and X leaves keys out of the link; another style leaves them out too
+  await tab.click('#layouts1 .g-tile[data-v="4"]');
+  assert.doesNotMatch(await url(), /keys=/);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+test('the overlay draws Two big keys with the keys from the link, and they light up', async () => {
+  const tab = await chrome.open(site.origin + '/inputty/play.html?p=game-keys&v=5&p2=&keys=KeyA,KeyS', { width: 900, height: 420 });
+  await tab.until(`document.documentElement.dataset.ready === '1'`, 8000, 'the overlay drawn');
+  const lit = () => tab.eval(`(() => { const c = document.querySelector('canvas'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200 && Math.abs(d[i] - 0xb1) < 12 && Math.abs(d[i + 1] - 0x8c) < 12 && Math.abs(d[i + 2] - 0xff) < 12) n++; return n; })()`);
+  const before = await lit();
+  await tab.send('Input.dispatchKeyEvent', { type: 'keyDown', code: 'KeyA', key: 'a' });
+  await sleep(250);
+  assert.ok(await lit() > before + 500, 'A lights up');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+test('Theme colours after picking one of a layout\'s own pictures (DualSense, Black) recolours the picture its tile shows, the first', async () => {
+  const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width: 1536, height: 960, reducedMotion: true });
+  await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+  await tab.click('.g-device[data-d="pad"]');
+  await tab.until(`!!document.querySelector('#layouts1 .g-layout[data-id="dualsense"]')`, 4000, 'the DualSense');
+  await tab.click('#layouts1 .g-layout[data-id="dualsense"]');
+  await tab.until(`!!document.querySelector('#layouts1 .g-tile[data-a="1"]')`, 4000, 'its pictures');
+  const url = () => tab.eval(`document.querySelector('.g-url').textContent`);
+  await tab.click('#layouts1 .g-tile[data-a="1"]');
+  assert.match(await url(), /[?&]a=1&.*orig=1/, 'Black, its own colours');
+  await tab.click('#layouts1 .g-tile[data-orig="0"]');
+  assert.doesNotMatch(await url(), /[?&](a|orig)=/, 'the first picture, in the theme');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});

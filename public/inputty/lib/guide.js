@@ -69,7 +69,7 @@
   function create({ theme = 'zojie' } = {}) {
     // starts on WASD and Mouse (the owner), written into the link (a link without them means looks.js's DEFAULTS)
     const s = { ...L.DEFAULTS, ...DEVICE_DEFAULTS.kbm, theme, device: '', title: 'my inputs' };
-    const subs = new Set();
+    const subs = new Set(), kept = {};
     const g = {
       s, OS, INSTALLER, P, L,
       ws: { status: 'looking', tries: 0, gotKey: false, gotPad: false },
@@ -79,9 +79,22 @@
       set(patch, why = 'set') { Object.assign(s, patch); syncPreview(); g.emit(why); },
       device(d) { g.set({ device: d, ...DEVICE_DEFAULTS[d] }, 'device'); },
       needsHelper() { return s.device === 'kbm' || s.device === 'both'; },
+      /** keyboard and mouse: 'both', or 'keyboard' / 'mouse' alone (the other's slot empty, '' in the link) */
+      kbmParts() { return !s.p ? 'mouse' : !s.p2 ? 'keyboard' : 'both'; },
+      kbmShow(w) {
+        const patch = {};
+        for (const [p, v, a, on] of [['p', 'v', 'a', w !== 'mouse'], ['p2', 'v2', 'a2', w !== 'keyboard']]) {
+          // the one put away is kept, so switching back brings it back as it was
+          if (!on && s[p]) { kept[p] = { [p]: s[p], [v]: s[v], [a]: s[a] }; Object.assign(patch, { [p]: '', [v]: 0, [a]: 0 }); }
+          if (on && !s[p]) Object.assign(patch, kept[p] || { [p]: DEVICE_DEFAULTS.kbm[p], [v]: 0, [a]: 0 });
+        }
+        g.set(patch, 'layout');
+      },
       presets(kind) { return P.filter((p) => KIND[p.group] === kind); },
       preset(id) { return P.find((p) => p.id === id); },
-      url(preview) { const q = L.query(preview ? { ...s, demo: 1 } : { ...s, demo: 0 }); return new URL('/inputty/play.html' + (q ? '?' + q : ''), location.href).href; },
+      /** how many keys the chosen keyboard style lets you pick (Two big keys: 2), else 0 */
+      picks() { return g.preset(s.p)?.variants[s.v]?.pick || 0; },
+      url(preview) { const q = L.query({ ...s, keys: g.picks() ? s.keys : '', demo: preview ? 1 : 0 }); return new URL('/inputty/play.html' + (q ? '?' + q : ''), location.href).href; },
       async copy(btn, label = btn.textContent) {
         try { await navigator.clipboard.writeText(g.url(false)); btn.textContent = 'Copied ✓'; } catch { btn.textContent = 'Select the link and copy it'; }
         g.emit('copied');
@@ -94,7 +107,7 @@
     let layoutKey = '';
     g.preview = (iframe) => { frames.add(iframe); iframe.src = g.url(true); return iframe; };
     function syncPreview() {
-      const key = [s.p, s.v, s.a, s.p2, s.v2, s.a2].join();
+      const key = [s.p, s.v, s.a, s.p2, s.v2, s.a2, s.keys].join();
       const look = { theme: s.theme, accent: s.accent, key: s.key, edge: s.edge, hi: s.hi, ink: s.ink, orig: s.orig, frame: s.frame, title: s.title, bgo: s.bgo, fx: s.fx, outline: s.outline };
       frames.forEach((f) => { if (key !== layoutKey) f.src = g.url(true); else f.contentWindow?.postMessage({ type: 'io-look', look }, '*'); });
       layoutKey = key;
@@ -241,9 +254,14 @@
             const roomy = Math.max(cap, Math.floor((w + gap) / (min * 0.7 + gap)));
             for (let k = cap + 1; k <= Math.min(n, roomy) && !best; k++) if (n % k === 0 || n % k >= 2) best = k;
           }
-          best ??= n % cap === 1 ? 1 : cap;
+          // still none (13 controllers, room for 2): keep the columns that fit, the last one centred, as wide as the
+          // rest (one column of everything made phones a long scroll, and tiles beside it looked wider)
+          best ??= cap;
         }
         el.style.gridTemplateColumns = `repeat(${best}, minmax(0, ${max === Infinity ? '1fr' : max + 'px'}))`;
+        items.forEach((c) => { c.style.gridColumn = ''; c.style.justifySelf = ''; c.style.width = ''; });
+        const last = items[n - 1];
+        if (best > 1 && n % best === 1) Object.assign(last.style, { gridColumn: '1 / -1', justifySelf: 'center', width: items[0].offsetWidth + 'px' });
       };
       new ResizeObserver(fit).observe(el);
       new MutationObserver(fit).observe(el, { childList: true });
@@ -259,6 +277,17 @@
         if (!el.querySelector('.g-device')) el.innerHTML = Object.entries(L2).map(([k, [ico, t, d]]) => `<button type="button" class="g-device" data-d="${k}" aria-pressed="${s.device === k}"><span class="g-ico">${ico}</span><b>${t}</b><small>${d}</small></button>`).join('');
         el.onclick = (e) => { const b = e.target.closest('.g-device'); if (b) g.device(b.dataset.d); };
         g.on(() => el.querySelectorAll('.g-device').forEach((b) => b.setAttribute('aria-pressed', String(s.device === b.dataset.d))));
+      },
+      /** keyboard and mouse, just the keyboard, or just the mouse (shown for keyboard & mouse only) */
+      kbmParts(el) {
+        el.innerHTML = `<div class="g-seg" role="group" aria-label="Show">${[['both', 'Both'], ['keyboard', 'Keyboard only'], ['mouse', 'Mouse only']].map(([k, t]) => `<button type="button" data-w="${k}">${t}</button>`).join('')}</div>`;
+        el.onclick = (e) => { const b = e.target.closest('[data-w]'); if (b) g.kbmShow(b.dataset.w); };
+        const draw = () => {
+          el.hidden = s.device !== 'kbm';
+          el.querySelectorAll('[data-w]').forEach((b) => b.setAttribute('aria-pressed', String(g.kbmParts() === b.dataset.w)));
+        };
+        g.on((why) => { if (why === 'layout' || why === 'device') draw(); });
+        draw();
       },
       /** layouts to pick from (kind: keyboard | mouse | controller), with pictures; slot: p or p2. Picking one opens
        *  its styles and colours as pictures in a full-width row right under it (not at the bottom, out of sight) */
@@ -299,6 +328,10 @@
               }).join('')}</div></div>`;
             }
           } else if (p.variants.length > 1) html += `<div class="g-detail-row"><span class="g-detail-k">Style</span><div class="g-tiles">${p.variants.map((v, i) => tile(`data-v="${i}"`, i === vi, v.name)).join('')}</div></div>`;
+          if (variant.pick && slot === 'p') {
+            const keys = window.IOOurs.withKeys(variant.drawn, s.keys).keys;
+            html += `<div class="g-detail-row"><span class="g-detail-k">Your keys</span><div class="g-keys">${keys.map((k, i) => `<button type="button" class="g-key" data-ki="${i}" aria-label="Key ${i + 1}: ${esc(k[1])}. Click, then press the key you use">${esc(k[1])}</button>`).join('')}<small>Click one, then press the key you use.</small></div></div>`;
+          }
           if (!variant.drawn) html += `<div class="g-detail-row"><span class="g-detail-k">Colours</span><div class="g-tiles">${tile('data-orig="0"', !+s.orig, 'Theme colours')}${arts.map((a, i) => tile(`data-a="${i}"`, !!+s.orig && i === s[ak], arts.length > 1 ? a.name : 'Its own colours')).join('')}</div></div>`;
           detail.innerHTML = html ? `<div class="g-detail-h"><b>${esc(p.name)}</b></div>${html}` : '';
           detail.querySelectorAll('.g-tiles').forEach((t) => g.balance(t, { min: 112, max: 150, gap: 8 }));
@@ -307,13 +340,44 @@
           detail.querySelectorAll('[data-a]').forEach((b) => thumb(p, b.querySelector('canvas'), vi, { ai: +b.dataset.a, orig: true }));
           place();
         }
+        // picking a key: the next key pressed is it (not passed on to the previews); Escape or a click elsewhere stops
+        let stopCatching = null;
+        function catchKey(btn) {
+          stopCatching?.();
+          const i = +btn.dataset.ki;
+          btn.classList.add('on'); btn.textContent = 'Press a key…';
+          const swallow = (e) => { e.preventDefault(); e.stopImmediatePropagation(); };
+          const down = (e) => {
+            swallow(e);
+            if (e.repeat) return;
+            if (e.code === 'Escape') { stop(); fill(); return; }
+            if (!window.IOOurs.label(e.code)) { btn.textContent = 'Not that one'; return; }
+            addEventListener('keyup', swallow, { capture: true, once: true });
+            stop();
+            const p = g.preset(s.p), drawn = p.variants[s.v].drawn;
+            const codes = window.IOOurs.withKeys(drawn, s.keys).keys.map((k) => k[0]);
+            const j = codes.indexOf(e.code);
+            if (j >= 0 && j !== i) codes[j] = codes[i];   // already the other key: they swap
+            codes[i] = e.code;
+            const keys = codes.join(',') === drawn.keys.map((k) => k[0]).join(',') ? '' : codes.join(',');
+            if (keys === s.keys) fill(); else g.set({ keys }, 'layout');
+          };
+          const away = (e) => { if (!btn.contains(e.target)) { stop(); fill(); } };
+          function stop() { removeEventListener('keydown', down, true); removeEventListener('pointerdown', away, true); stopCatching = null; }
+          addEventListener('keydown', down, true);
+          addEventListener('pointerdown', away, true);
+          stopCatching = stop;
+        }
         el.onclick = (e) => {
+          const k = e.target.closest('.g-key');
+          if (k) { catchKey(k); return; }
           const b = e.target.closest('.g-layout');
           if (b) { g.set({ [slot]: b.dataset.id, [vk]: 0, [ak]: 0 }, 'layout'); return; }
           const t = e.target.closest('.g-tile');
           if (!t) return;
           if (t.dataset.v !== undefined) g.set({ [vk]: +t.dataset.v, [ak]: 0 }, 'layout');
-          else if (t.dataset.orig !== undefined) g.set({ orig: 0 }, 'layout');
+          // Theme colours recolours the picture its tile shows (the first), not whichever was picked last
+          else if (t.dataset.orig !== undefined) g.set({ orig: 0, [ak]: 0 }, 'layout');
           else g.set({ [ak]: +t.dataset.a, orig: 1 }, 'layout');
         };
         new ResizeObserver(place).observe(grid);

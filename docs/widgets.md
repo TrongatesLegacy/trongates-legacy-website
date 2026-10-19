@@ -642,8 +642,11 @@ while it listens on IPv4). Inputty never uses the plugin's own source, presets o
 
 **The set-up** (the page's hero, "Some assembly required. Not much."): (1) what you play with; steps 2–7 stay hidden until
 a device is picked, and picking drops its parts on the desk then turns the screen to face you; (2) the layouts (WASD and
-the outline Mouse to start, the owner's pick; our own drawn ones last); (3) the look: theme, colours, frame, sparkles
-(after the layouts, so the colours offered are the ones that change them); (4) get the helper (close OBS first, the
+the outline Mouse to start, the owner's pick; our own drawn ones last; Keyboard & mouse can be Both, Keyboard only or
+Mouse only: the other slot is left empty, `p=` or `p2=` in the link, and comes back as it was when switched back); (3) the look: theme, colours, frame, sparkles
+(after the layouts, so the colours offered are the ones that change them); the pictures in each grid lay out
+in even rows (`g.balance`), and where none split evenly (13 controllers two across on a phone) the last one sits centred
+at the same width, never one long column; (4) get the helper (close OBS first, the
 download, a practice run of SmartScreen and the installer); (5) switch it on in OBS (a practice run, "not WebSocket Server
 Settings", the live status that finds input-overlay); (6) add it to OBS (the link, and a practice run that types the
 name, pastes the link and sets the width and height); (7) test it. Controller-only skips 4 and 5; Mac visitors are told the helper is Windows/Linux
@@ -681,7 +684,14 @@ pictures (360 × 200), each lossless or lossy WebP, whichever is smaller; the fu
 measured on), so no layout number changes. Names are made human ("Shooter", "French keyboard (ZQSD)", "Compact
 keyboard"); the outline mouse is one preset with two choices (side buttons left / right / both / none × movement), its
 right-hand buttons and notch mirrored from the left. Themes recolour any preset by brightness, pressed parts in the
-accent; light line art is drawn dark on light panels. Frame and sparkles are off by default on every theme. The Zojie
+accent (where a picture's pressed parts are one flat shade, often a see-through black fill as in WASD + number pad, they
+are the accent itself: the ramp put them at its dark end, the accent mixed into the edge, so Candy's yellow came out
+mauve); light line art is drawn dark on light panels. Our Two big keys (made for osu!) are Z and X unless you pick your
+own: "Your keys" under its styles, click one then press the key (Escape keeps it, the same key twice swaps them), carried
+as `keys=KeyA,KeyS` (left out for Z and X, and for any other style; `ours.js`, `pick` and `withKeys`). A layout with several pictures of
+its own (Xbox 360, DualSense, DS3, Switch, GameSir, SNES): **Theme colours** recolours the first, the one its tile
+shows, and resets `a`, so picking Black then Theme colours no longer recolours the black one (links made that way keep
+their look). Frame and sparkles are off by default on every theme. The Zojie
 theme is named for zojie (her pastel palette); it's in this widget only.
 
 **On the widgets page** it's scene 4 (it took the "Coming soon" slot): a pretend game with the live overlay in its

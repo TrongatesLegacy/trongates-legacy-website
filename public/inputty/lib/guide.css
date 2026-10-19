@@ -50,6 +50,10 @@
 .g-detail::before { content: ""; position: absolute; top: -9px; left: calc(var(--notch-x, 50%) - 8px); width: 14px; height: 14px; background: inherit; border: inherit; border-right: 0; border-bottom: 0; rotate: 45deg; border-radius: 3px 0 0 0; }
 .g-detail-h b { font-size: 15px; }
 .g-detail-row { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 10px; align-items: start; }
+.g-keys { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.g-key { min-width: 60px; height: 52px; padding: 0 14px; border-radius: 12px; font: inherit; font-size: 20px; font-weight: 800; color: var(--g-ink); background: var(--g-card); border: 1.5px solid var(--g-line); box-shadow: 0 4px 0 var(--g-line); cursor: pointer; }
+.g-key.on { border-color: var(--g-acc); box-shadow: 0 2px 0 var(--g-acc); translate: 0 2px; font-size: 13px; }
+.g-keys small { flex-basis: 100%; color: var(--g-muted); font-size: 13px; }
 .g-detail-k { font-size: 13px; font-weight: 700; color: var(--g-muted); padding-top: 8px; }
 .g-tiles { display: grid; gap: 8px; }
 .g-tile { display: grid; gap: 4px; padding: 6px; border-radius: 10px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; text-align: left; color: var(--g-ink); background: var(--g-card); border: 2px solid var(--g-line); }
