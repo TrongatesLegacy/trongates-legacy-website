@@ -688,7 +688,11 @@ keyboard"); the outline mouse is one preset with two choices (side buttons left 
 right-hand buttons and notch mirrored from the left. Themes recolour any preset by brightness, pressed parts in the
 accent (where a picture's pressed parts are one flat shade, often a see-through black fill as in WASD + number pad, they
 are the accent itself: the ramp put them at its dark end, the accent mixed into the edge, so Candy's yellow came out
-mauve); light line art is drawn dark on light panels. Our Two big keys (made for osu!) are Z and X unless you pick your
+mauve); light line art is drawn dark on light panels. A tilted stick fades into the accent (none in the dead zone,
+all of it from about two-thirds out; clicking it in shows its own pressed look): its fill is the accent itself, its lines
+lighter, and an outline stick's see-through middle is filled (Xbox One, DS3, GameCube), because on dark controllers
+(GameSir G7 Pro, Switch Pro) a moving stick didn't show on stream (owner, 2026-10-19). With the art's own colours it
+fades into the picture's own pressed look. Our Two big keys (made for osu!) are Z and X unless you pick your
 own: "Your keys" under its styles, click one then press the key (Escape keeps it, the same key twice swaps them), carried
 as `keys=KeyA,KeyS` (left out for Z and X, and for any other style; `ours.js`, `pick` and `withKeys`). A layout with several pictures of
 its own (Xbox 360, DualSense, DS3, Switch, GameSir, SNES): **Theme colours** recolours the first, the one its tile

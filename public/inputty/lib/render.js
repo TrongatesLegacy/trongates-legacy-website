@@ -49,6 +49,46 @@
     };
   }
 
+  // how much of the pressed colour a tilted stick shows: none in the dead zone, all of it from about two-thirds out
+  const tiltOf = (x, y) => Math.max(0, Math.min(1, (Math.hypot(x, y) - 0.12) / 0.55));
+
+  /** a stick's resting picture in the accent: its fill the accent itself, its lines lighter, and an outline stick's
+   *  see-through middle filled (whatever its edge can't reach through see-through pixels is inside it) */
+  function tiltSprite(px, W, [u, v, w, h], lo, hi, accent) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'), out = g.createImageData(w, h), d = out.data;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = ((v + y) * W + u + x) * 4, o = (y * w + x) * 4;
+      if (!px[i + 3]) continue;
+      let l = (px[i] * 77 + px[i + 1] * 150 + px[i + 2] * 29) >> 8;
+      l = Math.max(0, Math.min(255, Math.round(((l - lo) * 255) / (hi - lo || 1))));
+      // past the ramp's dark end (the accent mixed into the edge), so a dark stick is the accent, not a muddy dark
+      l = Math.round(90 + (l * 165) / 255);
+      d[o] = accent[l * 3]; d[o + 1] = accent[l * 3 + 1]; d[o + 2] = accent[l * 3 + 2]; d[o + 3] = px[i + 3];
+    }
+    const clear = (p) => d[p * 4 + 3] < 128, outside = new Uint8Array(w * h), stack = [];
+    for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
+    for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+    while (stack.length) {
+      const p = stack.pop();
+      if (outside[p] || !clear(p)) continue;
+      outside[p] = 1;
+      const x = p % w;
+      if (x > 0) stack.push(p - 1);
+      if (x < w - 1) stack.push(p + 1);
+      if (p >= w) stack.push(p - w);
+      if (p < w * (h - 1)) stack.push(p + w);
+    }
+    for (let p = 0; p < w * h; p++) {
+      if (outside[p] || !clear(p)) continue;
+      const a = d[p * 4 + 3] / 255;
+      for (let ch = 0; ch < 3; ch++) d[p * 4 + ch] = Math.round(d[p * 4 + ch] * a + accent[128 * 3 + ch] * (1 - a));
+      d[p * 4 + 3] = 255;
+    }
+    g.putImageData(out, 0, 0);
+    return c;
+  }
+
   class PresetView {
     /** @param {{ w:number, h:number, els:any[] }} layout @param {string} artSrc
      *  aw: the width the layout's numbers were measured on. The file can be smaller (the site ships shrunk copies, and
@@ -77,6 +117,7 @@
       this.atlas = null;     // what we draw from: the art as is, or recoloured
       this.look = null;
       this.lookKey = '';
+      this.tilt = null;      // each stick's tilted picture (in the accent), by its atlas rectangle
     }
 
     async load() {
@@ -173,6 +214,7 @@
       const k = look ? [look.edge, look.key, look.hi, look.accent, look.lines, look.keySet, look.lightBg].join() : 'orig';
       if (k === this.lookKey) return;
       this.lookKey = k;
+      this.tilt = null;
       if (!look) { this.atlas = this.img; return; }
       const { mask, px, W, H } = this.pressedMask();
       let { base, accent } = luts(look);
@@ -205,6 +247,12 @@
       const c = document.createElement('canvas'); c.width = W; c.height = H;
       c.getContext('2d').putImageData(out, 0, 0);
       this.atlas = c;
+      const sticks = this.els.filter((e) => e.t === T.STICK);
+      if (sticks.length) {
+        this.tilt = new Map();
+        const k = this.k || 1;
+        for (const e of sticks) if (!this.tilt.has(e.m.join())) this.tilt.set(e.m.join(), tiltSprite(px, W, e.m.map((n) => Math.round(n * k)), lo, hi, accent));
+      }
     }
 
     crop(u, v, w, h, x, y, dw = w, dh = h) {
@@ -255,8 +303,17 @@
           }
           case T.STICK: {
             const r = e.r || 0, [ix, iy] = e.side ? [2, 3] : [0, 1];
-            const down = !!pad.buttons[e.side ? SDL.RIGHT_STICK : SDL.LEFT_STICK];
-            this.crop(u, down ? v + h + GAP : v, w, h, e.x + ax[ix] * r, e.y + ax[iy] * r);
+            const down = !!pad.buttons[e.side ? SDL.RIGHT_STICK : SDL.LEFT_STICK], x = e.x + ax[ix] * r, y = e.y + ax[iy] * r;
+            this.crop(u, down ? v + h + GAP : v, w, h, x, y);
+            // tilted, it fades into the pressed colour (the art's own pressed look when it keeps its own colours), so
+            // a stick that moves shows on stream even where it's dark on a dark controller
+            const a = down ? 0 : tiltOf(ax[ix], ax[iy]);
+            if (a) {
+              g.globalAlpha = a;
+              if (this.tilt) g.drawImage(this.tilt.get(e.m.join()), x, y, w, h);
+              else this.crop(u, v + h + GAP, w, h, x, y);
+              g.globalAlpha = 1;
+            }
             break;
           }
           case T.TRIGGER: {

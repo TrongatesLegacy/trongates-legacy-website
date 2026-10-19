@@ -368,3 +368,40 @@ test('on a narrow screen (one column) the desk preview is as wide as the steps',
     await tab.close();
   }
 });
+
+// Owner (2026-10-19): on some controllers (the GameSir G7 Pro, dark sticks on a dark body) you couldn't see a stick
+// move on stream. A tilted stick takes the pressed colour, all of it (an outline stick's middle is filled), on every
+// controller with sticks; one in the middle keeps its own look
+test('a tilted stick takes the pressed colour on every controller with sticks; one in the middle doesn\'t', async () => {
+  const tab = await chrome.open(site.origin + '/inputty/play.html?demo=1&p=gamesir&p2=', { width: 900, height: 420 });
+  await tab.until(`document.documentElement.dataset.ready === '1'`, 8000, 'the overlay drawn');
+  const res = await tab.eval(`(async () => {
+    const out = {};
+    for (const p of IO_PRESETS) {
+      const v = p.variants[0];
+      const stick = v.layout?.els.find((e) => e.t === IORender.T.STICK && !e.side);
+      if (!stick) continue;
+      const art = v.arts[0], view = new IORender.PresetView(v.layout, art.src, { pixel: v.pixel, aw: art.aw });
+      await view.load();
+      view.setLook(IOLooks.look({ ...IOLooks.DEFAULTS, theme: 'neon' }));
+      const pad = (x) => ({ keys: new Set(), mouse: new Set(), wheel: { rot: 0, t: 0 }, move: { vx: 0, vy: 0, angle: 0 },
+        pad: { connected: true, index: 0, buttons: new Array(21).fill(false), axes: [x, 0, 0, 0, 0, 0] } });
+      // how much of the left stick's box is the pressed colour (Neon's cyan)
+      const cyan = (x) => {
+        view.draw(pad(x));
+        const [, , w, h] = stick.m, s = view.scale, X = Math.round((stick.x + x * (stick.r || 0)) * s), Y = Math.round(stick.y * s);
+        const d = view.ctx.getImageData(X, Y, Math.round(w * s), Math.round(h * s)).data;
+        let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200 && d[i + 1] - d[i] > 60 && d[i + 2] > 200) n++;
+        return Math.round((100 * n) / (d.length / 4));
+      };
+      out[p.id] = [cyan(0), cyan(1)];
+    }
+    return out;
+  })()`);
+  assert.equal(Object.keys(res).length, 9, 'nine controllers with sticks: ' + Object.keys(res));
+  for (const [id, [rest, tilted]] of Object.entries(res)) {
+    assert.ok(tilted >= 60, `${id}: tilted, most of the stick is the pressed colour (${tilted}%)`);
+    assert.ok(rest < tilted / 3, `${id}: in the middle it keeps its own look (${rest}% vs ${tilted}%)`);
+  }
+  await tab.close();
+});
