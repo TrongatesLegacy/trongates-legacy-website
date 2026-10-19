@@ -646,7 +646,9 @@ the outline Mouse to start, the owner's pick; our own drawn ones last; Keyboard 
 Mouse only: the other slot is left empty, `p=` or `p2=` in the link, and comes back as it was when switched back); (3) the look: theme, colours, frame, sparkles
 (after the layouts, so the colours offered are the ones that change them); the pictures in each grid lay out
 in even rows (`g.balance`), and where none split evenly (13 controllers two across on a phone) the last one sits centred
-at the same width, never one long column; (4) get the helper (close OBS first, the
+at the same width, never one long column; a picked layout's styles open as a full-width row after the end of its row,
+measured with them out of the way and placed again whenever the columns change (they once opened after the 3rd card of
+a row of 5: placed while the grid still had its CSS columns, then never moved); (4) get the helper (close OBS first, the
 download, a practice run of SmartScreen and the installer); (5) switch it on in OBS (a practice run, "not WebSocket Server
 Settings", the live status that finds input-overlay); (6) add it to OBS (the link, and a practice run that types the
 name, pastes the link and sets the width and height); (7) test it. Controller-only skips 4 and 5; Mac visitors are told the helper is Windows/Linux

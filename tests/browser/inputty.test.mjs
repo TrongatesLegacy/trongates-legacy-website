@@ -341,3 +341,30 @@ test('Theme colours after picking one of a layout\'s own pictures (DualSense, Bl
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
+
+// the owner's video (2026-10-19): Xbox One's styles opened after the 3rd card of a row of 5, leaving a short row; picking
+// another card put it right. The styles were placed before the grid had its even columns, and never moved after
+test("a layout's styles open after the end of its row, from the first look", async () => {
+  const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width: 1512, height: 900, reducedMotion: true });
+  await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+  await tab.click('.g-device[data-d="pad"]');
+  await tab.until(`!!document.querySelector('#layouts1 .g-detail .g-tile')`, 4000, "Xbox One's styles");
+  await sleep(300);
+  const row = await tab.eval(`(() => {
+    const grid = document.querySelector('#layouts1 .g-layouts'), kids = [...grid.children], d = kids.findIndex((c) => c.classList.contains('g-detail'));
+    const on = grid.querySelector('.g-layout[aria-pressed=true]');
+    return { cols: getComputedStyle(grid).gridTemplateColumns.split(' ').length, inRow: kids.slice(0, d).filter((c) => c.offsetTop === on.offsetTop).length, after: kids.length - d - 1 };
+  })()`);
+  assert.ok(row.after === 0 || row.inRow === row.cols, `the row before the styles is full: ${JSON.stringify(row)}`);
+  await tab.close();
+});
+
+test('on a narrow screen (one column) the desk preview is as wide as the steps', async () => {
+  for (const width of [759, 900]) {
+    const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width, height: 900, reducedMotion: true });
+    await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+    const w = (s) => tab.eval(`Math.round(document.querySelector('${s}').getBoundingClientRect().width)`);
+    assert.equal(await w('.aside'), await w('#s1'), `at ${width}px`);
+    await tab.close();
+  }
+});

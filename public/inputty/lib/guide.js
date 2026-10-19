@@ -258,7 +258,9 @@
           // rest (one column of everything made phones a long scroll, and tiles beside it looked wider)
           best ??= cap;
         }
-        el.style.gridTemplateColumns = `repeat(${best}, minmax(0, ${max === Infinity ? '1fr' : max + 'px'}))`;
+        const cols = `repeat(${best}, minmax(0, ${max === Infinity ? '1fr' : max + 'px'}))`;
+        // a change of columns moves rows: anything placed by row (a layout's styles) places itself again
+        if (el.style.gridTemplateColumns !== cols) { el.style.gridTemplateColumns = cols; el.dispatchEvent(new Event('g-balanced')); }
         items.forEach((c) => { c.style.gridColumn = ''; c.style.justifySelf = ''; c.style.width = ''; });
         const last = items[n - 1];
         if (best > 1 && n % best === 1) Object.assign(last.style, { gridColumn: '1 / -1', justifySelf: 'center', width: items[0].offsetWidth + 'px' });
@@ -305,9 +307,12 @@
         function place() {
           const card = cards().find((b) => b.dataset.id === s[slot]);
           if (!styles || !card || !detail.innerHTML) { detail.remove(); return; }
+          // the rows as they are without the styles (a full-width row pushes the cards after it down a row)
+          detail.style.display = 'none';
           const all = cards(), top = card.offsetTop;
           let last = card;
           for (let i = all.indexOf(card) + 1; i < all.length && all[i].offsetTop === top; i++) last = all[i];
+          detail.style.display = '';
           if (last.nextElementSibling !== detail) last.after(detail);
           detail.style.setProperty('--notch-x', card.offsetLeft + card.offsetWidth / 2 + 'px');
         }
@@ -381,6 +386,7 @@
           else g.set({ [ak]: +t.dataset.a, orig: 1 }, 'layout');
         };
         new ResizeObserver(place).observe(grid);
+        grid.addEventListener('g-balanced', place);
         g.on((why) => {
           if (why === 'theme' || why === 'accent' || why === 'fonts') { drawCards(); fill(); }
           if (why === 'layout' || why === 'device') { cards().forEach((b) => b.setAttribute('aria-pressed', String(s[slot] === b.dataset.id))); fill(); }
