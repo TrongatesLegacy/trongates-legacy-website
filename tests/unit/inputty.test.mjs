@@ -99,3 +99,30 @@ test('websocket: keys are read by their Windows code, so input-overlay 5.0 and 5
   await wait(30);
   assert.deepEqual(Array.from(I.state.keys), [ctx.IOCodes.KEYS.KeyA], 'A, not B');
 });
+
+// Owner (2026-10-19): WASD and Mouse are the set-up's defaults, and our own layouts come after input-overlay's. A link
+// names its layouts by preset and style number, and leaves out what matches looks.js's DEFAULTS, so neither may shift
+// under a link someone already has in OBS.
+test('links made before stay the same: no layout in the link is still Game keys (Hero shooter) and the Gaming mouse', () => {
+  const { IOLooks: L } = lib(['looks.js']);
+  const s = L.read(new URLSearchParams(''));
+  assert.deepEqual([s.p, s.v, s.p2, s.v2], ['game-keys', 1, 'game-mouse', 0]);
+});
+
+test('our layouts come last, and their styles keep their numbers (new ones are added at the end)', () => {
+  const { IO_PRESETS: P } = lib(['presets.js', 'ours.js']);
+  const firstOurs = P.findIndex((p) => p.ours);
+  assert.ok(firstOurs > 0 && P.slice(firstOurs).every((p) => p.ours), 'ours after every input-overlay preset');
+  const names = (id) => Array.from(P.find((p) => p.id === id).variants, (v) => v.name);
+  assert.deepEqual(names('game-keys'), ['FPS', 'Hero shooter', 'WASD', 'MOBA', 'Arrows + Z X C', 'Two big keys']);
+  assert.deepEqual(names('keyboard').slice(0, 4), ['No number pad', 'Compact (60%)', 'With number pad', 'Number pad']);
+  // the compact clusters, like input-overlay's WASD styles (the owner)
+  for (const n of ['Just W A S D', '+ Q, E', '+ arrows', 'French (Z Q S D)']) assert.ok(names('keyboard').includes(n), n);
+});
+
+test('colours: a chosen key colour is line art\'s line colour exactly; the named themes\' own line colours otherwise', () => {
+  const { IOLooks: L } = lib(['looks.js']);
+  assert.equal(L.look({ ...L.DEFAULTS, key: 'ff3366' }).lines, 'ff3366');
+  assert.equal(L.look({ ...L.DEFAULTS, theme: 'neutral' }).lines, L.THEMES.neutral.lines);
+  assert.equal(L.look({ ...L.DEFAULTS, ink: '123456' }).ink, '123456', 'Letters ride in the link');
+});

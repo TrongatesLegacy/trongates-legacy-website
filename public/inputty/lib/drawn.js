@@ -47,7 +47,7 @@
 
     /** look: { edge, key, hi, accent }; style: the theme (font, weight, radius, ring, glow) */
     setLook(look, style) {
-      this.c = { edge: hexRgb(look.edge), key: hexRgb(look.key), hi: hexRgb(look.hi), acc: hexRgb(look.accent) };
+      this.c = { edge: hexRgb(look.edge), key: hexRgb(look.key), hi: hexRgb(look.hi), acc: hexRgb(look.accent), ink: look.ink ? hexRgb(look.ink) : null };
       this.style = style;
       this.font = (px) => `${style.weight || 700} ${px}px ${style.font || 'system-ui'}, system-ui, sans-serif`;
       document.fonts?.load(this.font(20)).catch(() => {});
@@ -88,7 +88,8 @@
         const n = [...label].length, size = n === 1 ? U * 0.42 : n <= 3 ? U * 0.3 : U * 0.24;
         g.font = this.font(Math.round(size));
         // the theme's own deep or light colour, whichever reads better; plain white/black only if neither does
-        let ink = best(capC, [edge, hi]);
+        // the chosen letter colour when it reads on this key, else edge or shine, whichever reads better
+        let ink = this.c.ink && contrast(capC, this.c.ink) >= 2 ? this.c.ink : best(capC, [edge, hi]);
         if (contrast(capC, ink) < 2.6) ink = best(capC, [[255, 255, 255], [20, 16, 30]]);
         g.fillStyle = css(ink);
         g.textAlign = 'center'; g.textBaseline = 'middle';

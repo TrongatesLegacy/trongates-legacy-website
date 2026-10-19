@@ -40,11 +40,22 @@
       { name: 'Compact (60%)', drawn: keyboard(K.filter((k) => k[3] >= 1 && k[2] < 15).map((k) => (k[0] === 'ShiftRight' ? [k[0], k[1], k[2], k[3], 2.75, 1] : [...k]))) },
       { name: 'With number pad', drawn: keyboard(K.map((k) => [...k]).concat(NUMPAD)) },
       { name: 'Number pad', drawn: keyboard(NUMPAD.map((k) => [...k])) },
+      // compact clusters, like input-overlay's WASD styles, drawn so every theme applies (letters too); after the
+      // shipped four, as a link names a style by its number
+      { name: 'Just W A S D', drawn: keyboard(pick('KeyW KeyA KeyS KeyD')) },
+      { name: '+ Shift, Ctrl, Space', drawn: keyboard(pick('KeyQ KeyW KeyE KeyA KeyS KeyD ShiftLeft ControlLeft Space', { Space: 2.75, ControlLeft: 1.25 }).map((k) => (k[0] === 'Space' ? [k[0], k[1], 1.25, k[3], 3.25, k[5]] : k))) },
+      { name: '+ Q, E', drawn: keyboard(pick('KeyQ KeyW KeyE KeyA KeyS KeyD')) },
+      { name: '+ extras', drawn: keyboard(pick('Tab KeyQ KeyW KeyE KeyR KeyA KeyS KeyD KeyF ShiftLeft ControlLeft Space', { Space: 3.75, ControlLeft: 1.25 }).map((k) => (k[0] === 'Space' ? [k[0], k[1], 1.25, k[3], 3.75, k[5]] : k))) },
+      { name: '+ arrows', drawn: keyboard(own([['KeyQ', 'Q', 0, 0], ['KeyW', 'W', 1, 0], ['KeyE', 'E', 2, 0], ['KeyA', 'A', 0.25, 1], ['KeyS', 'S', 1.25, 1], ['KeyD', 'D', 2.25, 1],
+        ['ArrowUp', '↑', 5.5, 0], ['ArrowLeft', '←', 4.5, 1], ['ArrowDown', '↓', 5.5, 1], ['ArrowRight', '→', 6.5, 1]])) },
+      { name: 'French (Z Q S D)', drawn: keyboard(own([['KeyQ', 'A', 0, 0], ['KeyW', 'Z', 1, 0], ['KeyE', 'E', 2, 0], ['KeyA', 'Q', 0.25, 1], ['KeyS', 'S', 1.25, 1], ['KeyD', 'D', 2.25, 1],
+        ['ShiftLeft', 'Shift', -1.5, 2, 1.5], ['ControlLeft', 'Ctrl', -1.5, 3, 1.5], ['Space', '', 0.25, 3, 3]])) },
+      { name: 'One key right (Y G H J)', drawn: keyboard(pick('KeyT KeyY KeyU KeyG KeyH KeyJ Space', { Space: 3 }).map((k) => (k[0] === 'Space' ? [k[0], k[1], 5, k[3], 3, k[5]] : k))) },
     ] },
     { id: 'game-mouse', group: 'Mouse', name: 'Gaming mouse', licence: 'ours', ours: true, variants: [
       { name: 'Just the buttons', drawn: { kind: 'mouse', move: false } },
       { name: 'With movement', drawn: { kind: 'mouse', move: true } },
     ] },
   ];
-  window.IO_PRESETS.unshift(...OURS);
+  window.IO_PRESETS.push(...OURS);   // after input-overlay's presets (the owner: WASD and Mouse are the defaults)
 })();

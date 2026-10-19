@@ -16,9 +16,11 @@
     document.body.style.setProperty('--accent', '#' + acc);
     document.body.style.setProperty('--bgo', String(s.bgo / 100));
     box.className = 'box ' + L.frameOf(s);
-    // a thin outline in the edge colour keeps every preset readable over any game
+    // a thin outline in the edge colour keeps every preset readable over any game; with a chosen key colour and no
+    // chosen edge (line art has no Edges to pick) it's the key colour, darker, so a theme's edge doesn't ring it
     document.body.classList.toggle('outlined', !!+s.outline);
-    document.body.style.setProperty('--outline-c', '#' + L.look({ ...s, orig: 0 }).edge);
+    const ring = L.hex(s.edge) || L.hex(s.key) && [0, 2, 4].map((i) => Math.round(parseInt(L.hex(s.key).slice(i, i + 2), 16) * 0.4).toString(16).padStart(2, '0')).join('');
+    document.body.style.setProperty('--outline-c', '#' + (ring || L.look({ ...s, orig: 0 }).edge));
     box.querySelector('.title').textContent = s.title;
     const look = L.look(s);
     // our drawn presets always take the theme (there's no art of their own to keep)
@@ -65,6 +67,10 @@
       views.push({ kind: 'preset', view, el });
       await view.load();
     }
+    // a picture's pressed parts and brightness range are measured once, each in its own task (one long task blocks
+    // the page the preview sits in), then applyLook recolours
+    const tick = () => new Promise((r) => setTimeout(r));
+    for (const { view } of views) if (view?.pressedMask) { await tick(); view.pressedMask(); await tick(); view.levels(); }
     applyLook();
   }
 

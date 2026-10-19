@@ -14,7 +14,8 @@
     if (!imageCache.has(src)) {
       imageCache.set(src, new Promise((resolve, reject) => {
         const i = new Image();
-        i.onload = () => resolve(i);
+        // decoded off the main thread first, so reading its pixels later doesn't stall on a big picture
+        i.onload = () => (i.decode ? i.decode() : Promise.resolve()).then(() => resolve(i), () => resolve(i));
         i.onerror = reject;
         i.src = src;
       }));
@@ -167,7 +168,7 @@
 
     /** look: null (the art's own colours) or { edge, key, hi, accent } */
     setLook(look) {
-      const k = look ? [look.edge, look.key, look.hi, look.accent, look.lightBg].join() : 'orig';
+      const k = look ? [look.edge, look.key, look.hi, look.accent, look.lines, look.keySet, look.lightBg].join() : 'orig';
       if (k === this.lookKey) return;
       this.lookKey = k;
       if (!look) { this.atlas = this.img; return; }
@@ -178,8 +179,12 @@
       const flip = light && look.lightBg;
       // light line art on dark: lines take the theme's key colour (not its near-white shine), so the theme shows
       if (light && !flip) {
-        base = luts({ ...look, hi: rgbHex(mix(hexRgb(look.key), hexRgb(look.hi), 0.3)) }).base;
+        // a chosen key colour: the halo round the lines is that colour, darker (line art offers no Edges to pick)
+        const edge = look.keySet ? rgbHex(mix(hexRgb(look.key), [0, 0, 0], 0.6)) : look.edge;
+        base = luts({ ...look, edge, hi: look.lines || rgbHex(mix(hexRgb(look.key), hexRgb(look.hi), 0.3)) }).base;
       }
+      // drawn dark on light: the lines are the darkest end, so a chosen key colour goes there
+      if (flip && look.keySet) base = luts({ ...look, edge: look.key }).base;
       const out = new ImageData(W, H);
       const o = out.data;
       for (let p = 0, i = 0; p < W * H; p++, i += 4) {
