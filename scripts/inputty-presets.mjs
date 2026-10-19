@@ -208,6 +208,21 @@ const ORIG = join(HERE, "../artwork/inputty/presets");
 const { tmpdir } = await import("node:os");
 const { statSync, rmSync } = await import("node:fs");
 const size = (f) => statSync(f).size;
+// pictures with a backdrop baked in: the Switch Pro's Neon art has a faint white panel behind the controller, which
+// showed as a box over the game (and stayed when recoloured). It shares its layout with the classic art, so wherever
+// the classic one is see-through, the Neon one is made see-through too.
+const CLEAN = { "switch-pro-controller/switch-pro-controller-splatoon2.png": "switch-pro-controller/switch-pro-controller-classic.png" };
+function cleaned(file) {
+  if (!CLEAN[file]) return join(SRC, file);
+  const raw = (f) => execFileSync("ffmpeg", ["-v", "error", "-i", join(SRC, f), "-f", "rawvideo", "-pix_fmt", "rgba", "-"], { maxBuffer: 1 << 28 });
+  const { w, h } = dims(join(SRC, file));
+  const px = raw(file), mask = raw(CLEAN[file]);
+  for (let i = 3; i < px.length; i += 4) if (mask[i] === 0) px[i] = 0;
+  const rawFile = join(tmpdir(), "inputty-clean.rgba"), out = join(tmpdir(), "inputty-clean.png");
+  writeFileSync(rawFile, px);   // from a file: through stdin, ffmpeg cuts a raw frame this big into pieces
+  execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgba", "-s", `${w}x${h}`, "-i", rawFile, out]);
+  return out;
+}
 function encode(src, dest, width, origW) {
   mkdirSync(dirname(dest), { recursive: true });
   const resize = width < origW ? ["-resize", String(width), "0"] : [];
@@ -223,9 +238,9 @@ const dims = (f) => { const b = readFileSync(f); return { w: b.readUInt32BE(16),
 let full = 0, thumbs = 0;
 const sizeOf = {};
 for (const [name, t] of Object.entries(TEXTURES)) {
-  const src = join(SRC, t.file);
   mkdirSync(dirname(join(ORIG, name + ".png")), { recursive: true });
-  copyFileSync(src, join(ORIG, name + ".png"));
+  copyFileSync(join(SRC, t.file), join(ORIG, name + ".png"));   // the original, untouched
+  const src = cleaned(t.file);
   const { w: W, h: H } = dims(src);
   const pixel = t.layouts.some((l) => l.pixel);
   const sFull = pixel ? 1 : Math.min(1, Math.max(...t.layouts.map((l) => 480 / l.h)));

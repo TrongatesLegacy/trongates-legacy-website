@@ -114,3 +114,18 @@ test('the widgets page: Inputty\'s scene shows the live overlay, and the visitor
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
+
+// Owner (2026-10-19): the Switch Pro's Neon art showed a box behind the controller (a faint white panel baked into the
+// picture), and it stayed after switching to theme colours. The build cuts it out (scripts/inputty-presets.mjs, CLEAN).
+test('preset pictures: the Switch Pro\'s Neon art has no panel behind the controller', async () => {
+  const tab = await chrome.open(site.origin + '/inputty/play.html', { width: 400, height: 300 });
+  const alpha = await tab.eval(`(async () => {
+    const img = new Image(); img.src = '/inputty/presets/switch-pro-controller/switch-pro-controller-splatoon2.webp'; await img.decode();
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+    const k = img.width / 1280;   // measured on the 1280-wide original: the gap between the grips, and a top corner
+    return [[640, 840], [40, 40]].map(([x, y]) => g.getImageData(Math.round(x * k), Math.round(y * k), 1, 1).data[3]);
+  })()`);
+  assert.deepEqual(alpha, [0, 0], 'see-through between the grips and outside the controller');
+  await tab.close();
+});
