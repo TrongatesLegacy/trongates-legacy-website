@@ -313,7 +313,7 @@
       },
       /** the pressed colour: the theme's own, a few swatches, any colour */
       accents(el) {
-        const SW = ['', 'ff7fdc', 'b18cff', '5fd4ff', '6ff0b0', 'ffe066', 'ff9a3d', 'ff5a5a', 'ffffff'];
+        const SW = ['', 'ff7fdc', '8fa8ff', '5fd4ff', '6ff0b0', 'ffe066', 'ff9a3d', 'ff5a5a', 'ffffff'];
         const draw = () => {
           const own = L.THEMES[s.theme].accent;
           el.innerHTML = SW.map((c) => `<button type="button" class="g-sw" data-c="${c}" aria-pressed="${(s.accent || '') === c}" title="${c ? '#' + c : "The theme's own"}" style="--c:#${c || own}">${c ? '' : '★'}</button>`).join('')

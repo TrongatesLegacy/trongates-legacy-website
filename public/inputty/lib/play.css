@@ -4,7 +4,7 @@
 [data-theme=zojie] {
   --frame: 3px;
   --bg: linear-gradient(180deg, rgb(196 172 255 / var(--bgo, 1)), rgb(224 206 255 / var(--bgo, 1))); --panel: #f3e8ff; --slot: #e7d6ff; --text: #5b3fb0; --muted: #8f78d6;
-  --accent: #ff7fdc; --accent-ink: #4a2a9a;
+  --accent: #b18cff; --accent-ink: #3a1f8a;
   --tile: #d5c0ff; --tile-text: #5b3fb0; --tile-edge: #ebc8fb; --radius: 18px;
   --font: "Fredoka", "Chakra Petch", system-ui, sans-serif; --display: "Fredoka", system-ui, sans-serif; --display-weight: 700;
   --bar: linear-gradient(180deg, #ffd3ff, #ffc0fb); --bar-ink: #fffdf0; --bar-stroke: #a77de8;
