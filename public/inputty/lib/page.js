@@ -153,7 +153,8 @@
     $('layouts2wrap').hidden = d === 'pad';
     if (d !== 'pad') { $('lay2').textContent = d === 'both' ? 'And your controller' : 'And your mouse'; g.ui.layouts($('layouts2'), d === 'both' ? 'controller' : 'mouse', 'p2'); }
   }
-  buildLayouts();
+  // built when a device is picked (step 2 is hidden until then): its pictures are drawn off the page's load
+  if (g.s.device) buildLayouts();
   g.ui.download($('dl'));
   Mock.mount($('mk-install'), 'install', g);
   Mock.mount($('mk-obs'), 'obs', g);
@@ -197,8 +198,8 @@
   }
   function desk() {
     const d = g.s.device, pad = d === 'pad';
-    const on = { kb: d === 'kbm' || d === 'both', mouse: d === 'kbm', 'pad-a': pad, 'pad-b': d === 'both', finish: done.has(2), tower: done.has(3) || (pad && done.has(1)), lamp: done.has(5), 'box-open': !done.has(6), 'box-flat': done.has(6) };
-    const cableOn = done.has(4) || (pad && done.has(2));
+    const on = { kb: d === 'kbm' || d === 'both', mouse: d === 'kbm', 'pad-a': pad, 'pad-b': d === 'both', finish: done.has(3), tower: done.has(4) || (pad && done.has(1)), lamp: done.has(6), 'box-open': !done.has(7), 'box-flat': done.has(7) };
+    const cableOn = done.has(5) || (pad && done.has(3));
     stage.querySelectorAll('.part').forEach((p) => p.classList.toggle('out', !on[p.dataset.part]));
     $('peek').classList.toggle('gone', !!d);
     cable.style.strokeDashoffset = cableOn ? 0 : clen;
@@ -207,31 +208,32 @@
     const list = [d ? ['kb', 'mouse', 'pad-a', 'pad-b'].filter((k) => on[k]).length : 0, on.finish, on.tower, cableOn, on.lamp];
     const total = (d ? ['kb', 'mouse', 'pad-a', 'pad-b'].filter((k) => on[k]).length : 1) + 4;
     const fitted = list.reduce((a, v) => a + +v, 0);
-    $('fitted').textContent = done.has(6) ? `All ${total} parts fitted. Box folded flat.` : fitted ? `${fitted} of ${total} parts fitted` : 'Nothing fitted yet';
+    $('fitted').textContent = done.has(7) ? `All ${total} parts fitted. Box folded flat.` : fitted ? `${fitted} of ${total} parts fitted` : 'Nothing fitted yet';
   }
   const TIPS = {
     1: ['guy-point', "Start with step 1. Pick what you play with and it drops onto the desk."],
-    2: ['guy-point', 'Now the fun part: pick a finish. Try your own keys and watch the desk screen.'],
-    3: ['guy-point', 'Close OBS, grab the helper, click Next a few times. Have a practice run first if you like.'],
-    4: ['guy-point', "Tools → input-overlay settings. Tick the box. Restart OBS. I'll spot it."],
-    5: ['guy-point', 'Copy the link, then Sources ＋ → Browser. Paste, set the size, OK.'],
-    6: ['guy-point', 'Press something in your game. Go on.'],
+    2: ['guy-point', 'Pick your keyboard and mouse. Try your own keys and watch the desk screen.'],
+    3: ['guy-point', 'Now the fun part: make it yours. One set of colours for both.'],
+    4: ['guy-point', 'Close OBS, grab the helper, click Next a few times. Have a practice run first if you like.'],
+    5: ['guy-point', "Tools → input-overlay settings. Tick the box. Restart OBS. I'll spot it."],
+    6: ['guy-point', 'Copy the link, then Sources ＋ → Browser. Paste, set the size, OK.'],
+    7: ['guy-point', 'Press something in your game. Go on.'],
     end: ['guy-nod', 'Assembled. Chat can now see every button you press. Sorry in advance.'],
   };
   function sync() {
     const pad = g.s.device === 'pad';
-    const skip = (n) => pad && (n === 3 || n === 4);
+    const skip = (n) => pad && (n === 4 || n === 5);
     if (g.s.device) done.add(1);
     $('setup').classList.toggle('unpicked', !g.s.device);
     marked.forEach((n) => done.add(n));
     let next = 0;
-    for (let n = 1; n <= 6; n++) {
+    for (let n = 1; n <= 7; n++) {
       const el = $('s' + n);
       el.classList.toggle('skip', skip(n));
       el.classList.toggle('done', done.has(n) && !skip(n));
       if (!(done.has(n) || skip(n)) && !next) next = n;
     }
-    for (let n = 1; n <= 6; n++) $('s' + n).classList.toggle('now', n === next);
+    for (let n = 1; n <= 7; n++) $('s' + n).classList.toggle('now', n === next);
     document.querySelectorAll('#progress i').forEach((i, k) => { const n = k + 1; i.className = done.has(n) || skip(n) ? 'on' : n === next ? 'now' : ''; });
     $('testintro').textContent = pad ? "Press any button on your controller. When it lights up, you're done." : "Press a key in your game. When it lights up in OBS, you're done.";
     $('status6a').hidden = pad; $('status6b').hidden = !pad && g.s.device !== 'both';
@@ -272,16 +274,17 @@
       clearTimeout(faceT);
       faceT = setTimeout(() => { if (!flat) { flat = true; placeScreen(); } }, reduced ? 0 : 950);
     }
-    if (LOOK.includes(why)) marked.add(2);
+    if (why === 'layout') marked.add(2);
+    else if (LOOK.includes(why)) marked.add(3);
     if (why === 'theme' || why === 'accent') keyAccent();
-    if (why === 'copied') { copied = true; marked.add(5); }
+    if (why === 'copied') { copied = true; marked.add(6); }
     // the live checks tick their steps when they happen
-    if (why === 'ws' && g.ws.status === 'found') { marked.add(3); marked.add(4); }
-    if (why === 'ws' && g.ws.gotKey && g.s.device !== 'pad') marked.add(6);
-    if (why === 'pad' && g.pad && (g.s.device === 'pad' || g.s.device === 'both')) marked.add(6);
+    if (why === 'ws' && g.ws.status === 'found') { marked.add(4); marked.add(5); }
+    if (why === 'ws' && g.ws.gotKey && g.s.device !== 'pad') marked.add(7);
+    if (why === 'pad' && g.pad && (g.s.device === 'pad' || g.s.device === 'both')) marked.add(7);
     if (why === 'size' && g.size) $('size').textContent = `${g.size.w} × ${g.size.h}`;
     sync();
-    if (done.has(6)) celebrate();
+    if (done.has(7)) celebrate();
   });
 
   // clicking inside a step forgets every step after it (they untick, the desk takes those parts back), and anything
@@ -293,11 +296,11 @@
     const ahead = [...marked, ...done].filter((k) => k > n);
     if (ahead.length) {
       ahead.forEach((k) => { marked.delete(k); done.delete(k); });
-      if (n < 5) copied = false;
-      if (n < 6) celebrated = false;
+      if (n < 6) copied = false;
+      if (n < 7) celebrated = false;
       sync();
     }
-    if (n === 2 && !flat) { flat = true; placeScreen(); }
+    if ((n === 2 || n === 3) && !flat) { flat = true; placeScreen(); }
   }, true);
 
   // "next page" buttons mark the step and move you along
@@ -307,7 +310,7 @@
     const n = +b.dataset.next;
     marked.add(n); sync();
     let to = n + 1;
-    while (to < 6 && $('s' + to).classList.contains('skip')) to++;
+    while (to < 7 && $('s' + to).classList.contains('skip')) to++;
     $('s' + to).scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
   });
   $('device').addEventListener('click', (e) => {

@@ -46,7 +46,7 @@ data from older versions, so a change that stops old data loading fails a test (
 Chaplinko has its own in each tier too: `chaplinko-physics`, `chaplinko-game` and `chaplinko-assets` (unit: the odds table
 replays exactly against the physics, so re-run `scripts/chaplinko-odds.mjs` after changing `physics.js`), `chaplinko-flow`
 (loops: spam and raids on the virtual clock), `chaplinko` (browser: the separate leaderboard is tested against the board in
-a second tab, as two OBS sources sharing one browser). Inputty has `inputty` in unit (the presets that ship and their pictures, the outline mouse's combinations, settings, the websocket: newest-first bursts, 5.1's key codes) and browser (the set-up's steps, the practice run, the overlay against a pretend input-overlay, the colour mode, its widgets-page scene). `widget-menus` (browser) checks both pages' section menu: the link you click stays lit, and scrolling lights the section at the top.
+a second tab, as two OBS sources sharing one browser). Inputty has `inputty` in unit (the presets that ship and their pictures, the outline mouse's combinations, settings, links made before staying the same, our layouts last with their style numbers kept, the websocket: newest-first bursts, 5.1's key codes) and browser (the set-up's seven steps, the colour chips (only those that change the chosen layouts, one row, the too-alike warning), a chosen key colour being WASD's exact line colour, the practice run, the overlay against a pretend input-overlay, the colour mode, its widgets-page scene). `widget-menus` (browser) checks both pages' section menu: the link you click stays lit, and scrolling lights the section at the top.
 
 ## How a loop gets caught
 

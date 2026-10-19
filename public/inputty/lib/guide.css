@@ -21,7 +21,7 @@
 .g-dots { display: flex; }
 .g-dots i { width: 16px; height: 16px; border-radius: 50%; margin-right: -4px; box-shadow: 0 0 0 2px var(--g-card); }
 .g-dots i:nth-child(1) { background: var(--t-edge); } .g-dots i:nth-child(2) { background: var(--t-key); } .g-dots i:nth-child(3) { background: var(--t-hi); } .g-dots i:nth-child(4) { background: var(--t-acc); }
-.g-sw { width: 30px; height: 30px; border-radius: 50%; padding: 0; cursor: pointer; background: var(--c); border: 3px solid var(--g-card); box-shadow: 0 0 0 1px var(--g-line); display: inline-grid; place-items: center; font-size: 12px; color: #fff; text-shadow: 0 0 3px #000; vertical-align: middle; }
+.g-sw { width: var(--sw, 30px); height: var(--sw, 30px); border-radius: 50%; padding: 0; cursor: pointer; background: var(--c); border: 3px solid var(--g-card); box-shadow: 0 0 0 1px var(--g-line); display: inline-grid; place-items: center; font-size: 12px; color: #fff; text-shadow: 0 0 3px #000; vertical-align: middle; }
 .g-sw[aria-pressed=true] { box-shadow: 0 0 0 3px var(--g-ink); }
 .g-any { background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red); overflow: hidden; position: relative; }
 .g-any input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
@@ -70,17 +70,29 @@
 /* the theme buttons sit in a balanced grid (g.balance) */
 .g-themes { display: grid; gap: 8px; }
 .g-themes .g-theme { width: 100%; }
-/* the look block: theme, pressed colour, frame, sparkles */
+/* the look block: theme, colours, frame, sparkles */
 .g-look { display: grid; gap: 14px; }
 .g-look-row { display: grid; grid-template-columns: 118px minmax(0, 1fr); gap: 10px; align-items: center; }
 .g-look-row > .g-frame-k { align-self: start; padding-top: 10px; }
 .g-look-f, .g-look-x { display: flex; margin-top: 0; }
 .g-look-f .g-frame-k, .g-look-x .g-frame-k { width: 118px; }
-.g-look-acc { display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 560px) { .g-look-row { grid-template-columns: minmax(0, 1fr); } .g-look-f .g-frame-k, .g-look-x .g-frame-k { width: auto; } }
 
-/* the pressed-colour swatches: a balanced grid, so a narrow screen splits them 5 + 5, never 9 + 1 */
-.g-swatches { display: grid !important; gap: 8px; justify-content: start; }
+/* the colours: one chip per colour on one row, the open one's palette below (a balanced grid: never one swatch alone) */
+.g-chips { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 8px; max-width: calc(var(--n) * 112px); }
+.g-chip { display: grid; gap: 6px; min-width: 0; padding: 6px 6px 8px; border-radius: 12px; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 700; line-height: 1; color: var(--g-ink); background: var(--g-card); border: 1.5px solid var(--g-line); box-shadow: 0 4px 0 var(--sh3, var(--g-line)); }
+.g-chip i { height: 24px; border-radius: 7px; background: var(--c); box-shadow: inset 0 0 0 1.5px #0002; display: grid; place-items: center; font-size: 11.5px; font-weight: 800; font-style: normal; color: var(--g-muted); }
+.g-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.g-chip[aria-expanded=true] { border-color: var(--g-acc); translate: 0 2px; box-shadow: 0 2px 0 var(--sh3, var(--g-line)); }
+.g-pop { display: grid; gap: 10px; margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: var(--soft, color-mix(in srgb, var(--g-ink) 6%, var(--g-card))); border: 1.5px solid var(--g-line); }
+.g-pop p { margin: 0; }
+.g-pop span { color: var(--g-muted); font-size: 14px; }
+.g-pal { display: grid; gap: 7px; justify-content: start; --sw: 30px; }
+.g-auto { background: var(--soft, var(--g-card)); color: var(--g-ink); text-shadow: none; font-size: 9.5px; font-weight: 700; }
+.g-warn-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--advice-bg, color-mix(in srgb, var(--g-warn) 15%, var(--g-card))); border: 1.5px solid var(--advice-line, var(--g-warn)); font-size: 14.5px; }
+.g-fix { font: inherit; font-size: 13.5px; font-weight: 700; padding: 8px 12px; border-radius: 10px; cursor: pointer; color: var(--g-ink); background: var(--g-card); border: 1.5px solid var(--g-line); box-shadow: 0 3px 0 var(--sh3, var(--g-line)); }
+.g-reset { display: block; margin-top: 10px; padding: 6px 0; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; color: var(--g-muted); background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 480px) { .g-chips { gap: 6px; } .g-chip { padding: 5px 3px 7px; font-size: 12.5px; } .g-pal { --sw: 26px; } }
 
 /* device titles stay on one line ("Keyboard & mouse" never leaves "mouse" alone) */
 .g-device b { white-space: nowrap; font-size: clamp(15px, 1.15vw, 18px); }

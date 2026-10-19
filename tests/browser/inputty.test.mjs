@@ -35,16 +35,20 @@ test('the set-up: only the first question until a device is picked, then every s
   await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
   assert.equal(await tab.eval(visible), 's1', 'only "What do you play with?" at first');
   await tab.click('.g-device[data-d="kbm"]');
-  await tab.until(`${visible} === 's1,s2,s3,s4,s5,s6'`, 4000, 'every step after picking');
+  await tab.until(`${visible} === 's1,s2,s3,s4,s5,s6,s7'`, 4000, 'every step after picking');
   await tab.until(`document.querySelector('.scenebox').classList.contains('flat')`, 4000, 'the screen turns to face you');
+  // the layouts (step 2), then the look (step 3: the owner wanted the colours offered for the layouts chosen)
+  assert.ok(await tab.eval(`!!document.querySelector('#s2 .g-layout') && !!document.querySelector('#s3 .g-theme')`));
   await tab.click('[data-next="2"]');
   await tab.click('[data-next="3"]');
-  assert.equal(await tab.eval(done), 's1,s2,s3');
-  await tab.click('#s2 .g-theme[data-t="neon"]');
-  assert.equal(await tab.eval(done), 's1,s2', 'a click in step 2 forgets step 3');
+  await tab.click('[data-next="4"]');
+  assert.equal(await tab.eval(done), 's1,s2,s3,s4');
+  await tab.click('#s3 .g-theme[data-t="neon"]');
+  assert.equal(await tab.eval(done), 's1,s2,s3', 'a click in step 3 forgets step 4');
   // the link carries the look, and goes to the overlay
   const url = await tab.eval(`document.querySelector('.g-url').textContent`);
   assert.match(url, /\/inputty\/play\.html\?.*theme=neon/);
+  assert.match(url, /[?&]p=wasd&.*p2=mouse/, 'WASD and Mouse by default (the owner), written into the link');
   assert.equal(await tab.eval(`document.documentElement.scrollWidth - innerWidth`), 0);
   assert.deepEqual(tab.errors, []);
   await tab.close();
@@ -105,6 +109,7 @@ test('the widgets page: Inputty\'s scene shows the live overlay, and the visitor
   await tab.until(`document.querySelector('.key[data-scene="inputty"]')`, 8000, 'the deck');
   await tab.click('.key[data-scene="inputty"]');
   await tab.until(`document.querySelector('.sc[data-scene="inputty"] iframe.ready')`, 10000, 'Inputty live');
+  assert.match(await tab.eval(`document.querySelector('.sc[data-scene="inputty"] iframe').src`), /[?&]p=wasd&.*p2=mouse/, 'WASD and Mouse, as the set-up starts (the owner)');
   await tab.eval(`dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW', key: 'w' })); 1`);
   await tab.until(`[...document.querySelector('.sc[data-scene="inputty"] iframe').contentWindow.IOInput.state.keys].includes(0x11)`, 2000, 'W lit on stream');
   await tab.eval(`dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW', key: 'w' })); 1`);
@@ -127,5 +132,60 @@ test('preset pictures: the Switch Pro\'s Neon art has no panel behind the contro
     return [[640, 840], [40, 40]].map(([x, y]) => g.getImageData(Math.round(x * k), Math.round(y * k), 1, 1).data[3]);
   })()`);
   assert.deepEqual(alpha, [0, 0], 'see-through between the grips and outside the controller');
+  await tab.close();
+});
+
+// Owner (2026-10-19): one row of colours under the theme, showing only the ones that change the chosen layouts (WASD and
+// the outline mouse: just Keys and Pressed). Our own drawn layouts take Letters, Edges and Shine too.
+test('the colours: only the ones that change the chosen layouts, on one row; a theme starts them over', async () => {
+  const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width: 1536, height: 960 });
+  await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+  await tab.click('.g-device[data-d="kbm"]');
+  const chips = `[...document.querySelectorAll('#s3 .g-chip')].map((c) => c.dataset.k).join()`;
+  await tab.until(`${chips} === 'key,accent'`, 5000, 'WASD and Mouse: Keys and Pressed');
+  await tab.click('#s2 .g-layout[data-id="keyboard"]');
+  await tab.click('#s2 .g-layout[data-id="game-mouse"]');
+  await tab.until(`${chips} === 'key,accent,ink,edge,hi'`, 5000, 'our keyboard and mouse: all five');
+  const tops = await tab.eval(`new Set([...document.querySelectorAll('#s3 .g-chip')].map((c) => Math.round(c.getBoundingClientRect().top))).size`);
+  assert.equal(tops, 1, 'all on one row');
+  // pick a key colour: it goes in the link; a theme starts the colours over
+  await tab.click('#s3 .g-chip[data-k="key"]');
+  await tab.click('#s3 .g-pal .g-sw[data-c="ff7fdc"]');
+  assert.match(await tab.eval(`document.querySelector('.g-url').textContent`), /key=ff7fdc/);
+  assert.equal(await tab.eval(`!!document.querySelector('#s3 .g-warn-row')`), false, "pink keys, Zojie's lilac presses: no warning");
+  await tab.click('#s3 .g-chip[data-k="accent"]');
+  await tab.click('#s3 .g-pal .g-sw[data-c="ff9fc6"]');
+  await tab.until(`!!document.querySelector('#s3 .g-warn-row')`, 2000, 'light pink on pink: too alike, warned');
+  await tab.click('#s3 .g-fix');
+  await tab.until(`!document.querySelector('#s3 .g-warn-row')`, 2000, 'fixed');
+  await tab.click('#s3 .g-theme[data-t="deep"]');
+  assert.doesNotMatch(await tab.eval(`document.querySelector('.g-url').textContent`), /key=|accent=/);
+  assert.equal(await tab.eval(`document.documentElement.scrollWidth - innerWidth`), 0);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+test("the colours: the theme's own pair never warns, even when close (Zojie's lilac keys and presses)", async () => {
+  const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width: 1536, height: 960 });
+  await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+  await tab.click('.g-device[data-d="kbm"]');
+  await tab.until(`document.querySelector('#s3 .g-chip')`, 5000, 'the chips');
+  assert.equal(await tab.eval(`!!document.querySelector('#s3 .g-warn-row')`), false);
+  await tab.close();
+});
+
+test("the overlay: a chosen key colour is exactly the colour of WASD's lines", async () => {
+  const tab = await chrome.open(site.origin + '/inputty/play.html?demo=1&bgo=0&p=wasd&v=0&p2=mouse&key=ff3366', { width: 900, height: 420 });
+  await tab.until(`document.documentElement.dataset.ready === '1'`, 8000, 'the overlay drawn');
+  await sleep(600);
+  const top = await tab.eval(`(() => {
+    const m = new Map();
+    for (const c of document.querySelectorAll('canvas')) {
+      const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      for (let i = 0; i < d.length; i += 4) if (d[i + 3] === 255) { const k = d[i] * 65536 + d[i + 1] * 256 + d[i + 2]; m.set(k, (m.get(k) || 0) + 1); }
+    }
+    return [...m].sort((a, b) => b[1] - a[1])[0][0].toString(16).padStart(6, '0');
+  })()`);
+  assert.equal(top, 'ff3366');
   await tab.close();
 });

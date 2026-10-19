@@ -179,7 +179,7 @@
   .figbar + .try { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
   .helper-card { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 16px; background: var(--card); border: 1.5px solid var(--line); border-radius: 18px; }
   .helper-card p { margin: 0; font-size: 15px; font-weight: 600; }
-  .progress { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .progress { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
   .progress i { height: 8px; border-radius: 4px; background: var(--line); transition: background .3s; }
   .progress i.on { background: var(--mint); }
   .progress i.now { background: var(--butter); }
@@ -356,7 +356,7 @@
       <svg class="guy" id="guy" aria-hidden="true"><use href="#guy-point"/></svg>
       <p id="tip">Start with step 1. I'll point at the next bit as you go.</p>
     </div>
-    <div class="progress" id="progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="progress" id="progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </aside>
 
   <div class="rest">
@@ -364,13 +364,12 @@
       <div class="num" data-n="2" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
-          <div><h2 id="h2s">Pick the finish</h2><p>Theme, pressed colour, frame and sparkles first, then the layout. The desk screen updates as you go.</p></div>
-          <svg class="art" data-art="2" aria-hidden="true"></svg>
+          <div><h2 id="h2s">Pick the parts</h2><p>Your keyboard, then your mouse. Tap one to see its styles. The desk screen updates as you go.</p></div>
+          <svg class="art" data-art="1" aria-hidden="true"></svg>
         </div>
-        <div class="panel"><span class="label">The look</span><div id="look"></div></div>
         <div class="panel"><span class="label" id="lay1">Keyboard</span><div id="layouts1"></div></div>
         <div class="panel" id="layouts2wrap"><span class="label" id="lay2">And your mouse</span><div id="layouts2"></div></div>
-        <button type="button" class="next" data-next="2">Looks good, next page →</button>
+        <button type="button" class="next" data-next="2">Those are mine, next page →</button>
       </div>
     </article>
 
@@ -378,7 +377,19 @@
       <div class="num" data-n="3" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
-          <div><h2 id="h3s">Get the helper</h2><p>A web page can't see your keys while you're in a game (good, honestly). A free OBS add-on called input-overlay passes them on. One download, a few Nexts.</p></div>
+          <div><h2 id="h3s">Pick the finish</h2><p>A theme, then make it yours: one set of colours for your keyboard and mouse, a frame, sparkles.</p></div>
+          <svg class="art" data-art="2" aria-hidden="true"></svg>
+        </div>
+        <div class="panel"><span class="label">The look</span><div id="look"></div></div>
+        <button type="button" class="next" data-next="3">Looks good, next page →</button>
+      </div>
+    </article>
+
+    <article class="step" id="s4" data-page="p. 4" aria-labelledby="h4s">
+      <div class="num" data-n="4" aria-hidden="true"></div>
+      <div class="body">
+        <div class="head">
+          <div><h2 id="h4s">Get the helper</h2><p>A web page can't see your keys while you're in a game (good, honestly). A free OBS add-on called input-overlay passes them on. One download, a few Nexts.</p></div>
           <svg class="art" data-art="3" aria-hidden="true"></svg>
         </div>
         <p class="skipnote">Controller only? Skip this page. Browsers can see controllers on their own.</p>
@@ -390,15 +401,15 @@
           <p><b>Don't</b> <s>open the installer with OBS still running</s>. It can't add itself to a running OBS.</p>
         </div>
         <div class="panel"><span class="label">Practice run · click the glowing bit on each screen</span><div id="mk-install"></div></div>
-        <button type="button" class="next" data-next="3">It's installed, next page →</button>
+        <button type="button" class="next" data-next="4">It's installed, next page →</button>
       </div>
     </article>
 
-    <article class="step" id="s4" data-page="p. 4" aria-labelledby="h4s">
-      <div class="num" data-n="4" aria-hidden="true"></div>
+    <article class="step" id="s5" data-page="p. 5" aria-labelledby="h5s">
+      <div class="num" data-n="5" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
-          <div><h2 id="h4s">Switch it on in OBS</h2><p>One tick box, then restart OBS. This page notices by itself when it's working, and the little PC lights up.</p></div>
+          <div><h2 id="h5s">Switch it on in OBS</h2><p>One tick box, then restart OBS. This page notices by itself when it's working, and the little PC lights up.</p></div>
           <svg class="art" data-art="4" aria-hidden="true"></svg>
         </div>
         <p class="skipnote">Controller only? Skip this page too.</p>
@@ -412,24 +423,24 @@
       </div>
     </article>
 
-    <article class="step" id="s5" data-page="p. 5" aria-labelledby="h5s">
-      <div class="num" data-n="5" aria-hidden="true"></div>
-      <div class="body">
-        <div class="head">
-          <div><h2 id="h5s">Add it to OBS</h2><p>Copy your link, then add it as a Browser source with this width and height. Your look lives in the link.</p></div>
-          <svg class="art" data-art="5" aria-hidden="true"></svg>
-        </div>
-        <div id="link"></div>
-        <div class="panel"><span class="label">Practice run</span><div id="mk-source"></div></div>
-        <button type="button" class="next" data-next="5">Added it, last page →</button>
-      </div>
-    </article>
-
     <article class="step" id="s6" data-page="p. 6" aria-labelledby="h6s">
       <div class="num" data-n="6" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
-          <div><h2 id="h6s">Test it</h2><p id="testintro">Press a key in your game. When it lights up in OBS, you're done.</p></div>
+          <div><h2 id="h6s">Add it to OBS</h2><p>Copy your link, then add it as a Browser source with this width and height. Your look lives in the link.</p></div>
+          <svg class="art" data-art="5" aria-hidden="true"></svg>
+        </div>
+        <div id="link"></div>
+        <div class="panel"><span class="label">Practice run</span><div id="mk-source"></div></div>
+        <button type="button" class="next" data-next="6">Added it, last page →</button>
+      </div>
+    </article>
+
+    <article class="step" id="s7" data-page="p. 7" aria-labelledby="h7s">
+      <div class="num" data-n="7" aria-hidden="true"></div>
+      <div class="body">
+        <div class="head">
+          <div><h2 id="h7s">Test it</h2><p id="testintro">Press a key in your game. When it lights up in OBS, you're done.</p></div>
           <svg class="art" data-art="6" aria-hidden="true"></svg>
         </div>
         <div id="status6a"></div>
@@ -452,7 +463,7 @@
       <details><summary>Streamlabs, Meld or another app?</summary><p>Keys and mouse need OBS, because the helper is an OBS add-on. The controller version is just a Browser source, so it works in anything that can show a web page.</p></details>
       <details><summary>Will anti-cheat mind?</summary><p>It only listens to key presses, the same way OBS hotkeys do, and never touches your game.</p></details>
       <details><summary>Can I change it later?</summary><p>Any time. Come back, pick a new look, copy the new link and paste it over the old one in the Browser source.</p></details>
-      <details><summary>Nothing lights up. Now what?</summary><p>Check page 4: the box ticked in input-overlay settings, and OBS restarted since. For controllers, press any button once after OBS opens so it wakes up.</p></details>
+      <details><summary>Nothing lights up. Now what?</summary><p>Check page 5: the box ticked in input-overlay settings, and OBS restarted since. For controllers, press any button once after OBS opens so it wakes up.</p></details>
     </div>
   </div>
 </section>

@@ -16,13 +16,59 @@
   const OS = new URLSearchParams(location.search).get('os') || (/Android|iPhone|iPad|Mobile/i.test(ua) ? 'phone' : /Win/i.test(navigator.platform || ua) ? 'windows' : /Mac/i.test(navigator.platform || ua) ? 'mac' : /Linux/i.test(ua) ? 'linux' : 'other');
   const KIND = { Keyboard: 'keyboard', Mouse: 'mouse', Controller: 'controller', Retro: 'controller', 'Fight stick': 'controller' };
   const DEVICE_DEFAULTS = {
-    kbm: { p: 'game-keys', v: 1, a: 0, p2: 'game-mouse', v2: 0, a2: 0 },
+    kbm: { p: 'wasd', v: 0, a: 0, p2: 'mouse', v2: 0, a2: 0 },
     pad: { p: 'xboxone', v: 0, a: 0, p2: '', v2: 0, a2: 0 },
-    both: { p: 'game-keys', v: 1, a: 0, p2: 'xboxone', v2: 0, a2: 0 },
+    both: { p: 'wasd', v: 0, a: 0, p2: 'xboxone', v2: 0, a2: 0 },
   };
 
+  // ---- colours (the look step's chips) ----
+  const COLOURS = {
+    key: { label: 'Keys', help: 'the keys and buttons' },
+    accent: { label: 'Pressed', help: 'a key or button while it is held' },
+    ink: { label: 'Letters', help: 'the letters on the keys' },
+    edge: { label: 'Edges', help: 'sides, outlines and shadows' },
+    hi: { label: 'Shine', help: 'the highlight on top of each key' },
+  };
+  const COLOUR_PARTS = Object.keys(COLOURS), NO_COLOURS = { key: '', accent: '', ink: '', edge: '', hi: '' };
+  const SWATCHES = ['ffffff', 'f3eefc', 'c9b2ff', 'b18cff', 'ff9fc6', 'ff7fdc', '8fa8ff', '5fd4ff', '6ff0b0', 'ffe066', 'ff9a3d', 'ff5a5a', '2b2a4a', '15171d'];
+  const rgb = (h) => [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  const lum = (h) => { const [r, g2, b] = rgb(h).map(lin); return 0.2126 * r + 0.7152 * g2 + 0.0722 * b; };
+  /** how different two colours look (CIE76 ΔE in Lab): brightness contrast alone calls gold and pink "the same" */
+  function dE(a, b) {
+    const lab = (h) => {
+      const [r, g2, bl] = rgb(h).map(lin), f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+      const x = f((r * 0.4124 + g2 * 0.3576 + bl * 0.1805) / 0.95047), y = f(r * 0.2126 + g2 * 0.7152 + bl * 0.0722), z = f((r * 0.0193 + g2 * 0.1192 + bl * 0.9505) / 1.08883);
+      return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+    };
+    const A = lab(a), B = lab(b);
+    return Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]);
+  }
+  const mixHex = (a, b, t) => { const A = rgb(a), B = rgb(b); return A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+  const idle = { keys: new Set(), mouse: new Set(), wheel: { t: -1e9, rot: 0 }, move: { vx: 0, vy: 0, angle: 0 }, pad: { connected: false, index: 0, buttons: [], axes: [0, 0, 0, 0, 0, 0] } };
+  const measured = new Map();   // small picture → Promise<{ line, edge, hi }>
+  /** which colours change a picture: drawn in a fixed look, then with Edges and with Shine pushed far off; a colour
+   *  counts when it moves more than 2% of the picture's pixels (some have no dark or no light parts at all). line: it's
+   *  light line art (WASD, the outline mouse), whose Keys colour is its lines */
+  function measure(variant, art) {
+    const key = art.thumb || art.src;
+    if (!measured.has(key)) measured.set(key, (async () => {
+      const v = new window.IORender.PresetView(variant.layout, key, { pixel: variant.pixel, aw: art.aw });
+      await v.load();
+      const base = L.look({ ...L.DEFAULTS });
+      const px = (look) => { v.setLook(look); v.draw(idle); return v.canvas.getContext('2d').getImageData(0, 0, v.canvas.width, v.canvas.height).data; };
+      const a = px(base), e = px({ ...base, edge: 'ff0000' }), h = px({ ...base, hi: '00ff00' });
+      const far = (x, i) => Math.abs(a[i] - x[i]) + Math.abs(a[i + 1] - x[i + 1]) + Math.abs(a[i + 2] - x[i + 2]) > 60;
+      let n = 0, de = 0, dh = 0;
+      for (let i = 0; i < a.length; i += 4) { if (a[i + 3] < 40) continue; n++; if (far(e, i)) de++; if (far(h, i)) dh++; }
+      return { line: v.levels().light, edge: de > n * 0.02, hi: dh > n * 0.02 };
+    })());
+    return measured.get(key);
+  }
+
   function create({ theme = 'zojie' } = {}) {
-    const s = { ...L.DEFAULTS, theme, device: '', title: 'my inputs' };
+    // starts on WASD and Mouse (the owner), written into the link (a link without them means looks.js's DEFAULTS)
+    const s = { ...L.DEFAULTS, ...DEVICE_DEFAULTS.kbm, theme, device: '', title: 'my inputs' };
     const subs = new Set();
     const g = {
       s, OS, INSTALLER, P, L,
@@ -49,7 +95,7 @@
     g.preview = (iframe) => { frames.add(iframe); iframe.src = g.url(true); return iframe; };
     function syncPreview() {
       const key = [s.p, s.v, s.a, s.p2, s.v2, s.a2].join();
-      const look = { theme: s.theme, accent: s.accent, key: s.key, edge: s.edge, hi: s.hi, orig: s.orig, frame: s.frame, title: s.title, bgo: s.bgo, fx: s.fx, outline: s.outline };
+      const look = { theme: s.theme, accent: s.accent, key: s.key, edge: s.edge, hi: s.hi, ink: s.ink, orig: s.orig, frame: s.frame, title: s.title, bgo: s.bgo, fx: s.fx, outline: s.outline };
       frames.forEach((f) => { if (key !== layoutKey) f.src = g.url(true); else f.contentWindow?.postMessage({ type: 'io-look', look }, '*'); });
       layoutKey = key;
     }
@@ -86,6 +132,18 @@
       if (name !== g.pad) { g.pad = name; g.emit('pad'); }
       setTimeout(pollPad, 700);
     })();
+
+    // ---- which colours the chosen layouts take ----
+    const chosenLayouts = () => [[s.p, s.v, s.a], [s.p2, s.v2, s.a2]].filter(([id]) => id && g.preset(id))
+      .map(([id, v, a]) => { const p = g.preset(id); return { variant: p.variants[v] || p.variants[0], a }; });
+    /** a chosen layout → { parts: the colours that change it, line: is it line art } */
+    async function colourParts({ variant, a }) {
+      if (variant.drawn) return { parts: variant.drawn.kind === 'keys' ? COLOUR_PARTS : COLOUR_PARTS.filter((k) => k !== 'ink'), line: false };
+      if (+s.orig) return { parts: [], line: false };
+      const m = await measure(variant, variant.arts[a] || variant.arts[0]);
+      return { parts: m.line ? ['key', 'accent'] : ['key', 'accent', ...(m.edge ? ['edge'] : []), ...(m.hi ? ['hi'] : [])], line: m.line };
+    }
+    g.colourParts = async () => { const got = await Promise.all(chosenLayouts().map(colourParts)); return COLOUR_PARTS.filter((k) => got.some((x) => x.parts.includes(k))); };
 
     // ---- building blocks ----
     const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
@@ -291,14 +349,14 @@
         g.on((why) => (why === 'fx' || why === 'theme') && draw());
         draw();
       },
-      /** the whole look, in order: theme, pressed colour, frame, sparkles (step 2 starts with this, before layouts) */
+      /** the whole look, in order: theme, its colours, frame, sparkles (step 3, after the layouts) */
       look(el) {
         el.classList.add('g-look');
         el.innerHTML = `<div class="g-look-row"><span class="g-frame-k">Theme</span><div class="g-look-themes"></div></div>
-          <div class="g-look-row"><span class="g-frame-k">Pressed colour</span><div class="g-look-acc"></div></div>
+          <div class="g-look-row g-look-c"><span class="g-frame-k">Colours</span><div class="g-look-cols"></div></div>
           <div class="g-look-row g-look-f"></div><div class="g-look-row g-look-x"></div>`;
         g.ui.themes(el.querySelector('.g-look-themes'), { frame: false });
-        g.ui.accents(el.querySelector('.g-look-acc'));
+        g.ui.colours(el.querySelector('.g-look-cols'));
         g.ui.frame(el.querySelector('.g-look-f'));
         g.ui.sparkles(el.querySelector('.g-look-x'));
       },
@@ -308,23 +366,75 @@
         el.innerHTML = Object.entries(L.THEMES).map(([id, t]) => `<button type="button" class="g-theme" data-t="${id}" aria-pressed="${s.theme === id}" style="--t-edge:#${t.edge};--t-key:#${t.key};--t-hi:#${t.hi};--t-acc:#${t.accent}"><span class="g-dots"><i></i><i></i><i></i><i></i></span>${names ? `<span>${t.label}</span>` : ''}</button>`).join('');
         el.classList.add('g-themes');
         g.balance(el, { min: 92, gap: 8 });
-        el.onclick = (e) => { const b = e.target.closest('.g-theme'); if (b) g.set({ theme: b.dataset.t, accent: '' }, 'theme'); };
+        el.onclick = (e) => { const b = e.target.closest('.g-theme'); if (b) g.set({ theme: b.dataset.t, ...NO_COLOURS }, 'theme'); };
         g.on(() => el.querySelectorAll('.g-theme').forEach((b) => b.setAttribute('aria-pressed', String(s.theme === b.dataset.t))));
       },
-      /** the pressed colour: the theme's own, a few swatches, any colour */
-      accents(el) {
-        const SW = ['', 'ff7fdc', '8fa8ff', '5fd4ff', '6ff0b0', 'ffe066', 'ff9a3d', 'ff5a5a', 'ffffff'];
-        const draw = () => {
-          const own = L.THEMES[s.theme].accent;
-          el.innerHTML = SW.map((c) => `<button type="button" class="g-sw" data-c="${c}" aria-pressed="${(s.accent || '') === c}" title="${c ? '#' + c : "The theme's own"}" style="--c:#${c || own}">${c ? '' : '★'}</button>`).join('')
-            + `<label class="g-sw g-any" title="Any colour"><input type="color" value="#${L.hex(s.accent) || own}" aria-label="Any colour"></label>`;
+      /** the theme's colours, made yours: one chip per colour that changes the chosen layouts (all on one row), each
+       *  opening its palette. Line art (WASD, the outline mouse) takes Keys (its lines) and Pressed only; our drawn
+       *  layouts take Keys, Pressed, Letters (keyboards), Edges and Shine; a picture takes Edges and Shine only when they
+       *  visibly change it (colourParts). Once Keys or Pressed is changed, a warning shows when the two are too alike to
+       *  spot a press on stream, with a one-click fix */
+      colours(host) {
+        let open = '', token = 0, lineFirst = false;   // lineFirst: the first layout is line art, so Keys is its lines' colour
+        const T = () => L.THEMES[s.theme];
+        /** a colour as the theme has it (line art's Keys: its lines, which are dark when drawn on a light panel) */
+        const own = (k) => {
+          if (k === 'ink') return '';
+          if (k !== 'key' || !lineFirst) return T()[k];
+          const look = L.look({ ...s, key: '', orig: 0 });
+          return look.lightBg ? look.edge : look.lines;
         };
-        el.classList.add('g-swatches');
-        g.balance(el, { min: 30, max: 30, gap: 8 });
-        el.onclick = (e) => { const b = e.target.closest('button.g-sw'); if (b) g.set({ accent: b.dataset.c }, 'accent'); };
-        el.oninput = (e) => { if (e.target.type === 'color') g.set({ accent: e.target.value.slice(1) }, 'accent'); };
-        g.on((why) => { if (why === 'theme' || why === 'accent') draw(); });
-        draw();
+        const value = (k) => L.hex(s[k]) || own(k);
+        const set = (k, v) => g.set({ [k]: v }, k === 'accent' ? 'accent' : 'theme');
+        /** the pressed colour nearest the chosen one that stands out from Keys (ΔE 35+) */
+        function fixPressed() {
+          const key = value('key'), acc = value('accent');
+          const toward = lum(key) > 0.4 ? T().edge : 'ffffff';
+          for (let t = 0.1; t <= 1; t += 0.05) { const c = mixHex(acc, toward, t); if (dE(c, key) >= 35) return c; }
+          return toward;
+        }
+        const palette = (k) => {
+          const cur = L.hex(s[k]);
+          return `<div class="g-pal" data-k="${k}">
+            ${k === 'ink' ? `<button type="button" class="g-sw g-auto" data-c="" aria-pressed="${!cur}" title="Auto: whichever reads best">Auto</button>`
+              : `<button type="button" class="g-sw" data-c="" aria-pressed="${!cur}" title="${T().label}'s own" aria-label="${T().label}'s own" style="--c:#${own(k)}">★</button>`}
+            ${SWATCHES.map((c) => `<button type="button" class="g-sw" data-c="${c}" aria-pressed="${cur === c}" aria-label="#${c}" style="--c:#${c}"></button>`).join('')}
+            <label class="g-sw g-any" title="Any colour"><input type="color" value="#${value(k) || '2b2a4a'}" aria-label="Any colour"></label>
+          </div>`;
+        };
+        let dragging = false;   // the any-colour picker is open: only its chip updates (rebuilding would close it)
+        async function draw() {
+          if (dragging) { const i = host.querySelector(`.g-chip[data-k="${open}"] i`); if (i) i.style.setProperty('--c', '#' + value(open)); return; }
+          const my = ++token;
+          const got = await Promise.all(chosenLayouts().map(colourParts));
+          if (my !== token) return;
+          lineFirst = !!got[0]?.line;
+          const ks = COLOUR_PARTS.filter((k) => got.some((x) => x.parts.includes(k)));
+          if (!ks.includes(open)) open = '';
+          if (!ks.length) { host.innerHTML = `<p class="g-note">This layout keeps its own colours. Pick <b>Theme colours</b> under its styles to colour it.</p>`; return; }
+          const auto = (k) => k === 'ink' && !L.hex(s.ink);
+          host.innerHTML = `<div class="g-chips" style="--n:${ks.length}">${ks.map((k) => `<button type="button" class="g-chip" data-k="${k}" aria-expanded="${open === k}">
+              <i style="--c:#${value(k) || 'ffffff'}">${auto(k) ? 'Auto' : ''}</i><span>${COLOURS[k].label}</span></button>`).join('')}</div>
+            ${open ? `<div class="g-pop"><p><b>${COLOURS[open].label}</b> <span>${COLOURS[open].help}</span></p>${palette(open)}</div>` : ''}
+            ${(L.hex(s.key) || L.hex(s.accent)) && dE(value('key'), value('accent')) < 30 ? `<p class="g-warn-row">Pressed is close to the key colour, so presses may be hard to spot on stream. <button type="button" class="g-fix">Make it stand out</button></p>` : ''}
+            ${COLOUR_PARTS.some((k) => L.hex(s[k])) ? `<button type="button" class="g-reset">Back to ${T().label}'s colours</button>` : ''}`;
+          // the swatches in even rows (never one alone on the last)
+          const pal = host.querySelector('.g-pal');
+          if (pal) { const sw = parseFloat(getComputedStyle(pal).getPropertyValue('--sw')); g.balance(pal, { min: sw, max: sw, gap: 7 }); }
+        }
+        host.addEventListener('click', (e) => {
+          const c = e.target.closest('.g-chip');
+          if (c) { open = open === c.dataset.k ? '' : c.dataset.k; draw(); return; }
+          const b = e.target.closest('.g-sw[data-c]'), pal = e.target.closest('.g-pal');
+          if (b && pal) set(pal.dataset.k, b.dataset.c);
+          else if (e.target.closest('.g-fix')) set('accent', fixPressed());
+          else if (e.target.closest('.g-reset')) g.set(NO_COLOURS, 'theme');
+        });
+        host.addEventListener('input', (e) => { const pal = e.target.closest('.g-pal'); if (pal && e.target.type === 'color') { dragging = true; set(pal.dataset.k, e.target.value.slice(1)); } });
+        host.addEventListener('change', (e) => { if (e.target.type === 'color') { dragging = false; draw(); } });
+        // drawn once a device is picked (the step is hidden until then): measuring pictures waits off the page's load
+        g.on((why) => { if (s.device && ['theme', 'accent', 'layout', 'device', 'frame', 'fonts'].includes(why)) draw(); });
+        if (s.device) draw();
       },
       /** the big download button, straight to the installer */
       download(el, { label = 'Download the helper' } = {}) {
