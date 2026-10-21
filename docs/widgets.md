@@ -651,7 +651,7 @@ measured with them out of the way and placed again whenever the columns change (
 a row of 5: placed while the grid still had its CSS columns, then never moved); (4) get the helper (close OBS first, the
 download, a practice run of SmartScreen and the installer); (5) switch it on in OBS (a practice run, "not WebSocket Server
 Settings", the live status that finds input-overlay); (6) add it to OBS (the link, and a practice run that types the
-name, pastes the link and sets the width and height); (7) test it, with a fixer under it ("Not lighting up? Pick what
+name, pastes the link and sets the width and height); (7) test it, with a fixer under it (it says to restart the PC first, which is what fixed it for zojie; then "Not lighting up? Pick what
 you see", added when zojie followed every step and still saw nothing): each thing you might see leads to its fix and a
 practice run. *Not found yet* → is input-overlay settings in Tools? (yes: page 5's run again; no: it went into another
 folder than OBS's, e.g. the Steam OBS, so copy OBS's folder from File Explorer and paste it into the installer). *Found,

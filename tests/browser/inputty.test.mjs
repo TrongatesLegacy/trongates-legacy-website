@@ -431,6 +431,9 @@ test("step 7's troubleshooter: offers what fits the device, marks the likely one
   // nothing's running input-overlay here, so "not found" is the likely one
   assert.equal(await tab.eval(`document.querySelector('#fix .fix-pick.likely')?.dataset.f`), 'missing');
   assert.equal(await tab.eval(`!!document.querySelector('#fix .mk')`), false, 'no practice run until something is picked');
+  // restarting the PC comes first, above the choices: it's what fixed it for zojie
+  assert.match(await tab.eval(`document.querySelector('#fix').previousElementSibling.textContent`), /Restart your PC first/);
+  assert.match(await tab.eval(`document.querySelector('#s5').textContent`), /Restart your PC/, 'page 5 says so too');
 
   // keys don't come through in the game, though they do elsewhere: run OBS as administrator
   await tab.click('#fix .fix-pick[data-f="nokeys"]');

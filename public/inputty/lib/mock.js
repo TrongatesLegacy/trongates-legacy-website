@@ -99,7 +99,7 @@
   }
 
   const toolsMenu = () => obsMenu('Tools', `<div class="mk-drop" style="left:var(--tools-x)"><p>Auto-Configuration Wizard</p><p>Output Timer</p><p>Scripts</p><p class="dim">WebSocket Server Settings</p><hr><p data-go>input-overlay settings</p></div>`);
-  const restart = { say: 'Close OBS and open it again', note: 'File → Exit, then start OBS. It only switches on when OBS starts.', html: () => obs(obsBody(), obsMenu('File', `<div class="mk-drop" style="left:0"><p>Show Recordings</p><p>Remux Recordings</p><hr><p>Settings</p><p>Show Settings Folder</p><p>Show Profile Folder</p><hr><p data-go>Exit</p></div>`)) };
+  const restart = { say: 'Close OBS and open it again', note: 'File → Exit, then start OBS. It only switches on when OBS starts. Still not found? Restart your PC.', html: () => obs(obsBody(), obsMenu('File', `<div class="mk-drop" style="left:0"><p>Show Recordings</p><p>Remux Recordings</p><hr><p>Settings</p><p>Show Settings Folder</p><p>Show Profile Folder</p><hr><p data-go>Exit</p></div>`)) };
 
   /** copy from a pretend box: select what's in it (the full text), show Ctrl+C */
   async function copy(box, text) {
