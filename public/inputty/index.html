@@ -99,7 +99,6 @@
   /* steps: white cards with a stacked, toy-block edge */
   .step { position: relative; display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 0 18px; padding: 22px 24px 26px; background: var(--card); border: 1.5px solid var(--line); border-radius: 20px; scroll-margin-top: 90px;
     box-shadow: var(--stack); }
-  .step::after { content: attr(data-page); position: absolute; right: 18px; bottom: 12px; font: 600 12px/1 "Outfit", sans-serif; color: var(--muted2); }
   .num svg { width: 64px; height: 64px; display: block; }
   .num .top { fill: #f1edfc; } .num .l { fill: #ddd5f9; } .num .r { fill: #c9bcf7; }
   .num polygon { stroke: #2b2a4a33; stroke-width: 1; stroke-linejoin: round; }
@@ -336,11 +335,11 @@
   </div>
 
   <!-- step 1 sits in the hero, so you start right away -->
-  <article class="step one now" id="s1" data-page="p. 1" aria-labelledby="h1s">
+  <article class="step one now" id="s1" aria-labelledby="h1s">
     <div class="num" data-n="1" aria-hidden="true"></div>
     <div class="body">
       <div class="head">
-        <div><h2 id="h1s">What do you play with?</h2><p>Pick one and it drops onto the desk. The manual skips the pages you don't need.</p></div>
+        <div><h2 id="h1s">What do you play with?</h2><p>Pick one and it drops onto the desk. The manual skips the steps you don't need.</p></div>
         <svg class="art" data-art="1" aria-hidden="true"></svg>
       </div>
       <div class="device-row" id="device"><button type="button" class="g-device" data-d="kbm" aria-pressed="false"><span class="g-ico"></span><b>Keyboard &amp; mouse</b><small>WASD, clicks and scrolls</small></button><button type="button" class="g-device" data-d="pad" aria-pressed="false"><span class="g-ico"></span><b>Controller</b><small>Xbox, PlayStation, Switch and more</small></button><button type="button" class="g-device" data-d="both" aria-pressed="false"><span class="g-ico"></span><b>Both</b><small>Keys and a controller</small></button></div>
@@ -369,7 +368,7 @@
   </aside>
 
   <div class="rest">
-    <article class="step" id="s2" data-page="p. 2" aria-labelledby="h2s">
+    <article class="step" id="s2" aria-labelledby="h2s">
       <div class="num" data-n="2" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
@@ -379,11 +378,11 @@
         <div id="which" hidden></div>
         <div class="panel" id="layouts1wrap"><span class="label" id="lay1">Keyboard</span><div id="layouts1"></div></div>
         <div class="panel" id="layouts2wrap"><span class="label" id="lay2">And your mouse</span><div id="layouts2"></div></div>
-        <button type="button" class="next" data-next="2">Those are mine, next page →</button>
+        <button type="button" class="next" data-next="2">Those are mine, next step →</button>
       </div>
     </article>
 
-    <article class="step" id="s3" data-page="p. 3" aria-labelledby="h3s">
+    <article class="step" id="s3" aria-labelledby="h3s">
       <div class="num" data-n="3" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
@@ -391,18 +390,18 @@
           <svg class="art" data-art="2" aria-hidden="true"></svg>
         </div>
         <div class="panel"><span class="label">The look</span><div id="look"></div></div>
-        <button type="button" class="next" data-next="3">Looks good, next page →</button>
+        <button type="button" class="next" data-next="3">Looks good, next step →</button>
       </div>
     </article>
 
-    <article class="step" id="s4" data-page="p. 4" aria-labelledby="h4s">
+    <article class="step" id="s4" aria-labelledby="h4s">
       <div class="num" data-n="4" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
           <div><h2 id="h4s">Get the helper</h2><p>A web page can't see your keys while you're in a game (good, honestly). A free OBS add-on called input-overlay passes them on. One download, a few Nexts.</p></div>
           <svg class="art" data-art="3" aria-hidden="true"></svg>
         </div>
-        <p class="skipnote">Controller only? Skip this page. Browsers can see controllers on their own.</p>
+        <p class="skipnote">Controller only? Skip this step. Browsers can see controllers on their own.</p>
         <p class="note"><b>!</b>Close OBS first, so the installer can put it in the right folder.</p>
         <div id="dl"></div>
         <div class="dont">
@@ -411,18 +410,18 @@
           <p><b>Don't</b> <s>open the installer with OBS still running</s>. It can't add itself to a running OBS.</p>
         </div>
         <div class="panel"><span class="label">Practice run · click the glowing bit on each screen</span><div id="mk-install"></div></div>
-        <button type="button" class="next" data-next="4">It's installed, next page →</button>
+        <button type="button" class="next" data-next="4">It's installed, next step →</button>
       </div>
     </article>
 
-    <article class="step" id="s5" data-page="p. 5" aria-labelledby="h5s">
+    <article class="step" id="s5" aria-labelledby="h5s">
       <div class="num" data-n="5" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
           <div><h2 id="h5s">Switch it on in OBS</h2><p>One tick box, then restart OBS. This page notices by itself when it's working, and the little PC lights up.</p></div>
           <svg class="art" data-art="4" aria-hidden="true"></svg>
         </div>
-        <p class="skipnote">Controller only? Skip this page too.</p>
+        <p class="skipnote">Controller only? Skip this step too.</p>
         <div class="dont">
           <span class="x" aria-hidden="true">✕</span>
           <svg class="guy" aria-hidden="true"><use href="#guy-frown"/></svg>
@@ -433,7 +432,7 @@
       </div>
     </article>
 
-    <article class="step" id="s6" data-page="p. 6" aria-labelledby="h6s">
+    <article class="step" id="s6" aria-labelledby="h6s">
       <div class="num" data-n="6" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
@@ -442,11 +441,11 @@
         </div>
         <div id="link"></div>
         <div class="panel"><span class="label">Practice run</span><div id="mk-source"></div></div>
-        <button type="button" class="next" data-next="6">Added it, last page →</button>
+        <button type="button" class="next" data-next="6">Added it, last step →</button>
       </div>
     </article>
 
-    <article class="step" id="s7" data-page="p. 7" aria-labelledby="h7s">
+    <article class="step" id="s7" aria-labelledby="h7s">
       <div class="num" data-n="7" aria-hidden="true"></div>
       <div class="body">
         <div class="head">
@@ -474,8 +473,8 @@
       <details><summary>Streamlabs, Meld or another app?</summary><p>Keys and mouse need OBS, because the helper is an OBS add-on. The controller version is just a Browser source, so it works in anything that can show a web page.</p></details>
       <details><summary>Will anti-cheat mind?</summary><p>It only listens to key presses, the same way OBS hotkeys do, and never touches your game.</p></details>
       <details><summary>Can I change it later?</summary><p>Any time. Come back, pick a new look, copy the new link and paste it over the old one in the Browser source.</p></details>
-      <details><summary>Nothing lights up. Now what?</summary><p>Restart your PC first: that fixes it more often than anything. Still nothing? Page 7 has a fixer: pick what you see and it walks you through the fix. The usual ones: the box on page 5 isn't ticked or OBS hasn't restarted since, or your game runs as administrator. For controllers, press any button once after OBS opens so it wakes up.</p></details>
-      <details><summary>Does OBS need to run as administrator?</summary><p>Only if your game does. Windows hides a game's keys from anything that isn't running as administrator too, so keys show everywhere except in that game. Page 7 shows how to switch it on. Controllers don't need it.</p></details>
+      <details><summary>Nothing lights up. Now what?</summary><p>Restart your PC first: that fixes it more often than anything. Still nothing? Step 7, <b>Test it</b>, has a fixer: pick what you see and it walks you through the fix. The usual ones: the box in step 5, <b>Switch it on in OBS</b>, isn't ticked or OBS hasn't restarted since, or your game runs as administrator. For controllers, press any button once after OBS opens so it wakes up.</p></details>
+      <details><summary>Does OBS need to run as administrator?</summary><p>Only if your game does. Windows hides a game's keys from anything that isn't running as administrator too, so keys show everywhere except in that game. Step 7, <b>Test it</b>, shows how to switch it on. Controllers don't need it.</p></details>
     </div>
   </div>
 </section>

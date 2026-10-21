@@ -618,7 +618,7 @@ public/inputty/lib/input.js          input: input-overlay's websocket, the page'
 public/inputty/lib/render.js         draws a preset from its picture, recoloured to the theme; drawn.js our own presets
 public/inputty/lib/overlay.js        the overlay page; play.css its look (and the Zojie theme)
 public/inputty/lib/guide.js/.css     the set-up's building blocks (device, layouts, look and colours, download, statuses, link)
-public/inputty/lib/mock.js/.css      the practice runs: copies of the Windows, installer and OBS screens to click through (and page 7's fixes)
+public/inputty/lib/mock.js/.css      the practice runs: copies of the Windows, installer and OBS screens to click through (and step 7's fixes)
 public/inputty/presets/              the preset pictures (shrunk WebP), thumbs/ (the set-up's tiny copies), LICENSE.txt
 public/inputty/assets/               icon.svg, og.jpg (link preview), scene.webp (its scene on the widgets page)
 artwork/inputty/                     og.html + scene.html, render.mjs; presets/ the full-size original pictures (not served)
@@ -640,7 +640,10 @@ while it listens on IPv4). Inputty never uses the plugin's own source, presets o
   version is in the file name (`guide.js`, `INSTALLER`): update it when input-overlay releases. It isn't signed, so
   Windows SmartScreen warns (More info → Run anyway); the guide and the FAQ say so.
 
-**The set-up** (the page's hero, "Some assembly required. Not much."): (1) what you play with; steps 2–7 stay hidden until
+**The set-up** (the page's hero, "Some assembly required. Not much."). Its parts are **steps**, never pages: the copy
+names one by number and title (step 5, **Switch it on in OBS**; in a practice run's plain-text note, step 5, "Switch it
+on in OBS"), the buttons say "next step", and there's no "p. 5" in the corner (the owner found "page 5" confusing; a test
+keeps it out). (1) what you play with; steps 2–7 stay hidden until
 a device is picked, and picking drops its parts on the desk then turns the screen to face you; (2) the layouts (WASD and
 the outline Mouse to start, the owner's pick; our own drawn ones last; Keyboard & mouse can be Both, Keyboard only or
 Mouse only: the other slot is left empty, `p=` or `p2=` in the link, and comes back as it was when switched back); (3) the look: theme, colours, frame, sparkles
@@ -653,7 +656,7 @@ download, a practice run of SmartScreen and the installer); (5) switch it on in 
 Settings", the live status that finds input-overlay); (6) add it to OBS (the link, and a practice run that types the
 name, pastes the link and sets the width and height); (7) test it, with a fixer under it (it says to restart the PC first, which is what fixed it for zojie; then "Not lighting up? Pick what
 you see", added when zojie followed every step and still saw nothing): each thing you might see leads to its fix and a
-practice run. *Not found yet* → is input-overlay settings in Tools? (yes: page 5's run again; no: it went into another
+practice run. *Not found yet* → is input-overlay settings in Tools? (yes: step 5's run again; no: it went into another
 folder than OBS's, e.g. the Steam OBS, so copy OBS's folder from File Explorer and paste it into the installer). *Found,
 but no keys* → do they show from Notepad? (yes: the game runs as administrator, and Windows hides an elevated window's
 keys from a program that isn't, so run OBS as administrator: shortcut → Properties → Compatibility; no: input-overlay's

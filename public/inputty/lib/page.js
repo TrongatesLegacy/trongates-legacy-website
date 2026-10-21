@@ -176,7 +176,7 @@
   // ---- step 7's fixer: what you see → the fix, with a practice run. The page's own checks mark the likely one ----
   const FIX = {
     missing: { q: 'This page says <b>Not found yet</b>', ask: "Open OBS's <b>Tools</b> menu. Is <b>input-overlay settings</b> in it?", subs: {
-      there: ["It's there", "Then it's installed but not switched on. Do page 5 again: the <b>WebSocket server</b> tab, tick the first box, OK, then close OBS and open it again.", 'obs'],
+      there: ["It's there", "Then it's installed but not switched on. Do step 5, <b>Switch it on in OBS</b>, again: the <b>WebSocket server</b> tab, tick the first box, OK, then close OBS and open it again.", 'obs'],
       gone: ["It's not there", "Then input-overlay went into a different folder from your OBS. That happens with the Steam version of OBS, or OBS on another drive. Copy where your OBS really is, then run the installer again and paste it in.", 'folder'] } },
     nokeys: { q: "It's found, but my keys don't come through", ask: 'Type something in Notepad, then look back here. Does it say <b>Working!</b>?', subs: {
       game: ['Yes, just not in my game', "Your game runs as administrator, and Windows hides its keys from anything that isn't. Run OBS as administrator too and it sees them. Controllers don't mind either way.", 'admin'],
@@ -364,7 +364,7 @@
     if ((n === 2 || n === 3) && !flat) { flat = true; placeScreen(); }
   }, true);
 
-  // "next page" buttons mark the step and move you along
+  // "next step" buttons mark the step and move you along
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-next]');
     if (!b) return;

@@ -433,7 +433,7 @@ test("step 7's troubleshooter: offers what fits the device, marks the likely one
   assert.equal(await tab.eval(`!!document.querySelector('#fix .mk')`), false, 'no practice run until something is picked');
   // restarting the PC comes first, above the choices: it's what fixed it for zojie
   assert.match(await tab.eval(`document.querySelector('#fix').previousElementSibling.textContent`), /Restart your PC first/);
-  assert.match(await tab.eval(`document.querySelector('#s5').textContent`), /Restart your PC/, 'page 5 says so too');
+  assert.match(await tab.eval(`document.querySelector('#s5').textContent`), /Restart your PC/, 'step 5 says so too');
 
   // keys don't come through in the game, though they do elsewhere: run OBS as administrator
   await tab.click('#fix .fix-pick[data-f="nokeys"]');
@@ -444,6 +444,7 @@ test("step 7's troubleshooter: offers what fits the device, marks the likely one
   assert.match(await tab.eval(`document.querySelector('#fix .fix-run .mk-n').textContent`), /^(\d+)\/\1$/, 'it reaches its last screen');
 
   // every other fix walks to its end too
+  const said = [admin];
   const runs = { 'missing/there': 'input-overlay settings', 'missing/gone': 'Program Files (x86)', 'nokeys/hook': 'Enable mouse and keyboard hook', source: 'Refresh cache of current page' };
   for (const [path, text] of Object.entries(runs)) {
     const [f, sub] = path.split('/');
@@ -451,6 +452,7 @@ test("step 7's troubleshooter: offers what fits the device, marks the likely one
     if (sub) await tab.click(`#fix [data-sub="${sub}"]`);
     await tab.until(`document.querySelector('#fix .fix-run .mk-now')`, 3000, path + ' practice run');
     const seen = (await tab.eval(walk('#fix .fix-run'))).join('\n');
+    said.push(seen);
     assert.ok(seen.includes(text), `${path}: shows "${text}"`);
     assert.match(await tab.eval(`document.querySelector('#fix .fix-run .mk-n').textContent`), /^(\d+)\/\1$/, `${path}: reaches its last screen`);
   }
@@ -459,6 +461,10 @@ test("step 7's troubleshooter: offers what fits the device, marks the likely one
   await tab.click('#fix [data-sub="gone"]');
   const folder = await tab.eval(walk('#fix .fix-run'));
   assert.ok(folder.some((t) => t.startsWith('Install') && /Destination location:.*Steam.*OBS Studio/.test(t)), 'the installer goes to the OBS folder');
+
+  // they're steps, never pages (the owner found "page 5" confusing): not in the text, the corners or any practice run
+  said.push(await tab.eval(`document.body.textContent`), await tab.eval(`[...document.querySelectorAll('.step')].map((s) => getComputedStyle(s, '::after').content).join()`));
+  for (const t of said) assert.doesNotMatch(t, /\bpages? \d|\bp\. ?\d|next page|last page|skip this page|pages you/i);
 
   // a controller: its own fix, and it's the likely one; no input-overlay fixes
   await tab.click('#s1 .g-device[data-d="pad"]');

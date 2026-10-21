@@ -1,5 +1,5 @@
 // Practice runs of the real screens: Windows installing input-overlay, OBS's settings, adding the Browser source, and
-// the fixes on page 7 (OBS as administrator, installing into the right folder, the key hook, refreshing the source).
+// the fixes in step 7 (OBS as administrator, installing into the right folder, the key hook, refreshing the source).
 // Each screen has one thing to click (pulsing); clicking it moves on, so people rehearse the exact clicks before doing
 // them for real. "Show me" plays it with a pretend cursor. Wording matches the real windows (input-overlay's own
 // dialog strings, Inno Setup's pages, OBS's menus).
@@ -145,7 +145,7 @@
       { say: 'Click <b>OK</b>', html: () => ioDialog(1, true) },
       restart,
     ],
-    // page 7's fixes
+    // step 7's fixes
     admin: [
       right,
       { say: 'Click <b>Properties</b>', html: () => desktop(ctxMenu('Properties')) },
@@ -165,7 +165,7 @@
         phases: [{ say: 'Click the box and paste your OBS folder (<b>Ctrl+V</b>)', act: (sc) => paste(sc.querySelector('[data-go="1"]'), OBSDIR) }, { say: 'Click <b>Next</b>' }],
         html: () => inno('Select Destination Location', 'Where should input-overlay be installed?', `<p>Setup will install input-overlay into the following folder.</p><div class="mk-path mk-input" data-go="1">C:\\Program Files\\obs-studio</div>`, undefined, 1, '2') },
       { say: '<b>Install</b>', html: () => inno('Ready to Install', 'Setup is now ready to begin installing input-overlay on your computer.', `<div class="mk-memo">Destination location:<br>&nbsp;&nbsp;${OBSDIR}<br><br>Start Menu folder:<br>&nbsp;&nbsp;input-overlay</div>`, ['< Back', 'Install', 'Cancel']) },
-      { say: '<b>Finish</b>. Open OBS: <b>Tools</b> has <b>input-overlay settings</b> now', note: 'Then do page 5.', html: () => inno('Completing the input-overlay Setup Wizard', 'Setup has finished installing input-overlay on your computer.', `<p>Click Finish to exit Setup.</p>`, ['Finish'], 0) },
+      { say: '<b>Finish</b>. Open OBS: <b>Tools</b> has <b>input-overlay settings</b> now', note: 'Then do step 5, "Switch it on in OBS".', html: () => inno('Completing the input-overlay Setup Wizard', 'Setup has finished installing input-overlay on your computer.', `<p>Click Finish to exit Setup.</p>`, ['Finish'], 0) },
     ],
     hook: [
       { say: 'In OBS, click <b>Tools</b>', html: () => obs(obsBody(), obsMenu(null, '', true)) },
@@ -178,7 +178,7 @@
       { say: 'In <b>Sources</b>, click <b>Input display</b>', note: "The top of the list is drawn on top. Under Game Capture, your game covers it.", html: () => obs(obsBody('', false, sources(false, false, true))) },
       { say: 'Click <b>▲</b> until it\'s at the top', html: () => obs(obsBody('', false, sources(false, true), true)) },
       { say: 'Double-click it to open its <b>Properties</b>', html: () => obs(obsBody('', false, sources(true, true, true))) },
-      { say: 'Check the <b>URL</b> is your link, then click <b>Refresh cache of current page</b>', note: 'Changed your look since? Paste your new link from page 6 over it.', html: (g) => browserProps(g, 'refresh') },
+      { say: 'Check the <b>URL</b> is your link, then click <b>Refresh cache of current page</b>', note: 'Changed your look since? Paste your new link from step 6, "Add it to OBS", over it.', html: (g) => browserProps(g, 'refresh') },
       { say: 'Click <b>OK</b>', html: (g) => browserProps(g, 'ok') },
       { say: 'There it is, on top of your game.', html: (g) => obs(`<div class="mk-obs-canvas"><div class="mk-game"></div><iframe class="mk-live" tabindex="-1" src="${g ? g.url(true) : ''}" title="Your input display in OBS"></iframe></div>${obsBody('', false, sources(true, true)).replace(/^[\s\S]*?(<div class="mk-docks">)/, '$1')}`), end: true },
     ],
