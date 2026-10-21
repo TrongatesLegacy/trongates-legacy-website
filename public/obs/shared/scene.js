@@ -26,13 +26,38 @@
   $$('[data-part]').forEach((el) => { if (TGL.hidden(el.dataset.part)) el.remove(); });
   if (TGL.hidden('art')) document.documentElement.classList.add('no-art');
 
+  // ---- a game in the scene's spot (spot=chatagram|chaplinko: the dock's Widgets → Chatagram / Chaplinko) -----------------
+  // Where it goes is model.js's (GAME_BOX), shared with the dock that places the game's source there. The goal makes way (the
+  // left column's chat ends above it, below); Starting soon's title gets smaller and higher (its own CSS). In the index page's
+  // previews (demo=1) the spot plays the game itself. Never on Ending.
+  const SCENE = (/\/(starting|brb|chatting|game)(?:\.html)?$/.exec(location.pathname) || [])[1];
+  const M = window.TGLModel, spotGame = SCENE && M && M.GAMES.includes(TGL.param('spot')) ? TGL.param('spot') : '';
+  if (spotGame) {
+    const spot = M.spotOf(SCENE, TGL.param('layout') === 'window' ? 'window' : 'full'), [x, y, w, h] = M.GAME_BOX[spotGame][spot];
+    document.documentElement.classList.add('spot', 'spot-' + spotGame);
+    $$('[data-part="goal"]').forEach((el) => el.remove());
+    const box = document.createElement('div');
+    box.dataset.spot = spotGame; box.dataset.slot = spotGame === 'chatagram' ? 'Chatagram (the dock places it)' : 'Chaplinko (the dock places it)';
+    box.style.cssText = `position:absolute;left:${x}px;top:${y - 64}px;width:${w}px;height:${h}px`;
+    document.querySelector('.content').appendChild(box);
+    if (TGL.param('demo') === '1') {
+      // the preview: the game itself (its OBS page, so it follows the form), its pretend chat, the spot's look
+      const [nw, nh] = spotGame === 'chatagram' ? [960, 540] : [640, 540], look = M.GAME_DEFAULTS[spotGame].look[spot];
+      const f = document.createElement('iframe');
+      f.title = spotGame; f.setAttribute('allowtransparency', 'true'); f.tabIndex = -1;
+      f.style.cssText = `position:absolute;left:0;top:0;width:${nw}px;height:${nh}px;border:0;background:transparent;pointer-events:none;transform-origin:0 0;transform:scale(${w / nw})`;
+      f.src = `${spotGame}.html?demo=1&noveado=1&form=${TGL.form}&bgo=${look[0]}${look[1] !== undefined ? '&gbo=' + look[1] : ''}`;
+      box.appendChild(f);
+    }
+  }
+
   // ---- the left column (Be right back, Just chatting): the chat frame takes the room now playing and the goal
   // leave: always when they're turned off, and while nothing's playing (it glides back before now playing
   // returns). Same numbers as model.js chatBox(), which the dock uses to fit its shared chat.
   const colChat = /** @type {HTMLElement} */ (document.querySelector('.frame.col-chat'));
   const column = (musicRoom, animate = true) => {
     if (!colChat) return;
-    const top = musicRoom ? 126 : 10, bottom = document.querySelector('.frame.col-goal') ? 850 : 1000;
+    const top = musicRoom ? 126 : 10, bottom = document.querySelector('[data-spot]') ? 652 : document.querySelector('.frame.col-goal') ? 850 : 1000;
     colChat.classList.toggle('still', !animate);
     colChat.style.top = top + 'px'; colChat.style.height = bottom - top + 'px';
     setTimeout(labelSlots, animate ? 600 : 0);

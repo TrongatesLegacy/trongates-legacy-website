@@ -119,20 +119,28 @@
     function tabSources() {
       if (obs.state !== 'connected' || !obs.scan) return '<p class="hint">Connect to OBS first (Live → Connections).</p>';
       const sceneOpts = obs.scan.scenes.map((x) => `<option ${x.name === obs.target ? 'selected' : ''}>${esc(x.name)}</option>`).join('');
-      const card = (kind) => {
+      // one compact row per source (like Scenes): a light (in a scene: lit; needs its link first: yellow), the name, its size and
+      // where it is; tapped, it opens on what it is and its Add buttons (one open at a time, the Scenes tab's ui.open)
+      const GAME_HINT = { chatagram: 'Widgets → Chatagram puts it on your scenes.', chaplinko: 'Widgets → Chaplinko puts it on your scenes.', inputty: 'Widgets → Inputty puts it on Game.', inputtypad: 'Widgets → Inputty puts it on Game.' };
+      const row = (kind) => {
         const w = M.WIDGETS[kind], mine = obs.scan.widgets.filter((x) => (kind === 'bare' ? x.kind === 'shared' : x.kind === kind) && x.input.tag);
         const places = [...new Set(mine.flatMap((x) => x.places.map((p) => p.container.name)))];
         const size = kind === 'bare' ? `${M.SHARED_W} × ${M.SHARED_H}` : M.sizeOf(kind, P.s).join(' × ');
         const title = kind === 'bare' ? 'Shared chat' : w.title;
-        return `<div class="scene"><div class="t"><b class="grow">${title}</b><span class="muted">${kind === 'bare' ? 'raw Botrix · ' : kind === 'music' ? '' : kind === 'chatagram' || kind === 'chaplinko' || kind === 'chaplinkolb' ? 'game · ' : M.isInputty(kind) ? 'keys · ' : 'framed · '}${size}</span></div>
-          ${kind === 'chatagram' && !M.chatagramPairs(P.s.chatagram).length ? '<span class="hint bad">Paste your Chatagram link first (Widgets → Chatagram), or it will ask for a channel.</span>' : ''}
-          ${(kind === 'chaplinko' || kind === 'chaplinkolb') && !M.chaplinkoPairs(P.s.chaplinko).length ? '<span class="hint bad">Paste your Chaplinko link first (Widgets → Chaplinko), or it will ask for a channel.</span>' : ''}
-          <span class="hint">${places.length ? 'In ' + esc(places.join(', ')) : 'Not in any scene'}</span>
-          <div class="row">${mine.length ? `<button type="button" class="btn grow" data-add="${kind}">Add existing</button><button type="button" class="btn" data-add="${kind}" data-copy="1" ${kind === 'bare' ? 'disabled' : ''}>New copy</button>` : `<button type="button" class="btn solid grow" data-add="${kind}">${kind === 'bare' ? 'Set up shared chat…' : 'Add to scene'}</button>`}</div></div>`;
+        const need = (kind === 'chatagram' && !M.chatagramPairs(P.s.chatagram).length) || ((kind === 'chaplinko' || kind === 'chaplinkolb') && !M.chaplinkoPairs(P.s.chaplinko).length);
+        const where = places.length ? (places.length === 1 ? 'In ' + places[0] : `In ${places.length} scenes`) : need ? 'paste the link first' : 'not in any scene';
+        const key = 'src:' + kind, open = P.ui.open === key;
+        return `<div class="acc${open ? ' open' : ''}" data-src="${kind}"><div class="sum" data-open="${key}"><i class="pip ${places.length ? '' : need ? 'warn' : 'off'}"></i><b>${title}</b><span class="muted">${size}</span><span class="where ${places.length ? 'ok' : need ? 'warn' : 'muted'}">${esc(where)}</span><span class="chev">▸</span></div>
+          <div class="body">${kind === 'chatagram' && need ? '<span class="hint bad">Paste your Chatagram link first (Widgets → Chatagram), or it will ask for a channel.</span>' : ''}
+          ${(kind === 'chaplinko' || kind === 'chaplinkolb') && need ? '<span class="hint bad">Paste your Chaplinko link first (Widgets → Chaplinko), or it will ask for a channel.</span>' : ''}
+          <span class="hint">${kind === 'bare' ? 'Raw Botrix chat, one source in every scene\'s chat frame. ' : ''}${places.length ? 'In ' + esc(places.join(', ')) + '.' : 'Not in any scene.'}${GAME_HINT[kind] ? ' ' + GAME_HINT[kind] : ''}</span>
+          <div class="row">${mine.length ? `<button type="button" class="btn grow" data-add="${kind}">Add existing</button><button type="button" class="btn" data-add="${kind}" data-copy="1" ${kind === 'bare' ? 'disabled' : ''}>New copy</button>` : `<button type="button" class="btn solid grow" data-add="${kind}">${kind === 'bare' ? 'Set up shared chat…' : 'Add to scene'}</button>`}</div></div></div>`;
       };
+      /** @type {[string, string[]][]} */
+      const GROUPS = [['Chat and goal', ['bare', 'chatbox', 'goal', 'music']], ['Games', ['chatagram', 'chaplinko', 'chaplinkolb']], ['Inputty', ['inputty', 'inputtypad']]];
       const found = obs.scan.widgets.filter((x) => !x.input.tag && !(P.s.dock.ignore || []).includes(x.input.uuid) && ['botrix-chat', 'chatbox', 'goal', 'music', 'bare', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty', 'inputtypad'].includes(x.kind));
       return `<div class="row"><span class="grow">Add to</span><select data-target>${sceneOpts}</select></div>
-        ${['bare', 'chatbox', 'goal', 'music', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty', 'inputtypad'].map(card).join('')}
+        ${GROUPS.map(([h, kinds]) => `<h3>${h}</h3>${kinds.map(row).join('')}`).join('')}
         ${found.length ? `<h3>Found, not managed</h3>${found.map((x) => `<div class="scene"><div class="t"><b class="grow">${esc(x.input.name)}</b><span class="muted">${x.kind === 'botrix-chat' ? 'raw Botrix chat' : esc(M.WIDGETS[x.kind] ? M.WIDGETS[x.kind].title : x.kind)} · ${esc([...new Set(x.places.map((p) => p.container.name))].join(', '))}</span></div>
           <div class="row">${['botrix-chat', 'bare'].includes(x.kind) && !shared() ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="shared-chat">Use as shared chat</button>` : ''}${x.kind !== 'botrix-chat' ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="widget:${x.kind}">Adopt</button>` : ''}<button type="button" class="btn red" data-ignore="${x.input.uuid}">Ignore</button></div></div>`).join('')}` : ''}
         <p class="hint">Adding happens straight away, just above the scene's overlay (or at the top of a scene without one), centred. After that it's yours to move; settings changes reach it through Review &amp; apply.</p>`;
@@ -149,6 +157,49 @@
       kbm: '<svg class="io-ico" viewBox="0 0 40 24" aria-hidden="true"><rect x="1" y="5" width="26" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><g fill="currentColor"><rect x="5" y="9" width="3" height="3" rx=".7"/><rect x="10" y="9" width="3" height="3" rx=".7"/><rect x="15" y="9" width="3" height="3" rx=".7"/><rect x="20" y="9" width="3" height="3" rx=".7"/><rect x="7" y="15" width="14" height="2.6" rx="1"/></g><rect x="30" y="7" width="9" height="14" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M34.5 7v5" stroke="currentColor" stroke-width="1.6"/></svg>',
       pad: '<svg class="io-ico" viewBox="0 0 40 24" aria-hidden="true"><path d="M11 3h18c5 0 8 4 9 10l1 5c.5 3-2 5-4.5 3.5L29 17H11l-5.5 4.5C3 23 .5 21 1 18l1-5C3 7 6 3 11 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M11 8v6M8 11h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="27" cy="9" r="1.7" fill="currentColor"/><circle cx="31" cy="12.5" r="1.7" fill="currentColor"/></svg>',
     };
+    // ---- a game on the stream's scenes (Widgets → Chatagram / Chaplinko; obs/README.md, "Games on your scenes") -------------
+    // The main switch, then each scene (not Ending) as a card: the scene small, drawn as it'll look (the game's board lit in its
+    // spot, or the scene as it is), its own switch, the game's looks there, what changes. Off, the cards stay as they're set.
+    const GAME_TITLE = { chatagram: 'Chatagram', chaplinko: 'Chaplinko' };
+    const pctBox = ([x, y, w, h]) => `left:${(x / 19.2).toFixed(2)}%;top:${(y / 10.8).toFixed(2)}%;width:${(w / 19.2).toFixed(2)}%;height:${(h / 10.8).toFixed(2)}%`;
+    const wfBox = (cls, b) => `<i class="${cls}" style="${pctBox(b)}"></i>`;
+    /** a scene, small: spot is the look key (starting, brb, chatting, window, full); game: what's in its spot ('' for none) */
+    function wireframe(spot, game, cls) {
+      const board = game ? wfBox(`cgb ${cls}${game === 'chaplinko' ? ' cp' : ''}`, M.GAME_BOX[game][spot]) : '';
+      const col = (on) => wfBox('fr', [10, 74, 590, 100]) + (on ? wfBox('fr', [10, 190, 590, 526]) : wfBox('fr', [10, 190, 590, 724]) + wfBox('fr', [10, 930, 590, 134]));
+      if (spot === 'starting') return (game ? wfBox('ln', [120, 120, 640, 30]) + wfBox('ln', [120, 170, 700, 160]) + wfBox('ln', [120, 380, 560, 50])
+        : wfBox('ln', [120, 190, 860, 40]) + wfBox('ln', [120, 260, 860, 210]) + wfBox('ln', [120, 500, 750, 70]) + wfBox('fr', [120, 660, 830, 180]) + wfBox('ln', [120, 870, 520, 70]))
+        + wfBox('ch', [1280, 220, 460, 640]) + wfBox('fr', [1220, 86, 560, 100]) + board;
+      if (spot === 'brb') return col(!!game) + wfBox('ln', [660, 320, 600, 30]) + wfBox('ln', [660, 380, 600, 200]) + wfBox('fr', [660, 680, 710, 160]) + wfBox('ch', [1420, 300, 440, 640]) + board;
+      if (spot === 'chatting') return col(!!game) + wfBox('ch', [860, 140, 840, 840]) + board;
+      if (spot === 'window') return wfBox('win', [12, 76, 1440, 810]) + wfBox('fr', [1470, 74, 440, 440]) + wfBox('ch', [1500, 560, 380, 480]) + wfBox('fr', [620, 917, 560, 134]) + (game ? '' : wfBox('fr', [10, 917, 590, 134])) + board;
+      return wfBox('win', [0, 64, 1920, 1016]) + wfBox('ch', [1580, 600, 300, 440]) + board;
+    }
+    const LOOK_OPTS = (bg) => [100, ...(bg ? [95] : []), 90, 80, 70, 60, 50, 40, 30, 20, 10, 0];
+    const lookLabel = (v) => (v === 100 ? 'Solid' : v === 0 ? 'None' : v + '%');
+    function gameTab(g) {
+      const G = P.s.games[g], other = M.GAMES.find((x) => x !== g), O = P.s.games[other], title = GAME_TITLE[g];
+      const lay = P.s.scenes.game.layout === 'window' ? 'window' : 'full';
+      const NAMES = { starting: 'Starting soon', brb: 'Be right back', chatting: 'Just chatting', game: lay === 'window' ? 'Game (window)' : 'Game (full screen)' };
+      const size = (spot) => M.GAME_BOX[g][spot].slice(2).join(' × ');
+      const WHAT = { starting: `Title 85% and higher; the board under it (${size('starting')}). Discord and socials off.`,
+        brb: `Under the chat, ${g === 'chaplinko' ? 'centred' : 'as wide'} (${size('brb')}). Chat 526 tall; goal off. Discord stays.`,
+        chatting: `Under the chat, ${g === 'chaplinko' ? 'centred' : 'as wide'} (${size('chatting')}). Chat 526 tall; goal off.`,
+        window: `Where the goal was, into the game a little (${size('window')}).`, full: `Bottom left, over the game (${size('full')}).` };
+      const see = (v) => (v >= 90 ? '' : v > 0 ? 'half' : 'clear');
+      const card = (k) => {
+        const spot = k === 'game' ? lay : k, on = !!G.scenes[k], taken = !on && O.on && O.scenes[k];
+        const look = G.look[spot], sels = look.map((v, i) => `<div class="row cg-sel"><span class="grow">${i ? 'Panels' : 'Background'}</span><select data-game-look="${g}:${spot}:${i}" aria-label="${title} ${i ? 'panels' : 'background'} on ${NAMES[k]}">${[...new Set([...LOOK_OPTS(!i), v])].map((o) => `<option value="${o}" ${o === v ? 'selected' : ''}>${lookLabel(o)}</option>`).join('')}</select></div>`).join('');
+        const wf = wireframe(spot, on ? g : taken ? other : '', taken ? 'other' : see((on ? G : O).look[spot][0]));
+        return `<div class="cg-scene${G.on ? '' : ' off'}${taken ? ' taken' : ''}${on ? ' lit' : ''}"><div class="name">${NAMES[k]}<input type="checkbox" class="tog" data-game-scene="${g}:${k}" ${on ? 'checked' : ''} aria-label="${title} on ${NAMES[k]}"></div>
+          <div class="wf">${wf}</div>${sels}<span class="what">${taken ? `<b class="busy">${GAME_TITLE[other]} is here.</b> Turning this on swaps it for ${title}.` : WHAT[spot]}</span></div>`;
+      };
+      return `<button type="button" class="io-show" data-game-on="${g}" aria-pressed="${G.on}"><span class="io-eye" aria-hidden="true"></span><b>${G.on ? 'On your scenes' : 'Off: scenes as they were'}</b><small>${G.on ? 'tap to turn off' : 'tap to turn on'}</small></button>
+        <h3>Scenes</h3>
+        <div class="cg-scenes">${M.GAME_SCENES.map(card).join('')}</div>
+        <div class="row"><span class="grow">${g === 'chaplinko' ? 'Keep dropping while I\'m in Game' : 'Keep playing while I\'m in Game'}</span><input type="checkbox" class="tog" data-game-keep="${g}" ${G.keep ? 'checked' : ''}></div>
+        <span class="hint">${g === 'chaplinko' ? 'Off: !plinko waits on Game; the balls drop at the next scene.' : 'Off: the round pauses on Game and carries on at the next scene.'}${dock ? ' Looks and this reach the game straight away; the scenes through Review &amp; apply.' : ''}</span>`;
+    }
     function tabWidgets() {
       const pasted = (P.s.linksMode || (M.isLink(P.s.links.chat) || M.isLink(P.s.links.goal) ? 'paste' : 'key')) === 'paste';
       const sh = dock && shared();
@@ -167,11 +218,11 @@
           <span class="hint">One chat source in every scene, so they all show the same messages; the scenes stop loading their own.${sh ? ` <span class="ok">In ${sh.places.length} scene${sh.places.length === 1 ? '' : 's'}.</span>` : ''}</span>
           ${dock ? `<div class="row"><button type="button" class="btn grow" data-act="shared-now" ${obs.state === 'connected' ? '' : 'disabled'}>${sh ? 'Update now' : 'Set up now'}</button>${sh ? '<button type="button" class="btn red" data-act="shared-remove">Remove</button>' : ''}</div>` : '<span class="hint">In OBS, the dock creates and places it; by hand see obs/README.md.</span>'}</div>
         <div class="row"><span class="grow">Goal follows the scene colour</span>${tog('goalColor', P.s.goalColor)}</div>`,
-        chatagram: () => `<label class="field">Your Chatagram link<input type="text" data-set="chatagram" value="${esc(P.s.chatagram || '')}" placeholder="https://www.trongateslegacy.com/chatagram/play?kick=…" autocomplete="off" spellcheck="false"></label>
+        chatagram: () => gameTab('chatagram') + `<h3>Link</h3><label class="field">Your Chatagram link<input type="text" data-set="chatagram" value="${esc(P.s.chatagram || '')}" placeholder="https://www.trongateslegacy.com/chatagram/play?kick=…" autocomplete="off" spellcheck="false"></label>
         <span class="hint ${M.chatagramPairs(P.s.chatagram).length ? 'ok' : ''}">${M.chatagramPairs(P.s.chatagram).length
           ? 'Using ' + M.chatagramPairs(P.s.chatagram).map(([k]) => k).join(', ') + '. The colours follow your form, whatever theme the link has.'
           : 'Set Chatagram up on trongateslegacy.com/chatagram, press Copy OBS link, and paste it here: its channels and game settings go into the Chatagram source.'}</span>`,
-        chaplinko: () => `<label class="field">Your Chaplinko link (the board’s)<input type="text" data-set="chaplinko" value="${esc(P.s.chaplinko || '')}" placeholder="https://www.trongateslegacy.com/chaplinko/play?kick=…" autocomplete="off" spellcheck="false"></label>
+        chaplinko: () => gameTab('chaplinko') + `<h3>Link</h3><label class="field">Your Chaplinko link (the board’s)<input type="text" data-set="chaplinko" value="${esc(P.s.chaplinko || '')}" placeholder="https://www.trongateslegacy.com/chaplinko/play?kick=…" autocomplete="off" spellcheck="false"></label>
         <span class="hint ${M.chaplinkoPairs(P.s.chaplinko).length ? 'ok' : ''}">${M.chaplinkoPairs(P.s.chaplinko).length
           ? 'Using ' + M.chaplinkoPairs(P.s.chaplinko).map(([k]) => k).join(', ') + '. The colours follow your form, whatever theme the link has. The board and the leaderboard sources both use it.'
           : 'Set Chaplinko up on trongateslegacy.com/chaplinko, press Copy board link, and paste it here: its channels and settings go into the Chaplinko sources (the board and its leaderboard).'}</span>`,

@@ -320,3 +320,137 @@ test('Inputty on Game: a spot places whichever is showing inside the game (Game 
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
+
+// the game's OBS page follows the scene OBS shows: that scene's look (scenelook=), paused on Game with keep=0, and the
+// dock's changes live (a CustomEvent): obs/README.md, "Games on your scenes"
+test('a game on scenes follows the scene OBS shows: its look there, paused on Game when it shouldn\'t keep playing, the dock\'s changes live', async () => {
+  const port = obsAddr.split(':')[1];
+  // (no demo chat: its pretend viewers ask for the leaderboard now and then, which holds the game too)
+  const tab = await chrome.open(`${site.origin}/obs/chatagram?obs=${port}&noveado=1&form=cyan&scenelook=chatting:30.40,brb:95.100,window:0.20,full:0.20&keep=0`, { width: 960, height: 540 });
+  const inner = (js) => tab.eval(`(() => { const d = document.getElementById('game').contentDocument, w = document.getElementById('game').contentWindow; return ${js}; })()`);
+  const look = () => inner(`[d.getElementById('board').style.getPropertyValue('--bgo'), d.getElementById('board').style.getPropertyValue('--gbo'), w.chatagram.game.held]`);
+  await tab.until(`document.getElementById('game').contentDocument?.documentElement?.dataset.ready === '1'`, 8000, 'the game');
+  obs.program = 'Just chatting'; obs.broadcast('CurrentProgramSceneChanged', { sceneName: 'Just chatting' });
+  await tab.until(`(() => { const b = document.getElementById('game').contentDocument.getElementById('board'); return b.style.getPropertyValue('--bgo') === '0.3'; })()`, 5000, 'Just chatting\'s look');
+  assert.deepEqual(await look(), ['0.3', '40%', false]);
+  obs.program = 'Game'; obs.broadcast('CurrentProgramSceneChanged', { sceneName: 'Game' });
+  await tab.until(`document.getElementById('game').contentWindow.chatagram.game.held && document.getElementById('game').contentDocument.getElementById('board').style.getPropertyValue('--bgo') === '0'`, 5000, 'Game (window)\'s look, paused')
+    .catch(async (e) => { throw new Error(e.message + ' · ' + JSON.stringify(await tab.eval(`[chatagramWrapper.games.kind, TGL && 1]`)) + ' ' + JSON.stringify(await look())); });
+  assert.deepEqual(await look(), ['0', '20%', true]);
+  // the dock changes Game's look and turns "Keep playing" on: live (Game is full screen or the window, as earlier tests left it)
+  obs.broadcast('CustomEvent', { tgl: 'game-look', game: 'chatagram', look: { window: [50, 60], full: [50, 60] }, keep: true });
+  await tab.until(`!document.getElementById('game').contentWindow.chatagram.game.held`, 5000, 'playing again');
+  assert.deepEqual(await look(), ['0.5', '60%', false]);
+  // another game's message is not for it
+  obs.broadcast('CustomEvent', { tgl: 'game-look', game: 'chaplinko', look: { window: [10] } });
+  await sleep(200);
+  assert.deepEqual(await look(), ['0.5', '60%', false]);
+  obs.program = ''; 
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+// Games on the stream's scenes (Widgets → Chatagram / Chaplinko; the owner, 2026-10-22): one source per game, placed in each
+// scene's spot through Review & apply; the scenes make room (spot=); one game per scene; off, everything is as it was
+test('games on scenes: Chatagram on every scene through Review & apply, Chaplinko swapped in on one, then off again as it was', async () => {
+  const M = await (async () => { const vm = await import('node:vm'); const { read } = await import('../helpers/sim.mjs'); const c = vm.createContext({ URLSearchParams, URL }); c.window = c; vm.runInContext(read('public/obs/shared/model.js'), c); return c.TGLModel; })();
+  const o = obsModel(net, '127.0.0.1:0', {
+    'Starting soon': [overlay('starting')],
+    'Be right back': [overlay('brb')],
+    'Just chatting': [overlay('chatting'), { name: 'veadotube', kind: 'spout_capture', settings: {}, transform: { sourceWidth: 1000, sourceHeight: 1000 } }],
+    'Game': [{ name: 'Game capture', kind: 'game_capture', settings: {} }, overlay('game?layout=window')],
+  }, { collection: 'Games' });
+  const port = (await o.listening).split(':')[1];
+  const tab = await chrome.open(`${site.origin}/obs/control?obs=${port}&veado=${veadoAddr}`, { width: 380, height: 1100 });
+  await tab.until(`document.querySelector('.tgl-panel .pill .dot.ok')`, 8000, 'connected');
+  const apply = async () => {
+    await tab.until(`/waiting/.test(document.querySelector('.tgl-panel .ft span').textContent)`, 5000, 'changes waiting');
+    await tab.click('[data-act="review"]');
+    await tab.until(`document.querySelector('[data-act="apply"]:not([disabled])')`);
+    await tab.click('[data-act="apply"]');
+    await tab.until(`/OBS matches/.test(document.querySelector('.tgl-panel .ft span')?.textContent || '')`, 10000, 'OBS matches these settings');
+  };
+  const change = (sel, js) => tab.eval(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); ${js}; e.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  const scene = (n) => o.sceneNamed(n);
+  const item = (n, g) => scene(n).items.find((i) => i.input.settings.tgl_managed === 'widget:' + g);
+  const overlayUrl = (n) => new URL(scene(n).items.find((i) => /\/obs\/(starting|brb|chatting|game)/.test(i.input.settings.url || '') && !i.input.settings.tgl_managed).input.settings.url);
+  const SPOT = { 'Starting soon': 'starting', 'Be right back': 'brb', 'Just chatting': 'chatting', 'Game': 'window' };
+  const placedAt = (n, g) => { const t = item(n, g).transform, [x, y, w] = M.GAME_BOX[g][SPOT[n]]; return Math.abs(t.positionX - x) < 1 && Math.abs(t.positionY - y) < 1 && Math.abs(t.scaleX - w / (g === 'chatagram' ? 960 : 640)) < 0.005; };
+
+  await apply();                                      // the overlays' own options first (obs=, names)
+  await tab.click('[data-tab="widgets"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:chatagram"]')`);
+  await tab.click('.tgl-panel [data-sub="widgets:chatagram"]');
+  await tab.until(`document.querySelectorAll('.tgl-panel [data-game-scene^="chatagram:"]').length === 4`, 5000, 'four scenes, no Ending');
+  assert.equal(await tab.eval(`document.querySelectorAll('.tgl-panel select[data-game-look^="chatagram:"]').length`), 8, 'Background and Panels on each');
+  await tab.click('.tgl-panel [data-game-on="chatagram"]');
+  await apply();
+  const cg = [...o.inputs.values()].filter((i) => i.settings.tgl_managed === 'widget:chatagram');
+  assert.equal(cg.length, 1, 'one Chatagram source');
+  assert.deepEqual([cg[0].settings.width, cg[0].settings.height], [960, 540]);
+  assert.match(cg[0].settings.url, /scenelook=starting:95\.100/);
+  for (const n of Object.keys(SPOT)) {
+    assert.equal(overlayUrl(n).searchParams.get('spot'), 'chatagram', `${n}: the scene makes room`);
+    assert.ok(item(n, 'chatagram'), `${n}: Chatagram is in it`);
+    assert.ok(placedAt(n, 'chatagram'), `${n}: in its spot`);
+    const items = scene(n).items, ov = items.findIndex((i) => /\/obs\/(starting|brb|chatting|game)/.test(i.input.settings.url || '') && !i.input.settings.tgl_managed);
+    assert.ok(items.indexOf(item(n, 'chatagram')) > ov, `${n}: above the overlay`);
+  }
+  assert.ok(scene('Game').items.indexOf(item('Game', 'chatagram')) > scene('Game').items.findIndex((i) => i.input.name === 'Game capture'), 'above the game capture');
+
+  // Chaplinko on Just chatting instead: its card says Chatagram is there; ticking it swaps them
+  await tab.click('.tgl-panel [data-sub="widgets:chaplinko"]');
+  await tab.until(`document.querySelectorAll('.tgl-panel [data-game-scene^="chaplinko:"]').length === 4`);
+  assert.match(await tab.eval(`document.querySelector('.tgl-panel [data-game-scene="chaplinko:chatting"]').closest('.cg-scene').textContent`), /Chatagram is here/);
+  await change('.tgl-panel [data-game-scene="chaplinko:chatting"]', 'e.checked = true');
+  await tab.click('.tgl-panel [data-game-on="chaplinko"]');
+  await apply();
+  assert.equal(overlayUrl('Just chatting').searchParams.get('spot'), 'chaplinko');
+  assert.ok(item('Just chatting', 'chaplinko') && placedAt('Just chatting', 'chaplinko'), 'Chaplinko in Just chatting\'s spot');
+  assert.equal(item('Just chatting', 'chatagram'), undefined, 'Chatagram taken off Just chatting');
+  assert.ok(item('Be right back', 'chatagram'), 'and still on Be right back');
+  assert.deepEqual([...o.inputs.values()].filter((i) => i.settings.tgl_managed === 'widget:chaplinko').map((i) => [i.settings.width, i.settings.height]), [[640, 540]], 'the board on its own');
+
+  // a look changes live, as well as for next time
+  await tab.click('.tgl-panel [data-sub="widgets:chatagram"]');
+  await tab.until(`document.querySelector('.tgl-panel select[data-game-look="chatagram:brb:0"]')`);
+  await change('.tgl-panel select[data-game-look="chatagram:brb:0"]', 'e.value = "50"');
+  const sent = () => o.calls.filter((c) => c[1] === 'BroadcastCustomEvent' && c[2].eventData.tgl === 'game-look').map((c) => c[2].eventData);
+  for (let i = 0; i < 40 && !sent().length; i++) await sleep(50);
+  assert.ok(sent().some((d) => d.game === 'chatagram' && d.look.brb[0] === 50), 'sent to the game live');
+
+  // off: the cards stay as they were set, and Review & apply takes Chatagram off every scene, which go back as they were
+  await tab.click('.tgl-panel [data-game-on="chatagram"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-game-on="chatagram"]').getAttribute('aria-pressed') === 'false'`);
+  assert.equal(await tab.eval(`document.querySelectorAll('.tgl-panel select[data-game-look^="chatagram:"]').length`), 8, 'the settings still show');
+  assert.equal(await tab.eval(`document.querySelector('.tgl-panel select[data-game-look="chatagram:brb:0"]').value`), '50');
+  await apply();
+  for (const n of ['Starting soon', 'Be right back', 'Game']) {
+    assert.equal(item(n, 'chatagram'), undefined, `${n}: Chatagram off`);
+    assert.equal(overlayUrl(n).searchParams.get('spot'), null, `${n}: as it was`);
+  }
+  assert.equal(overlayUrl('Just chatting').searchParams.get('spot'), 'chaplinko', 'Chaplinko stays where it is');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+// the owner: the Sources tab as compact rows that open, like Scenes (one line each: what, its size, where it is)
+test('Sources: one compact row per source in groups, closed until tapped; tapping one opens it (and closes the other)', async () => {
+  const tab = await openDock();
+  await tab.click('[data-tab="sources"]');
+  await tab.until(`document.querySelector('.tgl-panel .acc [data-add="goal"]')`, 5000, 'the rows');
+  assert.deepEqual(await tab.eval(`[...document.querySelectorAll('.tgl-panel .bd h3')].map((h) => h.textContent).slice(0, 3)`), ['Chat and goal', 'Games', 'Inputty']);
+  const rows = await tab.eval(`[...document.querySelectorAll('.tgl-panel .bd > .acc[data-src]')].map((a) => a.dataset.src)`);
+  assert.deepEqual(rows, ['bare', 'chatbox', 'goal', 'music', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty', 'inputtypad']);
+  assert.equal(await tab.eval(`document.querySelectorAll('.tgl-panel .acc[data-src].open').length`), 0, 'all closed');
+  const tall = await tab.eval(`Math.max(...[...document.querySelectorAll('.tgl-panel .acc[data-src]')].map((a) => a.getBoundingClientRect().height))`);
+  assert.ok(tall < 48, `one line each (${tall}px)`);
+  await tab.click('.tgl-panel .acc[data-src="goal"] .sum');
+  await tab.until(`document.querySelector('.tgl-panel .acc[data-src="goal"].open')`, 3000, 'the goal open');
+  assert.ok(await tab.eval(`document.querySelector('.tgl-panel .acc[data-src="goal"] [data-add="goal"]').offsetHeight > 0`), 'its Add button shows');
+  await tab.click('.tgl-panel .acc[data-src="music"] .sum');
+  await tab.until(`document.querySelector('.tgl-panel .acc[data-src="music"].open') && !document.querySelector('.tgl-panel .acc[data-src="goal"].open')`, 3000, 'one open at a time');
+  assert.equal(await tab.eval(`document.querySelector('.tgl-panel .bd').scrollWidth - document.querySelector('.tgl-panel .bd').clientWidth`), 0);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});

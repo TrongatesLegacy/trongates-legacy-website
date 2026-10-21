@@ -128,6 +128,31 @@
     };
     // the shared chat's own browser settings
     const sharedSettings = (link) => ({ url: link, width: M.SHARED_W, height: M.SHARED_H, fps_custom: true, fps: 30, shutdown: false, [TAG]: 'shared-chat' });
+    // what a game capture can be (the one picked on the Layout tab first); the games and Inputty go above it on Game
+    const CAPTURES = ['game_capture', 'window_capture', 'monitor_capture', 'display_capture', 'screen_capture', 'macos_screen_capture', 'xcomposite_input', 'pipewire-screen-capture-source'];
+    async function aboveCapture(r, itemId) {
+      const { sceneItems } = await call('GetSceneItemList', { sceneUuid: r.container.uuid });
+      const pick = P.s.dock.pick.capture[r.container.uuid], me = sceneItems.find((i) => i.sceneItemId === itemId);
+      const under = sceneItems.find((i) => i.sourceName === pick) || sceneItems.filter((i) => CAPTURES.includes(i.inputKind)).pop();
+      if (me && under && me.sceneItemIndex < under.sceneItemIndex) await call('SetSceneItemIndex', { sceneName: r.container.name, sceneItemId: itemId, sceneItemIndex: under.sceneItemIndex });
+    }
+    // ---- the games on the stream's scenes (Widgets → Chatagram / Chaplinko): each game's one source in each scene's spot
+    const SPOT_WHERE = { starting: 'under the title', brb: 'under the chat, in the goal\'s place', chatting: 'under the chat, in the goal\'s place', window: 'in the goal\'s place, into the game window', full: 'bottom left, over the game' };
+    const gameSpot = (r) => M.spotOf(r.kind, layoutOf(r));
+    function gameTransform(g, r) {
+      const [x, y, w] = M.GAME_BOX[g][gameSpot(r)], k = +(w / M.sizeOf(g, P.s)[0]).toFixed(4);
+      return { positionX: x, positionY: y, scaleX: k, scaleY: k, rotation: 0, alignment: 5, boundsType: 'OBS_BOUNDS_NONE', cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0 };
+    }
+    /** a game's item put in its spot: placed, above the overlay (and the game capture on Game), locked if the dock's are */
+    async function placeGame(g, r, sceneItemId) {
+      await call('SetSceneItemTransform', { sceneName: r.container.name, sceneItemId, sceneItemTransform: gameTransform(g, r) });
+      await aboveOverlay(r, sceneItemId);
+      if (r.kind === 'game') await aboveCapture(r, sceneItemId);
+      if (P.s.dock.lock) await call('SetSceneItemLocked', { sceneName: r.container.name, sceneItemId, sceneItemLocked: true });
+      (P.s.dock.spots = P.s.dock.spots || {})[r.container.uuid] = g; save();
+    }
+    /** the dock's game settings to the game itself, straight away (its OBS page applies them: shared/games.js) */
+    const gameLook = (g) => call('BroadcastCustomEvent', { eventData: { tgl: 'game-look', game: g, look: P.s.games[g].look, keep: P.s.games[g].keep } }).catch(() => {});
     async function aboveOverlay(r, itemId) {
       const req = r.container.group ? 'GetGroupSceneItemList' : 'GetSceneItemList';
       const { sceneItems } = await call(req, r.container.group ? { sceneName: r.container.name } : { sceneUuid: r.container.uuid });
@@ -223,9 +248,46 @@
       } else if (!P.s.shared && sh) {
         acts.push({ k: 'remove', label: `${sh.input.name}, from every scene`, run: () => call('RemoveInput', { inputUuid: sh.input.uuid }) });
       } else if (P.s.shared && !link) acts.push({ k: 'skip', label: 'Shared chat is on, but there is no Botrix chat link yet (Widgets: your key, or paste the link)' });
-      // 3. widget sources the dock added or adopted: keep their options current
+      // 2b. the games on the stream's scenes: each game's one source in the spot of each scene it's on (made in the first,
+      // added to the others, all in this Apply), taken off the scenes it's no longer on (only where the dock put it)
+      const spots = P.s.dock.spots || {};
+      for (const g of M.GAMES) {
+        const w = obs.scan.widgets.find((x) => x.kind === g && x.input.tag), title = M.WIDGETS[g].title, [sw, sh] = M.sizeOf(g, P.s), name = `Trongates · ${title}`;
+        const rows = managedRows().filter((r) => !r.container.group && M.GAME_SCENES.includes(r.kind) && M.gameOn(P.s, r.kind) === g);
+        let made = null;
+        rows.forEach((r, i) => {
+          const place = w && w.places.find((x) => x.container.uuid === r.container.uuid), where = `${r.sceneName}, ${SPOT_WHERE[gameSpot(r)]}`;
+          if (!w && i === 0) acts.push({ k: 'create', label: `Browser source "${name}" (${sw} × ${sh}, 30 fps) in ${where}`,
+            run: async () => {
+              const { sceneItemId, inputUuid } = await call('CreateInput', { sceneName: r.container.name, inputName: name, inputKind: 'browser_source',
+                inputSettings: { url: widgetUrl(g), width: sw, height: sh, fps_custom: true, fps: 30, shutdown: false, [TAG]: 'widget:' + g } });
+              made = inputUuid; await placeGame(g, r, sceneItemId);
+            } });
+          else if (!place) acts.push({ k: 'add', label: `${title} to ${where}`,
+            run: async () => {
+              const src = w ? w.input.uuid : made; if (!src) throw new Error(`the ${title} source was not created`);
+              const { sceneItemId } = await call('CreateSceneItem', { sceneName: r.container.name, sourceUuid: src });
+              await placeGame(g, r, sceneItemId);
+            } });
+          else if (!sameTransform(place.item.sceneItemTransform, gameTransform(g, r)) || spots[r.container.uuid] !== g) acts.push({ k: 'place', label: `${title} in ${where}`,
+            run: () => placeGame(g, r, place.item.sceneItemId) });
+        });
+        if (w) {
+          if (rows.length && (+w.input.settings.width !== sw || +w.input.settings.height !== sh)) acts.push({ k: 'update', label: `${w.input.name}: size ${sw} × ${sh}`, reload: w.input.name,
+            run: () => call('SetInputSettings', { inputUuid: w.input.uuid, inputSettings: { width: sw, height: sh } }) });
+          for (const x of w.places) {
+            const uuid = x.container.uuid, r = managedRows().find((y) => y.container.uuid === uuid);
+            if (spots[uuid] !== g || (r && M.gameOn(P.s, r.kind) === g)) continue;
+            acts.push({ k: 'remove', label: `${title} from ${x.container.name}`,
+              run: async () => { await call('RemoveSceneItem', { sceneName: x.container.name, sceneItemId: x.item.sceneItemId }); delete P.s.dock.spots[uuid]; save(); } });
+          }
+        }
+      }
+      // 3. widget sources the dock added or adopted: keep their options current (the games too while they're on the stream's
+      // scenes, or were: their scenes' looks)
       if (obs.scan) for (const w of obs.scan.widgets) {
-        if (!['chatbox', 'goal', 'music', 'bare', 'transition'].includes(w.kind) || !w.input.tag) continue;
+        const game = M.GAMES.includes(w.kind) && (M.gameOnScenes(P.s, w.kind) || /[?&]scenelook=/.test(w.input.url));
+        if ((!['chatbox', 'goal', 'music', 'bare', 'transition'].includes(w.kind) && !game) || !w.input.tag) continue;
         const want = M.withOptions(w.input.url, optsFor(w.kind));
         if (!M.sameUrl(want, w.input.url)) acts.push({ k: 'update', label: `${w.input.name}: ${changes(w.input.url, want)}`, reload: w.input.name,
           run: () => call('SetInputSettings', { inputUuid: w.input.uuid, inputSettings: { url: want } }) });
@@ -339,6 +401,6 @@
     }
     async function tagInput(inp, tag) { await call('SetInputSettings', { inputUuid: inp.uuid, inputSettings: { [TAG]: tag } }); await rescan(); }
 
-    return { connectObs, call, reconnectObs, rescan, managedRows, layoutOf, partOn, optsFor, widgetUrl, shared, chatRows, sharedTransform, sameTransform, plan, pendingCount, placeSharedLive, review, runReview, currentScene, addWidget, tagInput, transitionScenes, overlayIn, txScenes };
+    return { connectObs, call, reconnectObs, rescan, managedRows, layoutOf, partOn, optsFor, widgetUrl, shared, chatRows, sharedTransform, sameTransform, plan, pendingCount, placeSharedLive, review, runReview, currentScene, addWidget, tagInput, transitionScenes, overlayIn, txScenes, gameLook, gameTransform };
   };
 })();

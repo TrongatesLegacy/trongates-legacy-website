@@ -12,13 +12,23 @@
   const q = new URLSearchParams(location.search);
   const cfg = W.settings.decode(C.settings.SCHEMA, q);
   const demo = q.get('demo') === '1', still = q.get('still') === '1', screen = q.get('screen') || 'play';
+  let paused = false;   // held by the page around it (below, "Paused by the page around it")
   const $ = (sel, el = document) => el.querySelector(sel);
   const board = $('#board'), stage = $('.stage');
   const rm = W.theme.reducedMotion(q);
   if (rm) document.documentElement.classList.add('rm');
   W.theme.apply(board, { theme: cfg.theme, accent: cfg.accent });
   if (cfg.bgo < 100) board.style.setProperty('--bgo', String(cfg.bgo / 100));   // Advanced → Background: see-through
-  if (cfg.gbo < 100) board.style.setProperty('--gbo', cfg.gbo + '%');               // Advanced → Guess columns background: the word columns
+  if (cfg.gbo < 100) board.style.setProperty('--gbo', cfg.gbo + '%');               // Advanced → Panels background: the columns, banner, boxes, cards
+  // the page around it can change both live (obs/chatagram.html: each of the stream's scenes has its own): { type: 'widget-look', bgo, gbo }
+  const pct = (v) => (Number.isFinite(+v) && v !== '' && v !== null && +v >= 0 && +v <= 100 ? Math.round(+v) : null);
+  addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.type !== 'widget-look') return;
+    const b = pct(d.bgo), g = pct(d.gbo);
+    if (b !== null) board.style.setProperty('--bgo', String(b / 100));
+    if (g !== null) board.style.setProperty('--gbo', g + '%');
+  });
   W.theme.listen(board, () => { fitMissed(); document.fonts && document.fonts.ready.then(() => fitMissed()); });   // a theme's font changes the missed words' widths
   board.classList.toggle('compact', cfg.layout === 'compact');
   const [BW, BH] = C.settings.SIZES[cfg.layout];
@@ -507,8 +517,17 @@
     const el = me.wrap || me.el;
     const out = el && anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'forwards' });
     if (out) out.onfinish = () => el.remove(); else if (el) el.remove();
-    if (game.hold(false)) { flush(); timersNow(); schedule(); }
+    if (!paused && game.hold(false)) { flush(); timersNow(); schedule(); }
   }
+  // Paused by the page around it (obs/chatagram.html: the stream's Game scene, "Keep playing while I'm in Game" off): every timer
+  // holds, as under the leaderboard, and guesses still count. Each lets go only when the other isn't holding too (paused: at the top)
+  addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.type !== 'widget-pause' || !!d.paused === paused || still) return;
+    paused = !!d.paused;
+    if (paused) { if (game.hold(true)) { timersNow(); save(); } }
+    else if (!(lb && lb.kind !== 'play') && game.hold(false)) { flush(); timersNow(); schedule(); }
+  });
   // an answer arrived: whatever shows the leaderboard catches up
   function lbChecked() { if (lb && lb.el && (lb.gaveUp || lb.until)) { lb.gaveUp = false; lbDraw(); } fillLbSec(); }
 

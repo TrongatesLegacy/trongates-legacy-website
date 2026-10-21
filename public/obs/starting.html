@@ -5,9 +5,14 @@
      Paths are relative so the folder works both hosted and as local files. -->
 <link rel="stylesheet" href="shared/overlay.css">
 <script src="shared/theme.js"></script>
+<script src="shared/model.js"></script>
 <style>
 .copy { position: absolute; left: 120px; top: 132px; width: 1010px; display: grid; gap: 26px; justify-items: start; }
-.copy .title { font-size: 116px; }</style>
+.copy .title { font-size: 116px; }
+/* a game in the spot (spot=, the dock's Widgets → Chatagram / Chaplinko): the title smaller and higher, the game where the
+   Discord block and socials were (the strip says !discord instead) */
+.spot .copy { top: 60px; transform: scale(.85); transform-origin: 0 0; }
+.spot .copy [data-part="discord"], .spot .copy [data-part="socials"] { display: none; }</style>
 </head>
 <body class="">
 <script src="shared/icons.js"></script>
@@ -41,7 +46,7 @@
   <div class="art"><img data-form-art alt=""></div>
 </div>
 </div>
-<div class="ticker" data-part="ticker"><div class="track"><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span></div></div>
+<div class="ticker" data-part="ticker"><div class="track"><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord spot-only"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span><span class="item kick"><svg class="i"><use href="#i-kick"/></svg>kick.com/trongateslegacy</span><span class="item discord spot-only"><svg class="i"><use href="#i-discord"/></svg>Lulu Gang Discord · type <b class="cmd">!discord</b></span><span class="item web"><svg class="i"><use href="#i-web"/></svg>trongateslegacy.com</span><span class="item youtube"><svg class="i"><use href="#i-youtube"/></svg>@trongateslegacy</span><span class="item tiktok"><svg class="i"><use href="#i-tiktok"/></svg>@trongateslegacy</span><span class="item instagram"><svg class="i"><use href="#i-instagram"/></svg>@trongateslegacy</span><span class="item club"><svg class="i"><use href="#i-club"/></svg>club.com/trongateslegacy</span></div></div>
 
 <script src="shared/scene.js"></script>
 </body></html>

@@ -11,6 +11,7 @@ HEAD = '''<!doctype html>
      Paths are relative so the folder works both hosted and as local files. -->
 <link rel="stylesheet" href="shared/overlay.css">
 <script src="shared/theme.js"></script>
+<script src="shared/model.js"></script>
 <style>{css}</style>
 </head>
 <body class="{body_class}">
@@ -81,9 +82,10 @@ def np(x, y, w, h):
     return f'<div class="np" data-np data-part="music" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>\n'
 ITEMS = [('kick','kick.com/trongateslegacy'),('discord','Lulu Gang Discord · type <b class="cmd">!discord</b>'),('web','trongateslegacy.com'),
          ('youtube','@trongateslegacy'),('tiktok','@trongateslegacy'),('instagram','@trongateslegacy'),('club','club.com/trongateslegacy')]
-def ticker(skip=()):
-    # the scrolling strip of socials; skip=('discord',) where the scene already features the Discord
-    items=''.join(f'<span class="item {k}"><svg class="i"><use href="#i-{k}"/></svg>{t}</span>' for k,t in ITEMS if k not in skip)
+def ticker(skip=(), spot_only=()):
+    # the scrolling strip of socials; skip=('discord',) where the scene already features the Discord. spot_only: shown only
+    # while a game takes the scene's spot (spot=, scene.js), where the game replaces the scene's own Discord block
+    items=''.join(f'<span class="item {k}{" spot-only" if k in spot_only else ""}"><svg class="i"><use href="#i-{k}"/></svg>{t}</span>' for k,t in ITEMS if k not in skip or k in spot_only)
     return f'<div class="ticker" data-part="ticker"><div class="track">{items}{items}</div></div>\n'
 def gang(compact=False):
     # the Lulu Gang Discord block: logos, 'Join the Discord', the !discord command and the QR code.
@@ -108,7 +110,11 @@ scenes = {}
 # ---- STARTING SOON: title and countdown on the left, the PNGtuber on the right -------------------------
 scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', riders=7, glow=GLOW_RIGHT, css='''
 .copy { position: absolute; left: 120px; top: 132px; width: 1010px; display: grid; gap: 26px; justify-items: start; }
-.copy .title { font-size: 116px; }''', body=f'''
+.copy .title { font-size: 116px; }
+/* a game in the spot (spot=, the dock's Widgets → Chatagram / Chaplinko): the title smaller and higher, the game where the
+   Discord block and socials were (the strip says !discord instead) */
+.spot .copy { top: 60px; transform: scale(.85); transform-origin: 0 0; }
+.spot .copy [data-part="discord"], .spot .copy [data-part="socials"] { display: none; }''', body=f'''
 <div class="copy" data-quiet>
   <div class="eyebrow">CEO of the Lulu Gang</div>
   {title('Trongates', 'Legacy')}
@@ -117,7 +123,7 @@ scenes['starting'] = dict(title='Starting soon', cycle=True, body_class='', ride
   {GANG}
   {SOCIALS}
 </div>
-{np(1220, 22, 560, 100)}{art_stage(1180, 83, 620, 820)}{ticker(skip=('discord',))}''')
+{np(1220, 22, 560, 100)}{art_stage(1180, 83, 620, 820)}{ticker(skip=('discord',), spot_only=('discord',))}''')
 
 # ---- BE RIGHT BACK: the left column (now playing, chat, goal), then title and Discord, character on the right ----
 scenes['brb'] = dict(title='Be right back', cycle=True, body_class='', riders=6, glow='radial-gradient(30% 46% at 82% 55%, var(--a20), transparent 70%), radial-gradient(40% 60% at 50% 35%, var(--a10), transparent 70%)', css='''

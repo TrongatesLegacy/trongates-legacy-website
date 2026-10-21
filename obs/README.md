@@ -166,6 +166,7 @@ capture goes at the very top, so the overlay is only seen before the game appear
 | `chat=…`, `goal=…` | Be right back, Just chatting, Game (window), chat, goal | your Botrix widget links, URL-encoded: shows them inside the frames (see *Botrix widgets*; the index's Copy adds them for you) |
 | `key=…` | Be right back, Just chatting, Game (window), chat, goal | your `OBS_KEY`: loads the Botrix links kept in Netlify (see *Kept in Netlify*); a `chat=`/`goal=` beside it wins for its frame |
 | `layout=window` | Game | the windowed layout (a 1440 × 810 game window, goal, now playing, chat, space for veadotube) instead of the full-screen backdrop |
+| `spot=chatagram` / `spot=chaplinko` | Starting soon, Be right back, Just chatting, Game | a game in the scene's spot (see *Games on your scenes*; the dock writes it): Starting soon's title smaller and higher with the Discord block and socials off (the strip says `!discord`), the goal off and the chat shorter in the left column, the goal off on Game (window). Without it the scene is as it was. Never on Ending |
 | `rings=1` | Game (`layout=window`) | the stage's animated rings behind veadotube (off by default here; the dock's *Rings* chip). The other scenes have them on: `hide=rings` turns them off |
 | `chat=0` | Be right back, Just chatting, Game (window) | don't load the chat (a shared chat source sits in the frame instead; see *One shared chat for every scene*) |
 | `bare=1` | chat | no frame: just the chat, filling the source (the shared chat source) |
@@ -393,7 +394,9 @@ lit notch and a fading line, cards with a lit corner bracket, solid buttons with
 background a faint grid under a glow of the form's colour.
 
 **Sources:** add our widgets as their own OBS sources to the current scene (or any): the chat box, follower goal,
-now playing, Chatagram, Chaplinko, Inputty (keyboard and controller) and the shared chat. *Add existing* reuses the same source (one browser in several scenes); *New copy*
+now playing, Chatagram, Chaplinko, Inputty (keyboard and controller) and the shared chat. One compact row each, in groups
+(Chat and goal, Games, Inputty; the owner asked, 2026-10-22): a light (in a scene: lit; needs its link first: yellow), the
+name, its size and where it is; tapped, it opens on what it is and its buttons (one open at a time, like Scenes). *Add existing* reuses the same source (one browser in several scenes); *New copy*
 makes another. They land just above the scene's overlay, centred, and are yours to move; their options (key, music
 app…) stay current through Review & apply. **Found, not managed** lists widget sources you added by hand that the
 dock recognises (a raw Botrix chat link, our widget pages): *Use as shared chat*, *Adopt*, or *Ignore*.
@@ -527,7 +530,7 @@ python3 obs/build-scenes.py        # writes public/obs/{starting,brb,chatting,ga
 
 Paths inside `public/obs` are relative and it carries its own fonts and logos (`public/obs/assets/`), so the
 folder works anywhere (every script is a plain `<script>`, no modules, so `file://` works too). Shared pieces: `public/obs/shared/overlay.css` (look, and each form's look: "Form looks" at its end), `theme.js` (form colours and looks, veadotube + OBS WebSocket, keeping the pages in step),
-`scene.js` (light trails, form-cycling art and its switch-in, the look swap, guide labels), `icons.js` (platform icons), `transition.js` (the
+`scene.js` (light trails, form-cycling art and its switch-in, the look swap, guide labels, a game's spot), `games.js` (the games on the scenes: each scene's look, pausing on Game), `icons.js` (platform icons), `transition.js` (the
 transitions: drawing and timing; its page is `transition.html`). The rescue dock is `rescue.html` (on purpose, only
 `obsws.js`). The control dock is
 `public/obs/control.html`; the Botrix CSS is `public/obs/botrix/`. Everything under `public/` deploys with
@@ -591,6 +594,38 @@ By hand: the **Inputty** and **Inputty controller** cards on the index's Sources
 Browser source, **Use custom frame rate**, FPS `30`, at the width and height the Inputty page shows. **Sources → Inputty
 keyboard / Inputty controller → Add** also work, for scenes other than Game. It needs the hosted address (it loads
 `/inputty/`).
+
+## Games on your scenes (Chatagram or Chaplinko)
+
+The owner's plan (2026-10-22, mockups in `mockups/chatagram-everywhere/`): either game on Starting soon, Be right back, Just
+chatting and Game, one game per scene, never on Ending. **Widgets → Chatagram** and **Widgets → Chaplinko** each have:
+- **On your scenes / Off: scenes as they were**: the main switch. Off, every scene is back to its own layout (the chat its
+  full height, the goal and the Discord block back); the cards below stay as they're set, for next time.
+- **A card per scene**: the scene small (a wireframe: the board lit in its spot, or the other game's in yellow), its own
+  switch, the game's look there (**Background**: Solid, 95%, 90%…10%, None; Chatagram also **Panels**: the columns, banner,
+  boxes and summary tiles) and what changes. A scene the other game is on says so, and ticking it swaps the games.
+- **Keep playing / Keep dropping while I'm in Game**: off, Chatagram's round pauses on Game (every timer holds, as under its
+  leaderboard; guesses still count) and Chaplinko's `!plinko` drops wait in the queue; both carry on at the next scene.
+
+The scenes and the sources change through **Review & apply**; the looks and *Keep playing* reach the game straight away (a
+`game-look` CustomEvent over OBS). Each game is **one source** (Chatagram the full board, 960 × 540; Chaplinko its board on its
+own, 640 × 540, whatever its link says about the leaderboard), in every scene it's on, so a round carries on from scene to
+scene. The dock places it in each scene's spot (`model.js`, `GAME_BOX`, the one place the boxes live; the scenes load
+`model.js` for them too), above the overlay and, on Game, above the game capture; it only ever takes it off scenes it put it
+in (`dock.spots`).
+
+| Scene | Chatagram | Chaplinko | The scene with `spot=` |
+|---|---|---|---|
+| Starting soon | 800 × 450 at (120, 548) | 533 × 450 at (120, 548) | title block 85% from y 60; Discord block and socials off; the strip says `!discord` |
+| Be right back, Just chatting | 590 × 332 at (10, 732) | 393 × 332 at (108, 732), centred | goal off; the chat 526 tall (ends at 716); the shared chat follows (`chatBox`) |
+| Game (window) | 590 × 332 at (10, 732), into the window by 154 | 393 × 332 at (108, 732) | goal off |
+| Game (full screen) | 740 × 416 at (24, 640) | 493 × 416 at (24, 640) | (nothing to move) |
+
+Defaults: Chatagram 95% / Solid on the first three, 50% / 60% on Game (window), None / 40% full screen; Chaplinko Solid on the
+first three, None on Game. Which look applies is the scene OBS shows: the game's page (`shared/games.js`, with `obs=`) asks OBS
+for the program scene and recognises it by its Trongates overlay's address (renamed scenes, nested scenes and groups too),
+then sends `{ type: 'widget-look' }` and `{ type: 'widget-pause' }` to the game. Its address carries `scenelook=` (each scene's
+look) and `keep=0`. In the index page's previews the spot plays the game itself (demo chat).
 
 ## Chaplinko (the chat Plinko game)
 

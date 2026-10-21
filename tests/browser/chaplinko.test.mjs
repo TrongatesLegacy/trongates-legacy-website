@@ -246,3 +246,24 @@ test('a quiet board shows the command big (letters drop in, then an emoji, then 
   await rm.close();
 });
 
+
+// Chaplinko on the stream's scenes (obs/README.md, "Games on your scenes"): the OBS page sends each scene's background and a
+// pause on Game as live messages; paused, drops wait in the queue and fall when it carries on
+test('live look and pause messages: the background changes without a restart; paused, drops wait and fall when it carries on', async () => {
+  const tab = await chrome.open(site.origin + BOARD, { width: 640, height: 540, init: FAKE_CHAT + CLEAN + LIVE });
+  await ready(tab); await sleep(200);
+  const look = () => tab.eval(`[document.getElementById('w').style.getPropertyValue('--bgo'), document.getElementById('board').classList.contains('clear')]`);
+  await tab.eval(`postMessage({ type: 'widget-look', bgo: 60 }, '*'); new Promise((r) => setTimeout(r, 100))`);
+  assert.deepEqual(await look(), ['0.6', false]);
+  await tab.eval(`postMessage({ type: 'widget-look', bgo: 0 }, '*'); postMessage({ type: 'widget-look', bgo: 'x' }, '*'); new Promise((r) => setTimeout(r, 100))`);
+  assert.deepEqual(await look(), ['0', true], 'none: the board\'s clear look; a bad one is ignored');
+  await tab.eval(`postMessage({ type: 'widget-pause', paused: true }, '*'); new Promise((r) => setTimeout(r, 100))`);
+  await tab.eval(`__chat.twitch('PixelPanda', '!plinko'); 1`);
+  await sleep(900);
+  assert.deepEqual(await tab.eval('[chaplinko.game.queued, chaplinko.world.balls.length]'), [5, 0], 'the drop waits; nothing falls');
+  assert.match(await tab.eval(`document.getElementById('chute').textContent`), /PAUSED/);
+  await tab.eval(`postMessage({ type: 'widget-pause', paused: false }, '*'); 1`);
+  await tab.until('chaplinko.world.balls.length > 0 || chaplinko.game.queued < 5', 3000, 'the balls to start falling');
+  noErrors(tab, 'live messages');
+  await tab.close();
+});

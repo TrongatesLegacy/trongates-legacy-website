@@ -131,21 +131,42 @@
     const sha = async (s) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))));
     return sha((await sha(password + salt)) + challenge);
   }
+  // Also, for the games on the stream's scenes (obs/chatagram.html, obs/chaplinko.html): which scene OBS is showing
+  // (onScene), the dock's other messages (onCustom), and asking OBS things (obsRequest)
+  const sceneListeners = new Set(), customListeners = new Set(), waiting = new Map();
+  let obsWs = null, reqN = 0;
+  function obsRequest(requestType, requestData = {}) {
+    return new Promise((ok, fail) => {
+      if (!obsWs || obsWs.readyState !== 1 || status.obs !== 'connected') return fail(new Error('OBS not connected'));
+      const requestId = 'tgl-' + (++reqN), timer = setTimeout(() => { waiting.delete(requestId); fail(new Error(requestType + ': no answer')); }, 5000);
+      waiting.set(requestId, (d) => { clearTimeout(timer); d.requestStatus && d.requestStatus.result ? ok(d.responseData || {}) : fail(new Error(requestType + ': ' + ((d.requestStatus && d.requestStatus.comment) || 'failed'))); });
+      obsWs.send(JSON.stringify({ op: 6, d: { requestType, requestId, requestData } }));
+    });
+  }
+  const tellScene = (name) => name && sceneListeners.forEach((fn) => fn(name));
+  const askScene = () => obsRequest('GetCurrentProgramScene').then((r) => tellScene(r.sceneName || r.currentProgramSceneName)).catch(() => {});
   function connectObs(onReady) {
     const port = params.get('obs');
     if (!port) return null;
     const password = params.get('obspw') || '';
-    const ws = new WebSocket(`ws://127.0.0.1:${port}`);
+    const ws = obsWs = new WebSocket(`ws://127.0.0.1:${port}`);
     ws.onmessage = async (e) => {
       const msg = JSON.parse(e.data);
-      if (msg.op === 0) {                                   // Hello -> Identify, subscribed to general events
-        const d = { rpcVersion: 1, eventSubscriptions: 1 };
+      if (msg.op === 0) {                                   // Hello -> Identify, subscribed to general and scene events
+        const d = { rpcVersion: 1, eventSubscriptions: 1 | 4 };
         if (msg.d.authentication) d.authentication = await obsAuth(password, msg.d.authentication.salt, msg.d.authentication.challenge);
         ws.send(JSON.stringify({ op: 1, d }));
       } else if (msg.op === 2) {                            // Identified
         status.obs = 'connected'; notifyStatus(); onReady && onReady(ws);
+        if (sceneListeners.size) askScene();
+      } else if (msg.op === 7) {                            // an answer to obsRequest
+        const fn = waiting.get(msg.d.requestId); if (fn) { waiting.delete(msg.d.requestId); fn(msg.d); }
+      } else if (msg.op === 5 && msg.d.eventType === 'CurrentProgramSceneChanged') {
+        tellScene(msg.d.eventData && msg.d.eventData.sceneName);
       } else if (msg.op === 5 && msg.d.eventType === 'CustomEvent' && msg.d.eventData && msg.d.eventData.tgl === 'form') {
         apply(msg.d.eventData.form, 'dock', +msg.d.eventData.at || Date.now());
+      } else if (msg.op === 5 && msg.d.eventType === 'CustomEvent' && msg.d.eventData && msg.d.eventData.tgl) {
+        customListeners.forEach((fn) => fn(msg.d.eventData));
       }
     };
     ws.onclose = (e) => { status.obs = e.code === 4009 ? 'wrong password' : 'retrying'; notifyStatus(); setTimeout(() => connectObs(onReady), 5000); };
@@ -195,7 +216,11 @@
     set(next) { const at = Date.now(); apply(next, 'local', at); try { channel && channel.postMessage({ form: next, at }); } catch {} return at; },
     onChange(fn) { listeners.add(fn); },
     onStatus(fn) { statusListeners.add(fn); fn({ ...status, form }); },
-    connectObs, paint, cycling,
+    connectObs, paint, cycling, obsRequest,
+    /** the scene OBS is showing (program), now if connected and whenever it changes: fn(sceneName) */
+    onScene(fn) { sceneListeners.add(fn); if (status.obs === 'connected') askScene(); },
+    /** the dock's messages over OBS other than the form ({ tgl: 'game-look', … }) */
+    onCustom(fn) { customListeners.add(fn); },
     guide: params.get('guide') === '1',
     // Reduced motion: the system setting, except inside OBS, where it's the streaming PC's setting, not the
     // viewers' (Windows' "Animation effects" off would otherwise freeze every scene). ?motion=reduce|full forces it.

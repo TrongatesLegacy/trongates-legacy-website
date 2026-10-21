@@ -356,3 +356,65 @@ test('Inputty on Game: every spot and size lands inside the game, at its corner 
     }
   }
 });
+
+// Games on the stream's scenes (Widgets → Chatagram / Chaplinko, the owner 2026-10-22): one game per scene, in the scene's
+// spot; spot= on the scene makes room (Starting soon's title smaller and higher, the goal off and the chat shorter in the
+// left column); the game's one source carries each scene's look (scenelook=) and whether it keeps playing on Game (keep=0)
+test('games on scenes: off by default; a game on a scene puts spot= on it, never on Ending; one game per scene', () => {
+  const s = M.normalise(null);
+  assert.equal(s.games.chatagram.on, false); assert.equal(s.games.chaplinko.on, false);
+  for (const k of ['starting', 'brb', 'chatting', 'game', 'ending']) assert.equal(opts(M.options(k, s)).spot, undefined, `${k}: nothing by default`);
+  s.games.chatagram.on = true;
+  for (const k of ['starting', 'brb', 'chatting', 'game']) assert.equal(opts(M.options(k, s)).spot, 'chatagram', k);
+  assert.equal(opts(M.options('ending', s)).spot, undefined, 'never on Ending');
+  s.games.chatagram.scenes.chatting = false; s.games.chaplinko.on = true; s.games.chaplinko.scenes.chatting = true;
+  assert.equal(M.gameOn(s, 'chatting'), 'chaplinko'); assert.equal(M.gameOn(s, 'brb'), 'chatagram');
+  // the main switch off: the scenes are as they were, and the choices are kept
+  s.games.chatagram.on = false;
+  assert.equal(opts(M.options('brb', s)).spot, undefined); assert.equal(s.games.chatagram.scenes.brb, true);
+  assert.ok(M.withOptions(HOST + 'brb?spot=chatagram&x=1', []).endsWith('brb?x=1'), 'the panel owns spot=');
+  // read back from the scenes' addresses
+  const back = M.fromUrls([HOST + 'brb?spot=chaplinko', HOST + 'starting?spot=chatagram']);
+  assert.equal(back.games.chaplinko.on, true); assert.equal(back.games.chaplinko.scenes.brb, true); assert.equal(back.games.chatagram.scenes.starting, true);
+});
+
+test('games on scenes: each spot sits where the mockups put it, inside the canvas; the chat in the left column ends above it', () => {
+  const B = M.GAME_BOX;
+  assert.deepEqual(plain(B.chatagram.starting), [120, 548, 800, 450]);
+  assert.deepEqual(plain(B.chaplinko.starting), [120, 548, 533, 450]);
+  for (const k of ['brb', 'chatting', 'window']) {
+    assert.deepEqual(plain(B.chatagram[k]), [10, 732, 590, 332], `${k}: as wide as the column, its bottom the column's`);
+    const [x, , w, h] = B.chaplinko[k];
+    assert.ok(Math.abs(x + w / 2 - 305) <= 1 && h === 332, `${k}: Chaplinko centred in the column, as tall`);
+  }
+  for (const g of ['chatagram', 'chaplinko']) for (const [k, [x, y, w, h]] of Object.entries(B[g])) {
+    assert.ok(x >= 0 && y >= 64 && x + w <= 1920 && y + h <= 1080, `${g} ${k} on the canvas`);
+    const [sw, sh] = g === 'chatagram' ? [960, 540] : [640, 540];
+    assert.ok(Math.abs(w / h - sw / sh) < 0.01, `${g} ${k}: the board's own shape`);
+  }
+  assert.equal(M.spotOf('game', 'window'), 'window'); assert.equal(M.spotOf('game', 'full'), 'full'); assert.equal(M.spotOf('brb'), 'brb');
+  // the shared chat's box follows the shorter chat (its frame ends 16px above the spot)
+  const s = M.normalise(null);
+  const before = M.chatBox('brb', s, true);
+  s.games.chatagram.on = true;
+  const after = M.chatBox('brb', s, true);
+  assert.equal(after.y, before.y); assert.equal(after.y - 64 - 52 + after.h + 70, 652, 'the chat frame ends at 652 (the spot starts at 668)');
+});
+
+test('games on scenes: the game\'s source carries each scene\'s look and keep=0, and is the board alone', () => {
+  const s = M.normalise(null);
+  s.chatagram = 'kick=gridrunner&layout=compact'; s.chaplinko = 'kick=gridrunner&layout=combined&side=left';
+  // off: as before
+  assert.equal(new URL(url('chatagram', s)).searchParams.get('layout'), 'compact');
+  assert.deepEqual(plain(M.sizeOf('chaplinko', s)), [960, 540]);
+  s.games.chatagram.on = true; s.games.chaplinko.on = true; s.games.chaplinko.scenes.chatting = true; s.games.chatagram.scenes.chatting = false;
+  s.games.chatagram.keep = false;
+  const cg = new URL(url('chatagram', s)).searchParams, cp = new URL(url('chaplinko', s)).searchParams;
+  assert.equal(cg.get('scenelook'), 'starting:95.100,brb:95.100,chatting:95.100,window:50.60,full:0.40');
+  assert.equal(cg.get('keep'), '0'); assert.equal(cg.get('layout'), null, 'the full board on scenes');
+  assert.equal(cp.get('scenelook'), 'starting:95,brb:95,chatting:95,window:0,full:0'); assert.equal(cp.get('keep'), null);
+  assert.equal(cp.get('layout'), null); assert.equal(cp.get('side'), null, 'Chaplinko on its own, no leaderboard');
+  assert.deepEqual(plain(M.sizeOf('chaplinko', s)), [640, 540]);
+  assert.deepEqual(plain(M.sizeOf('chatagram', s)), [960, 540]);
+  assert.ok(M.withOptions(HOST + 'chatagram?scenelook=x&keep=0&kick=a', M.options('chatagram', M.normalise(null))).indexOf('scenelook') < 0, 'the panel owns scenelook= and keep=');
+});

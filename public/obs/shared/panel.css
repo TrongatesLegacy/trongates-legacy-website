@@ -159,3 +159,31 @@
 .tgl-panel .io-box .io-ico { width: 60%; height: 70%; filter: drop-shadow(0 0 4px var(--accent)); }
 .tgl-panel .io-box.off { border-style: dashed; opacity: .45; box-shadow: none; }
 .tgl-panel .io-tile:focus-visible, .tgl-panel .io-show:focus-visible, .tgl-panel .io-spot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* a game on the stream's scenes (Widgets → Chatagram / Chaplinko): each scene as a card, the scene small as a wireframe */
+.tgl-panel .cg-scenes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tgl-panel .cg-scene { position: relative; display: grid; gap: 6px; align-content: start; padding: 7px; border: 1px solid var(--line2); border-radius: 10px; background: var(--glass); }
+.tgl-panel .cg-scene.lit { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 14%, transparent); }
+.tgl-panel .cg-scene.off { opacity: .6; } .tgl-panel .cg-scene.off .cgb { box-shadow: none; }
+.tgl-panel .cg-scene.taken { border-style: dashed; } .tgl-panel .cg-scene.taken .wf, .tgl-panel .cg-scene.taken .cg-sel { opacity: .5; }
+.tgl-panel .cg-scene .name { display: flex; align-items: center; justify-content: space-between; gap: 6px; font: 700 9px/1 Orbitron, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #cfe3f5; }
+.tgl-panel .cg-scene .name .tog { width: 28px; height: 16px; } .tgl-panel .cg-scene .name .tog::after { top: 2px; left: 2px; width: 12px; height: 12px; } .tgl-panel .cg-scene .name .tog:checked::after { left: 14px; }
+.tgl-panel .cg-scene .cg-sel { gap: 6px; font-size: 11px; color: #cfe3f5; } .tgl-panel .cg-scene .cg-sel select { width: 74px; padding: 4px 6px; font-size: 11px; }
+.tgl-panel .cg-scene .what { font-size: 10.5px; color: var(--muted); font-weight: 400; line-height: 1.3; }
+.tgl-panel .cg-scene .busy { color: var(--warn); font-weight: 600; }
+.tgl-panel .wf { position: relative; height: 0; padding-top: 56.25%; border-radius: 5px; overflow: hidden; background: radial-gradient(90% 80% at 50% 40%, #0f2036, #050a13); border: 1px solid var(--line2); }
+.tgl-panel .wf i { position: absolute; border-radius: 2px; }
+.tgl-panel .wf .ln { background: #2f4560; } .tgl-panel .wf .fr { border: 1px solid #355070; background: #ffffff05; }
+.tgl-panel .wf .ch { border-radius: 50%; border: 1px solid #2f4560; background: radial-gradient(#1a3350, transparent 70%); }
+.tgl-panel .wf .win { border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); background: linear-gradient(160deg, #3a3060, #6b4a6a); }
+.tgl-panel .wf .cgb { border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 22%, #0a1830); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); z-index: 2; }
+.tgl-panel .wf .cgb::after { content: ""; position: absolute; left: 20%; right: 20%; top: 26%; height: 16%; border-radius: 1px; background: repeating-linear-gradient(90deg, var(--accent) 0 12%, transparent 12% 16%); opacity: .8; }
+.tgl-panel .wf .cgb.cp::after { left: 22%; right: 22%; top: 16%; height: 64%; background: radial-gradient(circle, var(--accent) 0 1px, transparent 1.4px) 0 0 / 5px 5px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.tgl-panel .wf .cgb.half { background: color-mix(in srgb, var(--accent) 10%, transparent); } .tgl-panel .wf .cgb.clear { background: transparent; border-style: dashed; }
+.tgl-panel .wf .cgb.other { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); box-shadow: none; }
+.tgl-panel .wf .cgb.other::after { background: repeating-linear-gradient(90deg, var(--warn) 0 12%, transparent 12% 16%); }
+.tgl-panel .wf .cgb.other.cp::after { background: radial-gradient(circle, var(--warn) 0 1px, transparent 1.4px) 0 0 / 5px 5px; }
+@container (max-width: 300px) { .tgl-panel .cg-scenes { grid-template-columns: 1fr; } }
+/* Sources: the name, its size, where it is; in a narrow dock the size goes first, then the others end in … */
+.tgl-panel .acc[data-src] > .sum > b, .tgl-panel .acc > .sum .where { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tgl-panel .acc > .sum .where { font-size: 11px; font-weight: 400; }
+.tgl-panel .acc[data-src] > .sum .muted { flex: 1 1 0; }

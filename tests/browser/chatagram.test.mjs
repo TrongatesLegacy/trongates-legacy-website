@@ -757,3 +757,41 @@ test('a find never lights up a hidden ? tile (that would give the letter away)',
   assert.equal(await tab.eval('document.querySelectorAll("#tiles .tile.hidden.lit").length'), 0, 'the ? stays dark');
   await tab.close();
 });
+
+// Chatagram on the stream's scenes (obs/README.md, "Games on your scenes"): Panels background (gbo) is every panel's, and the
+// OBS page sends each scene's look and a pause on Game as live messages
+test('Panels background (gbo) covers every panel: the found banner, goal and level, the summary\'s tiles and lists, not just the columns', async () => {
+  const alphas = (tab, sel) => tab.eval(`[...document.querySelectorAll(${JSON.stringify(sel)})].map((el) => { const p = getComputedStyle(el).backgroundColor.match(/[\\d.]+/g).map(Number); return p.length > 3 ? p[3] : 1; })`);
+  for (const [screen, sel] of [['play', '.banner, .stat'], ['cleared', '.kpi, .box']]) {
+    for (const [q, want] of [['', 1], ['&gbo=40', 0.4]]) {
+      const tab = await chrome.open(site.origin + `/chatagram/play.html?still=1&screen=${screen}&theme=chatagram${q}`, { width: 960, height: 540 });
+      await ready(tab);
+      const a = await alphas(tab, sel);
+      assert.ok(a.length && a.every((x) => Math.abs(x - want) < 0.01), `${screen}${q || ' default'}: ${a}, want ${want}`);
+      await tab.close();
+    }
+  }
+});
+
+test('live look and pause messages: the background and panels change without a restart; a pause holds the round, whatever the leaderboard does', async () => {
+  const tab = await lbTab('layout=compact', { twitch: 'live' }, { width: 560, height: 230 });
+  const round = await tab.eval('chatagram.game.state.round.id');
+  const vars = () => tab.eval(`[document.getElementById('board').style.getPropertyValue('--bgo'), document.getElementById('board').style.getPropertyValue('--gbo')]`);
+  await tab.eval(`window.postMessage({ type: 'widget-look', bgo: 30, gbo: 50 }, '*'); new Promise((r) => setTimeout(r, 100))`);
+  assert.deepEqual(await vars(), ['0.3', '50%']);
+  await tab.eval(`window.postMessage({ type: 'widget-look', bgo: 100, gbo: 100 }, '*'); new Promise((r) => setTimeout(r, 100))`);
+  assert.deepEqual(await vars(), ['1', '100%'], 'solid again');
+  await tab.eval(`window.postMessage({ type: 'widget-look', bgo: 'x', gbo: 500 }, '*'); new Promise((r) => setTimeout(r, 100))`);
+  assert.deepEqual(await vars(), ['1', '100%'], 'bad values are ignored');
+  // pause: the round holds (guesses still count); a leaderboard opening and closing meanwhile doesn't let it go
+  await tab.eval(`window.postMessage({ type: 'widget-pause', paused: true }, '*'); new Promise((r) => setTimeout(r, 100))`);
+  assert.equal(await tab.eval('chatagram.game.held'), true, 'paused');
+  await tab.eval('chatagram.leaderboard.show(); new Promise((r) => setTimeout(r, 500))');
+  await tab.eval('chatagram.leaderboard.hide(); 1');
+  assert.equal(await tab.eval('chatagram.game.held'), true, 'still paused after the leaderboard');
+  await tab.eval(`window.postMessage({ type: 'widget-pause', paused: false }, '*'); new Promise((r) => setTimeout(r, 100))`);
+  assert.equal(await tab.eval('chatagram.game.held'), false, 'carries on');
+  assert.equal(await tab.eval('chatagram.game.state.round.id'), round, 'never restarted');
+  noErrors(tab, 'live messages');
+  await tab.close();
+});

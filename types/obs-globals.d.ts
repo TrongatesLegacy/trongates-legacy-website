@@ -23,6 +23,12 @@ interface TGLTheme {
   reduced: boolean;
   param(key: string, fallback?: string): string;
   hidden(part: string): boolean;
+  /** ask OBS something over its WebSocket (obs=): the answer's responseData */
+  obsRequest(requestType: string, requestData?: any): Promise<any>;
+  /** the scene OBS is showing (program), now and whenever it changes */
+  onScene(fn: (sceneName: string) => void): void;
+  /** the dock's messages over OBS other than the form */
+  onCustom(fn: (data: any) => void): void;
 }
 
 interface TGLObsClient {
@@ -39,6 +45,7 @@ interface Window {
   TGLDockColour: { create(opts: any): any };
   TGLPanel: { mount(el: HTMLElement, opts?: { mode?: 'dock' | 'index'; onChange?: (settings: any, env: any) => void; onForm?: (form: Form) => void }): any };
   TGLPanelParts: Record<string, (P: any) => any>;
+  TGLGames: { follow(game: string, send: (message: any) => void): { apply(): void }; kindOfUrl(url: string): string; kindOfScene(name: string, depth?: number, group?: boolean): Promise<string> };
   TGL_NO_AUTOCONNECT?: boolean;
   TGL_ICONS?: any;
   obsstudio?: any;

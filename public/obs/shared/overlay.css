@@ -155,6 +155,7 @@ svg.i { width: 1em; height: 1em; fill: currentColor; flex: none; }
   background: linear-gradient(90deg, var(--a10), color-mix(in srgb, var(--glass) 92%, transparent) 30%, color-mix(in srgb, var(--glass) 92%, transparent) 70%, var(--a10)); }
 .ticker .track { display: flex; width: max-content; height: 100%; align-items: center; animation: marquee 50s linear infinite; }
 .ticker .item { display: inline-flex; align-items: center; gap: 12px; padding: 0 34px; font: 700 20px/1 Orbitron; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+.ticker .item.spot-only { display: none; } .spot .ticker .item.spot-only { display: inline-flex; }   /* build-scenes.py ticker(spot_only=) */
 .ticker .item .i { width: 24px; height: 24px; }
 .ticker .item::after { content: ""; width: 9px; height: 9px; margin-left: 34px; background: var(--accent); transform: rotate(45deg); box-shadow: 0 0 10px var(--accent); }
 @keyframes marquee { to { transform: translateX(-50%); } }

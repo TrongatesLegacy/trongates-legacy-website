@@ -26,7 +26,8 @@
     // the command and its fixed words: !plinko, !plinko top / pause / resume / clear / clearscores
     const cmd = K.settings.command(cfg), WORDS = { top: 'ctop', pause: 'cpause', resume: 'cresume', clear: 'cclear', clearscores: 'cwipe' };
     const last = new Map();                                   // platform:user → when they last dropped (the cooldown)
-    let queue = [], queued = 0, paused = false, topAt = 0, nextAt = 0;
+    // paused: !plinko pause (drops are turned away); held: the page around it (the stream's Game scene), drops wait in the queue
+    let queue = [], queued = 0, paused = false, held = false, topAt = 0, nextAt = 0;
     let level = 'quiet', calmSince = 0;
     // jackpots today (for the card's "the first today"); saved beside the scores
     const today = () => new Date(now()).toDateString();
@@ -86,6 +87,7 @@
      */
     function take(onBoard) {
       const t = now(), out = [];
+      if (held) return out;
       updateLevel(onBoard, t);
       if (t < nextAt) return out;
       while (queue.length && onBoard + out.length < cfg.max && t >= nextAt) {
@@ -99,7 +101,7 @@
       return out;
     }
     /** when take() will next have something (Infinity: nothing queued) */
-    const nextWake = () => (queue.length ? Math.max(nextAt, now()) : Infinity);
+    const nextWake = () => (queue.length && !held ? Math.max(nextAt, now()) : Infinity);
 
     function updateLevel(onBoard, t) {
       const want = onBoard > LEVELS.frenzy || (queued > 0 && onBoard + queued > LEVELS.frenzy) ? 'frenzy' : onBoard + queued > LEVELS.busy ? 'busy' : 'quiet';
@@ -144,6 +146,9 @@
       get level() { return level; },
       get queued() { return queued; },
       get paused() { return paused; },
+      get held() { return held; },
+      /** hold the queue (drops still join it) or let it go; true if that changed anything */
+      hold(on) { if (!!on === held) return false; held = !!on; return true; },
       clearQueue() { queue = []; queued = 0; },
       snapshot: () => ({ day: jp.day, jackpots: jp.n }),
       top, second,

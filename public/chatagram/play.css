@@ -26,7 +26,7 @@ header { display: grid; grid-template-columns: 150px 1fr auto; gap: 14px; align-
 .brand b { color: var(--accent); font-weight: inherit; }
 .compact .brand { display: none; }
 [data-theme=royal] .brand { font-size: 18px; } [data-theme=cozy] .brand { font-size: 24px; }
-.banner { background: var(--panel); border-radius: var(--radius); min-height: 56px; padding: 6px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+.banner { background: color-mix(in srgb, var(--panel) var(--gbo, 100%), transparent); border-radius: var(--radius); min-height: 56px; padding: 6px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
 .compact .banner { min-height: 46px; flex-direction: row; gap: 10px; justify-content: flex-start; }
 .banner .who { font-size: 14px; font-weight: 700; display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; max-width: 100%; overflow: hidden; }
 .banner .what { font-family: var(--display); font-weight: var(--display-weight); font-size: 22px; line-height: 1.1; color: var(--accent); letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
@@ -35,7 +35,7 @@ header { display: grid; grid-template-columns: 150px 1fr auto; gap: 14px; align-
 .compact .banner .what { font-size: 19px; }
 .banner .what .hint { font-family: var(--font); font-size: 15px; color: var(--muted); font-weight: 600; text-transform: none; letter-spacing: 0; }
 .stats { display: flex; gap: 8px; }
-.stat { background: var(--panel); border-radius: var(--radius); padding: 5px 11px; text-align: center; min-width: 70px; position: relative; }
+.stat { background: color-mix(in srgb, var(--panel) var(--gbo, 100%), transparent); border-radius: var(--radius); padding: 5px 11px; text-align: center; min-width: 70px; position: relative; }
 .stat small { display: block; font-size: 10px; letter-spacing: .14em; color: var(--muted); font-weight: 700; }
 .stat b { font-family: var(--display); font-weight: var(--display-weight); font-size: 21px; }
 .stat b i { font-style: normal; color: var(--muted); font-size: 14px; }
@@ -131,12 +131,12 @@ footer .conn > span { display: inline-flex; gap: 5px; align-items: center; }   /
 .sum-title b { color: var(--accent); font-weight: inherit; } .over .sum-title b { color: var(--bad); }
 .stars { font-size: 34px; letter-spacing: 3px; color: var(--accent); white-space: nowrap; } .stars i { color: var(--slot); font-style: normal; }
 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
-.kpi { background: var(--panel); border-radius: var(--radius); padding: 8px 12px; min-width: 0; }
+.kpi { background: color-mix(in srgb, var(--panel) var(--gbo, 100%), transparent); border-radius: var(--radius); padding: 8px 12px; min-width: 0; }
 .kpi small { display: block; font-size: 10px; letter-spacing: .14em; color: var(--muted); font-weight: 700; }
 .kpi b { font-family: var(--display); font-weight: var(--display-weight); font-size: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; text-transform: uppercase; }
 .kpi b i { font-style: normal; font-size: 14px; color: var(--muted); } .kpi b .ok { color: var(--good); font-size: 14px; }
 .two { display: grid; grid-template-columns: 1.1fr 1fr; gap: 10px; flex: 1; min-height: 0; }
-.box { background: var(--panel); border-radius: var(--radius); padding: 10px 13px; display: flex; flex-direction: column; gap: 5px; min-height: 0; overflow: hidden; }
+.box { background: color-mix(in srgb, var(--panel) var(--gbo, 100%), transparent); border-radius: var(--radius); padding: 10px 13px; display: flex; flex-direction: column; gap: 5px; min-height: 0; overflow: hidden; }
 .box h4 { margin: 0 0 2px; font-size: 10px; letter-spacing: .14em; color: var(--muted); font-weight: 700; display: flex; justify-content: space-between; }
 .rank { display: grid; grid-template-columns: 20px auto 1fr auto auto; align-items: center; gap: 7px; font-size: 14px; }
 .single .rank { grid-template-columns: 20px 0 1fr auto auto; }
@@ -160,7 +160,7 @@ footer .conn > span { display: inline-flex; gap: 5px; align-items: center; }   /
 .next b { color: var(--text); }
 .compact .sum-title { font-size: 26px; } .compact .stars { font-size: 26px; }
 .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.pcard { background: var(--panel); border-radius: var(--radius); padding: 7px 10px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pcard { background: color-mix(in srgb, var(--panel) var(--gbo, 100%), transparent); border-radius: var(--radius); padding: 7px 10px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pcard .who { display: flex; gap: 5px; align-items: center; font-weight: 700; white-space: nowrap; overflow: hidden; }
 .pcard b { font-family: var(--display); font-weight: var(--display-weight); font-size: 18px; } .pcard small { color: var(--muted); font-size: 10px; letter-spacing: .12em; font-weight: 700; }
 
@@ -268,7 +268,7 @@ footer .conn > span { display: inline-flex; gap: 5px; align-items: center; }   /
 .mini .hl.none { font-size: 12px; }
 .compact .lbsec { display: flex; gap: 7px; align-items: center; font-size: 12px; height: 24px; overflow: hidden; white-space: nowrap; }
 .compact .lbsec .rl { font-size: 10px; letter-spacing: .14em; color: var(--muted); font-weight: 700; }
-.compact .lbsec .rf { display: inline-flex; gap: 5px; align-items: center; background: var(--panel); border-radius: calc(var(--radius) * .7); padding: 3px 8px; }
+.compact .lbsec .rf { display: inline-flex; gap: 5px; align-items: center; background: color-mix(in srgb, var(--panel) var(--gbo, 100%), transparent); border-radius: calc(var(--radius) * .7); padding: 3px 8px; }
 .compact .lbsec .rf .n { font-family: var(--display); color: var(--accent); } .compact .lbsec .rf b { font-family: var(--display); font-weight: var(--display-weight); }
 .compact .lbsec .rf.sk { width: 110px; } .compact .lbsec .rf.sk i { width: 100%; }
 .compact .lbsec .none { color: var(--muted); }

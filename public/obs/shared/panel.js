@@ -260,6 +260,8 @@
       if (d.tag) { await tagInput(obs.scan.inputs.get(d.tag), d.tagv); if (d.tagv === 'shared-chat') { s.shared = true; save(); } return; }
       if (d.txOverlay) { const c = P.transitionScenes().find((x) => x.uuid === d.txOverlay); if (c) { s.dock.tx.overlay[c.uuid] = !P.overlayIn(c); save(); } return; }
       if (d.ignore) { s.dock.ignore = [...(s.dock.ignore || []), d.ignore]; save(); return; }
+      // a game on the stream's scenes, on or off (Widgets → Chatagram / Chaplinko): through Review & apply
+      if (d.gameOn) { s.games[d.gameOn].on = !s.games[d.gameOn].on; save(); return; }
       // Inputty on Game (Widgets → Inputty): straight away
       if (d.ioWhich) { P.inputtyControl('which', d.ioWhich); return; }
       if (d.ioShow !== undefined) { P.inputtyControl('show'); return; }
@@ -313,6 +315,16 @@
     });
     el.addEventListener('change', (e) => {
       const t = /** @type {HTMLInputElement} */ (e.target), d = t.dataset;
+      // games on the stream's scenes: a scene on or off (one game per scene: the other game leaves it), a look, keep playing.
+      // The scenes through Review & apply; a look and keep playing reach the game straight away too
+      if (d.gameScene) {
+        const [g, k] = d.gameScene.split(':');
+        s.games[g].scenes[k] = t.checked;
+        if (t.checked) for (const o of M.GAMES) if (o !== g) s.games[o].scenes[k] = false;
+        save(); return;
+      }
+      if (d.gameLook) { const [g, k, i] = d.gameLook.split(':'); s.games[g].look[k][+i] = Math.max(0, Math.min(100, +t.value || 0)); save(); if (dock) P.gameLook(g); return; }
+      if (d.gameKeep) { s.games[d.gameKeep].keep = t.checked; save(); if (dock) P.gameLook(d.gameKeep); return; }
       if (d.set) {
         let v = t.type === 'checkbox' ? t.checked : t.type === 'number' ? +t.value || 0 : t.value.trim();
         if (d.set === 'linksMode') { s.linksMode = v; save(); return; }

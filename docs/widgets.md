@@ -110,9 +110,12 @@ block in `themes.css` plus its name and accent in `theme.js`, and every widget g
 **Backgrounds**: each theme's `--bg` is solid on its own (they used to be 93–97% opaque, differing by theme) and carries
 `/ var(--bgo, 1)`, so a widget sets how see-through it is by setting `--bgo` on the same element. Chatagram's Advanced →
 Background (`bgo=`, 0–100% in tens; 0 is no background at all, the owner, 2026-10-14) defaults to **95%**, a hint of the game behind, the same for every theme (the owner,
-2026-09-28); Solid is 100. Advanced → Guess columns background (`gbo=`, 0–100%, default **Solid**) is the word
-columns' own (and the compact layout's recent-find pills): `color-mix` of `--panel` with `--gbo`, so they can stay solid
-over no background (the owner, 2026-10-14). Frames and edges stay as they are. A new theme's `--bg` must do the same (a browser test checks
+2026-09-28); Solid is 100. Advanced → Panels background (`gbo=`, 0–100%, default **Solid**; it was "Guess columns background") is every panel's
+own: the word columns, the found banner, goal and level, the recent-find pills, and the summary's tiles, lists and player
+cards: `color-mix` of `--panel` with `--gbo`, so they can stay solid over no background (the owner, 2026-10-14; every panel
+since 2026-10-22, so a see-through board on the stream's Game scene stays see-through when the round ends). Both change live
+with `{ type: 'widget-look', bgo, gbo }`, and `{ type: 'widget-pause', paused }` holds every timer as the leaderboard does
+(guesses still count; each lets go only when the other isn't holding): obs/chatagram.html sends them per scene. Frames and edges stay as they are. A new theme's `--bg` must do the same (a browser test checks
 every theme follows the setting: 95% by default, solid at 100).
 
 **Live theme message**: the page a widget is embedded in can change its look without a reload (a reload would
@@ -382,7 +385,7 @@ self-hosted), the speech-bubble tile mark (`assets/icon.svg`), ink `#16122b`, co
   game over; **Copy OBS link** sits under it; the full link hides behind "Show link". On phones the preview goes first (no
   sticky Copy bar: the owner removed it). The preview is re-themed by message, so changing theme or accent never reloads it.
   Above the preview, **Preview backdrop** (Plain, Shapes, Checker, Scene, Plaid; Plain by default) picks what the preview
-  plays over: busy, hard-edged pretend games drawn in CSS on the iframe itself (`widgets/lib/backdrops.js`, shared with Chaplinko), so Background and Guess columns background
+  plays over: busy, hard-edged pretend games drawn in CSS on the iframe itself (`widgets/lib/backdrops.js`, shared with Chaplinko), so Background and Panels background
   show how see-through they really are. Preview only, never in the link; the tiles stay on one row, phones too (the owner,
   2026-10-14).
 - Indexed (in `sitemap.xml`) with its own title, description, canonical, share image and JSON-LD. The overlay isn't.
@@ -727,6 +730,11 @@ following the dock's Form looks. It's the only Chatagram file that knows the for
 Chaplinko's board and (`part=leaderboard`) its leaderboard (obs/README.md, "Chaplinko"), and `/obs/inputty` for Inputty
 (obs/README.md, "Inputty"): the link's own colours are left out there, so the form decides them. The dock keeps two of
 it (keyboard and controller, each from its own link) and places, switches and hides them on the Game scenes.
+
+Either game can also sit **on the stream's own scenes** (obs/README.md, "Games on your scenes"): one source per game in each
+scene's spot, its look per scene and paused on Game if wanted, through live messages each game accepts from the page around
+it (`widget-look`: Chatagram `bgo`, `gbo`; Chaplinko `bgo`; `widget-pause`: Chatagram holds every timer, Chaplinko holds its
+queue so drops wait). Neither restarts a round or empties the board.
 
 ## Tests
 

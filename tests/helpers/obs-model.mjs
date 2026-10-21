@@ -50,7 +50,8 @@ export function obsModel(net, addr, scenes, { collection = 'Test', transitions =
     CreateSceneItem: (d) => { const it = addItem(byName(d.sceneName), inputs.get(d.sourceUuid)); o.broadcast('SceneItemCreated', {}); return { sceneItemId: it.sceneItemId }; },
     RemoveInput: (d) => { for (const s of sceneList) s.items = s.items.filter((i) => i.input.uuid !== d.inputUuid); inputs.delete(d.inputUuid); o.broadcast('InputRemoved', {}); },
     GetStudioModeEnabled: () => ({ studioModeEnabled: false }),
-    GetCurrentProgramScene: () => ({ sceneName: sceneList[0].name }),
+    GetCurrentProgramScene: () => ({ sceneName: o.program || sceneList[0].name, currentProgramSceneName: o.program || sceneList[0].name }),
+    SetCurrentProgramScene: (d) => { byName(d.sceneName); o.program = d.sceneName; o.broadcast('CurrentProgramSceneChanged', { sceneName: d.sceneName }); },
     PressInputPropertiesButton: () => ({}),
   };
   const o = fakeObs(net, addr, { handlers });

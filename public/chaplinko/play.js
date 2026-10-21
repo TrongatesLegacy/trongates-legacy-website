@@ -22,6 +22,14 @@
   W.theme.apply(root, { theme: cfg.theme, accent: cfg.accent });
   root.style.setProperty('--bgo', String(cfg.bgo / 100));
   boardEl.classList.toggle('clear', cfg.bgo === 0);          // the board's own; the leaderboard beside it has its own (lbbgo)
+  // the page around it can change it live (obs/chaplinko.html: each of the stream's scenes has its own): { type: 'widget-look', bgo }
+  addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.type !== 'widget-look' || d.bgo === '' || d.bgo === null || !Number.isFinite(+d.bgo) || +d.bgo < 0 || +d.bgo > 100) return;
+    cfg.bgo = Math.round(+d.bgo);
+    root.style.setProperty('--bgo', String(cfg.bgo / 100));
+    boardEl.classList.toggle('clear', cfg.bgo === 0);
+  });
   const combined = cfg.layout === 'combined' && cfg.side !== 'off';
   root.classList.toggle('left', combined && cfg.side === 'left');
   const [BW, BH] = combined ? K.settings.SIZES.combined : K.settings.SIZES.separate;
@@ -228,7 +236,7 @@
   function drawChute() {
     const level = lv(), queued = game.queued;
     let h = '';
-    if (game.paused) h = '<span class="m">❚❚</span> PAUSED';
+    if (game.paused || game.held) h = `<span class="m">❚❚</span> PAUSED${game.held && game.queued ? ` <span class="m">·</span> +${game.queued} waiting` : ''}`;
     else if (Date.now() < goUntil) h = '<span class="a">GO!</span>';
     else if (level === 'frenzy') h = `<span class="a">FRENZY</span>${queued ? ` <span class="m">·</span> +${queued} waiting` : ''}`;
     else if (queued) h = `<span class="a">×${queued}</span> more coming`;
@@ -620,6 +628,13 @@
 
   // ---- start ----------------------------------------------------------------------------------------------------------------------
   W.theme.listen(root, () => { lbTheme(); readPalette(); });
+  // Paused by the page around it (obs/chaplinko.html: the stream's Game scene, "Keep dropping while I'm in Game" off): drops
+  // still join the queue, nothing falls; carrying on, they fall as usual
+  addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || d.type !== 'widget-pause' || still) return;
+    if (game.hold(!!d.paused)) { if (!d.paused) goUntil = Date.now() + 1200; drawChute(); kick(); }
+  });
   addEventListener('resize', fit);
   const msg = $('#msg');
   try { await Promise.race([document.fonts.load(`16px ${getComputedStyle(root).getPropertyValue('--display')}`), sleep(1500)]); } catch {}
