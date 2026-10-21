@@ -1,37 +1,69 @@
-// Practice runs of the real screens: Windows installing input-overlay, OBS's settings, adding the Browser source.
+// Practice runs of the real screens: Windows installing input-overlay, OBS's settings, adding the Browser source, and
+// the fixes on page 7 (OBS as administrator, installing into the right folder, the key hook, refreshing the source).
 // Each screen has one thing to click (pulsing); clicking it moves on, so people rehearse the exact clicks before doing
 // them for real. "Show me" plays it with a pretend cursor. Wording matches the real windows (input-overlay's own
 // dialog strings, Inno Setup's pages, OBS's menus).
 (() => {
   const I = () => window.Guide.INSTALLER;
   const win = (title, body, cls = '') => `<div class="mk-win ${cls}"><div class="mk-tb"><span>${title}</span><i>–</i><i>□</i><i class="x">✕</i></div>${body}</div>`;
-  const inno = (head, sub, body, btns = ['< Back', 'Next >', 'Cancel'], go = 1) => win('Setup - input-overlay', `
+  const inno = (head, sub, body, btns = ['< Back', 'Next >', 'Cancel'], go = 1, goN = '') => win('Setup - input-overlay', `
     <div class="mk-inno"><div class="mk-inno-h"><b>${head}</b><small>${sub}</small><span class="mk-inno-logo">⚙</span></div>
     <div class="mk-inno-b">${body}</div>
-    <div class="mk-inno-f">${btns.map((b, i) => `<button ${i === go ? 'data-go' : ''} class="${i === go ? 'pri' : ''}">${b}</button>`).join('')}</div></div>`, 'mk-light');
+    <div class="mk-inno-f">${btns.map((b, i) => `<button ${i === go ? `data-go${goN && `="${goN}"`}` : ''} class="${i === go ? 'pri' : ''}">${b}</button>`).join('')}</div></div>`, 'mk-light');
   const obsMenu = (open, items = '', goTools = false) => `<div class="mk-obs-menu">${['File', 'Edit', 'View', 'Docks', 'Profile', 'Scene Collection', 'Tools', 'Help'].map((m) => `<span ${m === open ? 'class="on"' : ''} ${m === 'Tools' && goTools ? 'data-go' : ''}>${m}</span>`).join('')}${items}</div>`;
   const obs = (inner, menu = obsMenu()) => win('OBS 31.1 - Profile: Untitled - Scenes: Untitled', `${menu}<div class="mk-obs">${inner}</div>`, 'mk-obswin');
-  const obsBody = (sourcesExtra = '', plusGo = false) => `
+  const obsBody = (sourcesExtra = '', plusGo = false, sources = `<p>Game Capture</p><p>Webcam</p>${sourcesExtra}`, upGo = false) => `
     <div class="mk-obs-canvas"><div class="mk-game"></div></div>
     <div class="mk-docks">
       <div class="mk-dock"><h6>Scenes</h6><p class="on">Gaming</p><p>Just chatting</p><div class="mk-dock-f"><b>＋</b><b>－</b></div></div>
-      <div class="mk-dock"><h6>Sources</h6><p>Game Capture</p><p>Webcam</p>${sourcesExtra}<div class="mk-dock-f"><b ${plusGo ? 'data-go' : ''}>＋</b><b>－</b><b>⚙</b></div></div>
+      <div class="mk-dock"><h6>Sources</h6>${sources}<div class="mk-dock-f"><b ${plusGo ? 'data-go' : ''}>＋</b><b>－</b><b>⚙</b><b ${upGo ? 'data-go' : ''}>▲</b><b>▼</b></div></div>
       <div class="mk-dock"><h6>Audio Mixer</h6><div class="mk-meter"></div><div class="mk-meter"></div></div>
       <div class="mk-dock"><h6>Controls</h6><p class="btn">Start Streaming</p><p class="btn">Start Recording</p><p class="btn">Settings</p></div>
     </div>`;
-  const ioDialog = (tab, ticked) => win('input-overlay configuration', `
+  const ioDialog = (tab, ticked, hook = null) => win('input-overlay configuration', `
     <div class="mk-dlg">
-      <div class="mk-tabs"><span ${tab === 0 ? 'class="on"' : ''}>Local features</span><span ${tab === 1 ? 'class="on"' : 'data-go'}>WebSocket server</span><span>About</span><span>Event util</span></div>
+      <div class="mk-tabs"><span ${tab === 0 ? 'class="on"' : ''}>Local features</span><span ${tab === 1 ? 'class="on"' : hook === null ? 'data-go' : ''}>WebSocket server</span><span>About</span><span>Event util</span></div>
       <div class="mk-tabbody">${tab === 0 ? `
         <p class="mk-muted">Most of these settings will require a restart!</p>
-        <label class="mk-cb on">Enable mouse and keyboard hook</label><label class="mk-cb on">Enable gamepad hook</label>
+        <label class="mk-cb ${hook === false ? '' : 'on'}" ${hook === false ? 'data-go' : ''}>Enable mouse and keyboard hook</label><label class="mk-cb on">Enable gamepad hook</label>
         <label class="mk-cb">Enable DualSense enhanced mode</label><label class="mk-cb on">Enable Input Overlay Source</label><label class="mk-cb">Enable Input Control</label>` : `
         <div class="mk-row"><label class="mk-cb ${ticked ? 'on' : ''}" ${ticked ? '' : 'data-go'}>Forward and receive events through websocket server with address</label></div>
         <div class="mk-row"><span class="mk-field">0.0.0.0</span><span class="mk-field sm">16899</span></div>
         <label class="mk-cb">Enable logging</label><p class="mk-muted">Local IP of this machine: 192.168.1.23</p>`}
       </div>
-      <div class="mk-dlg-f"><button ${tab === 1 && ticked ? 'data-go class="pri"' : ''}>OK</button><button>Cancel</button></div>
+      <div class="mk-dlg-f"><button ${(tab === 1 && ticked) || hook === true ? 'data-go class="pri"' : ''}>OK</button><button>Cancel</button></div>
     </div>`, 'mk-dialog');
+
+  // Windows: the desktop with OBS's icon, its right-click menu, the shortcut's Properties, File Explorer
+  const OBSDIR = 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\OBS Studio';
+  const desktop = (menu = '') => `<div class="mk-desk">${[['Recycle Bin', 'bin'], ['OBS Studio', 'obs'], ['This PC', 'pc']].map(([n, k]) => `<div class="mk-ico ${k === 'obs' && menu ? 'sel' : ''}" ${k === 'obs' && !menu ? 'data-go' : ''}><i class="mk-ico-${k}"></i><span>${n}</span></div>`).join('')}${menu}</div>`;
+  const ctxMenu = (go) => `<div class="mk-ctx"><div class="mk-ctx-ico"><i>✂</i><i>⧉</i><i>✎</i><i>⇪</i><i>🗑</i></div>${[['Open', 'Enter'], ['Open file location', ''], ['Run as administrator', ''], ['Pin to Start', ''], ['Compress to ZIP file', ''], ['Copy as path', 'Ctrl+Shift+C'], ['Properties', 'Alt+Enter'], ['Show more options', '']].map(([t, k]) => `<p ${t === go ? 'data-go' : ''}><span>${t}</span><small>${k}</small></p>`).join('')}</div>`;
+  const shortcutProps = (tab, ticked) => win('OBS Studio Properties', `<div class="mk-wp">
+    <div class="mk-wp-tabs">${['General', 'Shortcut', 'Compatibility', 'Security', 'Details'].map((t) => `<span class="${(tab ? t === 'Compatibility' : t === 'Shortcut') ? 'on' : ''}" ${!tab && t === 'Compatibility' ? 'data-go' : ''}>${t}</span>`).join('')}</div>
+    <div class="mk-wp-body">${tab ? `
+      <fieldset><legend>Compatibility mode</legend><label class="mk-cb">Run this program in compatibility mode for:</label><span class="mk-sel dis">Windows 8</span></fieldset>
+      <fieldset><legend>Settings</legend><label class="mk-cb">Reduced color mode</label><label class="mk-cb">Run in 640 x 480 screen resolution</label><label class="mk-cb">Disable fullscreen optimizations</label>
+        <label class="mk-cb ${ticked ? 'on' : ''}" ${ticked ? '' : 'data-go'}>Run this program as an administrator</label><label class="mk-cb">Register this program for restart</label><label class="mk-cb">Use legacy display ICC color management</label></fieldset>` : `
+      <div class="mk-kv"><span>Target type:</span><span>Application</span><span>Target location:</span><span>64bit</span><span>Target:</span><span class="mk-path">"C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe"</span><span>Start in:</span><span class="mk-path">"C:\\Program Files\\obs-studio\\bin\\64bit"</span><span>Run:</span><span class="mk-sel">Normal window</span></div>`}
+    </div>
+    <div class="mk-wp-f"><button ${ticked ? 'data-go class="pri"' : ''}>OK</button><button>Cancel</button><button>Apply</button></div></div>`, 'mk-light mk-wpwin');
+  const FILES = { bin: [['obs64.exe', 'Application'], ['obs.dll', 'Application extension'], ['obs-frontend-api.dll', 'Application extension'], ['libcurl.dll', 'Application extension']],
+    top: [['bin', 'File folder', 1], ['data', 'File folder', 1], ['obs-plugins', 'File folder', 1], ['uninstall.exe', 'Application']] };
+  const explorer = (up) => win(up ? 'OBS Studio' : '64bit', `<div class="mk-ex">
+    <div class="mk-ex-bar"><b>←</b><b>→</b><b>↑</b><div class="mk-ex-addr${up ? ' mk-input" data-go="1' : ''}">${up ? '« steamapps › common › <span>OBS Studio</span>' : '« common › <span data-go>OBS Studio</span> › bin › 64bit'}</div><span class="mk-ex-find">Search</span></div>
+    <div class="mk-ex-main"><div class="mk-ex-nav"><p>Home</p><p>Desktop</p><p>Downloads</p><p>Documents</p><p>This PC</p></div>
+      <div class="mk-ex-files"><p class="mk-ex-h"><span>Name</span><span>Type</span></p>${FILES[up ? 'top' : 'bin'].map(([n, t, dir]) => `<p><span><i class="${dir ? 'dir' : ''}"></i>${n}</span><span>${t}</span></p>`).join('')}</div></div></div>`, 'mk-light mk-exwin');
+  const right = { say: 'Close OBS, then right-click the <b>OBS Studio</b> icon', note: 'On your desktop. Not there? Start menu, right-click OBS Studio, More, Open file location, and right-click it there.', html: () => desktop() };
+  // OBS's Properties for the Browser source (go: which button glows: 'refresh' or 'ok')
+  const browserProps = (g, go) => win("Properties for 'Input display'", `<div class="mk-dlg mk-props"><label class="mk-cb">Local file</label>
+    <div class="mk-prop"><span>URL</span><span class="mk-field wide">${g ? g.url(false) : 'https://www.trongateslegacy.com/inputty/play.html'}</span></div>
+    <div class="mk-prop"><span>Width</span><span class="mk-field sm">${size().w}</span></div>
+    <div class="mk-prop"><span>Height</span><span class="mk-field sm">${size().h}</span></div>
+    <label class="mk-cb">Shutdown source when not visible</label><label class="mk-cb">Refresh browser when scene becomes active</label>
+    <div><button ${go === 'refresh' ? 'data-go' : ''}>Refresh cache of current page</button></div>
+    <div class="mk-dlg-f"><button>Defaults</button><button ${go === 'ok' ? 'data-go' : ''} class="pri">OK</button><button>Cancel</button></div></div>`, 'mk-dialog');
+  const sources = (top, sel, go) => (top ? ['Input display', 'Game Capture', 'Webcam'] : ['Game Capture', 'Webcam', 'Input display'])
+    .map((n) => `<p class="${n === 'Input display' && sel ? 'on' : ''}" ${n === 'Input display' && go ? 'data-go' : ''}>${n}</p>`).join('');
 
   let G = null;   // the guide of the practice run being acted out (for the link and size)
   const size = () => ({ w: G?.size?.w || 900, h: G?.size?.h || 510 });
@@ -66,6 +98,22 @@
     box.classList.remove('mk-typing');
   }
 
+  const toolsMenu = () => obsMenu('Tools', `<div class="mk-drop" style="left:var(--tools-x)"><p>Auto-Configuration Wizard</p><p>Output Timer</p><p>Scripts</p><p class="dim">WebSocket Server Settings</p><hr><p data-go>input-overlay settings</p></div>`);
+  const restart = { say: 'Close OBS and open it again', note: 'File → Exit, then start OBS. It only switches on when OBS starts.', html: () => obs(obsBody(), obsMenu('File', `<div class="mk-drop" style="left:0"><p>Show Recordings</p><p>Remux Recordings</p><hr><p>Settings</p><p>Show Settings Folder</p><p>Show Profile Folder</p><hr><p data-go>Exit</p></div>`)) };
+
+  /** copy from a pretend box: select what's in it (the full text), show Ctrl+C */
+  async function copy(box, text) {
+    if (!box) return;
+    box.innerHTML = `<mark>${text}</mark>`;
+    if (still()) return;
+    const keys = document.createElement('span');
+    keys.className = 'mk-keys';
+    keys.innerHTML = '<kbd>Ctrl</kbd>+<kbd>C</kbd>';
+    box.parentElement.append(keys);
+    await wait(900);
+    keys.remove();
+  }
+
   const FLOWS = {
     install: [
       // today's Chrome (and Edge, Firefox): no download bar at the bottom; a download button at the top right of the
@@ -91,11 +139,48 @@
     ],
     obs: [
       { say: 'Open OBS and click <b>Tools</b>', html: () => obs(obsBody(), obsMenu(null, '', true)) },
-      { say: 'Click <b>input-overlay settings</b>', note: 'Not "WebSocket Server Settings": that\'s a different one.', html: () => obs(obsBody(), obsMenu('Tools', `<div class="mk-drop" style="left:var(--tools-x)"><p>Auto-Configuration Wizard</p><p>Output Timer</p><p>Scripts</p><p class="dim">WebSocket Server Settings</p><hr><p data-go>input-overlay settings</p></div>`)) },
+      { say: 'Click <b>input-overlay settings</b>', note: 'Not "WebSocket Server Settings": that\'s a different one.', html: () => obs(obsBody(), toolsMenu()) },
       { say: 'Click the <b>WebSocket server</b> tab', html: () => ioDialog(0) },
       { say: 'Tick the first box', html: () => ioDialog(1, false) },
       { say: 'Click <b>OK</b>', html: () => ioDialog(1, true) },
-      { say: 'Close OBS and open it again', note: 'File → Exit, then start OBS. It only switches on when OBS starts.', html: () => obs(obsBody(), obsMenu('File', `<div class="mk-drop" style="left:0"><p>Show Recordings</p><p>Remux Recordings</p><hr><p>Settings</p><p>Show Settings Folder</p><p>Show Profile Folder</p><hr><p data-go>Exit</p></div>`)) },
+      restart,
+    ],
+    // page 7's fixes
+    admin: [
+      right,
+      { say: 'Click <b>Properties</b>', html: () => desktop(ctxMenu('Properties')) },
+      { say: 'Click the <b>Compatibility</b> tab', html: () => shortcutProps(0) },
+      { say: 'Tick <b>Run this program as an administrator</b>', html: () => shortcutProps(1, false) },
+      { say: 'Click <b>OK</b>', html: () => shortcutProps(1, true) },
+      { say: 'Open OBS. Windows checks first: click <b>Yes</b>', note: 'It asks every time OBS opens now. That\'s normal. Then press a key in your game.', html: () => `<div class="mk-uac"><h5>User Account Control</h5><h4>Do you want to allow this app to make changes to your device?</h4><p><b>OBS Studio</b></p><p class="mk-muted">File origin: Hard drive on this computer</p><div class="mk-uac-f"><button data-go class="pri">Yes</button><button>No</button></div></div>` },
+    ],
+    folder: [
+      right,
+      { say: 'Click <b>Open file location</b>', html: () => desktop(ctxMenu('Open file location')) },
+      { say: 'In the address bar, click <b>OBS Studio</b>', note: 'Your OBS folder is the one with bin, data and obs-plugins in it.', html: () => explorer(false) },
+      { say: 'Click an empty bit of the address bar, then <b>Ctrl+C</b>', note: "That copies where your OBS really is. This one's the Steam version of OBS. Yours might be somewhere else.",
+        phases: [{ say: 'Click an empty bit of the address bar, then <b>Ctrl+C</b>', act: (sc) => copy(sc.querySelector('[data-go="1"]'), OBSDIR) }],
+        html: () => explorer(true) },
+      { say: 'Open the installer again, then <b>Next</b> to this page', note: "It guessed the usual place, but your OBS isn't there.",
+        phases: [{ say: 'Click the box and paste your OBS folder (<b>Ctrl+V</b>)', act: (sc) => paste(sc.querySelector('[data-go="1"]'), OBSDIR) }, { say: 'Click <b>Next</b>' }],
+        html: () => inno('Select Destination Location', 'Where should input-overlay be installed?', `<p>Setup will install input-overlay into the following folder.</p><div class="mk-path mk-input" data-go="1">C:\\Program Files\\obs-studio</div>`, undefined, 1, '2') },
+      { say: '<b>Install</b>', html: () => inno('Ready to Install', 'Setup is now ready to begin installing input-overlay on your computer.', `<div class="mk-memo">Destination location:<br>&nbsp;&nbsp;${OBSDIR}<br><br>Start Menu folder:<br>&nbsp;&nbsp;input-overlay</div>`, ['< Back', 'Install', 'Cancel']) },
+      { say: '<b>Finish</b>. Open OBS: <b>Tools</b> has <b>input-overlay settings</b> now', note: 'Then do page 5.', html: () => inno('Completing the input-overlay Setup Wizard', 'Setup has finished installing input-overlay on your computer.', `<p>Click Finish to exit Setup.</p>`, ['Finish'], 0) },
+    ],
+    hook: [
+      { say: 'In OBS, click <b>Tools</b>', html: () => obs(obsBody(), obsMenu(null, '', true)) },
+      { say: 'Click <b>input-overlay settings</b>', html: () => obs(obsBody(), toolsMenu()) },
+      { say: 'Tick <b>Enable mouse and keyboard hook</b>', note: "On the first tab, Local features. It's what reads your keys.", html: () => ioDialog(0, false, false) },
+      { say: 'Click <b>OK</b>', html: () => ioDialog(0, false, true) },
+      restart,
+    ],
+    refresh: [
+      { say: 'In <b>Sources</b>, click <b>Input display</b>', note: "The top of the list is drawn on top. Under Game Capture, your game covers it.", html: () => obs(obsBody('', false, sources(false, false, true))) },
+      { say: 'Click <b>▲</b> until it\'s at the top', html: () => obs(obsBody('', false, sources(false, true), true)) },
+      { say: 'Double-click it to open its <b>Properties</b>', html: () => obs(obsBody('', false, sources(true, true, true))) },
+      { say: 'Check the <b>URL</b> is your link, then click <b>Refresh cache of current page</b>', note: 'Changed your look since? Paste your new link from page 6 over it.', html: (g) => browserProps(g, 'refresh') },
+      { say: 'Click <b>OK</b>', html: (g) => browserProps(g, 'ok') },
+      { say: 'There it is, on top of your game.', html: (g) => obs(`<div class="mk-obs-canvas"><div class="mk-game"></div><iframe class="mk-live" tabindex="-1" src="${g ? g.url(true) : ''}" title="Your input display in OBS"></iframe></div>${obsBody('', false, sources(true, true)).replace(/^[\s\S]*?(<div class="mk-docks">)/, '$1')}`), end: true },
     ],
     source: [
       { say: 'In <b>Sources</b>, click <b>＋</b>', html: () => obs(obsBody('', true)) },

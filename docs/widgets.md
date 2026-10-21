@@ -618,7 +618,7 @@ public/inputty/lib/input.js          input: input-overlay's websocket, the page'
 public/inputty/lib/render.js         draws a preset from its picture, recoloured to the theme; drawn.js our own presets
 public/inputty/lib/overlay.js        the overlay page; play.css its look (and the Zojie theme)
 public/inputty/lib/guide.js/.css     the set-up's building blocks (device, layouts, look and colours, download, statuses, link)
-public/inputty/lib/mock.js/.css      the practice runs: copies of the Windows, installer and OBS screens to click through
+public/inputty/lib/mock.js/.css      the practice runs: copies of the Windows, installer and OBS screens to click through (and page 7's fixes)
 public/inputty/presets/              the preset pictures (shrunk WebP), thumbs/ (the set-up's tiny copies), LICENSE.txt
 public/inputty/assets/               icon.svg, og.jpg (link preview), scene.webp (its scene on the widgets page)
 artwork/inputty/                     og.html + scene.html, render.mjs; presets/ the full-size original pictures (not served)
@@ -651,7 +651,15 @@ measured with them out of the way and placed again whenever the columns change (
 a row of 5: placed while the grid still had its CSS columns, then never moved); (4) get the helper (close OBS first, the
 download, a practice run of SmartScreen and the installer); (5) switch it on in OBS (a practice run, "not WebSocket Server
 Settings", the live status that finds input-overlay); (6) add it to OBS (the link, and a practice run that types the
-name, pastes the link and sets the width and height); (7) test it. Controller-only skips 4 and 5; Mac visitors are told the helper is Windows/Linux
+name, pastes the link and sets the width and height); (7) test it, with a fixer under it ("Not lighting up? Pick what
+you see", added when zojie followed every step and still saw nothing): each thing you might see leads to its fix and a
+practice run. *Not found yet* → is input-overlay settings in Tools? (yes: page 5's run again; no: it went into another
+folder than OBS's, e.g. the Steam OBS, so copy OBS's folder from File Explorer and paste it into the installer). *Found,
+but no keys* → do they show from Notepad? (yes: the game runs as administrator, and Windows hides an elevated window's
+keys from a program that isn't, so run OBS as administrator: shortcut → Properties → Compatibility; no: input-overlay's
+"Enable mouse and keyboard hook" is off). *Works here, not in OBS* and *my controller* → move the source to the top of
+Sources and Refresh cache of current page. The page's own checks mark the likely one, and controllers get only their
+own. Controller-only skips 4 and 5; Mac visitors are told the helper is Windows/Linux
 (`?os=windows` previews the Windows view). Clicking inside a step forgets every step after it. Auto/Light/Dark mode
 (auto by default, remembered as `inputty-mode`). The header is keycaps: FAQ, More widgets, the mode keys, Start building.
 

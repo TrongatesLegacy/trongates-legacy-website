@@ -405,3 +405,63 @@ test('a tilted stick takes the pressed colour on every controller with sticks; o
   }
   await tab.close();
 });
+
+// clicks the glowing thing on each screen of the practice run in `sel` until its last screen; returns every screen's text
+const walk = (sel) => `(async () => {
+  const el = document.querySelector(${JSON.stringify('SEL')}), seen = [];
+  const where = () => el.querySelector('.mk-n').textContent + el.querySelector('.mk-text').innerHTML;
+  for (let n = 0; n < 40; n++) {
+    seen.push(el.querySelector('.mk-text').textContent + ' | ' + el.querySelector('.mk-screen').textContent);
+    const t = el.querySelector('.mk-now'), before = where();
+    if (!t) break;
+    t.click();
+    for (let w = 0; w < 50 && where() === before; w++) await new Promise((r) => setTimeout(r, 20));
+    if (where() === before) break;
+  }
+  return seen;
+})()`.replace('SEL', sel);
+
+test("step 7's troubleshooter: offers what fits the device, marks the likely one, and walks through each fix", async () => {
+  const tab = await chrome.open(site.origin + '/inputty/?os=windows', { width: 1536, height: 960, reducedMotion: true });
+  await tab.until(`document.querySelector('.g-device')`, 8000, 'the device choices');
+  await tab.click('.g-device[data-d="kbm"]');
+  await tab.until(`document.querySelector('#fix .fix-pick')`, 4000, 'the troubleshooter');
+  const picks = `[...document.querySelectorAll('#fix .fix-pick')].map((b) => b.dataset.f).join()`;
+  assert.equal(await tab.eval(picks), 'missing,nokeys,source', 'keys and mouse: no controller fix');
+  // nothing's running input-overlay here, so "not found" is the likely one
+  assert.equal(await tab.eval(`document.querySelector('#fix .fix-pick.likely')?.dataset.f`), 'missing');
+  assert.equal(await tab.eval(`!!document.querySelector('#fix .mk')`), false, 'no practice run until something is picked');
+
+  // keys don't come through in the game, though they do elsewhere: run OBS as administrator
+  await tab.click('#fix .fix-pick[data-f="nokeys"]');
+  await tab.click('#fix [data-sub="game"]');
+  await tab.until(`document.querySelector('#fix .mk .mk-now')`, 3000, 'the administrator practice run');
+  const admin = (await tab.eval(walk('#fix .fix-run'))).join('\n');
+  for (const s of ['Properties', 'Compatibility', 'Run this program as an administrator', 'Do you want to allow this app to make changes to your device?']) assert.ok(admin.includes(s), `the run shows "${s}"`);
+  assert.match(await tab.eval(`document.querySelector('#fix .fix-run .mk-n').textContent`), /^(\d+)\/\1$/, 'it reaches its last screen');
+
+  // every other fix walks to its end too
+  const runs = { 'missing/there': 'input-overlay settings', 'missing/gone': 'Program Files (x86)', 'nokeys/hook': 'Enable mouse and keyboard hook', source: 'Refresh cache of current page' };
+  for (const [path, text] of Object.entries(runs)) {
+    const [f, sub] = path.split('/');
+    await tab.click(`#fix .fix-pick[data-f="${f}"]`);
+    if (sub) await tab.click(`#fix [data-sub="${sub}"]`);
+    await tab.until(`document.querySelector('#fix .fix-run .mk-now')`, 3000, path + ' practice run');
+    const seen = (await tab.eval(walk('#fix .fix-run'))).join('\n');
+    assert.ok(seen.includes(text), `${path}: shows "${text}"`);
+    assert.match(await tab.eval(`document.querySelector('#fix .fix-run .mk-n').textContent`), /^(\d+)\/\1$/, `${path}: reaches its last screen`);
+  }
+  // the OBS folder is pasted into the installer
+  await tab.click('#fix .fix-pick[data-f="missing"]');
+  await tab.click('#fix [data-sub="gone"]');
+  const folder = await tab.eval(walk('#fix .fix-run'));
+  assert.ok(folder.some((t) => t.startsWith('Install') && /Destination location:.*Steam.*OBS Studio/.test(t)), 'the installer goes to the OBS folder');
+
+  // a controller: its own fix, and it's the likely one; no input-overlay fixes
+  await tab.click('#s1 .g-device[data-d="pad"]');
+  await tab.until(`${picks} === 'pad,source'`, 3000, 'controller fixes only');
+  assert.equal(await tab.eval(`document.querySelector('#fix .fix-pick.likely')?.dataset.f`), 'pad');
+  assert.equal(await tab.eval(`document.documentElement.scrollWidth - innerWidth`), 0);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});

@@ -139,3 +139,51 @@
 .mk-keys kbd { font: 600 calc(11 * var(--u)) system-ui, sans-serif; padding: calc(3 * var(--u)) calc(7 * var(--u)); border-radius: calc(4 * var(--u)); background: #f3f3f6; color: #1a1a1f; box-shadow: 0 calc(2 * var(--u)) 0 #9a9aa5; }
 .mk-prop { position: relative; }
 @keyframes mk-pop { from { opacity: 0; transform: translateY(4px); } }
+
+/* Windows: the desktop and a shortcut's right-click menu */
+.mk-desk { position: absolute; inset: 0; padding: calc(16 * var(--u)); display: grid; grid-auto-rows: min-content; gap: calc(10 * var(--u)); background: radial-gradient(ellipse at 70% 120%, #4a8fe0, transparent 60%), linear-gradient(160deg, #1d5fae, #0b2547 70%); }
+.mk-ico { width: calc(70 * var(--u)); display: grid; justify-items: center; gap: calc(4 * var(--u)); padding: calc(5 * var(--u)) 0; border-radius: calc(3 * var(--u)); color: #fff; font-size: calc(10.5 * var(--u)); text-shadow: 0 1px 2px #000a; text-align: center; }
+.mk-ico.sel { background: rgb(255 255 255 / .22); outline: 1px solid rgb(255 255 255 / .45); }
+.mk-ico i { width: calc(34 * var(--u)); height: calc(34 * var(--u)); border-radius: calc(5 * var(--u)); }
+.mk-ico-bin { background: linear-gradient(#e8eef5, #a9b9cc); clip-path: polygon(15% 12%, 85% 12%, 78% 100%, 22% 100%); }
+.mk-ico-pc { background: linear-gradient(#7ec3ff, #2f7fd6); box-shadow: inset 0 calc(-6 * var(--u)) 0 #cfd8e3; }
+.mk-ico-obs { border-radius: 50% !important; background: radial-gradient(circle at 50% 28%, #fff 0 13%, transparent 14%), radial-gradient(circle at 30% 64%, #fff 0 13%, transparent 14%), radial-gradient(circle at 70% 64%, #fff 0 13%, transparent 14%), #302e31; box-shadow: 0 0 0 calc(2 * var(--u)) #fff; }
+.mk-ctx { position: absolute; left: calc(78 * var(--u)); top: calc(70 * var(--u)); width: calc(230 * var(--u)); padding: calc(4 * var(--u)); background: #f9f9f9; border: 1px solid #ccc; border-radius: calc(8 * var(--u)); box-shadow: 0 calc(8 * var(--u)) calc(24 * var(--u)) rgb(0 0 0 / .35); animation: mk-pop .15s ease-out; }
+.mk-ctx-ico { display: flex; justify-content: space-around; padding: calc(3 * var(--u)) 0 calc(5 * var(--u)); border-bottom: 1px solid #e3e3e3; margin-bottom: calc(3 * var(--u)); }
+.mk-ctx-ico i { font-style: normal; color: #333; font-size: calc(12 * var(--u)); filter: grayscale(1); }
+.mk-ctx p { display: flex; justify-content: space-between; margin: 0; padding: calc(4 * var(--u)) calc(10 * var(--u)); border-radius: calc(4 * var(--u)); }
+.mk-ctx small { color: #777; font-size: calc(10 * var(--u)); }
+
+/* light Windows dialogs: a shortcut's Properties, File Explorer */
+.mk-light .mk-cb::before { background: #fff; border-color: #444; border-radius: calc(2 * var(--u)); }
+.mk-light .mk-cb.on::before { background: #0067c0; border-color: #0067c0; }
+.mk-wpwin { width: calc(380 * var(--u)); }
+.mk-wp { padding: calc(10 * var(--u)) calc(12 * var(--u)); }
+.mk-wp-tabs { display: flex; border-bottom: 1px solid #ccc; }
+.mk-wp-tabs span { padding: calc(3 * var(--u)) calc(9 * var(--u)); border: 1px solid transparent; border-bottom: 0; }
+.mk-wp-tabs span.on { background: #fff; border-color: #ccc; margin-bottom: -1px; }
+.mk-wp-body { background: #fff; border: 1px solid #ccc; border-top: 0; padding: calc(8 * var(--u)) calc(12 * var(--u)); min-height: calc(190 * var(--u)); display: grid; align-content: start; gap: calc(6 * var(--u)); }
+.mk-wp-body fieldset { margin: 0; border: 1px solid #d5d5d5; border-radius: calc(3 * var(--u)); padding: calc(4 * var(--u)) calc(10 * var(--u)) calc(7 * var(--u)); display: grid; gap: calc(4 * var(--u)); }
+.mk-wp-body legend { padding: 0 calc(4 * var(--u)); color: #333; }
+.mk-sel { justify-self: start; border: 1px solid #aaa; padding: calc(2 * var(--u)) calc(22 * var(--u)) calc(2 * var(--u)) calc(6 * var(--u)); background: #fff; }
+.mk-sel.dis { color: #999; border-color: #ddd; margin-left: calc(20 * var(--u)); }
+.mk-kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: calc(8 * var(--u)) calc(10 * var(--u)); align-items: center; }
+.mk-kv .mk-path { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mk-wp-f { display: flex; gap: calc(6 * var(--u)); justify-content: flex-end; padding-top: calc(10 * var(--u)); }
+.mk-exwin { width: calc(520 * var(--u)); }
+.mk-ex { background: #fff; }
+.mk-ex-bar { display: flex; align-items: center; gap: calc(8 * var(--u)); padding: calc(6 * var(--u)) calc(10 * var(--u)); background: #f3f3f3; border-bottom: 1px solid #e0e0e0; }
+.mk-ex-bar b { font-weight: 400; color: #555; }
+.mk-ex-addr { position: relative; flex: 1; min-width: 0; background: #fff; border: 1px solid #d0d0d0; border-radius: calc(4 * var(--u)); padding: calc(3 * var(--u)) calc(8 * var(--u)); white-space: nowrap; color: #333; }
+.mk-ex-addr span { padding: 0 calc(3 * var(--u)); border-radius: calc(3 * var(--u)); }
+.mk-ex-addr mark { background: #0067c0; color: #fff; }
+.mk-ex-find { width: calc(90 * var(--u)); background: #fff; border: 1px solid #d0d0d0; border-radius: calc(4 * var(--u)); padding: calc(3 * var(--u)) calc(8 * var(--u)); color: #888; }
+.mk-ex-main { display: grid; grid-template-columns: calc(100 * var(--u)) minmax(0, 1fr); min-height: calc(170 * var(--u)); }
+.mk-ex-nav { border-right: 1px solid #eee; padding: calc(6 * var(--u)) 0; }
+.mk-ex-nav p, .mk-ex-files p { margin: 0; padding: calc(3 * var(--u)) calc(12 * var(--u)); }
+.mk-ex-files p { display: grid; grid-template-columns: 1.4fr 1fr; }
+.mk-ex-files .mk-ex-h { color: #666; border-bottom: 1px solid #eee; margin-bottom: calc(3 * var(--u)); }
+.mk-ex-files i { display: inline-block; width: calc(11 * var(--u)); height: calc(13 * var(--u)); margin-right: calc(6 * var(--u)); vertical-align: calc(-2 * var(--u)); background: #e8e8e8; border: 1px solid #bbb; border-radius: 1px; }
+.mk-ex-files i.dir { width: calc(14 * var(--u)); height: calc(11 * var(--u)); background: #f5c542; border-color: #d9a821; }
+.mk-inno-b { position: relative; }
+.mk-light .mk-input mark { background: #0067c0; color: #fff; }

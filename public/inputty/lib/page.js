@@ -173,6 +173,58 @@
   g.ui.helperStatus($('status6a'));
   g.ui.padStatus($('status6b'));
 
+  // ---- step 7's fixer: what you see → the fix, with a practice run. The page's own checks mark the likely one ----
+  const FIX = {
+    missing: { q: 'This page says <b>Not found yet</b>', ask: "Open OBS's <b>Tools</b> menu. Is <b>input-overlay settings</b> in it?", subs: {
+      there: ["It's there", "Then it's installed but not switched on. Do page 5 again: the <b>WebSocket server</b> tab, tick the first box, OK, then close OBS and open it again.", 'obs'],
+      gone: ["It's not there", "Then input-overlay went into a different folder from your OBS. That happens with the Steam version of OBS, or OBS on another drive. Copy where your OBS really is, then run the installer again and paste it in.", 'folder'] } },
+    nokeys: { q: "It's found, but my keys don't come through", ask: 'Type something in Notepad, then look back here. Does it say <b>Working!</b>?', subs: {
+      game: ['Yes, just not in my game', "Your game runs as administrator, and Windows hides its keys from anything that isn't. Run OBS as administrator too and it sees them. Controllers don't mind either way.", 'admin'],
+      hook: ['No, nothing anywhere', "input-overlay's key reading is switched off. Switch it on in its settings, on the first tab, then restart OBS.", 'hook'] } },
+    source: { q: 'It works here, but OBS shows nothing', say: "Then OBS has an old link, or your game is covering it: whatever's at the top of <b>Sources</b> is drawn on top. Move it up, then refresh it.", flow: 'refresh' },
+    pad: { q: "My controller doesn't light up", say: "Press a button on it after OBS has opened: a browser only sees a controller once it's been used. Still nothing? Unplug it, plug it back in, press a button, then refresh your Browser source like this.", flow: 'refresh' },
+  };
+  const fixEl = $('fix');
+  let fixOn = '', fixSub = '', fixShown = '';
+  function fixChoices() {
+    const d = g.s.device;
+    return d === 'pad' ? ['pad', 'source'] : d === 'both' ? ['missing', 'nokeys', 'source', 'pad'] : ['missing', 'nokeys', 'source'];
+  }
+  function fixLikely() {
+    if (g.s.device === 'pad') return g.pad ? 'source' : 'pad';
+    if (g.ws.status !== 'found') return 'missing';
+    return g.ws.gotKey ? 'source' : 'nokeys';
+  }
+  function drawFix() {
+    const list = fixChoices();
+    if (!list.includes(fixOn)) { fixOn = ''; fixSub = ''; }
+    const key = list.join();
+    if (fixEl.dataset.list !== key) {
+      fixEl.dataset.list = key;
+      fixEl.innerHTML = `<div class="fix-q" style="--n:${list.length};--n2:${list.length % 2 ? 1 : 2}">${list.map((f) => `<button type="button" class="fix-pick" data-f="${f}">${FIX[f].q}</button>`).join('')}</div><div class="fix-a" hidden></div>`;
+      fixShown = '';
+    }
+    const likely = fixLikely();
+    fixEl.querySelectorAll('.fix-pick').forEach((b) => { b.classList.toggle('likely', b.dataset.f === likely && !fixOn); b.setAttribute('aria-pressed', String(b.dataset.f === fixOn)); });
+    const ans = fixEl.querySelector('.fix-a'), shown = fixOn + '/' + fixSub;
+    ans.hidden = !fixOn;
+    if (!fixOn || shown === fixShown) return;
+    fixShown = shown;
+    const F = FIX[fixOn], leaf = F.subs ? F.subs[fixSub] : [, F.say, F.flow];
+    ans.innerHTML = (F.ask ? `<p>${F.ask}</p><div class="g-seg">${Object.entries(F.subs).map(([k, [t]]) => `<button type="button" data-sub="${k}" aria-pressed="${k === fixSub}">${t}</button>`).join('')}</div>` : '')
+      + (leaf ? `<p>${leaf[1]}</p><div class="panel"><span class="label">Practice run</span><div class="fix-run"></div></div>` : '');
+    if (leaf) Mock.mount(ans.querySelector('.fix-run'), leaf[2], g);
+  }
+  fixEl.addEventListener('click', (e) => {
+    const pick = e.target.closest('.fix-pick'), sub = e.target.closest('[data-sub]');
+    if (pick) { fixOn = pick.dataset.f; fixSub = ''; }
+    else if (sub) fixSub = sub.dataset.sub;
+    else return;
+    drawFix();
+  });
+  g.on((why) => (why === 'device' || why === 'ws' || why === 'pad') && drawFix());
+  drawFix();
+
   // step numbers as little blocks, and a small isometric picture on each page
   document.querySelectorAll('.num').forEach((el) => { el.innerHTML = `<svg viewBox="0 0 64 64"><polygon class="top" points="32,5 59,19.5 32,34 5,19.5"/><polygon class="l" points="5,19.5 32,34 32,60 5,45.5"/><polygon class="r" points="59,19.5 32,34 32,60 59,45.5"/><text x="32" y="24.5" text-anchor="middle">${el.dataset.n}</text><path class="tick" d="M24 19l6 5 11-9"/></svg>`; });
   const ARTS = {
