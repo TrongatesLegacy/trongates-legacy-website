@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Inputty · Trongates Legacy OBS</title>
+<meta name="robots" content="noindex">
+<!-- OBS browser source (https://www.trongateslegacy.com/obs/inputty), the size the dock measured (1018x400 for WASD and
+     the mouse), 30 FPS. Inputty (/inputty/, the keyboard and controller overlay) in Trongates Legacy's colours: it follows
+     the form like every scene (veadotube, the dock, form=) and passes each change to the overlay as a live theme
+     message, so switching form never reloads it. Tron (any armour) → neon in the armour's colour, Princess Trina → royal,
+     the Blobfish → deep; the dock's Form looks (looks=) are followed too. The link's own colours (theme, accent, key,
+     edge, hi, ink, orig) are left out; every other option is Inputty's own (p=, v=, p2=, title=… as the set-up page
+     writes them). See obs/README.md, "Inputty". Needs the hosted address (it loads /inputty/). -->
+<script src="shared/theme.js"></script>
+<style>
+html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+iframe { border: 0; width: 100%; height: 100%; display: block; background: transparent; }
+</style>
+</head>
+<body>
+<iframe id="io" title="Inputty" allowtransparency="true"></iframe>
+<script>
+(() => {
+  // theme.js's own options stay here, and the colours come from the form; everything else is passed on to the overlay
+  const OWN = ['form', 'veado', 'noveado', 'obs', 'obspw', 'map', 'veadodelay', 'looks', 'hide', 'guide', 'theme', 'accent', 'key', 'edge', 'hi', 'ink', 'orig'];
+  const LOOK_THEME = { tron: 'neon', princess: 'royal', blobfish: 'deep' };
+  // Tron's look keeps the armour's colour; Princess Trina's and the Blobfish's looks use their theme's own accent
+  const themeFor = (form) => {
+    const look = TGL.lookOf(form), theme = LOOK_THEME[look] || 'neon';
+    return { theme, accent: look === 'tron' ? TGL.FORMS[form].accent.replace('#', '') : '' };
+  };
+  const q = new URLSearchParams(location.search);
+  for (const k of OWN) q.delete(k);
+  const first = themeFor(TGL.form);
+  q.set('theme', first.theme); if (first.accent) q.set('accent', first.accent);
+  const frame = document.getElementById('io');
+  frame.src = '../inputty/play.html?' + q.toString().replace(/%2C/g, ',');
+  let last = '';
+  const send = (form) => {
+    const t = themeFor(form), key = t.theme + t.accent;
+    if (key === last) return;
+    last = key;
+    try { frame.contentWindow.postMessage({ type: 'widget-theme', ...t }, '*'); } catch {}
+  };
+  frame.addEventListener('load', () => { last = ''; send(TGL.form); });
+  TGL.onChange((form) => send(form));
+  window.inputtyWrapper = { themeFor, frame };
+})();
+</script>
+</body></html>

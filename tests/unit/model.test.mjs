@@ -275,3 +275,37 @@ test('every Chaplinko setting a link can carry passes through /obs/chaplinko (it
   const want = Object.keys(cp.Chaplinko.settings.SCHEMA).filter((k) => !['theme', 'accent', 'lbtheme', 'lbaccent'].includes(k)).sort();
   assert.deepEqual([...M.CHAPLINKO_KEYS].sort(), want);
 });
+
+// Inputty (obs/inputty.html), the keyboard and controller overlay: its layouts come from the link pasted in Widgets →
+// Inputty; the colours come from the form (Tron neon in the armour's colour, Princess Trina royal, the Blobfish deep),
+// so the link's theme, accent and own colours are left out. Its size in OBS is what the dock measured from the link.
+test('Inputty: the pasted link\'s layouts go into the source; its colours are left to the form; the size is the measured one', () => {
+  const s = M.normalise(null);
+  s.inputty = 'https://www.trongateslegacy.com/inputty/play.html?p=game-keys&v=2&p2=&theme=candy&accent=ff0000&key=123456&edge=000000&hi=ffffff&ink=ff00ff&orig=1&title=keys&frame=window&port=16900';
+  const q = new URL(url('inputty', s)).searchParams;
+  assert.equal(q.get('p'), 'game-keys'); assert.equal(q.get('v'), '2'); assert.equal(q.get('title'), 'keys'); assert.equal(q.get('frame'), 'window'); assert.equal(q.get('port'), '16900');
+  assert.equal(q.get('p2'), '', 'keyboard only (an empty p2) is kept');
+  for (const k of ['theme', 'accent', 'key', 'edge', 'hi', 'ink', 'orig']) assert.equal(q.get(k), null, `${k}: the form sets the colours`);
+  assert.deepEqual(plain(M.sizeOf('inputty', s)), [1018, 400], 'not measured yet: WASD and the mouse\'s size');
+  s.inputtySize = [760, 400];
+  assert.deepEqual(plain(M.sizeOf('inputty', s)), [760, 400]);
+  assert.ok(M.options('inputty', s, { preview: { form: 'red' } }).some(([k, v]) => k === 'demo' && v === '1'), 'previews don\'t look for input-overlay');
+});
+
+test('Inputty: rewriting a source keeps hand-set layouts unless a link is pasted; the address is recognised and read back', () => {
+  const base = HOST + 'inputty?p=keyboard&v=1&noveado=1';
+  const kept = new URL(M.withOptions(base, M.options('inputty', M.normalise(null)))).searchParams;
+  assert.equal(kept.get('p'), 'keyboard'); assert.equal(kept.get('v'), '1');
+  const pasted = M.normalise(null); pasted.inputty = 'p=game-keys&v=0';
+  const out = new URL(M.withOptions(base, M.options('inputty', pasted))).searchParams;
+  assert.equal(out.get('p'), 'game-keys'); assert.equal(out.get('v'), '0');
+  assert.equal(M.recognise(HOST + 'inputty?p=game-keys&form=red').kind, 'inputty');
+  assert.deepEqual(plain(M.inputtyPairs(M.fromUrls([HOST + 'inputty?p=game-keys&v=0&p2=&noveado=1']).inputty)), [['p', 'game-keys'], ['v', '0'], ['p2', '']]);
+});
+
+test('every Inputty setting a link can carry passes through /obs/inputty (its colours come from the form)', () => {
+  const io = vm.createContext({ URLSearchParams }); io.window = io;
+  vm.runInContext(read('public/inputty/lib/looks.js'), io);
+  const want = Object.keys(io.IOLooks.DEFAULTS).filter((k) => !['theme', 'accent', 'key', 'edge', 'hi', 'ink', 'orig', 'demo'].includes(k)).sort();
+  assert.deepEqual([...M.INPUTTY_KEYS].sort(), want);
+});

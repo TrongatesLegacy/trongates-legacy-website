@@ -171,13 +171,44 @@
     // ui: which sub-tab each tab shows, and which scene row is open (kept in this browser)
     const ui = { sub: read('tgl-panel-sub') || {}, open: read('tgl-panel-open') || '' };
     const P = { M, TGL, dock, params, el, conn, obs, env, music, veado, esc, SHORT, FORM_KEYS, TAG, SHARED_NAME,
-      read, write, obsCfg, newDock, fixDock, save, set, checkKey, refresh, ui };
+      read, write, obsCfg, newDock, fixDock, save, set, checkKey, refresh, ui, inputtyMeasuring: false };
     const vars = { s: [() => s, (v) => { s = v; }], tab: [() => tab, (v) => { tab = v; }], storeKey: [() => storeKey, (v) => { storeKey = v; }],
       reviewing: [() => reviewing, (v) => { reviewing = v; }], importNote: [() => importNote, (v) => { importNote = v; }] };
     for (const [k, [get, put]] of Object.entries(vars)) Object.defineProperty(P, k, { get, set: put });
     for (const part of ['obs', 'layout', 'tabs']) Object.assign(P, window.TGLPanelParts[part](P));
     const { connectObs, call, reconnectObs, rescan, managedRows, plan, placeSharedLive, review, runReview, currentScene, addWidget, tagInput,
       checks, measure, measureAvatar, head, foot, reviewHtml, bodies } = P;
+
+    // ---------------------------------------------------------------- Inputty's size
+    // The size its OBS source needs depends on the layouts in the pasted link: the overlay works it out and tells the page
+    // around it (io-size, as the set-up page shows under the link), so it's loaded out of sight once to ask
+    let measuring = null;
+    function measureInputty() {
+      measuring?.done();
+      const pairs = M.inputtyPairs(s.inputty);
+      s.inputtySize = null;
+      if (!pairs.length) { P.inputtyMeasuring = false; save(); return; }
+      const frame = document.createElement('iframe'), job = {};
+      let size = null, timer = 0, poll = 0;
+      frame.setAttribute('aria-hidden', 'true'); frame.tabIndex = -1;
+      frame.style.cssText = 'position:fixed;left:-4000px;top:0;width:1920px;height:1080px;border:0;visibility:hidden;pointer-events:none';
+      const onMsg = (e) => { if (e.source === frame.contentWindow && e.data?.type === 'io-size') size = [e.data.w, e.data.h]; };
+      job.done = (keep) => {
+        clearTimeout(timer); clearInterval(poll); removeEventListener('message', onMsg); frame.remove();
+        if (measuring !== job) return;
+        measuring = null; P.inputtyMeasuring = false;
+        if (keep && size) s.inputtySize = size;
+        save();
+      };
+      measuring = job; P.inputtyMeasuring = true;
+      addEventListener('message', onMsg);
+      frame.src = new URL('../inputty/play.html', location.href).href + '?' + new URLSearchParams([...pairs, ['demo', '1']]).toString();
+      document.body.appendChild(frame);
+      // drawn (and its fonts in): the last size it reported is the one
+      poll = setInterval(() => { try { if (frame.contentDocument?.documentElement.dataset.ready === '1' && size) setTimeout(() => job.done(true), 300), clearInterval(poll); } catch {} }, 100);
+      timer = setTimeout(() => job.done(!!size), 10000);
+      refresh();
+    }
 
     let raf = 0, drawn = '';
     function refresh() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
@@ -278,6 +309,7 @@
         if (d.set === 'linksMode') { s.linksMode = v; save(); return; }
         set(d.set, v);
         if (d.set === 'key') checkKey();
+        if (d.set === 'inputty') measureInputty();
         if (d.set === 'veado.addr' && dock) reconnectVeado();
         return;
       }
@@ -306,6 +338,7 @@
       currentScene && setTimeout(async () => { try { obs.target = await currentScene(); refresh(); } catch {} }, 1500);
     }
     checkKey();
+    if (s.inputty && !s.inputtySize) measureInputty();
     render();
     return { get settings() { return s; }, get env() { return env.links; }, get obs() { return obsCfg(); }, refresh };
   }

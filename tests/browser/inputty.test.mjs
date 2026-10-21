@@ -474,3 +474,27 @@ test("step 7's troubleshooter: offers what fits the device, marks the likely one
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
+
+// /obs/inputty: Inputty in the stream's colours, following the form like Chatagram does (obs/README.md, "Inputty")
+test('the OBS source follows the form without reloading: Tron neon in his armour colour, Princess Trina royal, the Blobfish deep', async () => {
+  const tab = await chrome.open(site.origin + '/obs/inputty?noveado=1&demo=1&form=red&p=game-keys&v=2&p2=&theme=candy&key=123456', { width: 760, height: 400 });
+  const inner = (js) => tab.eval(`(() => { const d = document.getElementById('io').contentDocument; return ${js}; })()`);
+  await tab.until(`document.getElementById('io').contentDocument?.documentElement?.dataset.ready === '1'`, 8000, 'the overlay drawn');
+  const look = () => inner(`[d.body.dataset.theme, d.body.style.getPropertyValue('--accent')]`);
+  assert.deepEqual(await look(), ['neon', '#ff4155'], 'the link\'s own theme is replaced by the form\'s');
+  const src = new URL(await tab.eval(`document.getElementById('io').src`));
+  assert.equal(src.searchParams.get('key'), null, 'the link\'s own key colour is left out');
+  assert.equal(src.searchParams.get('p2'), '', 'its layouts pass through (keyboard only)');
+  const page = await inner('d.defaultView.performance.timeOrigin');
+  for (const [form, want] of [['princess', ['royal', '#ff63b8']], ['blobfish', ['deep', '#ffb36b']], ['yellow', ['neon', '#ffd23f']]]) {
+    await tab.eval(`TGL.set('${form}'); new Promise((r) => setTimeout(r, 150))`);
+    assert.deepEqual(await look(), want, form);
+  }
+  assert.equal(await inner('d.defaultView.performance.timeOrigin'), page, 'never reloaded');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+  const looks = await chrome.open(site.origin + '/obs/inputty?noveado=1&demo=1&form=princess&looks=princess:tron', { width: 760, height: 400 });
+  await looks.until(`document.getElementById('io').contentDocument?.documentElement?.dataset.ready === '1'`, 8000);
+  assert.equal(await looks.eval(`document.getElementById('io').contentDocument.body.dataset.theme`), 'neon', 'Form looks: Princess Trina in Tron\'s look');
+  await looks.close();
+});

@@ -211,3 +211,53 @@ test('Sources: "Add to scene" creates the widget once, in the chosen scene, tagg
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
+
+test('Inputty: a link pasted in Widgets → Inputty is measured, and goes into the source the Sources tab adds at that size', async () => {
+  const tab = await openDock();
+  await tab.click('[data-tab="widgets"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:inputty"]')`);
+  await tab.click('.tgl-panel [data-sub="widgets:inputty"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-set="inputty"]')`);
+  // keyboard only (an empty p2): narrower than WASD and the mouse's 1018 × 400
+  await tab.eval(`(() => { const f = document.querySelector('.tgl-panel [data-set="inputty"]'); f.value = 'https://www.trongateslegacy.com/inputty/play.html?p=game-keys&v=2&p2=&theme=candy'; f.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  await tab.until(`/Size in OBS: \\d+ × \\d+/.test(document.querySelector('.tgl-panel').textContent)`, 10000, 'the size measured');
+  const [w, h] = (await tab.eval(`/Size in OBS: (\\d+) × (\\d+)/.exec(document.querySelector('.tgl-panel').textContent).slice(1).join()`)).split(',').map(Number);
+  assert.ok(w > 200 && w < 1018 && h > 100 && h <= 420, `measured ${w} × ${h}`);
+  await tab.click('[data-tab="sources"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-add="inputty"]')`);
+  await tab.click('.tgl-panel [data-add="inputty"]');
+  await tab.until(`/Inputty[\\s\\S]*In /.test(document.querySelector('.tgl-panel').textContent)`, 5000, 'Inputty listed as added');
+  const made = [...obs.inputs.values()].filter((i) => i.settings.tgl_managed === 'widget:inputty');
+  assert.equal(made.length, 1);
+  const url = new URL(made[0].settings.url);
+  assert.equal(url.pathname, '/obs/inputty');
+  assert.equal(url.searchParams.get('p'), 'game-keys'); assert.equal(url.searchParams.get('p2'), '');
+  assert.equal(url.searchParams.get('theme'), null, 'the form picks the theme, not the link');
+  assert.deepEqual([made[0].settings.width, made[0].settings.height], [w, h]);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});
+
+// the owner: the sub-tabs scrolled sideways (Widgets had seven in a row). They wrap into even rows instead
+test('every tab and sub-tab fits the dock, even a narrow one: nothing scrolls sideways', async () => {
+  for (const width of [380, 300]) {
+    const tab = await chrome.open(`${site.origin}/obs/control?obs=${obsAddr.split(':')[1]}&veado=${veadoAddr}`, { width, height: 900 });
+    await tab.until(`document.querySelector('.tgl-panel .tabs')`, 5000);
+    for (const t of ['live', 'scenes', 'sources', 'widgets', 'layout']) {
+      await tab.click(`[data-tab="${t}"]`);
+      await sleep(60);
+      const over = await tab.eval(`[...document.querySelectorAll('.tgl-panel .tabs, .tgl-panel .seg, .tgl-panel .seg button, .tgl-panel .tabs button, .tgl-panel .bd')].filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.className + ':' + e.textContent.trim()).join(' | ')`);
+      assert.equal(over, '', `${t} at ${width}px`);
+      // every label inside its button (a button's text can spill out without it scrolling), and the header inside the dock
+      const spill = await tab.eval(`[...document.querySelectorAll('.tgl-panel .tabs button, .tgl-panel .seg button')].filter((b) => { const r = document.createRange(); r.selectNodeContents(b); const t = r.getBoundingClientRect(), o = b.getBoundingClientRect(); return t.left < o.left - 1 || t.right > o.right + 1; }).map((b) => b.textContent).concat([...document.querySelectorAll('.tgl-panel .hd > *, .tgl-panel .pill')].filter((x) => x.getBoundingClientRect().right > document.querySelector('.tgl-panel').getBoundingClientRect().right + 1).map((x) => x.textContent)).join(' | ')`);
+      assert.equal(spill, '', `${t} at ${width}px: labels spill out`);
+    }
+    // Widgets' sub-tabs: every one on show, in even rows
+    await tab.click('[data-tab="widgets"]');
+    await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:inputty"]')`);
+    const rows = await tab.eval(`(() => { const b = [...document.querySelectorAll('.tgl-panel .seg button')]; const tops = [...new Set(b.map((x) => Math.round(x.getBoundingClientRect().top)))]; return tops.map((t) => b.filter((x) => Math.round(x.getBoundingClientRect().top) === t).length); })()`);
+    assert.ok(rows.length <= 3 && Math.max(...rows) - Math.min(...rows) <= 1, `${width}px: rows of ${rows.join(', ')}`);
+    assert.ok(await tab.eval(`!!document.querySelector('.tgl-panel [data-sub="widgets:inputty"]')`), 'Inputty has its own sub-tab');
+    await tab.close();
+  }
+});

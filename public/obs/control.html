@@ -23,7 +23,10 @@
 :root { --accent: #22e5ff; }
 * { box-sizing: border-box; margin: 0; }
 html, body { height: 100%; }
-body { padding: 10px 12px; background: #03060d; overflow: hidden; }
+/* the grid, faint, under a glow in the form's colour */
+body { padding: 10px 12px; overflow: hidden; background:
+  radial-gradient(140% 50% at 50% -12%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%),
+  linear-gradient(#ffffff06 1px, transparent 1px) 0 0 / 28px 28px, linear-gradient(90deg, #ffffff06 1px, transparent 1px) 0 0 / 28px 28px, #03060d; }
 #panel { height: 100%; }
 </style>
 <link rel="stylesheet" href="shared/panel.css">

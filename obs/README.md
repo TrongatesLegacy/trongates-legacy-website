@@ -383,10 +383,17 @@ Trongates overlay after its scene type, like the dock's own sources: *Trongates 
 (window)*, numbered if there are two of a type, never a name OBS already uses, a name that's already right kept. A
 Stream Deck button that finds a source by its old name needs updating after a rename; turn it off to keep your names.
 **Transitions** is the transitions section (below); its per-scene choices list only scenes with a Trongates overlay.
-The Widgets tab has sub-tabs too: OBS, Botrix, Music, Chatagram, Chaplinko, veado, More (form looks, motion, backup, the rescue dock).
+The Widgets tab has sub-tabs too: OBS, Botrix, Music, veado, then Chatagram, Chaplinko, Inputty, More (form looks, motion,
+backup, the rescue dock). Sub-tabs sit in even rows (four across, three in a dock under 340px wide), never scrolling
+sideways (the owner found them scrolling); a test checks every tab at 380 and 300px.
+
+**The look** (`shared/panel.css`, the index page's settings panel too): the TRON HUD in the form's colour (`--accent`
+follows the form): a lit identity disc by the title, the tabs as a track with the chosen one lit, section titles with a
+lit notch and a fading line, cards with a lit corner bracket, solid buttons with the HUD's cut corners, and the dock's
+background a faint grid under a glow of the form's colour.
 
 **Sources:** add our widgets as their own OBS sources to the current scene (or any): the chat box, follower goal,
-now playing, Chatagram and the shared chat. *Add existing* reuses the same source (one browser in several scenes); *New copy*
+now playing, Chatagram, Chaplinko, Inputty and the shared chat. *Add existing* reuses the same source (one browser in several scenes); *New copy*
 makes another. They land just above the scene's overlay, centred, and are yours to move; their options (key, music
 app…) stay current through Review & apply. **Found, not managed** lists widget sources you added by hand that the
 dock recognises (a raw Botrix chat link, our widget pages): *Use as shared chat*, *Adopt*, or *Ignore*.
@@ -553,6 +560,25 @@ The dock's **Form looks** (`looks=`) are followed too: a form given Tron's look 
 
 Any `theme=` or `accent=` in the link is replaced by the form's. It needs the hosted address (it loads `/chatagram/`), so
 it doesn't work as a local file. Scores and the game in progress are kept in OBS's browser, so a refresh carries on.
+
+## Inputty (keys, mouse and controller)
+
+Inputty is a free widget for any streamer (docs/widgets.md, set up at https://www.trongateslegacy.com/inputty/).
+`/obs/inputty` is the same overlay in the stream's colours, following the form exactly as Chatagram does (Tron → **neon**
+in the armour's colour, Princess Trina → **royal**, the Blobfish → **deep**, and the dock's Form looks), without ever
+reloading it. The link's own colours (`theme`, `accent`, `key`, `edge`, `hi`, `ink`, `orig`) are left out, so the form
+decides them; its layouts, title, frame and port pass through.
+
+**Adding it in OBS:**
+1. Set it up on the Inputty page (the helper, input-overlay, is needed for keys and mouse; controllers work on their
+   own), **Copy my link**.
+2. Paste that link in the dock's **Widgets → Inputty**. The dock loads it out of sight once to measure the size its
+   layouts need (the overlay reports it, as on the set-up page) and shows *Size in OBS*.
+3. **Sources → Inputty → Add** puts it in the current scene at that size (1018 × 400, WASD and the mouse, if there's
+   no link). By hand: the **Inputty** card on the index's Sources tab copies the address; add it as a Browser source,
+   **Use custom frame rate**, FPS `30`, at the width and height the Inputty page shows.
+
+It needs the hosted address (it loads `/inputty/`).
 
 ## Chaplinko (the chat Plinko game)
 

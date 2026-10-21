@@ -31,6 +31,9 @@
     // source; the settings come from the link copied on trongateslegacy.com/chaplinko, pasted into Widgets → Chaplinko
     chaplinko: { title: 'Chaplinko', file: 'chaplinko', w: 640, h: 540, uses: [] },
     chaplinkolb: { title: 'Chaplinko leaderboard', file: 'chaplinko', w: 300, h: 270, uses: [], extra: { part: 'leaderboard' } },
+    // Inputty (the keyboard and controller overlay) in the form's colours (obs/inputty.html): its layouts come from the
+    // link copied on trongateslegacy.com/inputty, pasted into Widgets → Inputty; its size is what the dock measured
+    inputty: { title: 'Inputty', file: 'inputty', w: 1018, h: 400, uses: [] },
   };
   const partsOf = (type, layout) => (type === 'game' && layout === 'window' ? TYPES.game.windowParts : TYPES[type].parts);
   const VEADO_DEFAULT = '127.0.0.1:54765', BRIDGE_DEFAULT = '127.0.0.1:5000';
@@ -41,7 +44,7 @@
 
   const defaults = () => ({
     v: 1,
-    key: '', links: { chat: '', goal: '' }, shared: false, goalColor: true, chatagram: '', chaplinko: '',
+    key: '', links: { chat: '', goal: '' }, shared: false, goalColor: true, chatagram: '', chaplinko: '', inputty: '', inputtySize: null,
     music: { app: '', always: false, host: '', ciderToken: '' },
     veado: { addr: '', switch: true, tron: 'cyan', map: {}, delay: 0 },
     motion: 'auto', sample: true, looks: { ...LOOK_DEFAULTS },
@@ -70,21 +73,27 @@
   // Chaplinko's (public/chaplinko/settings.js), the same way: its look (theme, accent, the leaderboard's own look) comes from the form
   const CHAPLINKO_KEYS = ['twitch', 'kick', 'kickid', 'layout', 'side', 'rows', 'bgo', 'lbshape', 'lbn', 'lbshow', 'lbevery', 'lbbgo', 'bigwin', 'hint', 'showcmd', 'color',
     'balls', 'cool', 'max', 'speed', 'motion', 'nearmiss', 'cmd', 'perm', 'ignore', 'remember', 'credit'];
+  // Inputty's (public/inputty/lib/looks.js): the layouts, title and frame; its colours (theme, accent, key, edge, hi, ink,
+  // orig) come from the form. An empty p2 means keyboard (or mouse) only, so empty values are kept
+  const INPUTTY_KEYS = ['p', 'v', 'a', 'p2', 'v2', 'a2', 'frame', 'keys', 'title', 'bgo', 'fx', 'outline', 'port'];
   /** a pasted widget link's settings (the whole link or just what's after the ?), those in keys */
-  const pairsOf = (keys) => (link) => {
+  const pairsOf = (keys, empty = false) => (link) => {
     const qs = String(link || '').trim().split('#')[0].split('?').pop();
     if (!qs || !/=/.test(qs)) return [];
     const q = new URLSearchParams(qs);
-    return keys.filter((k) => q.has(k) && q.get(k) !== '').map((k) => [k, q.get(k)]);
+    return keys.filter((k) => q.has(k) && (empty || q.get(k) !== '')).map((k) => [k, q.get(k)]);
   };
   /** the game settings in a pasted Chatagram link */
   const chatagramPairs = pairsOf(CHATAGRAM_KEYS);
   /** the settings in a pasted Chaplinko link (the board's or the leaderboard's) */
   const chaplinkoPairs = pairsOf(CHAPLINKO_KEYS);
+  /** the layouts in a pasted Inputty link */
+  const inputtyPairs = pairsOf(INPUTTY_KEYS, true);
   const isChaplinko = (kind) => kind === 'chaplinko' || kind === 'chaplinkolb';
   /** a widget's size in OBS: Chaplinko's follow its pasted link (combined is wider; the leaderboard panel grows with how many) */
   function sizeOf(kind, s) {
     const w = WIDGETS[kind];
+    if (kind === 'inputty') return Array.isArray(s.inputtySize) && s.inputtySize[0] > 0 && s.inputtySize[1] > 0 ? [+s.inputtySize[0], +s.inputtySize[1]] : [w.w, w.h];
     if (!isChaplinko(kind)) return [w.w, w.h];
     const q = new URLSearchParams(chaplinkoPairs(s.chaplinko));
     if (kind === 'chaplinko') return q.get('layout') === 'combined' && q.get('side') !== 'off' ? [960, 540] : [640, 540];
@@ -104,6 +113,7 @@
     if (scene && kind === 'game' && layout === 'window') { add('layout', 'window'); if (sc.rings) add('rings', 1); }
     if (widget && widget.extra) for (const [k, v] of Object.entries(widget.extra)) add(k, v);
     if (kind === 'chatagram') for (const [k, v] of chatagramPairs(s.chatagram)) add(k, v);
+    if (kind === 'inputty') for (const [k, v] of inputtyPairs(s.inputty)) add(k, v);
     const cp = isChaplinko(kind) ? chaplinkoPairs(s.chaplinko) : [];
     for (const [k, v] of cp) add(k, v);
     const off = scene ? partsOf(kind, layout).filter((p) => sc.off.includes(p)) : [];
@@ -147,7 +157,7 @@
     // the dock's colour buttons reach the scenes through the OBS WebSocket
     if (!ctx.preview && ctx.obs && ctx.obs.port) { add('obs', ctx.obs.port); if (ctx.obs.pw) add('obspw', ctx.obs.pw); }
     if (ctx.preview) {
-      if (kind === 'transition' || kind === 'chatagram' || isChaplinko(kind)) add('demo', 1);   // transitions play in turn; the games play with a pretend chat
+      if (kind === 'transition' || kind === 'chatagram' || isChaplinko(kind) || kind === 'inputty') add('demo', 1);   // transitions play in turn; the games play with a pretend chat; Inputty doesn't look for input-overlay
       if (ctx.preview.form) add('form', ctx.preview.form);
       if (ctx.preview.guide) add('guide', 1);
       if (ctx.preview.sample && (has('chat') || has('goal'))) add('demo', 1);
@@ -168,7 +178,9 @@
       ? [...OWNED.filter((k) => k !== 'layout' && k !== 'goal'), ...(pairs.some(([k]) => CHATAGRAM_KEYS.includes(k)) ? CHATAGRAM_KEYS : [])]
       : /\/chaplinko(\.html)?$/.test(path)
         ? [...OWNED.filter((k) => k !== 'layout'), 'part', ...(pairs.some(([k]) => CHAPLINKO_KEYS.includes(k) && k !== 'motion') ? CHAPLINKO_KEYS : [])]
-        : OWNED;
+        : /\/inputty(\.html)?$/.test(path)
+          ? [...OWNED, ...(pairs.some(([k]) => INPUTTY_KEYS.includes(k)) ? INPUTTY_KEYS : [])]
+          : OWNED;
     const keep = qs.split('&').filter((p) => p && !owned.includes(decodeURIComponent(p.split('=')[0])));
     const all = [...keep, query(pairs)].filter(Boolean).join('&');
     return all ? `${path}?${all}` : path;
@@ -180,7 +192,7 @@
 
   // Which Trongates page an address is, if any: { kind: 'brb' | … | 'chatbox' | 'goal' | 'music' | 'bare', layout }
   function recognise(url) {
-    const m = /\/obs\/(starting|brb|chatting|game|ending|chat|goal|music|transition|chatagram|chaplinko)(?:\.html)?(?:[?#]|$)/.exec(url || '');
+    const m = /\/obs\/(starting|brb|chatting|game|ending|chat|goal|music|transition|chatagram|chaplinko|inputty)(?:\.html)?(?:[?#]|$)/.exec(url || '');
     if (!m) return /botrix\.live\/widgets\/chat\//.test(url || '') ? { kind: 'botrix-chat' } : /botrix\.live\/widgets\/goals?\//.test(url || '') ? { kind: 'botrix-goal' } : null;
     const q = new URLSearchParams((url.split('?')[1] || '').split('#')[0]);
     let kind = m[1];
@@ -196,6 +208,7 @@
       if (!r || !r.q) continue;
       const q = r.q, get = (k) => q.get(k);
       if (r.kind === 'chatagram') { const pairs = CHATAGRAM_KEYS.filter((k) => q.has(k)).map((k) => [k, q.get(k)]); if (pairs.length) s.chatagram = new URLSearchParams(pairs).toString(); continue; }
+      if (r.kind === 'inputty') { const pairs = INPUTTY_KEYS.filter((k) => q.has(k)).map((k) => [k, q.get(k)]); if (pairs.length) s.inputty = new URLSearchParams(pairs).toString(); continue; }
       if (isChaplinko(r.kind)) { const pairs = CHAPLINKO_KEYS.filter((k) => q.has(k)).map((k) => [k, q.get(k)]); if (pairs.length && (!s.chaplinko || r.kind === 'chaplinko')) s.chaplinko = new URLSearchParams(pairs).toString(); continue; }
       if (get('key')) s.key = get('key');
       for (const k of ['chat', 'goal']) if (isLink(get(k))) s.links[k] = get(k);
@@ -243,6 +256,6 @@
     return { x: 28, y: 64 + top + 52, w: 554, h: bottom - top - 70 };
   }
 
-  window.TGLModel = { PARTS, TYPES, WIDGETS, LOOKS, LOOK_DEFAULTS, CHATAGRAM_KEYS, chatagramPairs, CHAPLINKO_KEYS, chaplinkoPairs, sizeOf, partsOf, defaults, normalise, options, withOptions, sameUrl, recognise, fromUrls,
+  window.TGLModel = { PARTS, TYPES, WIDGETS, LOOKS, LOOK_DEFAULTS, CHATAGRAM_KEYS, chatagramPairs, CHAPLINKO_KEYS, chaplinkoPairs, INPUTTY_KEYS, inputtyPairs, sizeOf, partsOf, defaults, normalise, options, withOptions, sameUrl, recognise, fromUrls,
     pack, unpack, b64, linkFor, isLink, pasted, chatBox, SHARED_W, SHARED_H, VEADO_DEFAULT, BRIDGE_DEFAULT };
 })();

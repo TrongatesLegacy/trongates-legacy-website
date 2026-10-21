@@ -124,15 +124,15 @@
         const places = [...new Set(mine.flatMap((x) => x.places.map((p) => p.container.name)))];
         const size = kind === 'bare' ? `${M.SHARED_W} × ${M.SHARED_H}` : M.sizeOf(kind, P.s).join(' × ');
         const title = kind === 'bare' ? 'Shared chat' : w.title;
-        return `<div class="scene"><div class="t"><b class="grow">${title}</b><span class="muted">${kind === 'bare' ? 'raw Botrix · ' : kind === 'music' ? '' : kind === 'chatagram' || kind === 'chaplinko' || kind === 'chaplinkolb' ? 'game · ' : 'framed · '}${size}</span></div>
+        return `<div class="scene"><div class="t"><b class="grow">${title}</b><span class="muted">${kind === 'bare' ? 'raw Botrix · ' : kind === 'music' ? '' : kind === 'chatagram' || kind === 'chaplinko' || kind === 'chaplinkolb' ? 'game · ' : kind === 'inputty' ? 'keys · ' : 'framed · '}${size}</span></div>
           ${kind === 'chatagram' && !M.chatagramPairs(P.s.chatagram).length ? '<span class="hint bad">Paste your Chatagram link first (Widgets → Chatagram), or it will ask for a channel.</span>' : ''}
           ${(kind === 'chaplinko' || kind === 'chaplinkolb') && !M.chaplinkoPairs(P.s.chaplinko).length ? '<span class="hint bad">Paste your Chaplinko link first (Widgets → Chaplinko), or it will ask for a channel.</span>' : ''}
           <span class="hint">${places.length ? 'In ' + esc(places.join(', ')) : 'Not in any scene'}</span>
           <div class="row">${mine.length ? `<button type="button" class="btn grow" data-add="${kind}">Add existing</button><button type="button" class="btn" data-add="${kind}" data-copy="1" ${kind === 'bare' ? 'disabled' : ''}>New copy</button>` : `<button type="button" class="btn solid grow" data-add="${kind}">${kind === 'bare' ? 'Set up shared chat…' : 'Add to scene'}</button>`}</div></div>`;
       };
-      const found = obs.scan.widgets.filter((x) => !x.input.tag && !(P.s.dock.ignore || []).includes(x.input.uuid) && ['botrix-chat', 'chatbox', 'goal', 'music', 'bare', 'chatagram', 'chaplinko', 'chaplinkolb'].includes(x.kind));
+      const found = obs.scan.widgets.filter((x) => !x.input.tag && !(P.s.dock.ignore || []).includes(x.input.uuid) && ['botrix-chat', 'chatbox', 'goal', 'music', 'bare', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty'].includes(x.kind));
       return `<div class="row"><span class="grow">Add to</span><select data-target>${sceneOpts}</select></div>
-        ${['bare', 'chatbox', 'goal', 'music', 'chatagram', 'chaplinko', 'chaplinkolb'].map(card).join('')}
+        ${['bare', 'chatbox', 'goal', 'music', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty'].map(card).join('')}
         ${found.length ? `<h3>Found, not managed</h3>${found.map((x) => `<div class="scene"><div class="t"><b class="grow">${esc(x.input.name)}</b><span class="muted">${x.kind === 'botrix-chat' ? 'raw Botrix chat' : esc(M.WIDGETS[x.kind] ? M.WIDGETS[x.kind].title : x.kind)} · ${esc([...new Set(x.places.map((p) => p.container.name))].join(', '))}</span></div>
           <div class="row">${['botrix-chat', 'bare'].includes(x.kind) && !shared() ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="shared-chat">Use as shared chat</button>` : ''}${x.kind !== 'botrix-chat' ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="widget:${x.kind}">Adopt</button>` : ''}<button type="button" class="btn red" data-ignore="${x.input.uuid}">Ignore</button></div></div>`).join('')}` : ''}
         <p class="hint">Adding happens straight away, just above the scene's overlay (or at the top of a scene without one), centred. After that it's yours to move; settings changes reach it through Review &amp; apply.</p>`;
@@ -140,7 +140,9 @@
     // sub-tabs inside a tab: [key, label, changes waiting]; the pick is kept per tab (P.ui.sub)
     function seg(tab, items) {
       const cur = P.ui.sub[tab] && items.some(([k]) => k === P.ui.sub[tab]) ? P.ui.sub[tab] : items[0][0];
-      return { cur, html: `<div class="seg">${items.map(([k, label, n]) => `<button type="button" data-sub="${tab}:${k}" aria-pressed="${k === cur}">${label}${n ? `<i>${n}</i>` : ''}</button>`).join('')}</div>` };
+      // in even rows (at most four across, three in a narrow dock), so a tab with many never scrolls sideways
+      const across = (most) => Math.ceil(items.length / Math.ceil(items.length / most));
+      return { cur, html: `<div class="seg" style="--n:${across(4)};--n3:${across(3)}">${items.map(([k, label, n]) => `<button type="button" data-sub="${tab}:${k}" aria-pressed="${k === cur}">${label}${n ? `<i>${n}</i>` : ''}</button>`).join('')}</div>` };
     }
     function tabWidgets() {
       const pasted = (P.s.linksMode || (M.isLink(P.s.links.chat) || M.isLink(P.s.links.goal) ? 'paste' : 'key')) === 'paste';
@@ -168,6 +170,15 @@
         <span class="hint ${M.chaplinkoPairs(P.s.chaplinko).length ? 'ok' : ''}">${M.chaplinkoPairs(P.s.chaplinko).length
           ? 'Using ' + M.chaplinkoPairs(P.s.chaplinko).map(([k]) => k).join(', ') + '. The colours follow your form, whatever theme the link has. The board and the leaderboard sources both use it.'
           : 'Set Chaplinko up on trongateslegacy.com/chaplinko, press Copy board link, and paste it here: its channels and settings go into the Chaplinko sources (the board and its leaderboard).'}</span>`,
+        inputty: () => {
+          const pairs = M.inputtyPairs(P.s.inputty), size = M.sizeOf('inputty', P.s);
+          return `<label class="field">Your Inputty link<input type="text" data-set="inputty" value="${esc(P.s.inputty || '')}" placeholder="https://www.trongateslegacy.com/inputty/play.html?p=…" autocomplete="off" spellcheck="false"></label>
+        <span class="hint ${pairs.length ? 'ok' : ''}">${pairs.length
+          ? 'Using ' + pairs.map(([k]) => k).join(', ') + '. The colours follow your form, whatever theme the link has.'
+          : 'Set Inputty up on trongateslegacy.com/inputty, press Copy my link, and paste it here: its layouts go into the Inputty source. Without one it shows WASD and the mouse.'}</span>
+        ${pairs.length ? `<span class="hint">${P.inputtyMeasuring ? 'Measuring its size…' : `Size in OBS: ${size.join(' × ')}${P.s.inputtySize ? '' : ' (not measured)'}`}</span>` : ''}
+        <span class="hint">Keys and mouse need input-overlay in OBS (set up on the Inputty page); controllers work on their own.</span>`;
+        },
         music: () => `<label class="field">Music app (blank: whatever Windows has in focus)<input type="text" data-set="music.app" value="${esc(P.s.music.app)}" placeholder="e.g. cider, applemusic, spotify"></label>
         <div class="row"><span class="grow">Stay up while paused</span>${tog('music.always', P.s.music.always)}</div>
         <label class="field">SMTC Bridge address<input type="text" data-set="music.host" value="${esc(P.s.music.host)}" placeholder="${M.BRIDGE_DEFAULT}"></label>
@@ -194,7 +205,8 @@
         <div class="row"><button type="button" class="btn grow" data-act="copy-rescue">Copy rescue dock address</button></div>
         <p class="hint">A second, tiny dock (Docks → Custom Browser Docks) that refreshes every Trongates source, or puts every scene back on Tron, even if this dock is stuck.</p>`,
       };
-      const s = seg('widgets', [['obs', 'OBS'], ['botrix', 'Botrix'], ['music', 'Music'], ['chatagram', 'Chatagram'], ['chaplinko', 'Chaplinko'], ['veado', 'veado'], ['more', 'More']]);
+      // the connections first, then the games and overlays, then More
+      const s = seg('widgets', [['obs', 'OBS'], ['botrix', 'Botrix'], ['music', 'Music'], ['veado', 'veado'], ['chatagram', 'Chatagram'], ['chaplinko', 'Chaplinko'], ['inputty', 'Inputty'], ['more', 'More']]);
       return s.html + parts[s.cur]();
     }
     function tabLayout() {
