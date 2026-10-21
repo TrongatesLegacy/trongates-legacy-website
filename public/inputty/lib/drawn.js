@@ -47,7 +47,9 @@
 
     /** look: { edge, key, hi, accent }; style: the theme (font, weight, radius, ring, glow) */
     setLook(look, style) {
-      this.c = { edge: hexRgb(look.edge), key: hexRgb(look.key), hi: hexRgb(look.hi), acc: hexRgb(look.accent), ink: look.ink ? hexRgb(look.ink) : null };
+      // a keyboard's or mouse's colours (looks.js, kbm: brighter on the dark themes)
+      const c = look.kbm || look;
+      this.c = { edge: hexRgb(c.edge), key: hexRgb(c.key), hi: hexRgb(c.hi), acc: hexRgb(look.accent), ink: look.ink ? hexRgb(look.ink) : null };
       this.style = style;
       this.font = (px) => `${style.weight || 700} ${px}px ${style.font || 'system-ui'}, system-ui, sans-serif`;
       document.fonts?.load(this.font(20)).catch(() => {});

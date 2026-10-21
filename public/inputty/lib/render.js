@@ -211,7 +211,10 @@
 
     /** look: null (the art's own colours) or { edge, key, hi, accent } */
     setLook(look) {
-      const k = look ? [look.edge, look.key, look.hi, look.accent, look.lines, look.keySet, look.lightBg].join() : 'orig';
+      // a keyboard's or mouse's line art takes the theme's kbm lines (looks.js); a controller's keeps the theme's own
+      const pad = this.layout.els.some((e) => [T.PAD_BUTTON, T.STICK, T.TRIGGER, T.DPAD, T.PLAYER].includes(e.t));
+      const lines = look && (!pad && look.kbm ? look.kbm.lines : look.lines);
+      const k = look ? [look.edge, look.key, look.hi, look.accent, lines, look.keySet, look.lightBg].join() : 'orig';
       if (k === this.lookKey) return;
       this.lookKey = k;
       this.tilt = null;
@@ -225,7 +228,7 @@
       if (light && !flip) {
         // a chosen key colour: the halo round the lines is that colour, darker (line art offers no Edges to pick)
         const edge = look.keySet ? rgbHex(mix(hexRgb(look.key), [0, 0, 0], 0.6)) : look.edge;
-        base = luts({ ...look, edge, hi: look.lines || rgbHex(mix(hexRgb(look.key), hexRgb(look.hi), 0.3)) }).base;
+        base = luts({ ...look, edge, hi: lines || rgbHex(mix(hexRgb(look.key), hexRgb(look.hi), 0.3)) }).base;
       }
       // drawn dark on light: the lines are the darkest end, so a chosen key colour goes there
       if (flip && look.keySet) base = luts({ ...look, edge: look.key }).base;

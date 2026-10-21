@@ -675,7 +675,11 @@ on the key); a picture takes Edges and Shine only if pushing them far off moves 
 its small copy, `guide.js`, `measure`). Once Keys or Pressed is changed, a warning shows when the two are too alike to
 spot a press (ΔE under 30), with "Make it stand out" (the nearest colour at ΔE 35+); a theme's own pair never warns.
 Picking a theme starts the colours over. Neutral, Light, Candy and Cozy have their own line colour (`lines`) for line art
-only, where the usual mix of key and shine came out dim; their other layouts keep the theme's colours.
+(WASD, the outline mouse), where the usual mix of key and shine came out dim. Neon, Royal and Deep have their own
+keyboard-and-mouse colours (`kbm`; the owner, 2026-10-21: their WASD came out dark and muddy, bright works best): bright
+ice, gold and aqua lines for line-art keyboards and mice, and bright keycaps with dark letters for our drawn layouts and
+mouse. input-overlay's pictures and the controllers keep the theme's colours (a controller's outline stick in bright
+lines looked pressed). A chosen Keys, Edges or Shine colour still wins.
 
 **Links stay the same.** A link names each layout by preset id and style number, and leaves out every setting that
 matches `looks.js`'s `DEFAULTS`, so a link without `p` has always meant Game keys (Hero shooter) and the Gaming mouse:
@@ -720,7 +724,8 @@ corner (WASD and Mouse, as the set-up starts), and the visitor's own keys light 
 engine (`shared/theme.js`: veadotube, the dock, `form=`, `looks=`) and sends each change to the game as a live theme
 message: Tron (any armour) → **neon** in the armour's colour, Princess Trina → **royal**, the Blobfish → **deep**,
 following the dock's Form looks. It's the only Chatagram file that knows the forms. `/obs/chaplinko` does the same for
-Chaplinko's board and (`part=leaderboard`) its leaderboard (obs/README.md, "Chaplinko").
+Chaplinko's board and (`part=leaderboard`) its leaderboard (obs/README.md, "Chaplinko"), and `/obs/inputty` for Inputty
+(obs/README.md, "Inputty"): the link's own colours are left out there, so the form decides them.
 
 ## Tests
 

@@ -1,17 +1,20 @@
 // The widget's eight themes. Seven are the shared widget themes (public/widgets/lib/themes.css draws the frame and
 // panel); the preset art is recoloured from each one's three key colours (edge = darkest, key = middle, hi = lightest)
 // and its accent (what a pressed key turns). lines: the colour of line-art presets' lines (WASD, the outline mouse),
-// where the usual mix of key and shine came out too dim; a chosen key colour is the lines' colour exactly. Zojie is
+// where the usual mix of key and shine came out too dim; a chosen key colour is the lines' colour exactly. kbm: Neon,
+// Royal and Deep's keyboards and mice (WASD and the like: line art's lines, and our drawn keycaps), where their dark key
+// colour came out muddy (the owner, 2026-10-21: bright works best); input-overlay's pictures and the controllers keep
+// the theme's colours. Zojie is
 // this widget's own: Zojie Raine's pastel palette.
 (() => {
   const THEMES = {
     zojie:   { label: 'Zojie',   edge: '5b3fb0', key: 'c9b2ff', hi: 'fdfaff', accent: 'b18cff', frame: 'none', font: 'Fredoka', weight: 700, radius: 16, glow: 0.6 },
     neutral: { label: 'Neutral', edge: '15171d', key: '6b7385', lines: 'c6cddb', hi: 'f6f7fa', accent: '4f8cff', frame: 'none', font: 'system-ui', weight: 800, radius: 10 },
     light:   { label: 'Light',   edge: '16181d', key: 'a3a9b4', lines: 'f4f6fa', hi: 'ffffff', accent: 'ff5a36', frame: 'none', lightBg: true, font: 'system-ui', weight: 800, radius: 10, glow: 0.4 },
-    neon:    { label: 'Neon',    edge: '061019', key: '24506f', hi: 'c4eaff', accent: '22e5ff', frame: 'none', font: 'Orbitron', weight: 700, radius: 2, ring: 'accent', glow: 0.95 },
+    neon:    { label: 'Neon',    edge: '061019', key: '24506f', hi: 'c4eaff', accent: '22e5ff', frame: 'none', font: 'Orbitron', weight: 700, radius: 2, ring: 'accent', glow: 0.95, kbm: { edge: '0b2c44', key: 'd3ebf5', hi: 'f7fcff', lines: 'a8efff' } },
     candy:   { label: 'Candy',   edge: '3b1590', key: 'a57cff', lines: 'd2bcff', hi: 'ffffff', accent: 'ffd23f', frame: 'none', font: '"Lilita One"', weight: 400, radius: 14 },
-    royal:   { label: 'Royal',   edge: '1a0f24', key: 'b8924a', hi: 'fff4fb', accent: 'ff63b8', frame: 'none', font: '"Cinzel Decorative"', weight: 900, radius: 4, ring: 'ffd98a' },
-    deep:    { label: 'Deep',    edge: '02111a', key: '1d6e78', hi: 'eafcff', accent: 'ffb36b', frame: 'none', font: '"Lilita One"', weight: 400, radius: 16 },
+    royal:   { label: 'Royal',   edge: '1a0f24', key: 'b8924a', hi: 'fff4fb', accent: 'ff63b8', frame: 'none', font: '"Cinzel Decorative"', weight: 900, radius: 4, ring: 'ffd98a', kbm: { edge: '5a3a12', key: 'f6dc9c', hi: 'fffaf0', lines: 'ffe1a3' } },
+    deep:    { label: 'Deep',    edge: '02111a', key: '1d6e78', hi: 'eafcff', accent: 'ffb36b', frame: 'none', font: '"Lilita One"', weight: 400, radius: 16, kbm: { edge: '0b4048', key: 'a4ece8', hi: 'f2fffe', lines: 'a2f0e9' } },
     cozy:    { label: 'Cozy',    edge: '4a3222', key: 'c9a878', lines: 'f0dfbd', hi: 'fffaf0', accent: 'd9653b', frame: 'none', lightBg: true, font: 'Georgia', weight: 700, radius: 12, ring: 'e2cda8', glow: 0.35 },
   };
   const mixHex = (a, b, t) => [0, 2, 4].map((i) => { const x = parseInt(a.slice(i, i + 2), 16), y = parseInt(b.slice(i, i + 2), 16); return Math.round(x + (y - x) * t).toString(16).padStart(2, '0'); }).join('');
@@ -51,7 +54,10 @@
     const t = THEMES[s.theme];
     // lightBg: the art sits on something light (the theme's panel or window), so light line art is drawn dark
     const framed = (s.frame || t.frame) !== 'none';
-    return { edge: hex(s.edge) || t.edge, key: hex(s.key) || t.key, hi: hex(s.hi) || t.hi, accent: hex(s.accent) || t.accent, ink: hex(s.ink), lines: hex(s.key) || t.lines || mixHex(t.key, t.hi, 0.3), keySet: !!hex(s.key), lightBg: !!t.lightBg && framed };
+    const lines = hex(s.key) || t.lines || mixHex(t.key, t.hi, 0.3), k = t.kbm || {};
+    return { edge: hex(s.edge) || t.edge, key: hex(s.key) || t.key, hi: hex(s.hi) || t.hi, accent: hex(s.accent) || t.accent, ink: hex(s.ink), lines, keySet: !!hex(s.key), lightBg: !!t.lightBg && framed,
+      // keyboards and mice: the theme's kbm colours where it has them (a chosen colour still wins)
+      kbm: { edge: hex(s.edge) || k.edge || t.edge, key: hex(s.key) || k.key || t.key, hi: hex(s.hi) || k.hi || t.hi, lines: hex(s.key) || k.lines || lines } };
   }
   const frameOf = (s) => s.frame || THEMES[s.theme].frame;
   const fxOf = (s) => (s.fx === '' ? !!THEMES[s.theme].fx : s.fx === '1');

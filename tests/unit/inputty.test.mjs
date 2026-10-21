@@ -127,6 +127,32 @@ test('colours: a chosen key colour is line art\'s line colour exactly; the named
   assert.equal(L.look({ ...L.DEFAULTS, ink: '123456' }).ink, '123456', 'Letters ride in the link');
 });
 
+// Owner (2026-10-21): on WASD and the like (input-overlay's outline WASD and mouse, and the keyboards and mouse we draw), Neon,
+// Royal and Deep's keys came out dark and muddy; they get bright lines and keycaps of their own.
+// input-overlay's pictures and the controllers keep the theme's colours as they were
+test('Neon, Royal and Deep draw WASD and the like bright (lines and drawn keys); pictures and controllers keep the theme\'s colours', () => {
+  const { IOLooks: L } = lib(['looks.js']);
+  const lum = (h) => { const c = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const was = { neon: '24506f', royal: 'b8924a', deep: '1d6e78' };
+  for (const [theme, key] of Object.entries(was)) {
+    const look = L.look({ ...L.DEFAULTS, theme });
+    assert.equal(look.key, key, `${theme}: pictures and controllers keep their key colour`);
+    assert.ok(lum(look.kbm.key) >= 0.5, `${theme}: drawn keys are bright (${look.kbm.key})`);
+    assert.ok(lum(look.kbm.key) / lum(look.kbm.edge) >= 4.5, `${theme}: the letters (edge colour) read on them`);
+    // and line art (input-overlay's WASD and outline mouse, where the set-up starts) is drawn in bright lines
+    assert.ok(lum(look.kbm.lines) >= 0.5, `${theme}: line art's lines are bright (${look.kbm.lines})`);
+    const mix = (a, b, t) => [0, 2, 4].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, '0')).join('');
+    assert.equal(look.lines, mix(L.THEMES[theme].key, L.THEMES[theme].hi, 0.3), `${theme}: a controller's line art keeps its lines as they were`);
+    // a key colour picked in the link still wins
+    assert.equal(L.look({ ...L.DEFAULTS, theme, key: 'ff3366' }).kbm.key, 'ff3366');
+  }
+  // the others draw with their own colours, as before
+  for (const theme of ['zojie', 'neutral', 'light', 'candy', 'cozy']) {
+    const look = L.look({ ...L.DEFAULTS, theme });
+    assert.deepEqual([look.kbm.key, look.kbm.edge, look.kbm.hi], [look.key, look.edge, look.hi], theme);
+  }
+});
+
 // Owner (2026-10-19): Two big keys (made for osu!) keeps Z and X, but you can pick your own two
 test('Two big keys take any two keys from the link (keys=KeyA,KeyS), with their own letters; an unknown key keeps the default', () => {
   const { IO_PRESETS: P, IOOurs: O, IOLooks: L } = lib(['presets.js', 'ours.js', 'looks.js']);
