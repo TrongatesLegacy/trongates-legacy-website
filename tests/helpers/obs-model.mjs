@@ -20,7 +20,7 @@ export function obsModel(net, addr, scenes, { collection = 'Test', transitions =
     for (const x of items) addItem(sc, [...inputs.values()].find((i) => i.name === x.name) || addInput(x.name, x.kind || 'browser_source', x.settings), x.transform);
   }
   const itemOut = (it, i) => ({ sceneItemId: it.sceneItemId, sourceName: it.input.name, sourceUuid: it.input.uuid, inputKind: it.input.kind,
-    sourceType: 'OBS_SOURCE_TYPE_INPUT', isGroup: false, sceneItemIndex: i, sceneItemTransform: { ...it.transform }, sceneItemLocked: it.locked, sceneItemEnabled: true });
+    sourceType: 'OBS_SOURCE_TYPE_INPUT', isGroup: false, sceneItemIndex: i, sceneItemTransform: { ...it.transform }, sceneItemLocked: it.locked, sceneItemEnabled: it.enabled !== false });
   const item = (d) => find(d).items.find((i) => i.sceneItemId === d.sceneItemId);
   const handlers = {
     GetSceneCollectionList: () => ({ currentSceneCollectionName: collection, sceneCollections: [collection] }),
@@ -37,6 +37,7 @@ export function obsModel(net, addr, scenes, { collection = 'Test', transitions =
     SetInputSettings: (d) => { const inp = inputs.get(d.inputUuid); Object.assign(inp.settings, d.inputSettings); o.broadcast('InputSettingsChanged', { inputUuid: inp.uuid, inputName: inp.name }); },
     SetSceneItemTransform: (d) => { Object.assign(item(d).transform, d.sceneItemTransform); },
     SetSceneItemLocked: (d) => { item(d).locked = d.sceneItemLocked; },
+    SetSceneItemEnabled: (d) => { item(d).enabled = d.sceneItemEnabled; },
     SetSceneItemIndex: (d) => { const sc = find(d), it = item(d); sc.items = sc.items.filter((i) => i !== it); sc.items.splice(d.sceneItemIndex, 0, it); },
     RemoveSceneItem: (d) => { const sc = find(d); sc.items = sc.items.filter((i) => i.sceneItemId !== d.sceneItemId); o.broadcast('SceneItemRemoved', {}); },
     GetSceneTransitionList: () => ({ currentSceneTransitionName: o.transition, transitions: o.transitions.map((t) => ({ transitionName: t.name, transitionKind: t.kind })) }),

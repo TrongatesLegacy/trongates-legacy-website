@@ -393,7 +393,7 @@ lit notch and a fading line, cards with a lit corner bracket, solid buttons with
 background a faint grid under a glow of the form's colour.
 
 **Sources:** add our widgets as their own OBS sources to the current scene (or any): the chat box, follower goal,
-now playing, Chatagram, Chaplinko, Inputty and the shared chat. *Add existing* reuses the same source (one browser in several scenes); *New copy*
+now playing, Chatagram, Chaplinko, Inputty (keyboard and controller) and the shared chat. *Add existing* reuses the same source (one browser in several scenes); *New copy*
 makes another. They land just above the scene's overlay, centred, and are yours to move; their options (key, music
 app…) stay current through Review & apply. **Found, not managed** lists widget sources you added by hand that the
 dock recognises (a raw Botrix chat link, our widget pages): *Use as shared chat*, *Adopt*, or *Ignore*.
@@ -569,16 +569,28 @@ in the armour's colour, Princess Trina → **royal**, the Blobfish → **deep**,
 reloading it. The link's own colours (`theme`, `accent`, `key`, `edge`, `hi`, `ink`, `orig`) are left out, so the form
 decides them; its layouts, title, frame and port pass through.
 
-**Adding it in OBS:**
-1. Set it up on the Inputty page (the helper, input-overlay, is needed for keys and mouse; controllers work on their
-   own), **Copy my link**.
-2. Paste that link in the dock's **Widgets → Inputty**. The dock loads it out of sight once to measure the size its
-   layouts need (the overlay reports it, as on the set-up page) and shows *Size in OBS*.
-3. **Sources → Inputty → Add** puts it in the current scene at that size (1018 × 400, WASD and the mouse, if there's
-   no link). By hand: the **Inputty** card on the index's Sources tab copies the address; add it as a Browser source,
-   **Use custom frame rate**, FPS `30`, at the width and height the Inputty page shows.
+There are two sources, each from its own link: **keyboard and mouse** (`/obs/inputty?…`) and **controller**
+(`/obs/inputty?part=pad&…`, an Xbox controller until a link is pasted). The dock shows one at a time on Game.
 
-It needs the hosted address (it loads `/inputty/`).
+**The dock's Widgets → Inputty** (the owner asked for it, 2026-10-21), straight away like the colour buttons, nothing
+waits for Review & apply:
+- **Keyboard & mouse | Controller**: which one is on stream (a lit dot on the one showing). Both are in every Game scene
+  once placed, the other switched off, so switching is instant.
+- **Showing on Game / Hidden**: both off, or the chosen one back.
+- **Where on Game**: the game, small, with seven spots (the four corners, both sides' middles, the bottom middle) and a
+  lit box exactly where and how big it'll be. On Game (window) it goes inside the 1440 × 810 game window (the chat and
+  veadotube spaces drawn round it); on full-screen Game, the whole canvas (it warns that veadotube sits bottom right).
+  24px off the edges. **Small / Medium / Large**: at most 17 / 24 / 32% of the game's height and 30 / 40 / 52% of its
+  width, so a wide keyboard and a squarer controller both fit, never stretched (`model.js`, `inputtyBox`).
+- It goes above the game capture (the one picked on the Layout tab, else the top capture in the scene) so it shows.
+- **Links**: paste each from the Inputty page (**Copy my link**). The dock loads each out of sight once to measure the
+  size its layouts need (the overlay reports it, as on the set-up page; the default ones too), sets the source to that
+  size and places it again. Changing Game's layout (Review & apply) moves it into the new game area.
+
+By hand: the **Inputty** and **Inputty controller** cards on the index's Sources tab copy the addresses; add each as a
+Browser source, **Use custom frame rate**, FPS `30`, at the width and height the Inputty page shows. **Sources → Inputty
+keyboard / Inputty controller → Add** also work, for scenes other than Game. It needs the hosted address (it loads
+`/inputty/`).
 
 ## Chaplinko (the chat Plinko game)
 

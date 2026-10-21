@@ -311,6 +311,8 @@
       }
       obs.busy = false; P.reviewing = null;
       await rescan();
+      // Inputty follows Game's layout (window or full screen) to its spot
+      if (P.s.dock.inputty.at) P.inputtyApply();
     }
 
     // ---------------------------------------------------------------- Sources tab actions (immediate)

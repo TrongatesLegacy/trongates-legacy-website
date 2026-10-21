@@ -86,8 +86,12 @@
 .tgl-panel code { font: 11.5px ui-monospace, monospace; color: #cfe3f5; overflow-wrap: anywhere; }
 /* sub-tabs inside a tab */
 .tgl-panel .seg { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 3px; padding: 3px; border: 1px solid var(--line); border-radius: 9px; background: #060b15; }
+/* three across in a narrow panel: the dock's own width (the window), or the panel's (on the index page it's a column of a
+   wide page); older OBS browsers without container queries go by the window */
 @media (max-width: 340px) { .tgl-panel .seg { grid-template-columns: repeat(var(--n3, 2), minmax(0, 1fr)); }
   .tgl-panel .tabs button { padding: 8px 2px; font-size: 8.5px; letter-spacing: .02em; } .tgl-panel .tabs i { margin-left: 2px; } }
+.tgl-panel { container-type: inline-size; }
+@container (max-width: 330px) { .tgl-panel .seg { grid-template-columns: repeat(var(--n3, 2), minmax(0, 1fr)); } }
 .tgl-panel .seg button { min-width: 0; padding: 8px 3px; border: 0; border-radius: 6px; background: none; color: var(--muted); font: 700 9.5px/1 Orbitron, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tgl-panel .seg button:hover { color: #cfe3f5; background: #0c1729; }
 .tgl-panel .seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 16%, #070d18); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 10px color-mix(in srgb, var(--accent) 18%, transparent);
@@ -108,3 +112,50 @@
 .tgl-panel .pip { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; box-shadow: 0 0 6px var(--accent); }
 .tgl-panel .pip.off { background: #4a5b70; box-shadow: none; } .tgl-panel .pip.warn { background: var(--warn); box-shadow: none; }
 .tgl-panel .k-rename { color: var(--accent); }
+/* Inputty on Game (Widgets → Inputty): the two to switch between, show or hide, and the game, small, to place it on */
+.tgl-panel .io-which { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tgl-panel .io-tile { position: relative; display: grid; justify-items: center; gap: 4px; padding: 14px 8px 11px; border: 1px solid var(--line2); border-radius: 10px; background: var(--glass);
+  color: var(--muted); cursor: pointer; text-align: center; }
+.tgl-panel .io-tile:hover { color: #cfe3f5; border-color: #2a4766; }
+.tgl-panel .io-tile b { font: 700 10px/1.2 Orbitron, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: inherit; }
+.tgl-panel .io-tile small { font-size: 11px; font-weight: 400; color: var(--muted); }
+.tgl-panel .io-tile .io-ico { width: 46px; height: 28px; }
+.tgl-panel .io-tile[aria-pressed="true"] { color: var(--accent); border-color: var(--accent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 16%, #0b1628), #070d18); box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 28%, transparent), inset 0 1px 0 #ffffff10; }
+.tgl-panel .io-tile[aria-pressed="true"] .io-ico { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 70%, transparent)); }
+/* on stream: a lit dot in the corner */
+.tgl-panel .io-tile .led { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: #2a3a4f; }
+.tgl-panel .io-tile .led.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.tgl-panel .io-show { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line2); border-radius: 10px;
+  background: #08111f; color: var(--muted); cursor: pointer; text-align: left; }
+.tgl-panel .io-show b { font: 700 10.5px/1 Orbitron, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.tgl-panel .io-show small { font-size: 11px; font-weight: 400; }
+.tgl-panel .io-show[aria-pressed="true"] { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); background: linear-gradient(90deg, color-mix(in srgb, var(--ok) 12%, #08111f), #08111f 70%); }
+.tgl-panel .io-show[aria-pressed="true"] small { color: var(--muted); }
+/* an eye: open (a lit pupil) when showing, shut (a line) when hidden */
+.tgl-panel .io-eye { position: relative; width: 22px; height: 13px; border: 2px solid currentColor; border-radius: 50% / 60%; }
+.tgl-panel .io-eye::after { content: ""; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: currentColor; transform: translate(-50%, -50%); }
+.tgl-panel .io-show[aria-pressed="true"] .io-eye::after { box-shadow: 0 0 6px currentColor; }
+.tgl-panel .io-show[aria-pressed="false"] .io-eye { height: 2px; border-width: 0; border-radius: 0; background: currentColor; transform: rotate(-12deg); }
+.tgl-panel .io-show[aria-pressed="false"] .io-eye::after { display: none; }
+/* the game, small: 16:9, the HUD's grid, the window (on Game (window)) and the others' spaces as dashed outlines */
+/* 16:9 by its padding (an aspect-ratio box in the panel's grid row came out with no height, and what follows slid under it) */
+.tgl-panel .io-screen { position: relative; height: 0; padding-top: 56.25%; border: 1px solid var(--line2); border-radius: 8px; overflow: hidden;
+  background: radial-gradient(90% 80% at 50% 40%, #0f2036, #050a13), #050a13;
+  box-shadow: inset 0 0 0 1px #ffffff06, 0 6px 18px #0008; }
+.tgl-panel .io-screen::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(#ffffff08 1px, transparent 1px) 0 0 / 6.25% 11.11%, linear-gradient(90deg, #ffffff08 1px, transparent 1px) 0 0 / 6.25% 11.11%; }
+.tgl-panel .io-screen > i { position: absolute; pointer-events: none; border-radius: 3px; }
+.tgl-panel .io-win { border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: linear-gradient(160deg, #1a3350, #0b1729); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 15%, transparent); }
+.tgl-panel .io-ghost { border: 1px dashed #2f4560; background: #ffffff04; }
+.tgl-panel .io-spot { position: absolute; width: 16px; height: 16px; padding: 0; transform: translate(-50%, -50%); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, transparent); border-radius: 50%;
+  background: #070d18cc; cursor: pointer; z-index: 2; }
+.tgl-panel .io-spot::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 40%, transparent); }
+.tgl-panel .io-spot:hover { border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.tgl-panel .io-spot[aria-pressed="true"] { opacity: 0; }
+/* where it goes, exactly as big as it'll be */
+.tgl-panel .io-box { position: absolute; display: grid; place-items: center; border: 1.5px solid var(--accent); border-radius: 4px; color: var(--accent); z-index: 1;
+  background: color-mix(in srgb, var(--accent) 16%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--accent) 20%, transparent); }
+.tgl-panel .io-box .io-ico { width: 60%; height: 70%; filter: drop-shadow(0 0 4px var(--accent)); }
+.tgl-panel .io-box.off { border-style: dashed; opacity: .45; box-shadow: none; }
+.tgl-panel .io-tile:focus-visible, .tgl-panel .io-show:focus-visible, .tgl-panel .io-spot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

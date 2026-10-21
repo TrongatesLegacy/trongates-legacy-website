@@ -124,15 +124,15 @@
         const places = [...new Set(mine.flatMap((x) => x.places.map((p) => p.container.name)))];
         const size = kind === 'bare' ? `${M.SHARED_W} × ${M.SHARED_H}` : M.sizeOf(kind, P.s).join(' × ');
         const title = kind === 'bare' ? 'Shared chat' : w.title;
-        return `<div class="scene"><div class="t"><b class="grow">${title}</b><span class="muted">${kind === 'bare' ? 'raw Botrix · ' : kind === 'music' ? '' : kind === 'chatagram' || kind === 'chaplinko' || kind === 'chaplinkolb' ? 'game · ' : kind === 'inputty' ? 'keys · ' : 'framed · '}${size}</span></div>
+        return `<div class="scene"><div class="t"><b class="grow">${title}</b><span class="muted">${kind === 'bare' ? 'raw Botrix · ' : kind === 'music' ? '' : kind === 'chatagram' || kind === 'chaplinko' || kind === 'chaplinkolb' ? 'game · ' : M.isInputty(kind) ? 'keys · ' : 'framed · '}${size}</span></div>
           ${kind === 'chatagram' && !M.chatagramPairs(P.s.chatagram).length ? '<span class="hint bad">Paste your Chatagram link first (Widgets → Chatagram), or it will ask for a channel.</span>' : ''}
           ${(kind === 'chaplinko' || kind === 'chaplinkolb') && !M.chaplinkoPairs(P.s.chaplinko).length ? '<span class="hint bad">Paste your Chaplinko link first (Widgets → Chaplinko), or it will ask for a channel.</span>' : ''}
           <span class="hint">${places.length ? 'In ' + esc(places.join(', ')) : 'Not in any scene'}</span>
           <div class="row">${mine.length ? `<button type="button" class="btn grow" data-add="${kind}">Add existing</button><button type="button" class="btn" data-add="${kind}" data-copy="1" ${kind === 'bare' ? 'disabled' : ''}>New copy</button>` : `<button type="button" class="btn solid grow" data-add="${kind}">${kind === 'bare' ? 'Set up shared chat…' : 'Add to scene'}</button>`}</div></div>`;
       };
-      const found = obs.scan.widgets.filter((x) => !x.input.tag && !(P.s.dock.ignore || []).includes(x.input.uuid) && ['botrix-chat', 'chatbox', 'goal', 'music', 'bare', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty'].includes(x.kind));
+      const found = obs.scan.widgets.filter((x) => !x.input.tag && !(P.s.dock.ignore || []).includes(x.input.uuid) && ['botrix-chat', 'chatbox', 'goal', 'music', 'bare', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty', 'inputtypad'].includes(x.kind));
       return `<div class="row"><span class="grow">Add to</span><select data-target>${sceneOpts}</select></div>
-        ${['bare', 'chatbox', 'goal', 'music', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty'].map(card).join('')}
+        ${['bare', 'chatbox', 'goal', 'music', 'chatagram', 'chaplinko', 'chaplinkolb', 'inputty', 'inputtypad'].map(card).join('')}
         ${found.length ? `<h3>Found, not managed</h3>${found.map((x) => `<div class="scene"><div class="t"><b class="grow">${esc(x.input.name)}</b><span class="muted">${x.kind === 'botrix-chat' ? 'raw Botrix chat' : esc(M.WIDGETS[x.kind] ? M.WIDGETS[x.kind].title : x.kind)} · ${esc([...new Set(x.places.map((p) => p.container.name))].join(', '))}</span></div>
           <div class="row">${['botrix-chat', 'bare'].includes(x.kind) && !shared() ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="shared-chat">Use as shared chat</button>` : ''}${x.kind !== 'botrix-chat' ? `<button type="button" class="btn grow" data-tag="${x.input.uuid}" data-tagv="widget:${x.kind}">Adopt</button>` : ''}<button type="button" class="btn red" data-ignore="${x.input.uuid}">Ignore</button></div></div>`).join('')}` : ''}
         <p class="hint">Adding happens straight away, just above the scene's overlay (or at the top of a scene without one), centred. After that it's yours to move; settings changes reach it through Review &amp; apply.</p>`;
@@ -144,6 +144,11 @@
       const across = (most) => Math.ceil(items.length / Math.ceil(items.length / most));
       return { cur, html: `<div class="seg" style="--n:${across(4)};--n3:${across(3)}">${items.map(([k, label, n]) => `<button type="button" data-sub="${tab}:${k}" aria-pressed="${k === cur}">${label}${n ? `<i>${n}</i>` : ''}</button>`).join('')}</div>` };
     }
+    // Inputty's two: a keyboard with a mouse, and a controller (line drawings in the text colour)
+    const ICON = {
+      kbm: '<svg class="io-ico" viewBox="0 0 40 24" aria-hidden="true"><rect x="1" y="5" width="26" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><g fill="currentColor"><rect x="5" y="9" width="3" height="3" rx=".7"/><rect x="10" y="9" width="3" height="3" rx=".7"/><rect x="15" y="9" width="3" height="3" rx=".7"/><rect x="20" y="9" width="3" height="3" rx=".7"/><rect x="7" y="15" width="14" height="2.6" rx="1"/></g><rect x="30" y="7" width="9" height="14" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M34.5 7v5" stroke="currentColor" stroke-width="1.6"/></svg>',
+      pad: '<svg class="io-ico" viewBox="0 0 40 24" aria-hidden="true"><path d="M11 3h18c5 0 8 4 9 10l1 5c.5 3-2 5-4.5 3.5L29 17H11l-5.5 4.5C3 23 .5 21 1 18l1-5C3 7 6 3 11 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M11 8v6M8 11h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="27" cy="9" r="1.7" fill="currentColor"/><circle cx="31" cy="12.5" r="1.7" fill="currentColor"/></svg>',
+    };
     function tabWidgets() {
       const pasted = (P.s.linksMode || (M.isLink(P.s.links.chat) || M.isLink(P.s.links.goal) ? 'paste' : 'key')) === 'paste';
       const sh = dock && shared();
@@ -171,13 +176,51 @@
           ? 'Using ' + M.chaplinkoPairs(P.s.chaplinko).map(([k]) => k).join(', ') + '. The colours follow your form, whatever theme the link has. The board and the leaderboard sources both use it.'
           : 'Set Chaplinko up on trongateslegacy.com/chaplinko, press Copy board link, and paste it here: its channels and settings go into the Chaplinko sources (the board and its leaderboard).'}</span>`,
         inputty: () => {
-          const pairs = M.inputtyPairs(P.s.inputty), size = M.sizeOf('inputty', P.s);
-          return `<label class="field">Your Inputty link<input type="text" data-set="inputty" value="${esc(P.s.inputty || '')}" placeholder="https://www.trongateslegacy.com/inputty/play.html?p=…" autocomplete="off" spellcheck="false"></label>
-        <span class="hint ${pairs.length ? 'ok' : ''}">${pairs.length
-          ? 'Using ' + pairs.map(([k]) => k).join(', ') + '. The colours follow your form, whatever theme the link has.'
-          : 'Set Inputty up on trongateslegacy.com/inputty, press Copy my link, and paste it here: its layouts go into the Inputty source. Without one it shows WASD and the mouse.'}</span>
-        ${pairs.length ? `<span class="hint">${P.inputtyMeasuring ? 'Measuring its size…' : `Size in OBS: ${size.join(' × ')}${P.s.inputtySize ? '' : ' (not measured)'}`}</span>` : ''}
-        <span class="hint">Keys and mouse need input-overlay in OBS (set up on the Inputty page); controllers work on their own.</span>`;
+          const io = P.s.dock.inputty, lay = P.s.scenes.game.layout === 'window' ? 'window' : 'full', live = P.inputtyLive;
+          const sizeOf = (kind) => M.sizeOf(kind, P.s), cur = P.INPUTTY_KIND[io.which];
+          const pct = (v, of) => `${(+v / of * 100).toFixed(2)}%`;
+          const box = (t, [w, h]) => `left:${pct(t.positionX, 1920)};top:${pct(t.positionY, 1080)};width:${pct(w * t.scaleX, 1920)};height:${pct(h * t.scaleY, 1080)}`;
+          const rect = ([x, y, w, h]) => `left:${pct(x, 1920)};top:${pct(y, 1080)};width:${pct(w, 1920)};height:${pct(h, 1080)}`;
+          const NAMES = { tl: 'Top left', tr: 'Top right', ml: 'Left middle', mr: 'Right middle', bl: 'Bottom left', bm: 'Bottom middle', br: 'Bottom right' };
+          const tile = (which, label) => {
+            const kind = P.INPUTTY_KIND[which], on = io.which === which, linked = which === 'kbm' ? M.inputtyPairs(P.s.inputty).length : M.inputtyPairs(P.s.inputtyPad).length;
+            return `<button type="button" class="io-tile" data-io-which="${which}" aria-pressed="${on}">${ICON[which]}<b>${label}</b>
+              <small>${P.inputtyMeasuring[kind] ? 'measuring…' : sizeOf(kind).join(' × ')}${linked ? '' : ' · default'}</small><i class="led ${on && io.show ? 'on' : ''}" aria-hidden="true"></i></button>`;
+          };
+          // the game, small: the canvas (or Game (window)'s window, the chat and veadotube round it), the seven spots where
+          // Inputty would sit at this size, and the one picked showing exactly where and how big
+          const area = M.GAME_AREA[lay], src = sizeOf(cur);
+          const spots = M.INPUTTY_SPOTS.map((at) => {
+            const t = M.inputtyBox(lay, src, at, io.size), [w, h] = src;
+            return `<button type="button" class="io-spot" data-io-at="${at}" aria-pressed="${io.at === at}" aria-label="${NAMES[at]}" title="${NAMES[at]}" style="left:${pct(t.positionX + (w * t.scaleX) / 2, 1920)};top:${pct(t.positionY + (h * t.scaleY) / 2, 1080)}"></button>`;
+          }).join('');
+          const picked = io.at ? `<span class="io-box ${io.show ? '' : 'off'}" style="${box(M.inputtyBox(lay, src, io.at, io.size), src)}">${ICON[io.which]}</span>` : '';
+          const scenes = dock ? P.inputtyOnGame() : [];
+          const status = !dock ? 'In OBS, the dock puts it on your Game scenes and switches it.'
+            : P.obs.state !== 'connected' ? 'Connect to OBS first.'
+            : live.running ? 'Placing…' : live.note ? live.note
+            : !io.at ? 'Pick a spot to put it on Game.'
+            : scenes.map((x) => `${x.scene}${x.layout === 'window' ? ' (window)' : ''}: ${x.shown ? (x.shown === 'inputty' ? 'keyboard' : 'controller') + ' showing' : 'hidden'}`).join(' · ');
+          const veadoHere = lay === 'full' && io.at === 'br';
+          const link = (key, kind, label, ph) => {
+            const pairs = M.inputtyPairs(P.s[key]);
+            return `<label class="field">${label}<input type="text" data-set="${key}" value="${esc(P.s[key] || '')}" placeholder="${ph}" autocomplete="off" spellcheck="false"></label>
+            <span class="hint ${pairs.length ? 'ok' : ''}">${pairs.length ? 'Using ' + pairs.map(([k]) => k).join(', ') + '.' : kind === 'inputty' ? 'None yet: the overlay\'s own keys and mouse.' : 'None yet: an Xbox controller.'}
+              ${P.inputtyMeasuring[kind] ? 'Measuring its size…' : `Size in OBS: ${sizeOf(kind).join(' × ')}${P.s[key === 'inputty' ? 'inputtySize' : 'inputtyPadSize'] ? '' : ' (not measured)'}`}</span>`;
+          };
+          return `<div class="io-which" role="group" aria-label="On stream">${tile('kbm', 'Keyboard &amp; mouse')}${tile('pad', 'Controller')}</div>
+        <button type="button" class="io-show" data-io-show aria-pressed="${io.show}"><span class="io-eye" aria-hidden="true"></span><b>${io.show ? 'Showing on Game' : 'Hidden'}</b><small>${io.show ? 'tap to hide' : 'tap to show'}</small></button>
+        <h3>Where on Game</h3>
+        <div class="io-screen ${lay}" role="group" aria-label="Where on Game (${lay === 'window' ? 'inside the game window' : 'full screen'})">
+          ${lay === 'window' ? `<i class="io-win" style="${rect(area)}"></i><i class="io-ghost" style="${rect([1488, 126, 404, 370])}"></i><i class="io-ghost" style="${rect(P.VEADO_BOX.game)}"></i>` : '<i class="io-ghost veado" style="left:82%;top:60%;width:16%;height:38%"></i>'}
+          ${picked}${spots}
+        </div>
+        <div class="seg io-size" style="--n:3;--n3:3">${[['s', 'Small'], ['m', 'Medium'], ['l', 'Large']].map(([k, l]) => `<button type="button" data-io-size="${k}" aria-pressed="${io.size === k}">${l}</button>`).join('')}</div>
+        <span class="hint ${live.note ? 'bad' : ''}">${esc(status)}${veadoHere ? ' <span class="warn">On full-screen Game, veadotube sits bottom right too.</span>' : ''}</span>
+        <h3>Links</h3>
+        ${link('inputty', 'inputty', 'Keyboard &amp; mouse link', 'https://www.trongateslegacy.com/inputty/play.html?p=…')}
+        ${link('inputtyPad', 'inputtypad', 'Controller link', 'https://www.trongateslegacy.com/inputty/play.html?p=xboxone…')}
+        <span class="hint">Set each up on trongateslegacy.com/inputty and press Copy my link. The colours follow your form, whatever theme the link has. Keys and mouse need input-overlay in OBS; controllers work on their own.</span>`;
         },
         music: () => `<label class="field">Music app (blank: whatever Windows has in focus)<input type="text" data-set="music.app" value="${esc(P.s.music.app)}" placeholder="e.g. cider, applemusic, spotify"></label>
         <div class="row"><span class="grow">Stay up while paused</span>${tog('music.always', P.s.music.always)}</div>

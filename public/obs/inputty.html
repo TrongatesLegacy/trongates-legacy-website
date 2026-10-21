@@ -18,8 +18,9 @@ iframe { border: 0; width: 100%; height: 100%; display: block; background: trans
 <iframe id="io" title="Inputty" allowtransparency="true"></iframe>
 <script>
 (() => {
-  // theme.js's own options stay here, and the colours come from the form; everything else is passed on to the overlay
-  const OWN = ['form', 'veado', 'noveado', 'obs', 'obspw', 'map', 'veadodelay', 'looks', 'hide', 'guide', 'theme', 'accent', 'key', 'edge', 'hi', 'ink', 'orig'];
+  // theme.js's own options stay here (and part=pad, which of the dock's two Inputty sources this is), and the colours come
+  // from the form; everything else is passed on to the overlay
+  const OWN = ['form', 'veado', 'noveado', 'obs', 'obspw', 'map', 'veadodelay', 'looks', 'hide', 'guide', 'part', 'theme', 'accent', 'key', 'edge', 'hi', 'ink', 'orig'];
   const LOOK_THEME = { tron: 'neon', princess: 'royal', blobfish: 'deep' };
   // Tron's look keeps the armour's colour; Princess Trina's and the Blobfish's looks use their theme's own accent
   const themeFor = (form) => {

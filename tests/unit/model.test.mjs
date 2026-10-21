@@ -309,3 +309,50 @@ test('every Inputty setting a link can carry passes through /obs/inputty (its co
   const want = Object.keys(io.IOLooks.DEFAULTS).filter((k) => !['theme', 'accent', 'key', 'edge', 'hi', 'ink', 'orig', 'demo'].includes(k)).sort();
   assert.deepEqual([...M.INPUTTY_KEYS].sort(), want);
 });
+
+// Inputty on Game (the dock's Widgets → Inputty, owner 2026-10-21): two sources, keyboard and controller, each from its own
+// pasted link; one spot (a corner, a side's middle or the bottom middle) and a size place whichever is showing, inside
+// the game: the whole canvas on Game, the 1440 × 810 window on Game (window). Any source shape fits (wide WASD and the mouse, a
+// narrower keyboard, a controller), as the scale comes from the source's own size.
+test('Inputty: the controller source has its own link and size, and a controller when there\'s no link', () => {
+  const s = M.normalise(null);
+  const pad = new URL(url('inputtypad', s)).searchParams;
+  assert.equal(pad.get('part'), 'pad'); assert.equal(pad.get('p'), 'xboxone'); assert.equal(pad.get('p2'), '');
+  s.inputtyPad = 'p=ps5&v=1&p2=&theme=candy';
+  const q = new URL(url('inputtypad', s)).searchParams;
+  assert.equal(q.get('p'), 'ps5'); assert.equal(q.get('theme'), null);
+  s.inputtyPadSize = [620, 410];
+  assert.deepEqual(plain(M.sizeOf('inputtypad', s)), [620, 410]);
+  assert.equal(M.recognise(HOST + 'inputty?part=pad&p=ps5').kind, 'inputtypad');
+  assert.equal(M.recognise(HOST + 'inputty?p=wasd').kind, 'inputty');
+  assert.deepEqual(plain(M.inputtyPairs(M.fromUrls([HOST + 'inputty?part=pad&p=ps5&p2=']).inputtyPad)), [['p', 'ps5'], ['p2', '']]);
+  assert.equal(M.WIDGETS.inputty.title, 'Inputty keyboard'); assert.equal(M.WIDGETS.inputtypad.title, 'Inputty controller');
+});
+
+test('Inputty on Game: every spot and size lands inside the game, at its corner or middle, whatever shape the source is', () => {
+  const AREA = { full: [0, 0, 1920, 1080], window: [12, 76, 1440, 810] };
+  for (const [layout, [ax, ay, aw, ah]] of Object.entries(AREA)) {
+    const m = 24 * ah / 1080;
+    for (const src of [[1018, 400], [760, 400], [620, 410], [300, 420]]) {
+      let last = 0;
+      for (const size of ['s', 'm', 'l']) {
+        const boxes = {};
+        for (const at of M.INPUTTY_SPOTS) {
+          const t = M.inputtyBox(layout, src, at, size), w = src[0] * t.scaleX, h = src[1] * t.scaleY;
+          const where = `${layout} ${src} ${size} ${at}`;
+          assert.equal(t.scaleX, t.scaleY, where + ': not stretched');
+          assert.ok(t.positionX >= ax + m - 1 && t.positionY >= ay + m - 1 && t.positionX + w <= ax + aw - m + 1 && t.positionY + h <= ay + ah - m + 1, where + ': inside the game, off its edges');
+          boxes[at] = { x: t.positionX, y: t.positionY, w, h };
+          assert.equal(t.alignment, 5); assert.equal(t.boundsType, 'OBS_BOUNDS_NONE');
+        }
+        const near = (a, b) => Math.abs(a - b) <= 1;
+        assert.ok(near(boxes.tl.x, ax + m) && near(boxes.tl.y, ay + m), `${layout} tl`);
+        assert.ok(near(boxes.br.x + boxes.br.w, ax + aw - m) && near(boxes.br.y + boxes.br.h, ay + ah - m), `${layout} br`);
+        assert.ok(near(boxes.bm.x + boxes.bm.w / 2, ax + aw / 2), `${layout} bm: centred`);
+        assert.ok(near(boxes.ml.y + boxes.ml.h / 2, ay + ah / 2) && near(boxes.mr.y + boxes.mr.h / 2, ay + ah / 2), `${layout} sides: in the middle`);
+        assert.ok(boxes.tl.w > last, `${layout} ${src}: ${size} is bigger than the size before`);
+        last = boxes.tl.w;
+      }
+    }
+  }
+});

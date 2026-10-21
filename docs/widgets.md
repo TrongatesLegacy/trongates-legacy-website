@@ -725,7 +725,8 @@ engine (`shared/theme.js`: veadotube, the dock, `form=`, `looks=`) and sends eac
 message: Tron (any armour) → **neon** in the armour's colour, Princess Trina → **royal**, the Blobfish → **deep**,
 following the dock's Form looks. It's the only Chatagram file that knows the forms. `/obs/chaplinko` does the same for
 Chaplinko's board and (`part=leaderboard`) its leaderboard (obs/README.md, "Chaplinko"), and `/obs/inputty` for Inputty
-(obs/README.md, "Inputty"): the link's own colours are left out there, so the form decides them.
+(obs/README.md, "Inputty"): the link's own colours are left out there, so the form decides them. The dock keeps two of
+it (keyboard and controller, each from its own link) and places, switches and hides them on the Game scenes.
 
 ## Tests
 

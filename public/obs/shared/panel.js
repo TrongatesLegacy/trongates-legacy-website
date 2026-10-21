@@ -93,8 +93,10 @@
     // the dock's own settings (per scene collection): scene choices, pickers, lock, the measured avatar
     // tx: the transitions (on, default, each scene's pick by name, the overlay's scenes by uuid)
     const newTx = () => ({ on: false, default: '', scenes: {}, overlay: {} });
-    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 880, game: 580 }, tx: newTx() });
-    const fixDock = (d) => { d = d || newDock(); d.tx = { ...newTx(), ...(d.tx || {}) }; if (d.names === undefined) d.names = true; d.avatar = { chatting: 880, game: 580, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if ([454, 534].includes(d.avatar.game)) d.avatar.game = 580; return d; };   // 820, 454 and 534: earlier defaults
+    // Inputty on Game (panel-inputty.js): which one shows (kbm, pad), shown or not, the spot ('' = not placed) and size
+    const newInputty = () => ({ which: 'kbm', show: true, at: '', size: 'm' });
+    const newDock = () => ({ map: {}, ignore: [], pick: { capture: {}, veado: {} }, lock: false, avatar: { chatting: 880, game: 580 }, tx: newTx(), inputty: newInputty() });
+    const fixDock = (d) => { d = d || newDock(); d.tx = { ...newTx(), ...(d.tx || {}) }; d.inputty = { ...newInputty(), ...(d.inputty || {}) }; if (d.names === undefined) d.names = true; d.avatar = { chatting: 880, game: 580, ...(d.avatar || {}) }; if (d.avatar.chatting === 820) d.avatar.chatting = 880; if ([454, 534].includes(d.avatar.game)) d.avatar.game = 580; return d; };   // 820, 454 and 534: earlier defaults
     s.dock = fixDock(s.dock);
     const save = () => { write(storeKey, s); onChange(s, env.links); refresh(); };
     const set = (path, value) => { const ks = path.split('.'); let o = s; while (ks.length > 1) o = o[ks.shift()]; o[ks[0]] = value; save(); };
@@ -171,23 +173,24 @@
     // ui: which sub-tab each tab shows, and which scene row is open (kept in this browser)
     const ui = { sub: read('tgl-panel-sub') || {}, open: read('tgl-panel-open') || '' };
     const P = { M, TGL, dock, params, el, conn, obs, env, music, veado, esc, SHORT, FORM_KEYS, TAG, SHARED_NAME,
-      read, write, obsCfg, newDock, fixDock, save, set, checkKey, refresh, ui, inputtyMeasuring: false };
+      read, write, obsCfg, newDock, fixDock, save, set, checkKey, refresh, ui, inputtyMeasuring: { inputty: false, inputtypad: false } };
     const vars = { s: [() => s, (v) => { s = v; }], tab: [() => tab, (v) => { tab = v; }], storeKey: [() => storeKey, (v) => { storeKey = v; }],
       reviewing: [() => reviewing, (v) => { reviewing = v; }], importNote: [() => importNote, (v) => { importNote = v; }] };
     for (const [k, [get, put]] of Object.entries(vars)) Object.defineProperty(P, k, { get, set: put });
-    for (const part of ['obs', 'layout', 'tabs']) Object.assign(P, window.TGLPanelParts[part](P));
+    for (const part of ['obs', 'layout', 'inputty', 'tabs']) Object.assign(P, window.TGLPanelParts[part](P));
     const { connectObs, call, reconnectObs, rescan, managedRows, plan, placeSharedLive, review, runReview, currentScene, addWidget, tagInput,
       checks, measure, measureAvatar, head, foot, reviewHtml, bodies } = P;
 
-    // ---------------------------------------------------------------- Inputty's size
-    // The size its OBS source needs depends on the layouts in the pasted link: the overlay works it out and tells the page
-    // around it (io-size, as the set-up page shows under the link), so it's loaded out of sight once to ask
-    let measuring = null;
-    function measureInputty() {
-      measuring?.done();
-      const pairs = M.inputtyPairs(s.inputty);
-      s.inputtySize = null;
-      if (!pairs.length) { P.inputtyMeasuring = false; save(); return; }
+    // ---------------------------------------------------------------- Inputty's sizes
+    // The size each Inputty source needs depends on the layouts in its link (or the defaults: the overlay's own, an Xbox
+    // controller for the controller's): the overlay works it out and tells the page around it (io-size, as the set-up
+    // page shows under the link), so it's loaded out of sight once to ask. Placed on Game, it's placed again at the new size
+    const measuring = { inputty: null, inputtypad: null };
+    function measureInputty(kind) {
+      measuring[kind]?.done();
+      const pad = kind === 'inputtypad', key = pad ? 'inputtyPadSize' : 'inputtySize';
+      const pairs = pad ? M.inputtyPadPairs(s) : M.inputtyPairs(s.inputty);
+      s[key] = null;
       const frame = document.createElement('iframe'), job = {};
       let size = null, timer = 0, poll = 0;
       frame.setAttribute('aria-hidden', 'true'); frame.tabIndex = -1;
@@ -195,12 +198,13 @@
       const onMsg = (e) => { if (e.source === frame.contentWindow && e.data?.type === 'io-size') size = [e.data.w, e.data.h]; };
       job.done = (keep) => {
         clearTimeout(timer); clearInterval(poll); removeEventListener('message', onMsg); frame.remove();
-        if (measuring !== job) return;
-        measuring = null; P.inputtyMeasuring = false;
-        if (keep && size) s.inputtySize = size;
+        if (measuring[kind] !== job) return;
+        measuring[kind] = null; P.inputtyMeasuring[kind] = false;
+        if (keep && size) s[key] = size;
         save();
+        if (dock && s.dock.inputty.at) P.inputtyApply();
       };
-      measuring = job; P.inputtyMeasuring = true;
+      measuring[kind] = job; P.inputtyMeasuring[kind] = true;
       addEventListener('message', onMsg);
       frame.src = new URL('../inputty/play.html', location.href).href + '?' + new URLSearchParams([...pairs, ['demo', '1']]).toString();
       document.body.appendChild(frame);
@@ -256,6 +260,11 @@
       if (d.tag) { await tagInput(obs.scan.inputs.get(d.tag), d.tagv); if (d.tagv === 'shared-chat') { s.shared = true; save(); } return; }
       if (d.txOverlay) { const c = P.transitionScenes().find((x) => x.uuid === d.txOverlay); if (c) { s.dock.tx.overlay[c.uuid] = !P.overlayIn(c); save(); } return; }
       if (d.ignore) { s.dock.ignore = [...(s.dock.ignore || []), d.ignore]; save(); return; }
+      // Inputty on Game (Widgets → Inputty): straight away
+      if (d.ioWhich) { P.inputtyControl('which', d.ioWhich); return; }
+      if (d.ioShow !== undefined) { P.inputtyControl('show'); return; }
+      if (d.ioAt) { P.inputtyControl('at', d.ioAt); return; }
+      if (d.ioSize) { P.inputtyControl('size', d.ioSize); return; }
       switch (d.act) {
         case 'review': review('Review & apply', plan()); break;
         case 'cancel': reviewing = null; refresh(); break;
@@ -309,7 +318,8 @@
         if (d.set === 'linksMode') { s.linksMode = v; save(); return; }
         set(d.set, v);
         if (d.set === 'key') checkKey();
-        if (d.set === 'inputty') measureInputty();
+        if (d.set === 'inputty') measureInputty('inputty');
+        if (d.set === 'inputtyPad') measureInputty('inputtypad');
         if (d.set === 'veado.addr' && dock) reconnectVeado();
         return;
       }
@@ -338,7 +348,8 @@
       currentScene && setTimeout(async () => { try { obs.target = await currentScene(); refresh(); } catch {} }, 1500);
     }
     checkKey();
-    if (s.inputty && !s.inputtySize) measureInputty();
+    if (!s.inputtySize) measureInputty('inputty');
+    if (!s.inputtyPadSize) measureInputty('inputtypad');
     render();
     return { get settings() { return s; }, get env() { return env.links; }, get obs() { return obsCfg(); }, refresh };
   }

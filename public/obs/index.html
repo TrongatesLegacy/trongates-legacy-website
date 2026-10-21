@@ -9,6 +9,7 @@
 <script src="shared/transition.js"></script>
 <script src="shared/panel-obs.js"></script>
 <script src="shared/panel-layout.js"></script>
+<script src="shared/panel-inputty.js"></script>
 <script src="shared/panel-tabs.js"></script>
 <script src="shared/panel.js"></script>
 <!-- Index of the OBS overlays: live previews of every scene; click one to open it full size.
@@ -152,7 +153,8 @@ footer code { color: #cfe3f5; }
     { id: 'chatagram', desc: 'The chat word game, in your form\'s colours (Tron neon, Princess Trina royal, the Blobfish deep). Set it up on trongateslegacy.com/chatagram and paste its link in Widgets → Chatagram; that link\'s channels and game settings go into this one. 960 × 540, or 1920 × 1080 to fill the screen.' },
     { id: 'chaplinko', desc: 'Chaplinko, the chat Plinko game, in your form\'s colours. Set it up on trongateslegacy.com/chaplinko and paste its board link in Widgets → Chaplinko. 640 × 540 (960 × 540 combined with its leaderboard).' },
     { id: 'chaplinkolb', desc: 'Chaplinko\'s leaderboard as its own source (This stream and All time), in your form\'s colours, following the Chaplinko board. 300 wide (taller with more players), or a 720 × 72 strip.' },
-    { id: 'inputty', desc: 'Inputty, your keys, mouse and controller on stream, in your form\'s colours (Tron neon, Princess Trina royal, the Blobfish deep). Set it up on trongateslegacy.com/inputty and paste its link in Widgets → Inputty; the dock adds it at the size its layouts need (1018 × 400 for WASD and the mouse).' },
+    { id: 'inputty', desc: 'Inputty, your keys and mouse on stream, in your form\'s colours (Tron neon, Princess Trina royal, the Blobfish deep). Set it up on trongateslegacy.com/inputty and paste its link in Widgets → Inputty; the dock puts it on your Game scenes (a corner, a side or the bottom middle, inside the game window on Game (window)) at the size its layouts need.' },
+    { id: 'inputtypad', desc: 'Inputty for your controller, the same way, from its own link (an Xbox controller until you paste one). The dock switches between the two on Game, or hides them.' },
     { id: 'transition', desc: 'The scene transitions (Derez grid, Logo shutters) in your colour, invisible until OBS plays a Trongates Stinger. The dock sets it all up (Scenes → Transitions); by hand: 1920 × 1080, on top of every scene, obs= with your WebSocket port.' },
   ].map((c) => ({ ...c, kind: c.id, title: M.WIDGETS[c.id].title, file: M.WIDGETS[c.id].file, w: M.WIDGETS[c.id].w, h: M.WIDGETS[c.id].h }));   // (Chaplinko's and Inputty's real sizes follow their links: M.sizeOf)
   const grid = document.getElementById('grid'), wgrid = document.getElementById('wgrid'), guide = document.getElementById('guide');
@@ -232,7 +234,7 @@ footer code { color: #cfe3f5; }
         const c = byId(a.dataset.id), src = previewSrc(c);
         show(a.querySelector('iframe'), src);
         a.href = obsUrl(c);
-        a.querySelector('code').textContent = new URL(c.file, location.href).href + (c.layout === 'window' ? '?layout=window' : c.id === 'bare' ? '?bare=1' : c.id === 'chaplinkolb' ? '?part=leaderboard' : '') + extras(c);
+        a.querySelector('code').textContent = new URL(c.file, location.href).href + (c.layout === 'window' ? '?layout=window' : c.id === 'bare' ? '?bare=1' : c.id === 'chaplinkolb' ? '?part=leaderboard' : c.id === 'inputtypad' ? '?part=pad' : '') + extras(c);
         if (c.id === 'chatagram' && !M.chatagramPairs(s.chatagram).length) a.querySelector('code').textContent += '  (paste your Chatagram link in Widgets → Chatagram)';
         if ((c.id === 'chaplinko' || c.id === 'chaplinkolb') && !M.chaplinkoPairs(s.chaplinko).length) a.querySelector('code').textContent += '  (paste your Chaplinko link in Widgets → Chaplinko)';
       });

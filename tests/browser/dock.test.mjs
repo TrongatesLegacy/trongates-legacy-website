@@ -220,8 +220,10 @@ test('Inputty: a link pasted in Widgets → Inputty is measured, and goes into t
   await tab.until(`document.querySelector('.tgl-panel [data-set="inputty"]')`);
   // keyboard only (an empty p2): narrower than WASD and the mouse's 1018 × 400
   await tab.eval(`(() => { const f = document.querySelector('.tgl-panel [data-set="inputty"]'); f.value = 'https://www.trongateslegacy.com/inputty/play.html?p=game-keys&v=2&p2=&theme=candy'; f.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
-  await tab.until(`/Size in OBS: \\d+ × \\d+/.test(document.querySelector('.tgl-panel').textContent)`, 10000, 'the size measured');
-  const [w, h] = (await tab.eval(`/Size in OBS: (\\d+) × (\\d+)/.exec(document.querySelector('.tgl-panel').textContent).slice(1).join()`)).split(',').map(Number);
+  // the keyboard link's own hint (the controller link has one too)
+  const hint = `document.querySelector('.tgl-panel [data-set="inputty"]').closest('label').nextElementSibling.textContent`;
+  await tab.until(`/^\\s*Using p, v, p2\\./.test(${hint}) && /Size in OBS: \\d+ × \\d+\\s*$/.test(${hint})`, 10000, 'the pasted link measured');
+  const [w, h] = (await tab.eval(`/Size in OBS: (\\d+) × (\\d+)/.exec(${hint}).slice(1).join()`)).split(',').map(Number);
   assert.ok(w > 200 && w < 1018 && h > 100 && h <= 420, `measured ${w} × ${h}`);
   await tab.click('[data-tab="sources"]');
   await tab.until(`document.querySelector('.tgl-panel [data-add="inputty"]')`);
@@ -255,9 +257,66 @@ test('every tab and sub-tab fits the dock, even a narrow one: nothing scrolls si
     // Widgets' sub-tabs: every one on show, in even rows
     await tab.click('[data-tab="widgets"]');
     await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:inputty"]')`);
-    const rows = await tab.eval(`(() => { const b = [...document.querySelectorAll('.tgl-panel .seg button')]; const tops = [...new Set(b.map((x) => Math.round(x.getBoundingClientRect().top)))]; return tops.map((t) => b.filter((x) => Math.round(x.getBoundingClientRect().top) === t).length); })()`);
+    const rows = await tab.eval(`(() => { const b = [...document.querySelector('.tgl-panel .seg').querySelectorAll('button')]; const tops = [...new Set(b.map((x) => Math.round(x.getBoundingClientRect().top)))]; return tops.map((t) => b.filter((x) => Math.round(x.getBoundingClientRect().top) === t).length); })()`);
     assert.ok(rows.length <= 3 && Math.max(...rows) - Math.min(...rows) <= 1, `${width}px: rows of ${rows.join(', ')}`);
     assert.ok(await tab.eval(`!!document.querySelector('.tgl-panel [data-sub="widgets:inputty"]')`), 'Inputty has its own sub-tab');
     await tab.close();
   }
+  // the same panel on the OBS index page, a narrow column of a wide window: its sub-tabs wrap by the panel's width
+  const index = await chrome.open(`${site.origin}/obs/`, { width: 1440, height: 900 });
+  await index.until(`document.querySelector('.tgl-panel [data-tab="widgets"]')`, 5000);
+  await index.click('.tgl-panel [data-tab="widgets"]');
+  await index.until(`document.querySelector('.tgl-panel [data-sub="widgets:inputty"]')`);
+  assert.equal(await index.eval(`[...document.querySelectorAll('.tgl-panel .seg button')].filter((b) => b.scrollWidth > b.clientWidth + 1).map((b) => b.textContent).join()`), '', 'no sub-tab cut short on the index page');
+  await index.close();
+});
+
+// the owner: Inputty on the game screens, in a corner, a side's middle or the bottom middle, from the dock; two links
+// (keyboard, controller), switched and shown or hidden from the Inputty tab, straight away like the colour buttons
+test('Inputty on Game: a spot places whichever is showing inside the game (Game (window): its window); switching and hiding are instant', async () => {
+  const tab = await openDock();
+  await tab.click('[data-tab="widgets"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:inputty"]')`);
+  await tab.click('.tgl-panel [data-sub="widgets:inputty"]');
+  await tab.until(`document.querySelectorAll('.tgl-panel [data-io-at]').length === 7`, 5000, 'seven spots');
+  // nothing in the tab sits on top of anything else (the little screen once had no height, and the size buttons slid under it)
+  const overlaps = await tab.eval(`(() => { const k = [...document.querySelector('.tgl-panel .bd').children].map((c) => c.getBoundingClientRect()); return k.slice(1).filter((r, i) => r.top < k[i].bottom - 1).length; })()`);
+  assert.equal(overlaps, 0, 'the Inputty tab\'s parts overlap');
+  const game = () => obs.sceneNamed('Game');
+  const mine = (kind) => game().items.find((i) => i.input.settings.tgl_managed === 'widget:' + kind);
+  await tab.click('.tgl-panel [data-io-at="br"]');
+  const until = async (fn, what, ms = 8000) => { const end = Date.now() + ms; while (Date.now() < end) { if (fn()) return; await sleep(50); } throw new Error('timed out: ' + what); };
+  await until(() => mine('inputty') && mine('inputtypad') && mine('inputty').transform.scaleX, 'both Inputty sources in Game, placed');
+  // the Game layout the dock is set to (the tab draws it): inside the window, or the whole canvas
+  const lay = await tab.eval(`document.querySelector('.tgl-panel .io-screen').classList.contains('window') ? 'window' : 'full'`);
+  const [ax, ay, aw, ah] = lay === 'window' ? [12, 76, 1440, 810] : [0, 0, 1920, 1080];
+  const want = async (kind, size = 'm') => tab.eval(`TGLModel.inputtyBox('${lay}', [${mine(kind).input.settings.width}, ${mine(kind).input.settings.height}], 'br', '${size}')`);
+  await until(() => mine('inputty').enabled !== false && mine('inputtypad').enabled === false, 'keyboard showing, controller hidden');
+  // (its size may still be being measured: placed again at the measured size once it is)
+  let t;
+  for (let i = 0; i < 100; i++) { t = await want('inputty'); if (['positionX', 'positionY', 'scaleX'].every((k) => Math.abs(mine('inputty').transform[k] - t[k]) < 0.01)) break; await sleep(80); }
+  for (const k of ['positionX', 'positionY', 'scaleX']) assert.ok(Math.abs(mine('inputty').transform[k] - t[k]) < 0.01, `keyboard ${k}: ${mine('inputty').transform[k]} vs ${t[k]}`);
+  // inside the game (the 1440 × 810 window on Game (window)), and above the game capture so it shows
+  const w = mine('inputty').input.settings.width * t.scaleX, h = mine('inputty').input.settings.height * t.scaleY;
+  assert.ok(t.positionX >= ax && t.positionY >= ay && t.positionX + w <= ax + aw && t.positionY + h <= ay + ah, `inside the game (${lay})`);
+  const idx = (it) => game().items.indexOf(it);
+  assert.ok(idx(mine('inputty')) > idx(game().items.find((i) => i.input.name === 'Game capture')), 'above the game capture');
+  // switch to the controller: it shows, the keyboard hides
+  await tab.click('.tgl-panel [data-io-which="pad"]');
+  await until(() => mine('inputtypad').enabled !== false && mine('inputty').enabled === false, 'controller showing');
+  let tp;
+  for (let i = 0; i < 100; i++) { tp = await want('inputtypad'); if (Math.abs(mine('inputtypad').transform.positionX - tp.positionX) < 1) break; await sleep(80); }
+  assert.ok(Math.abs(mine('inputtypad').transform.positionX - tp.positionX) < 1, 'the controller in the same spot, at its own size');
+  // hide: neither shows; show again: the controller's back
+  await tab.click('.tgl-panel [data-io-show]');
+  await until(() => mine('inputtypad').enabled === false && mine('inputty').enabled === false, 'both hidden');
+  await tab.click('.tgl-panel [data-io-show]');
+  await until(() => mine('inputtypad').enabled !== false, 'shown again');
+  // bigger
+  const before = mine('inputtypad').transform.scaleX;
+  await tab.click('.tgl-panel [data-io-size="l"]');
+  await until(() => mine('inputtypad').transform.scaleX > before + 0.01, 'bigger');
+  assert.equal([...obs.inputs.values()].filter((i) => i.settings.tgl_managed === 'widget:inputtypad').length, 1, 'one controller source');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
 });
