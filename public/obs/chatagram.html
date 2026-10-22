@@ -32,7 +32,7 @@ iframe { border: 0; width: 100%; height: 100%; display: block; background: trans
   q.set('theme', first.theme); if (first.accent) q.set('accent', first.accent);
   const frame = document.getElementById('game');
   frame.src = '../chatagram/play.html?' + q.toString().replace(/%2C/g, ',');
-  let last = '';
+  let last = '', cycleForm = null;
   const send = (form) => {
     const t = themeFor(form), key = t.theme + t.accent;
     if (key === last) return;
@@ -40,9 +40,10 @@ iframe { border: 0; width: 100%; height: 100%; display: block; background: trans
     try { frame.contentWindow.postMessage({ type: 'widget-theme', ...t }, '*'); } catch {}
   };
   // on the stream's scenes: each scene's look, paused on Game if it shouldn't keep playing (shared/games.js)
-  const games = TGLGames.follow('chatagram', (m) => { try { frame.contentWindow.postMessage(m, '*'); } catch {} });
+  const games = TGLGames.follow('chatagram', (m) => { try { frame.contentWindow.postMessage(m, '*'); } catch {} }, (f) => { cycleForm = f; send(f || TGL.form); });
   frame.addEventListener('load', () => { last = ''; send(TGL.form); games.apply(); });
-  TGL.onChange((form) => send(form));
+  // the stream's form, or the cycling scene's while one is on show (Starting soon, Be right back: games.js)
+  TGL.onChange((form) => send(cycleForm || form));
   window.chatagramWrapper = { themeFor, frame, games };
 })();
 </script>

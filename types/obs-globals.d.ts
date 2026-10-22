@@ -45,7 +45,7 @@ interface Window {
   TGLDockColour: { create(opts: any): any };
   TGLPanel: { mount(el: HTMLElement, opts?: { mode?: 'dock' | 'index'; onChange?: (settings: any, env: any) => void; onForm?: (form: Form) => void }): any };
   TGLPanelParts: Record<string, (P: any) => any>;
-  TGLGames: { follow(game: string, send: (message: any) => void): { apply(): void }; kindOfUrl(url: string): string; kindOfScene(name: string, depth?: number, group?: boolean): Promise<string> };
+  TGLGames: { follow(game: string, send: (message: any) => void, onForm?: (form: string | null) => void): { apply(): void }; kindOfUrl(url: string): string; kindOfScene(name: string, depth?: number, group?: boolean): Promise<string> };
   TGL_NO_AUTOCONNECT?: boolean;
   TGL_ICONS?: any;
   obsstudio?: any;

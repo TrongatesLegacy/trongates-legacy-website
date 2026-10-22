@@ -290,6 +290,12 @@
           const q = `obs=${encodeURIComponent(conn.port || '4455')}${conn.pw ? '&obspw=' + encodeURIComponent(conn.pw) : ''}`;
           copy(new URL('rescue?' + q, location.href).href, b); break;
         }
+        // the OBS index page with everything in it: the settings and the OBS connection (its previews and copied addresses then
+        // match the dock's)
+        case 'copy-index': {
+          const q = `obs=${encodeURIComponent(conn.port || '4455')}${conn.pw ? '&obspw=' + encodeURIComponent(conn.pw) : ''}`;
+          copy(new URL('./?' + q, location.href).href + '#s=' + M.pack({ ...s, dock: undefined }), b); break;
+        }
         case 'copy-dock': {
           const q = `obs=${encodeURIComponent(conn.port || '4455')}${conn.pw ? '&obspw=' + encodeURIComponent(conn.pw) : ''}`;
           copy(new URL('control?' + q, location.href).href + '#s=' + M.pack({ ...s, dock: undefined }), b); break;

@@ -27,11 +27,30 @@
     return '';
   }
   /**
-   * follow the scenes for one game: send(message) passes a message to the game. Returns { apply() } to send the current
-   * look again (the game reloaded).
+   * follow the scenes for one game: send(message) passes a message to the game; onForm(form | null) is the form a cycling
+   * scene on show is on (Starting soon, Be right back take the forms in turn), null for the stream's own. Returns { apply() }
+   * to send the current look again (the game reloaded).
    */
-  function follow(game, send) {
+  /** @param {string} game @param {(message: any) => void} send @param {(form: string | null) => void} [onForm] */
+  function follow(game, send, onForm = (form) => {}) {
     const q = new URLSearchParams(location.search), look = {};
+    // the cycling scenes' forms: the latest each said (the scene may say it before OBS says it's on show), and the one in use
+    const CYCLE_FRESH = 9000, said = {};
+    let cycleForm = null;
+    const useCycle = () => {
+      const c = said[kind], f = c && Date.now() - c.at < CYCLE_FRESH ? c.form : null;
+      if (f !== cycleForm) { cycleForm = f; onForm(f); }
+    };
+    const heard = (d) => {
+      if (!d || !d.scene || !TGL.FORMS[d.form]) return;
+      said[d.scene] = { form: d.form, at: Date.now() };
+      if (d.scene === kind) useCycle();
+    };
+    // the index page's preview: the scene around it is the one on show
+    if (parent !== window) addEventListener('message', (e) => {
+      if (!e.data || e.data.type !== 'tgl-cycle' || !TGL.FORMS[e.data.form]) return;
+      if (e.data.form !== cycleForm) { cycleForm = e.data.form; onForm(cycleForm); }
+    });
     for (const p of (q.get('scenelook') || '').split(',')) { const [k, v] = p.split(':'); if (k && v) look[k] = v.split('.').map(Number); }
     let keep = q.get('keep') !== '0', kind = '', asked = 0;
     const apply = () => {
@@ -42,13 +61,15 @@
     };
     const me = { apply, get kind() { return kind; }, get keep() { return keep; } };
     if (!q.has('scenelook')) return me;          // not on the stream's scenes: the link's own look, never paused
+    try { new BroadcastChannel('tgl-cycle').onmessage = (e) => heard(e.data); } catch {}
     TGL.onScene(async (name) => {
       const n = ++asked;
       const k = await kindOfScene(name).catch(() => '');
       if (n !== asked || !k) return;              // another switch since, or not a Trongates scene: keep the last look
-      kind = k; apply();
+      kind = k; apply(); useCycle();
     });
     TGL.onCustom((d) => {
+      if (d.tgl === 'cycle') return heard(d);
       if (d.tgl !== 'game-look' || d.game !== game) return;
       if (d.look) for (const [k, v] of Object.entries(d.look)) if (Array.isArray(v)) look[k] = v.map(Number);
       if (d.keep !== undefined) keep = !!d.keep;

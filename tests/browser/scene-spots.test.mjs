@@ -71,3 +71,15 @@ test('in the previews (demo=1) the spot plays the game itself, the board alone f
     await tab.close();
   }
 });
+
+// the owner: on Starting soon and Be right back the forms take turns, and the game in the spot changes with them
+test('a game in a cycling scene\'s spot changes theme with the scene\'s form (the preview: straight in)', async () => {
+  const tab = await chrome.open(`${site.origin}/obs/brb?noveado=1&form=cyan&spot=chatagram&demo=1`, { width: 1920, height: 1080, reducedMotion: true });
+  const theme = `(() => { try { return document.querySelector('[data-spot] iframe').contentDocument.getElementById('game').contentDocument.getElementById('board').dataset.theme; } catch { return ''; } })()`;
+  await tab.until(`${theme} === 'neon'`, 10000, 'the game on Tron\'s neon');
+  // the scene's own turns (every 6 s), which no other page hears of: Princess Trina, then the Blobfish
+  await tab.until(`${theme} === 'royal'`, 9000, 'Princess Trina\'s royal with the scene\'s turn');
+  await tab.until(`${theme} === 'deep'`, 9000, 'the Blobfish\'s deep');
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});

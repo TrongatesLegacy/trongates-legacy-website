@@ -454,3 +454,73 @@ test('Sources: one compact row per source in groups, closed until tapped; tappin
   assert.deepEqual(tab.errors, []);
   await tab.close();
 });
+
+// the owner: the game takes the cycling scene's form while OBS shows that scene (Starting soon, Be right back), and the
+// stream's own form everywhere else. The scene says so over OBS (a CustomEvent, tgl: 'cycle')
+test('a game on the scenes follows Starting soon\'s and Be right back\'s rotating forms while OBS shows them', async () => {
+  const port = obsAddr.split(':')[1];
+  obs.program = 'Just chatting'; obs.broadcast('CurrentProgramSceneChanged', { sceneName: 'Just chatting' });
+  const tab = await chrome.open(`${site.origin}/obs/chatagram?obs=${port}&noveado=1&form=cyan&scenelook=brb:95.100,chatting:95.100`, { width: 960, height: 540 });
+  const theme = () => tab.eval(`document.getElementById('game').contentDocument?.getElementById('board')?.dataset.theme || ''`);
+  await tab.until(`document.getElementById('game').contentDocument?.documentElement?.dataset.ready === '1'`, 8000, 'the game');
+  for (let i = 0; i < 60 && await theme() !== 'neon'; i++) await sleep(50);
+  // a cycle on Be right back while OBS shows Just chatting: not for it
+  obs.broadcast('CustomEvent', { tgl: 'cycle', scene: 'brb', form: 'princess', at: Date.now() });
+  await sleep(300);
+  assert.equal(await theme(), 'neon', 'Be right back isn\'t on show');
+  // OBS shows Be right back: the form it's on now, and each turn after it
+  obs.program = 'Be right back'; obs.broadcast('CurrentProgramSceneChanged', { sceneName: 'Be right back' });
+  for (let i = 0; i < 60 && await theme() !== 'royal'; i++) await sleep(50);
+  assert.equal(await theme(), 'royal', 'Be right back\'s form when it comes on show');
+  obs.broadcast('CustomEvent', { tgl: 'cycle', scene: 'brb', form: 'blobfish', at: Date.now() });
+  for (let i = 0; i < 60 && await theme() !== 'deep'; i++) await sleep(50);
+  assert.equal(await theme(), 'deep', 'the next turn');
+  // back to Just chatting: the stream's own form
+  obs.program = 'Just chatting'; obs.broadcast('CurrentProgramSceneChanged', { sceneName: 'Just chatting' });
+  for (let i = 0; i < 60 && await theme() !== 'neon'; i++) await sleep(50);
+  assert.equal(await theme(), 'neon', 'the stream\'s form again');
+  await tab.close();
+  // and the scene says so: Be right back with a game in its spot and obs= tells OBS each form it shows
+  const before = obs.count('BroadcastCustomEvent');
+  const brb = await chrome.open(`${site.origin}/obs/brb?obs=${port}&noveado=1&form=cyan&spot=chatagram`, { width: 1920, height: 1080, reducedMotion: true });
+  await brb.until(`document.fonts.status === 'loaded'`, 5000);
+  await brb.eval(`TGL.set('princess'); 1`);
+  for (let i = 0; i < 60 && !obs.calls.slice(0).some((c) => c[1] === 'BroadcastCustomEvent' && c[2].eventData.tgl === 'cycle' && c[2].eventData.form === 'princess'); i++) await sleep(50);
+  assert.ok(obs.calls.some((c) => c[1] === 'BroadcastCustomEvent' && c[2].eventData.tgl === 'cycle' && c[2].eventData.scene === 'brb' && c[2].eventData.form === 'princess'), 'the scene told OBS');
+  assert.ok(obs.count('BroadcastCustomEvent') > before);
+  assert.deepEqual(brb.errors, []);
+  await brb.close();
+  obs.program = '';
+});
+
+// the owner: from the dock, the OBS index page's address with everything in it (every setting, and the OBS port and
+// password, so its previews and copied addresses match the dock's)
+test('More → Copy OBS index address: the index opens with every setting and the OBS connection', async () => {
+  const tab = await openDock();
+  await tab.eval(`window.__copied = []; navigator.clipboard.writeText = async (t) => { window.__copied.push(t); }; 1`);
+  await tab.click('[data-tab="widgets"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-sub="widgets:chatagram"]')`);
+  await tab.click('.tgl-panel [data-sub="widgets:chatagram"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-set="chatagram"]')`);
+  await tab.eval(`(() => { const f = document.querySelector('.tgl-panel [data-set="chatagram"]'); f.value = 'kick=indexcheck&time=90'; f.dispatchEvent(new Event('change', { bubbles: true })); return 1; })()`);
+  await tab.click('.tgl-panel [data-sub="widgets:more"]');
+  await tab.until(`document.querySelector('.tgl-panel [data-act="copy-index"]')`, 3000, 'the button');
+  await tab.click('.tgl-panel [data-act="copy-index"]');
+  await tab.until('window.__copied.length', 3000, 'copied');
+  const addr = new URL(await tab.eval('window.__copied[0]'));
+  assert.equal(addr.pathname, '/obs/');
+  const port = await tab.eval(`JSON.parse(localStorage.getItem('tgl-panel-obs')).port`);   // the dock's own (earlier tests may have changed it)
+  assert.equal(addr.searchParams.get('obs'), port, 'the OBS port');
+  assert.match(addr.hash, /^#s=/);
+  await tab.close();
+  // the index takes it all in
+  const index = await chrome.open(addr.href, { width: 1440, height: 900 });
+  await index.until(`document.querySelector('.tgl-panel [data-tab="widgets"]')`, 5000);
+  // the Chatagram card's address (what its Copy gives): the dock's Chatagram link and the OBS connection
+  await index.until(`/kick=indexcheck/.test(document.querySelector('#wgrid .card[data-id="chatagram"]')?.href || '')`, 5000, 'the settings');
+  const card = new URL(await index.eval(`document.querySelector('#wgrid .card[data-id="chatagram"]').href`));
+  assert.equal(card.searchParams.get('time'), '90');
+  assert.equal(card.searchParams.get('obs'), port, 'the OBS connection');
+  assert.deepEqual(index.errors, []);
+  await index.close();
+});

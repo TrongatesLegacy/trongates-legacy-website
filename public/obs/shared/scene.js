@@ -32,6 +32,19 @@
   // previews (demo=1) the spot plays the game itself. Never on Ending.
   const SCENE = (/\/(starting|brb|chatting|game)(?:\.html)?$/.exec(location.pathname) || [])[1];
   const M = window.TGLModel, spotGame = SCENE && M && M.GAMES.includes(TGL.param('spot')) ? TGL.param('spot') : '';
+  // A cycling scene (Starting soon, Be right back) takes its forms in turn on its own page; the game in its spot changes with
+  // them: each form it shows goes to its preview's game straight in, to the game's OBS source over the browser's channel and,
+  // with obs=, over OBS (games.js takes it while OBS shows this scene)
+  let cycleChannel = null;
+  const announce = (form) => {
+    if (!spotGame || !TGL.cycling) return;
+    const msg = { tgl: 'cycle', scene: SCENE, form, at: Date.now() };
+    const f = /** @type {HTMLIFrameElement} */ (document.querySelector('[data-spot] iframe'));
+    try { f && f.contentWindow.postMessage({ type: 'tgl-cycle', ...msg }, '*'); } catch {}
+    try { (cycleChannel = cycleChannel || new BroadcastChannel('tgl-cycle')).postMessage(msg); } catch {}
+    TGL.obsRequest('BroadcastCustomEvent', { eventData: msg }).catch(() => {});
+  };
+  if (spotGame && TGL.cycling && TGL.param('obs')) TGL.connectObs();
   if (spotGame) {
     const spot = M.spotOf(SCENE, TGL.param('layout') === 'window' ? 'window' : 'full'), [x, y, w, h] = M.GAME_BOX[spotGame][spot];
     document.documentElement.classList.add('spot', 'spot-' + spotGame);
@@ -417,14 +430,14 @@
         } },
       };
       let shown = TGL.form;
-      const swap = (to) => { shown = to; TGL.paint(to); show(to); };
+      const swap = (to) => { shown = to; TGL.paint(to); show(to); announce(to); };
       const play = async (to, g) => {
         const from = shown; shown = to;
         if (from === to) return;
-        if (reduced) { swap(to); return; }
+        if (reduced) { swap(to); return; }   // (swap announces it)
         const style = SWITCH_IN[TGL.lookOf(to)] || SWITCH_IN.glitch;
         artBox.classList.add('glitching'); glitchEl.classList.toggle('soft', style !== SWITCH_IN.glitch);
-        for (const [i, p] of style.steps.entries()) { if (g !== gen) return; if (i === style.paintAt) TGL.paint(to); glitchEl.innerHTML = style.frame(p, from, to); await step(60); }
+        for (const [i, p] of style.steps.entries()) { if (g !== gen) return; if (i === style.paintAt) { TGL.paint(to); announce(to); } glitchEl.innerHTML = style.frame(p, from, to); await step(60); }
         if (g !== gen) return;
         show(to);
         await Promise.race([img.decode().catch(() => {}), step(400)]);

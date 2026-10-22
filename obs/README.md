@@ -363,7 +363,8 @@ old address never overwrites a password you've since corrected in the dock.
 
 The settings in the dock's address are imported **once**; after that the dock keeps its own copy (per scene
 collection, in OBS's browser storage, so it survives restarts). A different settings link in the address, or
-**Widgets → Import**, imports again. If the dock's storage is ever wiped, **Widgets → Read settings back from OBS**
+**Widgets → Import**, imports again. **More → Copy OBS index address** copies the index page's address with every setting
+and your OBS connection in it (`/obs/?obs=…#s=…`), so its previews and copied addresses match the dock's. If the dock's storage is ever wiped, **Widgets → Read settings back from OBS**
 (or simply opening the dock on a collection it hasn't seen) rebuilds the settings from the overlays' URLs.
 
 **Live:** the avatar buttons (Tron, Tron animated when veadotube has that state, gold, red, Princess, Blobfish).
@@ -626,6 +627,11 @@ first three, None on Game. Which look applies is the scene OBS shows: the game's
 for the program scene and recognises it by its Trongates overlay's address (renamed scenes, nested scenes and groups too),
 then sends `{ type: 'widget-look' }` and `{ type: 'widget-pause' }` to the game. Its address carries `scenelook=` (each scene's
 look) and `keep=0`. In the index page's previews the spot plays the game itself (demo chat).
+
+On **Starting soon and Be right back** the forms take turns, and the game changes theme with them (the owner, 2026-10-22):
+the scene says each form it shows (to its preview's game straight in, to the game's source over the browser's channel and,
+with `obs=`, over OBS as a `cycle` CustomEvent; only with a game in its spot), and the game takes it while OBS shows that
+scene, going back to the stream's own form elsewhere. A scene with *Cycles forms* off (`cycle=0`) stays on the stream's form.
 
 ## Chaplinko (the chat Plinko game)
 

@@ -292,6 +292,7 @@
         ${!dock ? `<div class="row"><span class="grow">Sample messages and music in the previews</span>${tog('sample', P.s.sample)}</div>` : ''}
         <h3>Backup</h3>
         <div class="row"><button type="button" class="btn grow" data-act="copy-link">Copy settings link</button><button type="button" class="btn" data-act="import">Import</button></div>
+        ${dock ? '<div class="row"><button type="button" class="btn grow" data-act="copy-index">Copy OBS index address</button></div><span class="hint">The OBS index page (previews of every scene and source) with all these settings and your OBS connection.</span>' : ''}
         ${!dock ? '<div class="row"><button type="button" class="btn grow" data-act="copy-dock">Copy dock address</button><button type="button" class="btn red" data-act="clear">Clear</button></div>' : '<div class="row"><button type="button" class="btn grow" data-act="rebuild">Read settings back from OBS</button></div>'}
         ${P.importNote ? `<p class="hint">${esc(P.importNote)}</p>` : ''}
         <p class="hint">Settings links carry your key and links: keep them private.${dock ? ` Scene collection: ${esc(obs.collection || '?')} (settings are saved per collection).` : ''}</p>
