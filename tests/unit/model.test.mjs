@@ -418,3 +418,22 @@ test('games on scenes: the game\'s source carries each scene\'s look and keep=0,
   assert.deepEqual(plain(M.sizeOf('chatagram', s)), [960, 540]);
   assert.ok(M.withOptions(HOST + 'chatagram?scenelook=x&keep=0&kick=a', M.options('chatagram', M.normalise(null))).indexOf('scenelook') < 0, 'the panel owns scenelook= and keep=');
 });
+
+// the owner (2026-10-22): the index page's Starting soon preview showed the room made for the game but not the game. The
+// spot played the game in a preview only with demo=1, which was added only to scenes with a chat or goal frame. spotdemo=1 is
+// its own (demo=1 also fills the chat frames with sample messages, which the index can turn off)
+test('games on scenes: every preview with a game in its spot plays it (spotdemo=1), Starting soon too, even with sample messages off', () => {
+  const s = M.normalise(null);
+  s.games.chatagram.on = true;
+  for (const sample of [true, false]) {
+    s.sample = sample;
+    for (const k of ['starting', 'brb', 'chatting', 'game']) {
+      const o = opts(M.options(k, s, { preview: { form: 'cyan', sample } }));
+      assert.equal(o.spotdemo, '1', `${k}, sample ${sample}`);
+      if (!sample) assert.equal(o.demo, undefined, `${k}: no sample chat when they're off`);
+    }
+  }
+  assert.equal(opts(M.options('brb', s)).spotdemo, undefined, 'never in OBS');
+  s.games.chatagram.on = false; s.sample = false;
+  assert.equal(opts(M.options('starting', s, { preview: { form: 'cyan', sample: false } })).spotdemo, undefined, 'no game: as before');
+});

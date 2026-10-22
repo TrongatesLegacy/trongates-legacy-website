@@ -62,9 +62,9 @@ test('without spot= every scene is as it was; Ending never takes one', async () 
   await end.close();
 });
 
-test('in the previews (demo=1) the spot plays the game itself, the board alone for Chaplinko', async () => {
-  for (const [g, page] of [['chatagram', '/obs/chatagram'], ['chaplinko', '/obs/chaplinko']]) {
-    const tab = await open('brb', `&spot=${g}&demo=1`);
+test('in the previews (spotdemo=1, the index page) the spot plays the game itself, the board alone for Chaplinko; Starting soon too', async () => {
+  for (const [g, page, scene] of [['chatagram', '/obs/chatagram', 'brb'], ['chaplinko', '/obs/chaplinko', 'brb'], ['chatagram', '/obs/chatagram', 'starting']]) {
+    const tab = await open(scene, `&spot=${g}&spotdemo=1`);
     const src = await tab.eval(`document.querySelector('[data-spot] iframe')?.getAttribute('src') || ''`);
     assert.ok(src.includes(page.split('/').pop()) && /demo=1/.test(src), `${g}: ${src}`);
     if (g === 'chaplinko') assert.ok(!/layout=combined/.test(src), 'the board on its own');

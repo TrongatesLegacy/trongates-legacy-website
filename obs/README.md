@@ -628,7 +628,8 @@ Defaults: Chatagram 95% / Solid on the first three, 50% / 60% on Game (window), 
 first three, None on Game. Which look applies is the scene OBS shows: the game's page (`shared/games.js`, with `obs=`) asks OBS
 for the program scene and recognises it by its Trongates overlay's address (renamed scenes, nested scenes and groups too),
 then sends `{ type: 'widget-look' }` and `{ type: 'widget-pause' }` to the game. Its address carries `scenelook=` (each scene's
-look) and `keep=0`. In the index page's previews the spot plays the game itself (demo chat).
+look) and `keep=0`. In the index page's previews the spot plays the game itself (demo chat; `spotdemo=1`, its own option, so Starting soon and
+full-screen Game, which have no chat frame, show it too, and turning the previews' sample messages off doesn't hide it).
 
 On **Starting soon and Be right back** the forms take turns, and the game changes theme with them (the owner, 2026-10-22):
 the scene says each form it shows (to its preview's game straight in, to the game's source over the browser's channel and,

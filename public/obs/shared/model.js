@@ -219,12 +219,13 @@
       if (ctx.preview.form) add('form', ctx.preview.form);
       if (ctx.preview.guide) add('guide', 1);
       if (ctx.preview.sample && (has('chat') || has('goal'))) add('demo', 1);
+      if (scene && gameOn(s, kind)) add('spotdemo', 1);   // the game in its spot plays (its pretend chat), sample messages or not
     }
     return o;
   }
   // Every option the panel owns: when it rewrites a URL these are replaced, anything else is kept as it was.
   const OWNED = ['layout', 'rings', 'bare', 'hide', 'chat', 'goal', 'key', 'goalcolor', 'music', 'app', 'musichost', 'cidertoken', 'cycle', 'noveado',
-    'veado', 'map', 'veadodelay', 'motion', 'looks', 'obs', 'obspw', 'art', 'demo', 'guide', 'form', 'spot', 'scenelook', 'keep'];
+    'veado', 'map', 'veadodelay', 'motion', 'looks', 'obs', 'obspw', 'art', 'demo', 'guide', 'form', 'spot', 'scenelook', 'keep', 'spotdemo'];
   const query = (pairs) => pairs.map(([k, v]) => `${k}=${encodeURIComponent(v).replace(/%2C/g, ',').replace(/%3A/g, ':')}`).join('&');
   // A URL with the panel's options in place of its own (base: an existing address, hosted or file://)
   function withOptions(base, pairs) {

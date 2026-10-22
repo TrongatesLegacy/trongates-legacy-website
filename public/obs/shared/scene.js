@@ -29,7 +29,7 @@
   // ---- a game in the scene's spot (spot=chatagram|chaplinko: the dock's Widgets → Chatagram / Chaplinko) -----------------
   // Where it goes is model.js's (GAME_BOX), shared with the dock that places the game's source there. The goal makes way (the
   // left column's chat ends above it, below); Starting soon's title gets smaller and higher (its own CSS). In the index page's
-  // previews (demo=1) the spot plays the game itself. Never on Ending.
+  // previews (spotdemo=1; demo=1 too) the spot plays the game itself. Never on Ending.
   const SCENE = (/\/(starting|brb|chatting|game)(?:\.html)?$/.exec(location.pathname) || [])[1];
   const M = window.TGLModel, spotGame = SCENE && M && M.GAMES.includes(TGL.param('spot')) ? TGL.param('spot') : '';
   // A cycling scene (Starting soon, Be right back) takes its forms in turn on its own page; the game in its spot changes with
@@ -53,7 +53,7 @@
     box.dataset.spot = spotGame; box.dataset.slot = spotGame === 'chatagram' ? 'Chatagram (the dock places it)' : 'Chaplinko (the dock places it)';
     box.style.cssText = `position:absolute;left:${x}px;top:${y - 64}px;width:${w}px;height:${h}px`;
     document.querySelector('.content').appendChild(box);
-    if (TGL.param('demo') === '1') {
+    if (TGL.param('spotdemo') === '1' || TGL.param('demo') === '1') {
       // the preview: the game itself (its OBS page, so it follows the form), its pretend chat, the spot's look
       const [nw, nh] = spotGame === 'chatagram' ? [960, 540] : [640, 540], look = M.GAME_DEFAULTS[spotGame].look[spot];
       const f = document.createElement('iframe');
