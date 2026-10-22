@@ -571,7 +571,9 @@ Inputty is a free widget for any streamer (docs/widgets.md, set up at https://ww
 `/obs/inputty` is the same overlay in the stream's colours, following the form exactly as Chatagram does (Tron → **neon**
 in the armour's colour, Princess Trina → **royal**, the Blobfish → **deep**, and the dock's Form looks), without ever
 reloading it. The link's own colours (`theme`, `accent`, `key`, `edge`, `hi`, `ink`, `orig`) are left out, so the form
-decides them; its layouts, title, frame and port pass through.
+decides them; its layouts, title, frame and port pass through. The form's first theme message usually arrives while the
+overlay's pictures are still loading: they take it once loaded (a picture never records a look it couldn't draw; the owner saw
+the controller in its own colours on a scene's first opening, 2026-10-22).
 
 There are two sources, each from its own link: **keyboard and mouse** (`/obs/inputty?…`) and **controller**
 (`/obs/inputty?part=pad&…`, an Xbox controller until a link is pasted). The dock shows one at a time on Game.

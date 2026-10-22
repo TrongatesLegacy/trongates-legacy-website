@@ -9,6 +9,7 @@
 
   const box = document.querySelector('.box'), viewsEl = box.querySelector('.views'), fit = document.getElementById('fit');
   const views = [];   // { kind: 'preset', view, el } | { kind: 'history', el }
+  let built = false;  // the pictures loaded and measured: a look before then (the OBS page's first theme message) waits for it
 
   function applyLook() {
     document.body.dataset.theme = s.theme;
@@ -24,7 +25,7 @@
     box.querySelector('.title').textContent = s.title;
     const look = L.look(s);
     // our drawn presets always take the theme (there's no art of their own to keep)
-    views.forEach((v) => v.view && (v.view.drawn ? v.view.setLook(L.look({ ...s, orig: 0 }), L.THEMES[s.theme]) : v.view.setLook(look)));
+    if (built) views.forEach((v) => v.view && (v.view.drawn ? v.view.setLook(L.look({ ...s, orig: 0 }), L.THEMES[s.theme]) : v.view.setLook(look)));
     refit();
   }
 
@@ -40,6 +41,7 @@
   addEventListener('resize', refit);
 
   async function build() {
+    built = false;
     viewsEl.innerHTML = '';
     views.length = 0;
     const picks = [[s.p, s.v, s.a], [s.p2, s.v2, s.a2]].filter(([id]) => id);
@@ -71,6 +73,7 @@
     // the page the preview sits in), then applyLook recolours
     const tick = () => new Promise((r) => setTimeout(r));
     for (const { view } of views) if (view?.pressedMask) { await tick(); view.pressedMask(); await tick(); view.levels(); }
+    built = true;
     applyLook();
   }
 

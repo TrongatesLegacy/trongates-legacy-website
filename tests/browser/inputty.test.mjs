@@ -498,3 +498,25 @@ test('the OBS source follows the form without reloading: Tron neon in his armour
   assert.equal(await looks.eval(`document.getElementById('io').contentDocument.body.dataset.theme`), 'neon', 'Form looks: Princess Trina in Tron\'s look');
   await looks.close();
 });
+
+// the owner (2026-10-22): the OBS source's controller came up in its picture's own colours the first time a scene opened;
+// switching form fixed it. The form's theme message arrives while the pictures are still loading: it must still recolour them
+test('a theme message while the pictures are still loading recolours them once they load (no first-load raw colours)', async () => {
+  // the picture's average colour (it animates, so not its exact pixels): Royal's, not the picture's own (orig=1)
+  const pixels = `(() => { const c = document.querySelector('.views canvas'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let r = 0, g = 0, b = 0, n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; } return [r / n, g / n, b / n]; })()`;
+  const near = (a, b) => a.every((v, i) => Math.abs(v - b[i]) < 8);
+  const want = await chrome.open(site.origin + '/inputty/play.html?demo=1&p=xboxone&p2=&theme=royal', { width: 760, height: 420 });
+  await want.until(`document.documentElement.dataset.ready === '1'`, 8000);
+  await new Promise((r) => setTimeout(r, 300));
+  const royal = await want.eval(pixels);
+  await want.close();
+  const early = `addEventListener('DOMContentLoaded', () => postMessage({ type: 'widget-theme', theme: 'royal', accent: '' }, '*'));`;
+  const tab = await chrome.open(site.origin + '/inputty/play.html?demo=1&p=xboxone&p2=&theme=neon', { width: 760, height: 420, init: early });
+  await tab.until(`document.documentElement.dataset.ready === '1'`, 8000);
+  await new Promise((r) => setTimeout(r, 300));
+  assert.equal(await tab.eval(`document.body.dataset.theme`), 'royal');
+  const got = await tab.eval(pixels);
+  assert.ok(near(got, royal), `the controller drawn in Royal's colours: ${got.map(Math.round)} vs ${royal.map(Math.round)}`);
+  assert.deepEqual(tab.errors, []);
+  await tab.close();
+});

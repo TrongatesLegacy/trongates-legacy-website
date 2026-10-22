@@ -216,6 +216,8 @@
       const lines = look && (!pad && look.kbm ? look.kbm.lines : look.lines);
       const k = look ? [look.edge, look.key, look.hi, look.accent, lines, look.keySet, look.lightBg].join() : 'orig';
       if (k === this.lookKey) return;
+      // not loaded yet: nothing to recolour, and nothing remembered (the look is set again once it has loaded)
+      if (!this.img) return;
       this.lookKey = k;
       this.tilt = null;
       if (!look) { this.atlas = this.img; return; }
