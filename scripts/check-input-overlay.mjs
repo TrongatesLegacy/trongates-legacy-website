@@ -6,7 +6,10 @@
 //   ok            the button is already the latest stable release
 //   updated       a newer release: guide.js updated (the workflow tests, commits and pushes it)
 //   review        a newer release a person should look at first (no Windows installer, its notes mention the
-//                 websocket or key codes, or it needs a different OBS): nothing written
+//                 websocket or key codes, it needs a different OBS, or which OBS it needs can't be told): nothing written
+//
+// The oldest OBS a release works with is the OBS its source was built against (buildspec.json at its tag: 5.0.6 was
+// built against 30.1.2, 5.1.x against 33.0.0, "only compatible with OBS versions 33 and newer"), else what its notes say.
 //   unreachable   GitHub couldn't be asked, or its answer changed shape
 //
 // The workflow opens a GitHub issue for review and unreachable, and closes it once a later check is ok.
@@ -47,6 +50,16 @@ export const mb = (bytes) => `${(bytes / 1e6).toFixed(1)} MB`;
 /** a release's notes → the oldest OBS it supports ("only compatible with OBS versions 33 and newer"), if it says */
 export const obsIn = (notes) => ((notes || "").match(/OBS (?:versions? )?(\d+)(?:\.\d+)* (?:and|or) (?:newer|later|above)/i) || [])[1];
 
+/** the oldest OBS this release works with: the major version its source was built against, else its notes' */
+async function oldestObs(fetch_, tag, notes) {
+  try {
+    const r = await fetch_(`https://raw.githubusercontent.com/${REPO}/${tag}/buildspec.json`);
+    const v = r.ok && (await r.json())?.dependencies?.["obs-studio"]?.version;
+    if (/^\d+\./.test(v || "")) return v.split(".")[0];
+  } catch {}
+  return obsIn(notes);
+}
+
 /** the whole check → { status, summary } (writes guide.js on updated unless dry) */
 export async function check({ fetch_ = fetch, read = () => readFileSync(GUIDE_JS, "utf8"), write = (t) => writeFileSync(GUIDE_JS, t), dry = false, token = process.env.GITHUB_TOKEN } = {}) {
   const ours = installerIn(read());
@@ -65,13 +78,14 @@ export async function check({ fetch_ = fetch, read = () => readFileSync(GUIDE_JS
   const url = `https://github.com/${REPO}/releases/tag/${rel.tag_name}`;
   const exe = rel.assets.find((a) => a.name === `input-overlay-${version}-windows-x64-Installer.exe`);
   const deb = rel.assets.find((a) => a.name === `input-overlay-${version}-x86_64-linux-gnu.deb`);
-  const obs = obsIn(rel.body) || ours.obs;
+  const obs = await oldestObs(fetch_, rel.tag_name, rel.body);
   const why = [
     !exe && "it has no Windows installer named the usual way",
     !deb && "it has no Linux .deb named the usual way",
     rel.tag_name !== version && `its tag (${rel.tag_name}) isn't the bare version the download links use`,
     RISKY.test(rel.body || "") && "its notes mention the websocket or key codes, which Inputty reads (src/network/websocket_server.cpp in their source; lib/input.js here)",
-    obs !== ours.obs && `it needs OBS ${obs} or newer, not ${ours.obs}: the line under the button (older OBS gets ${ours.old}) needs a person`,
+    !obs && "couldn't tell which OBS it needs (no buildspec.json in its source, nothing in its notes)",
+    obs && obs !== ours.obs && `it needs OBS ${obs} or newer, not ${ours.obs}: the line under the button (older OBS gets ${ours.old}) needs a person`,
   ].filter(Boolean);
   if (why.length) {
     return { status: "review", summary: `input-overlay ${version} is out (${url}), but Inputty's download button still offers ${ours.version}: ${why.join("; ")}. Check it, then update INSTALLER in public/inputty/lib/guide.js (docs/widgets.md, "Inputty").` };
