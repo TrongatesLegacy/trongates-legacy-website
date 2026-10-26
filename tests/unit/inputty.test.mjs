@@ -172,49 +172,65 @@ test('the helper download: every link is the one version, the size and OBS shown
   const src = read('public/inputty/lib/guide.js'), ins = installerIn(src);
   assert.equal(withInstaller(src, ins), src, 'INSTALLER is exactly what the daily check writes');
   assert.match(ins.size, /^\d+\.\d MB$/);
-  assert.match(ins.old, /\/releases\/tag\/5\.0\.6$/);
-  assert.match(src, /Needs OBS \$\{INSTALLER\.obs\} or newer \(older OBS\? <a href="\$\{INSTALLER\.old\}"/);
+  assert.equal(ins.old, '5.0.6');
+  assert.match(src, /oldPage: 'https:\/\/github\.com\/univrsal\/input-overlay\/releases\/tag\/5\.0\.6'/);
+  assert.match(src, /Needs OBS \$\{INSTALLER\.obs\} or newer\$\{INSTALLER\.old \? ` \(older OBS\? <a href="\$\{INSTALLER\.oldPage\}"[^`]*>Get \$\{INSTALLER\.old\}<\/a>\)`/);
+  assert.equal(installerIn(withInstaller(src, { ...ins, old: '' })).old, '', 'no older release: no link');
 });
 
 test('daily input-overlay check: same version → ok; a newer one → updated, guide.js rewritten; risky or odd ones → review, nothing written', async () => {
   const { check, installerIn, obsIn } = await import('../../scripts/check-input-overlay.mjs');
-  const src = read('public/inputty/lib/guide.js'), ours = installerIn(src).version;
+  const src = read('public/inputty/lib/guide.js'), ins = installerIn(src), ours = ins.version;
   const exe = (v, size = 5123456) => ({ name: `input-overlay-${v}-windows-x64-Installer.exe`, size });
   const deb = (v) => ({ name: `input-overlay-${v}-x86_64-linux-gnu.deb`, size: 1 });
-  // GitHub's latest release, and the OBS its source was built against (buildspec.json; null: not readable)
-  const run = async (rel, ok = true, built = '33.0.0') => {
+  const rel = (tag, body = 'Fixes.', more = {}) => ({ tag_name: tag, assets: [exe(tag), deb(tag)], body, prerelease: false, draft: false, ...more });
+  // GitHub: the latest release, every release (null: can't be listed), and the OBS each tag's source was built against
+  // (buildspec.json; missing: not readable)
+  const run = async (latest, { ok = true, built = { '9.9.9': '33.0.0' }, list = [] } = {}) => {
     let written = null;
-    const fetch_ = async (u) => u.endsWith('buildspec.json')
-      ? { ok: built !== null, status: built === null ? 404 : 200, json: async () => ({ dependencies: { 'obs-studio': { version: built } } }) }
-      : { ok, status: ok ? 200 : 503, json: async () => rel };
+    const fetch_ = async (u) => {
+      if (u.endsWith('/buildspec.json')) { const v = built[u.split('/').at(-2)]; return { ok: !!v, status: v ? 200 : 404, json: async () => ({ dependencies: { 'obs-studio': { version: v } } }) }; }
+      if (u.includes('/releases?')) return { ok: !!list, status: list ? 200 : 503, json: async () => list };
+      return { ok, status: ok ? 200 : 503, json: async () => latest };
+    };
     const r = await check({ fetch_, read: () => src, write: (t) => { written = t; }, token: '' });
     return { ...r, written };
   };
-  assert.equal((await run({ tag_name: ours, assets: [exe(ours), deb(ours)], body: '' })).status, 'ok');
+  assert.equal((await run(rel(ours))).status, 'ok');
 
-  const up = await run({ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'Fixes.\n### This version is only compatible with OBS versions 33 and newer.' });
+  const up = await run(rel('9.9.9', 'Fixes.\n### This version is only compatible with OBS versions 33 and newer.'));
   assert.equal(up.status, 'updated');
-  assert.equal((await run({ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'Fixes.' })).status, 'updated', 'the source alone is enough');
+  assert.equal((await run(rel('9.9.9'))).status, 'updated', 'the source alone is enough');
   const now = installerIn(up.written);
-  assert.deepEqual([now.version, now.size, now.obs, now.old], ['9.9.9', '5.1 MB', '33', installerIn(src).old]);
+  assert.deepEqual([now.version, now.size, now.obs, now.old], ['9.9.9', '5.1 MB', '33', ins.old]);
   assert.match(up.written, /releases\/download\/9\.9\.9\/input-overlay-9\.9\.9-windows-x64-Installer\.exe/);
   assert.ok(!up.written.includes(`/${ours}/`), 'no link left on the old version');
 
-  for (const [rel, why, built] of [
-    [{ tag_name: '9.9.9', assets: [deb('9.9.9')], body: '' }, /no Windows installer/],
-    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'This release uses new keyboard key codes' }, /websocket or key codes/],
-    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'Changed the web socket messages' }, /websocket or key codes/],
-    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'only compatible with OBS versions 34 and newer' }, /needs OBS 34/, null],
-    // the source says so even when the notes don't (5.1.1's didn't), and the source wins
-    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'Fixes.' }, /needs OBS 34/, '34.0.1'],
-    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'only compatible with OBS versions 33 and newer' }, /needs OBS 34/, '34.0.0'],
-    // neither says: don't guess
-    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'Fixes.' }, /couldn't tell which OBS/, null],
+  // it needs a newer OBS: older OBS gets the newest stable release built for an older one (not a pre-release, not one
+  // whose OBS can't be told), worked out from every release, so a missed release doesn't matter
+  const list = [rel('9.9.9'), rel('9.5.0-beta', '', { prerelease: true }), rel('9.4.0'), rel('9.3.0'), rel(ours), rel('5.0.6')];
+  const bump = await run(rel('9.9.9'), { built: { '9.9.9': '34.0.0', '9.5.0-beta': '33.0.0', '9.4.0': '34.0.0', '9.3.0': null, [ours]: '33.0.0', '5.0.6': '30.1.2' }, list });
+  assert.equal(bump.status, 'updated', bump.summary);
+  assert.match(bump.summary, /OBS 34 or newer.*older OBS now gets 5\.1\.2/);
+  const b = installerIn(bump.written);
+  assert.deepEqual([b.obs, b.old], ['34', ours]);
+  assert.match(bump.written, new RegExp(`oldPage: 'https://github\\.com/univrsal/input-overlay/releases/tag/${ours.replace(/\./g, '\\.')}'`));
+  const none = await run(rel('9.9.9'), { built: { '9.9.9': '34.0.0', '5.0.6': '35.0.0' }, list: [rel('9.9.9'), rel('5.0.6')] });
+  assert.equal(installerIn(none.written).old, '', 'no release for older OBS: no link');
+
+  for (const [latest, why, opts] of [
+    [{ ...rel('9.9.9', ''), assets: [deb('9.9.9')] }, /no Windows installer/],
+    [rel('9.9.9', 'This release uses new keyboard key codes'), /websocket or key codes/],
+    [rel('9.9.9', 'Changed the web socket messages'), /websocket or key codes/],
+    // neither its source nor its notes say which OBS: don't guess
+    [rel('9.9.9'), /couldn't tell which OBS/, { built: {} }],
+    // a newer OBS, but the releases can't be listed to find the one for older OBS
+    [rel('9.9.9'), /couldn't list its releases/, { built: { '9.9.9': '34.0.0' }, list: null }],
   ]) {
-    const r = await run(rel, true, built === undefined ? '33.0.0' : built);
-    assert.equal(r.status, 'review'); assert.match(r.summary, why); assert.equal(r.written, null);
+    const r = await run(latest, opts);
+    assert.equal(r.status, 'review', r.summary); assert.match(r.summary, why); assert.equal(r.written, null);
   }
-  assert.equal((await run(null, false)).status, 'unreachable');
+  assert.equal((await run(null, { ok: false })).status, 'unreachable');
   assert.equal(obsIn('### This version is only compatible with OBS versions 33 and newer.'), '33');
   assert.equal(obsIn('Requires OBS 31.0 or later'), '31');
 });

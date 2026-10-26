@@ -643,10 +643,12 @@ while it listens on IPv4). Inputty never uses the plugin's own source, presets o
   has no updater and puts its version in every file's name (so GitHub's `releases/latest/download/` can't be used): the
   daily check (`.github/workflows/daily.yml`, `scripts/check-input-overlay.mjs`; by hand with `--dry`) rewrites
   `INSTALLER` when a new stable release is out, then tests and pushes it. One a person should look at first (no Windows
-  installer, notes mentioning the websocket or key codes, a different oldest OBS, or no telling which) opens a GitHub
-  issue labelled `input-overlay` instead, as does GitHub being unreachable. The oldest OBS (`obs`) is the one its source
-  was built against (`buildspec.json` at the release's tag: 5.0.6 → 30, 5.1.x → 33), else what its notes say. 5.1
-  needs **OBS 33 or newer**, so the line under the button links 5.0.6 (same websocket, older key codes) for older OBS. It isn't signed, so
+  installer, notes mentioning the websocket or key codes, or no telling which OBS it needs) opens a GitHub issue labelled
+  `input-overlay` instead, as does GitHub being unreachable. The oldest OBS (`obs`, shown as "Needs OBS 33 or newer") is
+  the one its source was built against (`buildspec.json` at the release's tag: 5.0.6 → 30, 5.1.x → 33), else what its
+  notes say. Older OBS gets a link under the button to `old`, the newest stable release built for an older OBS (5.0.6
+  now: same websocket, older key codes); when a release needs a different OBS the check works that out again from every
+  release (none: no link). It isn't signed, so
   Windows SmartScreen warns (More info → Run anyway); the guide and the FAQ say so.
 
 **The set-up** (the page's hero, "Some assembly required. Not much."). Its parts are **steps**, never pages: the copy
