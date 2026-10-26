@@ -4,12 +4,14 @@
 (() => {
   const L = window.IOLooks, P = window.IO_PRESETS;
   const INSTALLER = {
-    version: '5.0.6', size: '3.7 MB',
-    // the latest stable release (5.1.0 is a pre-release). Built for real: a daily job keeps this current, as check-kick does
-    url: 'https://github.com/univrsal/input-overlay/releases/download/5.0.6/input-overlay-5.0.6-windows-x64-Installer.exe',
-    file: 'input-overlay-5.0.6-windows-x64-Installer.exe',
-    linux: 'https://github.com/univrsal/input-overlay/releases/download/5.0.6/input-overlay-5.0.6-x86_64-linux-gnu.deb',
-    page: 'https://github.com/univrsal/input-overlay/releases/tag/5.0.6',
+    version: '5.1.2', size: '4.2 MB', obs: '33',
+    // the latest stable release (kept current by scripts/check-input-overlay.mjs); older OBS gets `old`, the link
+    // under the button
+    url: 'https://github.com/univrsal/input-overlay/releases/download/5.1.2/input-overlay-5.1.2-windows-x64-Installer.exe',
+    file: 'input-overlay-5.1.2-windows-x64-Installer.exe',
+    linux: 'https://github.com/univrsal/input-overlay/releases/download/5.1.2/input-overlay-5.1.2-x86_64-linux-gnu.deb',
+    page: 'https://github.com/univrsal/input-overlay/releases/tag/5.1.2',
+    old: 'https://github.com/univrsal/input-overlay/releases/tag/5.0.6',
   };
   const ua = navigator.userAgent;
   // ?os=windows|mac|linux|phone previews the page as someone on that system would see it
@@ -510,7 +512,7 @@
       download(el, { label = 'Download the helper' } = {}) {
         el.innerHTML = OS === 'mac' ? `<p class="g-note">The keyboard and mouse helper is Windows-only (and Linux). Streaming from this Mac? Pick <b>Controller</b>: it needs nothing installed.</p>`
           : `<a class="g-download" href="${INSTALLER.url}" download><span class="g-dl-ico">⬇</span><span><b>${label}</b><small>input-overlay ${INSTALLER.version} for Windows · ${INSTALLER.size} · free</small></span></a>
-             <p class="g-small">Straight from its makers on GitHub. ${OS === 'linux' ? `On Linux? <a href="${INSTALLER.linux}">Get the .deb</a>.` : `<a href="${INSTALLER.page}" target="_blank" rel="noopener">What's this?</a>`}</p>`;
+             <p class="g-small">Straight from its makers on GitHub. Needs OBS ${INSTALLER.obs} or newer (older OBS? <a href="${INSTALLER.old}" target="_blank" rel="noopener">Get 5.0.6</a>). ${OS === 'linux' ? `On Linux? <a href="${INSTALLER.linux}">Get the .deb</a>.` : `<a href="${INSTALLER.page}" target="_blank" rel="noopener">What's this?</a>`}</p>`;
       },
       /** a live line: is input-overlay there, and have keys come through */
       helperStatus(el) {

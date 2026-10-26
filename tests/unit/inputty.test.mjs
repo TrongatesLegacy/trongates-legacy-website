@@ -166,3 +166,45 @@ test('Two big keys take any two keys from the link (keys=KeyA,KeyS), with their 
   assert.equal(L.read(new URLSearchParams('keys=KeyA,KeyS')).keys, 'KeyA,KeyS');
   assert.equal(L.query(L.DEFAULTS), '', 'no keys in a link that keeps Z and X');
 });
+
+test('the helper download: every link is the one version, the size and OBS shown come from it, older OBS has its own link', async () => {
+  const { installerIn, withInstaller } = await import('../../scripts/check-input-overlay.mjs');
+  const src = read('public/inputty/lib/guide.js'), ins = installerIn(src);
+  assert.equal(withInstaller(src, ins), src, 'INSTALLER is exactly what the daily check writes');
+  assert.match(ins.size, /^\d+\.\d MB$/);
+  assert.match(ins.old, /\/releases\/tag\/5\.0\.6$/);
+  assert.match(src, /Needs OBS \$\{INSTALLER\.obs\} or newer \(older OBS\? <a href="\$\{INSTALLER\.old\}"/);
+});
+
+test('daily input-overlay check: same version → ok; a newer one → updated, guide.js rewritten; risky or odd ones → review, nothing written', async () => {
+  const { check, installerIn, obsIn } = await import('../../scripts/check-input-overlay.mjs');
+  const src = read('public/inputty/lib/guide.js'), ours = installerIn(src).version;
+  const exe = (v, size = 5123456) => ({ name: `input-overlay-${v}-windows-x64-Installer.exe`, size });
+  const deb = (v) => ({ name: `input-overlay-${v}-x86_64-linux-gnu.deb`, size: 1 });
+  const run = async (rel, ok = true) => {
+    let written = null;
+    const r = await check({ fetch_: async () => ({ ok, status: ok ? 200 : 503, json: async () => rel }), read: () => src, write: (t) => { written = t; }, token: '' });
+    return { ...r, written };
+  };
+  assert.equal((await run({ tag_name: ours, assets: [exe(ours), deb(ours)], body: '' })).status, 'ok');
+
+  const up = await run({ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'Fixes.\n### This version is only compatible with OBS versions 33 and newer.' });
+  assert.equal(up.status, 'updated');
+  const now = installerIn(up.written);
+  assert.deepEqual([now.version, now.size, now.obs, now.old], ['9.9.9', '5.1 MB', '33', installerIn(src).old]);
+  assert.match(up.written, /releases\/download\/9\.9\.9\/input-overlay-9\.9\.9-windows-x64-Installer\.exe/);
+  assert.ok(!up.written.includes(`/${ours}/`), 'no link left on the old version');
+
+  for (const [rel, why] of [
+    [{ tag_name: '9.9.9', assets: [deb('9.9.9')], body: '' }, /no Windows installer/],
+    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'This release uses new keyboard key codes' }, /websocket or key codes/],
+    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'Changed the web socket messages' }, /websocket or key codes/],
+    [{ tag_name: '9.9.9', assets: [exe('9.9.9'), deb('9.9.9')], body: 'only compatible with OBS versions 34 and newer' }, /needs OBS 34/],
+  ]) {
+    const r = await run(rel);
+    assert.equal(r.status, 'review'); assert.match(r.summary, why); assert.equal(r.written, null);
+  }
+  assert.equal((await run(null, false)).status, 'unreachable');
+  assert.equal(obsIn('### This version is only compatible with OBS versions 33 and newer.'), '33');
+  assert.equal(obsIn('Requires OBS 31.0 or later'), '31');
+});

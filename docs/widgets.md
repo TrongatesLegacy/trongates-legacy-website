@@ -70,7 +70,7 @@ than a few attempts a minute), goes back to quick retries after 30 s connected, 
     `{"client":{"id":"x","type":"web"},"capabilities":{"accepted_providers":[{"provider":"pusher"}]}}`; the answer's
     `credentials.app_key` and `cluster`), which doesn't allow other sites to ask, so the function asks for them; Netlify's
     CDN keeps its answer 10 minutes.
-  - *The daily check* (`.github/workflows/check-kick.yml`, `scripts/check-kick.mjs`; run it by hand with
+  - *The daily check* (`.github/workflows/daily.yml`, `scripts/check-kick.mjs`; run it by hand with
     `node --experimental-websocket scripts/check-kick.mjs --dry`) asks Kick the same thing and really subscribes to a
     chatroom with the key. A new key is written into `kick.js`, tested and pushed. Anything a person has to fix opens one
     GitHub issue labelled `kick-chat` (which emails the repo's watchers), closed again by the next check that's ok:
@@ -635,12 +635,17 @@ events through websocket server with address", then restarts OBS. It then sends 
 `ws://127.0.0.1:16899` (its port, changeable: the page's Advanced → port, `port=` in the link; the address is always this
 PC, since the plugin and the browser source both run in OBS, and `127.0.0.1` not `localhost`, which can resolve to IPv6
 while it listens on IPv4). Inputty never uses the plugin's own source, presets or files.
-- Its **5.1 pre-release changed its key codes** (its A is 5.0's B), so keys are read by the Windows code it also sends
+- Its **5.1 changed its key codes** (its A is 5.0's B), so keys are read by the Windows code it also sends
   (`rawcode`, the same in both), falling back to its 5.0 code.
 - It sends a **burst newest-first**, so a quick tap's release can arrive before its press: events are put in time order,
   and an event older than one already seen for that key is dropped (a unit test).
-- The installer link points straight at the latest **stable** release's `.exe` (5.0.6 now; 5.1.0 is a pre-release). Its
-  version is in the file name (`guide.js`, `INSTALLER`): update it when input-overlay releases. It isn't signed, so
+- The installer link points straight at the latest **stable** release's `.exe` (`guide.js`, `INSTALLER`). input-overlay
+  has no updater and puts its version in every file's name (so GitHub's `releases/latest/download/` can't be used): the
+  daily check (`.github/workflows/daily.yml`, `scripts/check-input-overlay.mjs`; by hand with `--dry`) rewrites
+  `INSTALLER` when a new stable release is out, then tests and pushes it. One a person should look at first (no Windows
+  installer, notes mentioning the websocket or key codes, a different oldest OBS) opens a GitHub issue labelled
+  `input-overlay` instead, as does GitHub being unreachable. 5.1 needs **OBS 33 or newer** (`obs`, from the release
+  notes), so the line under the button links 5.0.6 (same websocket, older key codes) for older OBS. It isn't signed, so
   Windows SmartScreen warns (More info → Run anyway); the guide and the FAQ say so.
 
 **The set-up** (the page's hero, "Some assembly required. Not much."). Its parts are **steps**, never pages: the copy
