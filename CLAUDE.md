@@ -85,8 +85,9 @@ netlify/functions/kick-chat.mjs  GET /api/kick-chat: Kick's current Pusher key, 
 netlify.toml                 publish dir, functions dir, headers, build-skip rule
 tests/                       unit, loop (simulated OBS browser) and browser tests; see docs/testing.md
 .githooks/pre-push           runs the tests before every push
-scripts/update-feed.mjs      refreshes public/feed.json (run by .github/workflows/update-feed.yml)
-scripts/check-kick.mjs       daily: can the widgets still read Kick chat? updates the key, or opens an issue (check-kick.yml)
+scripts/update-feed.mjs      refreshes public/feed.json (run by .github/workflows/daily.yml)
+scripts/check-kick.mjs       daily: can the widgets still read Kick chat? updates the key, or opens an issue (daily.yml)
+scripts/check-input-overlay.mjs  daily: keeps Inputty's download button on input-overlay's latest release (daily.yml)
 scripts/build-words.mjs      builds Chatagram's word lists from SCOWL (hand-run; scripts/words/ has the blocklists)
 scripts/shot.mjs             headless-Chrome screenshots for checking changes
 scripts/test.mjs             runs the tests (--fast, --browser, --changed=<range>)

@@ -22,7 +22,7 @@ They run by themselves before every push: `.githooks/pre-push` runs the fast tes
 the push touches `public/`, `netlify/` or `netlify.toml`, and **a failure blocks the push**. The hook is switched
 on per clone with `git config core.hooksPath .githooks` (a repo-local setting). `git push --no-verify` skips it,
 for emergencies only. GitHub Actions (`.github/workflows/test.yml`) runs everything again on every push, and the
-daily feed update runs the fast tests before it commits `feed.json`.
+daily run (`daily.yml`: the feed and the checks) runs the fast tests before it commits.
 
 **Types:** the OBS scripts are plain JavaScript with JSDoc comments, checked by TypeScript without a build:
 `jsconfig.json` (what's checked; VS Code reads it and underlines mistakes as you type) and `types/obs-globals.d.ts`

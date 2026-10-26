@@ -8,7 +8,7 @@ Single-page site for [Trongates Legacy](https://kick.com/trongateslegacy) — li
 - `public/assets/img/` — optimised WebP character art (four mouth/eye states per form)
 - `netlify/functions/feed.mjs` — `/api/feed`: latest YouTube videos + shorts and Kick live status
   (needs `YOUTUBE_API_KEY`, `KICK_CLIENT_ID`, `KICK_CLIENT_SECRET` set in Netlify)
-- `public/feed.json` — static fallback video list, refreshed daily by `.github/workflows/update-feed.yml`
+- `public/feed.json` — static fallback video list, refreshed daily by `.github/workflows/daily.yml`
 - `dev.mjs` — local preview: `node dev.mjs` → http://localhost:8888
 
 ## Deploying to Netlify

@@ -42,8 +42,8 @@ website API returns 403 to server-side requests. So:
 - **`/api/obs-widgets`** (`netlify/functions/obs-widgets.mjs`) is for the OBS scenes, not the site: it returns the
   Botrix links from `BOTRIX_CHAT_URL` / `BOTRIX_GOAL_URL`, only with the `X-OBS-Key` header matching `OBS_KEY`
   (never cached). See obs/README.md.
-- **`public/feed.json`** is a static copy the page renders first; a GitHub Action (`update-feed.yml`,
-  daily at 05:17 UTC) refreshes it with the same API key (repo secret) and commits only when it changes. The
+- **`public/feed.json`** is a static copy the page renders first; a GitHub Action (`daily.yml`,
+  daily at 05:17 UTC, with the other daily checks: one push for them all) refreshes it with the same API key (repo secret) and commits only when it changes. The
   page never lets `feed.json` overwrite a newer live list (both fetches race).
 - Each stream VOD is uploaded twice (with and without "| Music |" in the title); the music copies are hidden.
 - Thumbnails are right-sized: `mqdefault` for list rows, `hq720` WebP for the featured video, and for shorts

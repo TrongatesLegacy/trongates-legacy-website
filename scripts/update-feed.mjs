@@ -1,5 +1,5 @@
 // Refreshes public/feed.json with the latest YouTube videos and shorts.
-// Run by .github/workflows/update-feed.yml on a schedule: YouTube's RSS feeds reject requests
+// Run by .github/workflows/daily.yml on a schedule: YouTube's RSS feeds reject requests
 // from Netlify's servers, so the list is fetched here and served as a static file instead.
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";

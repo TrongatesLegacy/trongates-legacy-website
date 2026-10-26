@@ -1,7 +1,7 @@
 name: Tests
 
 # The same tests the pre-push hook runs (docs/testing.md), as a safety net for pushes that skipped the hook.
-# Runs on GitHub's minutes, not Netlify's. Pushes made by other workflows (the daily feed update) don't start it;
+# Runs on GitHub's minutes, not Netlify's. Pushes made by other workflows (daily.yml) don't start it;
 # that workflow runs the fast tests itself before committing.
 on:
   push:

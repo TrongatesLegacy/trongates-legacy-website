@@ -1,4 +1,4 @@
-// Daily check that the widgets can still read Kick chat (.github/workflows/check-kick.yml; docs/widgets.md, "Reading
+// Daily check that the widgets can still read Kick chat (.github/workflows/daily.yml; docs/widgets.md, "Reading
 // chat"). The widgets read it over Pusher with the key in public/widgets/lib/platforms/kick.js. This asks Kick which
 // key it serves now, updates the file if it changed, and really connects to a chatroom with it. It prints one status
 // line and writes `status` and `summary` for the workflow:

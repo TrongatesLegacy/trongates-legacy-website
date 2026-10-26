@@ -1,0 +1,94 @@
+name: Daily
+
+# Every daily job that can change the site, in one run so their commits go out in one push (one Netlify deploy, and
+# only when something changed):
+#   - the video feed: refreshes public/feed.json, the static fallback (/api/feed serves the live list)
+#   - Kick chat: can the widgets still read it? A new Pusher key updates kick.js (scripts/check-kick.mjs; docs/widgets.md,
+#     "Reading chat")
+#   - input-overlay: is Inputty's download button its latest stable release? A new one updates guide.js
+#     (scripts/check-input-overlay.mjs; docs/widgets.md, "Inputty")
+# Each is its own commit. Pushed with the workflow's own GITHUB_TOKEN (contents: write; main isn't protected), which
+# doesn't start the Tests workflow, so the fast tests run here first. Anything needing a person opens one issue per
+# check (labelled kick-chat or input-overlay, which emails the repo's watchers), closed by the next check that's ok.
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: daily
+  cancel-in-progress: true
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # one failing check never stops the others
+      - name: Video feed
+        id: feed
+        continue-on-error: true
+        run: node scripts/update-feed.mjs
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }} # optional; without it the RSS feeds are used
+      - name: Kick chat
+        id: kick
+        continue-on-error: true
+        run: node scripts/check-kick.mjs
+      - name: input-overlay
+        id: io
+        continue-on-error: true
+        run: node scripts/check-input-overlay.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Test, commit what changed, push once
+        run: |
+          git diff --quiet && { echo "Nothing changed."; exit 0; }
+          node scripts/test.mjs --fast
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          commit() { git add "$1"; git diff --cached --quiet || git commit -q -m "$2" ${3:+-m "$3"}; }
+          commit public/feed.json "Update video feed"
+          commit public/widgets/lib/platforms/kick.js "Kick chat: Kick changed its Pusher key, kick.js updated by the daily check" "$KICK"
+          commit public/inputty/lib/guide.js "Inputty: the download button offers input-overlay's new release, updated by the daily check" "$IO"
+          git pull -q --rebase && git push
+        env:
+          KICK: ${{ steps.kick.outputs.summary }}
+          IO: ${{ steps.io.outputs.summary }}
+
+      - name: Open or close each check's issue
+        if: always()
+        run: |
+          # issue <label> <colour> <description> <status> <summary> <statuses needing a person> <statuses that are fine>
+          issue() {
+            gh label create "$1" --color "$2" --description "$3" --force >/dev/null
+            open=$(gh issue list --label "$1" --state open --json number --jq '.[0].number')
+            if [[ " $6 " == *" $4 "* ]]; then
+              if [ -n "$open" ]; then gh issue comment "$open" --body "Still needs a look ($4): $5 $RUN_URL"
+              else gh issue create --label "$1" --title "$3: $4" --body "$5
+
+          Status: \`$4\`. Run: $RUN_URL
+          This issue closes itself once a daily check is ok."; fi
+            elif [[ " $7 " == *" $4 "* ]]; then
+              for n in $(gh issue list --label "$1" --state open --json number --jq '.[].number'); do gh issue close "$n" --comment "Fixed: $5"; done
+            fi
+          }
+          issue kick-chat 53fc18 "Kick chat in the widgets (daily check)" "$KICK_STATUS" "$KICK" "no-pusher broken unreachable" "ok key-changed"
+          issue input-overlay 1f6feb "Inputty's input-overlay download (daily check)" "$IO_STATUS" "$IO" "review unreachable" "ok updated"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KICK_STATUS: ${{ steps.kick.outputs.status }}
+          KICK: ${{ steps.kick.outputs.summary }}
+          IO_STATUS: ${{ steps.io.outputs.status }}
+          IO: ${{ steps.io.outputs.summary }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
